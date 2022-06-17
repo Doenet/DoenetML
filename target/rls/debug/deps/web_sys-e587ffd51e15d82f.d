@@ -1,0 +1,11 @@
+/home/daniel/MyCode/wasm-json-test/target/rls/debug/deps/web_sys-e587ffd51e15d82f.rmeta: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/lib.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/mod.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Event.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_EventTarget.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_MessageEvent.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Worker.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_console.rs
+
+/home/daniel/MyCode/wasm-json-test/target/rls/debug/deps/web_sys-e587ffd51e15d82f.d: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/lib.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/mod.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Event.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_EventTarget.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_MessageEvent.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Worker.rs /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_console.rs
+
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/lib.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/mod.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Event.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_EventTarget.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_MessageEvent.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_Worker.rs:
+/home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/web-sys-0.3.58/src/features/gen_console.rs:
