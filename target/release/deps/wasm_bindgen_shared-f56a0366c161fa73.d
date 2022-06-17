@@ -1,8 +1,8 @@
-/home/daniel/MyCode/wasm-json-test/target/release/deps/wasm_bindgen_shared-f56a0366c161fa73.rmeta: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
+/home/daniel/MyCode/DoenetRustWASM/target/release/deps/wasm_bindgen_shared-f56a0366c161fa73.rmeta: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
 
-/home/daniel/MyCode/wasm-json-test/target/release/deps/libwasm_bindgen_shared-f56a0366c161fa73.rlib: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
+/home/daniel/MyCode/DoenetRustWASM/target/release/deps/libwasm_bindgen_shared-f56a0366c161fa73.rlib: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
 
-/home/daniel/MyCode/wasm-json-test/target/release/deps/wasm_bindgen_shared-f56a0366c161fa73.d: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
+/home/daniel/MyCode/DoenetRustWASM/target/release/deps/wasm_bindgen_shared-f56a0366c161fa73.d: /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs
 
 /home/daniel/.cargo/registry/src/github.com-1ecc6299db9ec823/wasm-bindgen-shared-0.2.81/src/lib.rs:
 

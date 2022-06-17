@@ -3,6 +3,19 @@
 version = 3
 
 [[package]]
+name = "DoenetRustWASM"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+ "web-sys",
+ "wee_alloc",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -238,19 +251,6 @@ checksum = "88ad594bf33e73cafcac2ae9062fc119d4f75f9c77e25022f91c9a64bd5b6463"
 dependencies = [
  "proc-macro2",
  "quote",
-]
-
-[[package]]
-name = "wasm-json-test"
-version = "0.1.0"
-dependencies = [
- "console_error_panic_hook",
- "serde",
- "serde_json",
- "wasm-bindgen",
- "wasm-bindgen-test",
- "web-sys",
- "wee_alloc",
 ]
 
 [[package]]

@@ -1,5 +1,5 @@
 [package]
-name = "wasm-json-test"
+name = "DoenetRustWASM"
 version = "0.1.0"
 authors = ["daniel <djnykamp@gmail.com>"]
 edition = "2018"

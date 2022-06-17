@@ -1,4 +1,4 @@
-import { DoenetCore } from "wasm-json-test"
+import { DoenetCore } from "DoenetRustWASM"
 import { parseAndCompile } from "./Parser/parser.js"
 
 
