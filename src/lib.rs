@@ -8,6 +8,8 @@ use std::collections::HashMap;
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use std::fmt;
+
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -36,19 +38,67 @@ pub struct DoenetCore {
     render_tree_base: RTC,
 }
 
-// #[derive(Debug)]
-// struct Text {
-//     name: String,
-//     value: String,
-//     parent: RefCell<String>,
-//     children: RefCell<Vec<TextChildRef>>,
-// }
 
-// #[derive(Debug, Clone)]
-// enum TextChildRef {
-//     String(String),
-//     TextLike(Rc<dyn TextLike>),
-// }
+trait ComponentLike {
+    fn name(&self) -> String;
+    fn parent_name(&self) -> String;
+
+    // fn get_parent_from_list(&self, components: &HashMap<String, Component>) -> Option<Rc<dyn ComponentLike>> {
+
+    //     let possible_parent = components.get(&self.parent_name());
+    //     match possible_parent {
+    //         Some(parent) => Option::Some(parent.to_component_like()),
+    //         None => Option::None,
+    //     }
+    // }
+
+    fn set_parent(&self, parent_name: String);
+
+}
+
+
+
+#[derive(Debug)]
+struct Text {
+    name: String,
+    value: String,
+    parent: RefCell<String>,
+    children: RefCell<Vec<TextChildRef>>,
+}
+
+trait TextLike: ComponentLike {
+    fn text_value(&self) -> String;
+}
+
+#[derive(Debug, Clone)]
+enum TextChildRef {
+    String(String),
+    TextLike(Rc<dyn TextLike>),
+}
+
+impl fmt::Debug for dyn TextLike {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let debug_text = format!("{}:{}", self.name(), self.text_value());
+        f.write_str(&debug_text)
+    }
+}
+
+
+impl ComponentLike for Text {
+    fn name(&self) -> String {
+        self.name.clone()
+    }
+    fn parent_name(&self) -> String {
+        self.parent.borrow().clone()
+    }
+
+    fn set_parent(&self, parent_name: String) {
+        let mut parent = self.parent.borrow_mut();
+        *parent = parent_name;
+    }
+}
+
+
 
 
 #[wasm_bindgen]
@@ -57,6 +107,11 @@ impl DoenetCore {
         log!("core recieved the string: {}", program);
 
         let json_deserialized: serde_json::Value = serde_json::from_str(program).unwrap();
+
+
+
+        
+
 
         let render_tree_base: RTC = RTC::Array(Vec::from([
             RTC::String(String::from("Duckling")),
