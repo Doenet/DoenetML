@@ -1,0 +1,16 @@
+{
+  "name": "DoenetRustWASM",
+  "collaborators": [
+    "daniel <djnykamp@gmail.com>"
+  ],
+  "version": "0.1.0",
+  "files": [
+    "DoenetRustWASM_bg.wasm",
+    "DoenetRustWASM.js",
+    "DoenetRustWASM_bg.js",
+    "DoenetRustWASM.d.ts"
+  ],
+  "module": "DoenetRustWASM.js",
+  "types": "DoenetRustWASM.d.ts",
+  "sideEffects": false
+}
