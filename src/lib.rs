@@ -36,19 +36,19 @@ pub struct DoenetCore {
     render_tree_base: RTC,
 }
 
-#[derive(Debug)]
-struct Text {
-    name: String,
-    value: String,
-    parent: RefCell<String>,
-    children: RefCell<Vec<TextChildRef>>,
-}
+// #[derive(Debug)]
+// struct Text {
+//     name: String,
+//     value: String,
+//     parent: RefCell<String>,
+//     children: RefCell<Vec<TextChildRef>>,
+// }
 
-#[derive(Debug, Clone)]
-enum TextChildRef {
-    String(String),
-    TextLike(Rc<dyn TextLike>),
-}
+// #[derive(Debug, Clone)]
+// enum TextChildRef {
+//     String(String),
+//     TextLike(Rc<dyn TextLike>),
+// }
 
 
 #[wasm_bindgen]
