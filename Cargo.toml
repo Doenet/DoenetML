@@ -1,5 +1,5 @@
 [package]
-name = "DoenetRustWASM"
+name = "doenet_rust_wasm"
 version = "0.1.0"
 authors = ["daniel <djnykamp@gmail.com>"]
 edition = "2018"
@@ -18,6 +18,7 @@ features = [
 
 [dependencies]
 wasm-bindgen = "0.2.63"
+core = { path = "core" }
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
