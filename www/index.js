@@ -1,4 +1,4 @@
-import { DoenetCore } from "DoenetRustWASM"
+import { DoenetCore } from "doenet_rust_wasm"
 import { parseAndCompile } from "./Parser/parser.js"
 
 const DoenetText = "<text><text>hello</text> world</text>";

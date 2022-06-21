@@ -124,7 +124,7 @@ pub enum Component {
 
 
 impl Component {
-    fn name(&self) -> String {
+    pub fn name(&self) -> String {
         match self {
             Component::Text(comp) => comp.name(),
             Component::Number(comp) => comp.name(),
@@ -229,7 +229,8 @@ impl fmt::Debug for dyn NumberLikeComponent {
 }
 
 
-fn main() {
+#[test]
+fn test_core() {
 
     let mut components: HashMap<String, Component> = HashMap::new();
 

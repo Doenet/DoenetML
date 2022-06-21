@@ -27,7 +27,7 @@
   },
   "homepage": "https://github.com/rustwasm/create-wasm-app#readme",
   "dependencies": {
-    "DoenetRustWASM": "file:../pkg",
+    "doenet_rust_wasm": "file:../pkg",
     "@lezer/common": "^0.15.10",
     "@lezer/lr": "^0.15.5"
   },
