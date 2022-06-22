@@ -9,7 +9,9 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use core::Component;
-use core::text::{Text, TextValue};
+use core::ComponentChild;
+
+use core::text::Text;
 use core::number::Number;
 
 use serde_json::Value;
@@ -27,13 +29,6 @@ macro_rules! log {
     }
 }
 
-// Render Tree Component
-#[derive(Serialize, Debug)]
-enum RTC {
-    String(String),
-    Array(Vec<RTC>),
-    Object(HashMap<String, RTC>),
-}
 
 #[wasm_bindgen]
 #[derive(Debug)]
@@ -50,31 +45,32 @@ impl DoenetCore {
 
         let json_deserialized: serde_json::Value = serde_json::from_str(program).unwrap();
 
-        log!("test log");
         log!("rust json: {:#?}", json_deserialized);
 
         let mut components: HashMap<String, Component> = HashMap::new();
-        add_json_subtree_to_components(&mut components, json_deserialized, "");
+        let mut component_type_counter: HashMap<String, u32> = HashMap::new();
+        add_json_subtree_to_components(&mut components, &json_deserialized, "", &mut component_type_counter);
 
-        // let render_tree_base: RTC = RTC::Array(Vec::from([
-        //     RTC::String(String::from("Duckling")),
-        //     RTC::String(String::from("Quack")),
-        //     RTC::Object(HashMap::from([
-        //         (String::from("Mercury"), RTC::String(String::from("0.4"))),
-        //         (String::from("Earth"), RTC::Array(Vec::from([
-        //             RTC::String(String::from("1.0")),
-        //             RTC::String(String::from("3.0")),
-        //             RTC::String(String::from("5.0")),
-        //         ]))),
-        //         (String::from("Mars"), RTC::String(String::from("1.5"))),
-        //     ])),
-        // ]));
+        log!("rust components: {:#?}", components);
 
-        // log!("rust deserialized: {:?}", json_deserialized);
-        // log!("render_tree: {:?}", &render_tree_base);
+        // for (component_name, component) in components.iter() {
+        //     if let Component::Text(text) = component {
+        //         log!("{} has {} references right now", component_name, Rc::strong_count(&text));
+        //     }
+        // }
 
-        // DoenetCore {
-        //     render_tree_base,
+        // for (component_name, component) in components.iter() {
+        //     if let Component::Text(text) = component {
+
+        //         let children = text.children.borrow();
+        //         for child in children.iter() {
+        //             if let ComponentChild::Component(child_comp) = child {
+        //                 log!("{}'s child {} has {} references right now",
+        //                 component_name, child_comp.name(), Rc::strong_count(&child_comp));
+        //             }
+
+        //         }
+        //     }
         // }
 
         let components: HashMap<String, Component> = HashMap::new();
@@ -82,34 +78,82 @@ impl DoenetCore {
         DoenetCore {
             components
         }
+        
     }
 }
 
-fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, json_obj: serde_json::Value, parent_name: &str) {
+fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, json_obj: &serde_json::Value, parent_name: &str, component_type_counter: &mut HashMap<String, u32>) {
 
     match json_obj {
-        serde_json::Value::Object(map) => {
+        serde_json::Value::Array(value_vec) => {
+            log!("array");
+            for value in value_vec.iter() {
+                add_json_subtree_to_components(components, value, parent_name, component_type_counter);
+            }
+        },
 
-            let value = map.get("componentType").unwrap();
-            if let Value::String(component_type) = value {
+        serde_json::Value::Object(map) => {
+            log!("object");
+            let component_type_value = map.get("componentType").unwrap();
+
+            if let Value::String(component_type) = component_type_value {
+
+
+                let count = *component_type_counter.get(component_type).unwrap_or(&0);
+                component_type_counter.insert(component_type.to_string(), count + 1);
+                let mut component_name =  format!("/_{}{}", component_type, count + 1);
+
+                let props_value = map.get("props").unwrap();
+                if let Value::Object(props_map) = props_value {
+                    if let Some(name_value) = props_map.get("name") {
+                        if let Value::String(name) = name_value {
+                            component_name = name.to_string();
+                        }
+                    }
+
+
+                }
+
 
                 let component = match component_type.as_str() {
                     "text" => Component::Text( Rc::new(Text{
-                        name: "unnamed text object".to_string(),
-                        value: TextValue("".to_string()),
+                        name: component_name.clone(),
+                        hide: RefCell::new(false),
+                        value: RefCell::new("".to_string()),
                         children: RefCell::new(vec![]),
                         parent: RefCell::new(parent_name.to_string()),
                     })),
                     _ => {panic!("Unrecognized component type")}
                 };
-                components.insert(component.name(), component);
-                
+
+                if let Some(parent) = components.get(parent_name) {
+                    parent.clone().to_component_like().add_as_child(
+                        ComponentChild::Component(component.clone().to_component_like()));
+                }
+
+        
+
+
+                let children_value = map.get("children").unwrap();
+
+                components.insert(component_name.clone(), component);
+                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter);
 
             } else {
                 panic!("componentType is not a string");
             }
 
+
+
+
         },
-        _ => {},
+
+        Value::String(string_value) => {
+            if let Some(parent) = components.get(parent_name) {
+                parent.clone().to_component_like().add_as_child(ComponentChild::String(string_value.to_string()));
+            }
+        },
+
+        _ => {log!("other");},
     }
 }
