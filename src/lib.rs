@@ -70,10 +70,8 @@ impl DoenetCore {
                 Component::Number(_) => "number",
             };
 
-            //If already loaded definitions for this type
-            if let Some(_) = state_var_definitions.get(component_type) {
-                //do nothing
-            } else {
+            //If haven't already loaded definitions for this type
+            if state_var_definitions.contains_key(component_type) == false {
                 load_state_var_definitions_for_component_type(
                     &mut state_var_definitions, component_type);
             };
@@ -111,7 +109,7 @@ impl DoenetCore {
                     StateVar::String(def) => {
                         let state_field = (def.access)(&component);
                         // log!("{:#?}", state_field);
-                        // *state_field.borrow_mut() = "again i am edited".to_string();
+                        // *state_field.borrow_mut() = "again i am edited".to_owned();
                         *state_field.borrow_mut() = format!("I am string for the state var '{}' of component {}", state_var_name, component_name);
 
                     }
@@ -209,7 +207,7 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                     "text" => Component::Text( Rc::new(Text{
                         name: component_name.clone(),
                         hide: RefCell::new(false),
-                        value: RefCell::new("".to_string()),
+                        value: RefCell::new("".to_owned()),
                         children: RefCell::new(vec![]),
                         parent: RefCell::new(parent_name.to_string()),
                     })),

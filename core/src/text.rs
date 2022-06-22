@@ -32,10 +32,10 @@ impl HasStateVariables for Text {
 
                 let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
                     desired_children: vec![ComponentTraitName::TextLikeComponent],
-                    desired_state_vars: vec!["value".to_string()],
+                    desired_state_vars: vec!["value".to_owned()],
                 });
     
-                HashMap::from([("value".to_string(), instruction)])
+                HashMap::from([("value".to_owned(), instruction)])
             }
             fn determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<String> {
     
@@ -122,10 +122,10 @@ impl StateVariable for TextValue {
 
         let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
             desired_children: vec![ComponentTraitName::TextLikeComponent],
-            desired_state_vars: vec!["value".to_string()],
+            desired_state_vars: vec!["value".to_owned()],
         });
 
-        HashMap::from([("text_value".to_string(), instruction)])
+        HashMap::from([("text_value".to_owned(), instruction)])
 
     }
 

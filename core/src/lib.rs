@@ -428,8 +428,8 @@ fn test_core() {
     let mut components: HashMap<String, Component> = HashMap::new();
 
     let text2 = Rc::new(Text {
-        name: "text2".to_string(),
-        value: RefCell::new("hi there".to_string()),
+        name: "text2".to_owned(),
+        value: RefCell::new("hi there".to_owned()),
         hide: RefCell::new(false),
         parent: RefCell::new(String::new()),
         children: RefCell::new(vec![]),
@@ -438,8 +438,8 @@ fn test_core() {
 
 
     let text1 = Rc::new(Text {
-        name: "text1".to_string(),
-        value: RefCell::new("banana".to_string()),
+        name: "text1".to_owned(),
+        value: RefCell::new("banana".to_owned()),
         hide: RefCell::new(false),
         parent: RefCell::new(String::new()),
         children: RefCell::new(vec![]),
