@@ -28,11 +28,11 @@ use number::Number;
 macro_rules! state_var_access {
     ($component_type:ident, $state_var_field:ident, $state_var_type:ty) => {
 
-        |component: crate::Component| -> RefCell<$state_var_type> {
+        |component: &crate::Component| -> &RefCell<$state_var_type> {
 
             match component {
                 crate::Component::$component_type(my_component) => {
-                    my_component.$state_var_field.clone()
+                    &my_component.$state_var_field
                 },
                 _ => {
                     panic!("State var access used wrong Component type argument for $component_type");
@@ -45,33 +45,56 @@ macro_rules! state_var_access {
 
 
 
-trait StateVariable<T> {
 
-    fn state_vars_to_determine_dependencies() -> Vec<String> {
-        vec![]
-    }
-    fn return_dependency_instructions(
-        prerequisite_state_values: HashMap<String, StateVarValue>
-    ) -> HashMap<String, DependencyInstruction>;
 
-    fn determine_state_var_from_dependencies(
-        dependency_values: HashMap<String, StateVarValue>
-    ) -> StateVarUpdateInstruction<T>;
-}
+
+// trait StateVariable<T> {
+
+//     fn state_vars_to_determine_dependencies() -> Vec<String> {
+//         vec![]
+//     }
+//     fn return_dependency_instructions(
+//         prerequisite_state_values: HashMap<String, StateVarValue>
+//     ) -> HashMap<String, DependencyInstruction>;
+
+//     fn determine_state_var_from_dependencies(
+//         dependency_values: HashMap<String, StateVarValue>
+//     ) -> StateVarUpdateInstruction<T>;
+// }
 
 
 type StateVarValuesMap = HashMap<String, StateVarValue>;
 type DependencyInstructionMap = HashMap<String, DependencyInstruction>;
 
-
-#[derive(Debug)]
+// #[derive(Debug)]
 pub struct StateVarDef<T> {
-    // name: &'static str,
     state_vars_to_determine_dependencies: fn() -> Vec<String>,
     return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
     determine_state_var_from_dependencies:fn(StateVarValuesMap) -> StateVarUpdateInstruction<T>,
-    access: fn(Component) -> RefCell<T>,
-    // associated_field: fn(Rc<ComponentType>) -> RefCell<StateVarType>,
+
+    //Note: this might not need to be pub later
+    pub access: fn(&Component) -> &RefCell<T>,
+}
+
+
+
+
+// impl<T> fmt::Debug for fn(&Component) -> RefCell<T> {
+//     fn fmt<'a>(&'a self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.debug_tuple("access").field(&(self.0 as fn(&'a Component) -> RefCell<T>)).finish()
+//     }
+// }
+
+impl<T> fmt::Debug for StateVarDef<T> {
+    fn fmt<'a>(&'a self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("StateVarDef")
+            .field("state_vars_to_determine_dependencies", &self.state_vars_to_determine_dependencies)
+            .field("return_dependency_instructions", &self.return_dependency_instructions)
+            .field("determine_state_var_from_dependencies", &self.determine_state_var_from_dependencies)
+            .field("access", &"Can't print access pointer")
+            .finish()
+
+    }
 }
 
 
@@ -111,6 +134,8 @@ enum StateVarValue {
     Integer(i64),
     Boolean(bool),
 }
+
+
 
 #[derive(Clone, Debug)]
 enum DependencyInstruction {
@@ -225,7 +250,7 @@ pub enum ComponentChild {
 
 
 #[derive(Debug)]
-struct Dependency {
+pub struct Dependency {
     component: String,
     state_var: &'static str,
 
@@ -241,7 +266,7 @@ struct Dependency {
 
 
 
-fn load_state_var_definitions_for_component_type(
+pub fn load_state_var_definitions_for_component_type(
     state_var_definitions: &mut HashMap<&'static str, HashMap<&'static str, StateVar>>,
     component_name: &'static str) {
 
@@ -256,7 +281,7 @@ fn load_state_var_definitions_for_component_type(
 
 
 
-fn create_all_dependencies_for_component(
+pub fn create_all_dependencies_for_component(
     state_var_definitions: &HashMap<&'static str, HashMap<&'static str, StateVar>>, 
     component: &Component) -> Vec<Dependency> {
         
@@ -350,6 +375,7 @@ fn create_dependency_from_instruction(component: &Rc<impl ComponentLike>, state_
 
                         ComponentChild::String(string_value) => {
                             if desired_child_type == &ComponentTraitName::TextLikeComponent {
+                                //or do nothing here?
                                 depends_on_children.push(format!("#{}", string_value));
                             }
                         },
@@ -449,6 +475,7 @@ fn test_core() {
     
     // }
 
+    let value_ref_cell: RefCell<String> = state_var_access(text1, "value");
 
 
 }

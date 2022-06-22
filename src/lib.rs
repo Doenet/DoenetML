@@ -4,6 +4,10 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
+use core::Dependency;
+use core::create_all_dependencies_for_component;
+use core::load_state_var_definitions_for_component_type;
+use core::state_var_access;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -13,6 +17,7 @@ use core::ComponentChild;
 
 use core::text::Text;
 use core::number::Number;
+use core::StateVar;
 
 use serde_json::Value;
 
@@ -34,6 +39,7 @@ macro_rules! log {
 #[derive(Debug)]
 pub struct DoenetCore {
     components: HashMap<String, Component>,
+    // state_var_definitions: HashMap<&'static str, HashMap<&'static str, StateVar>>,
 }
 
 
@@ -51,29 +57,113 @@ impl DoenetCore {
         let mut component_type_counter: HashMap<String, u32> = HashMap::new();
         add_json_subtree_to_components(&mut components, &json_deserialized, "", &mut component_type_counter);
 
-        log!("rust components: {:#?}", components);
+
+        let mut state_var_definitions: 
+            HashMap<&'static str, HashMap<&'static str, StateVar>> = HashMap::new();
+
+        let mut dependencies: Vec<Dependency> = vec![];
+        
+        for (component_name, component) in components.iter() {
+
+            let component_type = match component {
+                Component::Text(_) => "text",
+                Component::Number(_) => "number",
+            };
+
+            //If already loaded definitions for this type
+            if let Some(_) = state_var_definitions.get(component_type) {
+                //do nothing
+            } else {
+                load_state_var_definitions_for_component_type(
+                    &mut state_var_definitions, component_type);
+            };
+
+
+            let dependencies_for_this_component = create_all_dependencies_for_component(
+                &mut state_var_definitions, &component
+            );
+
+            for dependency in dependencies_for_this_component {
+                dependencies.push(dependency);
+            }
+            
+        }
+
+
+
+
+
+
+        for (component_name, component) in components.iter() {
+            let component_type = match component {
+                Component::Text(_) => "text",
+                Component::Number(_) => "number",
+            };
+   
+
+            for (state_var_name, state_var) in state_var_definitions.get(component_type).unwrap() {
+
+                // log!("{} of {}", state_var_name, component_name);
+                // log!("this component is {:#?}", component);
+
+
+                match state_var {
+                    StateVar::String(def) => {
+                        let state_field = (def.access)(&component);
+                        // log!("{:#?}", state_field);
+                        // *state_field.borrow_mut() = "again i am edited".to_string();
+                        *state_field.borrow_mut() = format!("I am string for the state var '{}' of component {}", state_var_name, component_name);
+
+                    }
+                    StateVar::Bool(def) => {
+                        let state_field = (def.access)(&component);
+                        *state_field.borrow_mut() = true;
+                    }
+                    StateVar::Integer(def) => {
+                        let state_field = (def.access)(&component);
+                        *state_field.borrow_mut() = 49;
+
+                    }
+                    StateVar::Number(def) => {
+                        let state_field = (def.access)(&component);
+                        *state_field.borrow_mut() = 123.456;
+                    }
+                }
+
+
+
+                // log!("Now this component is {:#?}", component);
+            }
+        
+        }
+
+
+        log!("Components: {:#?}", components);
+        log!("State var definitions\n{:#?}", state_var_definitions);
+        log!("Dependencies\n{:#?}", dependencies);
+
+        
+
+
+        //Reference counter testing
 
         // for (component_name, component) in components.iter() {
         //     if let Component::Text(text) = component {
         //         log!("{} has {} references right now", component_name, Rc::strong_count(&text));
         //     }
         // }
-
         // for (component_name, component) in components.iter() {
         //     if let Component::Text(text) = component {
-
         //         let children = text.children.borrow();
         //         for child in children.iter() {
         //             if let ComponentChild::Component(child_comp) = child {
         //                 log!("{}'s child {} has {} references right now",
         //                 component_name, child_comp.name(), Rc::strong_count(&child_comp));
         //             }
-
         //         }
         //     }
         // }
 
-        let components: HashMap<String, Component> = HashMap::new();
 
         DoenetCore {
             components

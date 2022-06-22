@@ -19,8 +19,6 @@ fn impl_component_like(ast: &syn::DeriveInput) -> TokenStream {
         impl ComponentLike for #name {
 
 
-
-
             fn name(&self) -> String {
                 self.name.clone()
             }

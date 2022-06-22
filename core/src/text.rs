@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use core_derive::ComponentLike;
 
-use crate::{HasStateVariables, default_state_vars_for_dependencies, state_var_access};
+use crate::{HasStateVariables, default_state_vars_for_dependencies,  state_var_access};
 
 use crate::{StateVarValue, DependencyInstruction, ChildDependencyInstruction, StateVarUpdateInstruction, ComponentTraitName, TextLikeComponent, ComponentLike, HasComponentTraits, ComponentChild, StateVarDef, StateVarValuesMap, DependencyInstructionMap, StateVar};
 
@@ -50,10 +50,12 @@ impl HasStateVariables for Text {
                 StateVarUpdateInstruction::SetValue(val)
             }
 
+
             value = StateVarDef {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions,
                 determine_state_var_from_dependencies,
+
                 access: state_var_access!(Text, value, String),
             };
         }

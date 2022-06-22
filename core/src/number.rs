@@ -4,7 +4,7 @@ use std::cell::{RefCell};
 
 use core_derive::ComponentLike;
 
-use super::{StateVariable, StateVarValue, DependencyInstruction, ChildDependencyInstruction, StateVarUpdateInstruction, ComponentTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike, HasComponentTraits, ComponentChild};
+use super::{StateVarValue, DependencyInstruction, ChildDependencyInstruction, StateVarUpdateInstruction, ComponentTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike, HasComponentTraits, ComponentChild};
 
 
 #[derive(Debug, ComponentLike)]
