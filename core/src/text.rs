@@ -6,9 +6,11 @@ use std::collections::HashMap;
 
 use core_derive::ComponentLike;
 
-use crate::{HasStateVariables, default_state_vars_for_dependencies,  state_var_access};
+use crate::state_variable_setup::*;
 
-use crate::{StateVarValue, DependencyInstruction, ChildDependencyInstruction, StateVarUpdateInstruction, ComponentTraitName, TextLikeComponent, ComponentLike, HasComponentTraits, ComponentChild, StateVarDef, StateVarValuesMap, DependencyInstructionMap, StateVar};
+use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ComponentTraitName, TextLikeComponent};
+
+use phf::phf_map;
 
 
 
@@ -23,137 +25,94 @@ pub struct Text {
 }
 
 
-impl HasStateVariables for Text {
-    fn define_state_variables() -> HashMap<&'static str, StateVar> {
+fn value_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
 
-        let value: StateVarDef<String>;
-        {
-            fn return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
+    let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
+        desired_children: vec![ComponentTraitName::TextLikeComponent],
+        desired_state_vars: vec!["value".to_owned()],
+    });
 
-                let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-                    desired_children: vec![ComponentTraitName::TextLikeComponent],
-                    desired_state_vars: vec!["value".to_owned()],
-                });
-    
-                HashMap::from([("value".to_owned(), instruction)])
-            }
-            fn determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<String> {
-    
-                let mut val = String::new();
-            
-                for (_, child_text_value) in dependency_values {
-                    if let StateVarValue::Text(text) = child_text_value {
-                        val.push_str(&text);
-                    }
-                }
-            
-                StateVarUpdateInstruction::SetValue(val)
-            }
+    HashMap::from([("value".to_owned(), instruction)])
+}
 
+fn value_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<String> {
 
-            value = StateVarDef {
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions,
-                determine_state_var_from_dependencies,
+    let mut val = String::new();
 
-                access: state_var_access!(Text, value, String),
-            };
+    for (_, child_text_value) in dependency_values {
+        if let StateVarValue::Text(text) = child_text_value {
+            val.push_str(&text);
         }
-
-
-        let hide: StateVarDef<bool>;
-        {
-            fn return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
-                DependencyInstructionMap::new()
-            }
-            fn determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<bool> {
-                StateVarUpdateInstruction::NoChange
-        }
-
-            hide = StateVarDef {
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions,
-                determine_state_var_from_dependencies,
-                access: state_var_access!(Text, hide, bool),
-            };
-        }
-
-        HashMap::from([
-            ("value", StateVar::String(value)),
-            ("hide", StateVar::Bool(hide)),
-        ])
-
     }
+
+    StateVarUpdateInstruction::SetValue(val)
+}
+
+fn hide_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
+    DependencyInstructionMap::new()
+}
+
+fn hide_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<bool> {
+    StateVarUpdateInstruction::NoChange
 }
 
 
 
 
+impl ComponentSpecificBehavior for Text {
 
-impl HasComponentTraits for Text {
+    fn state_variable_instructions(&self) -> phf::Map<&'static str, StateVar> {
+
+
+        phf_map! {
+            "value" => StateVar::String(StateVarDef {
+                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+                return_dependency_instructions: value_return_dependency_instructions,
+                determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+
+                // access: state_var_access!(Text, value, String),
+
+            }),
+
+            "hide" => StateVar::Bool(StateVarDef { 
+                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+                return_dependency_instructions: hide_return_dependency_instructions,
+                determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
+                // access: state_var_access!(Text, hide, bool),
+            }),
+
+        }
+        
+    }
+
+    fn state_var(&self, name: &'static str) -> Option<crate::StateVarAccess> {
+        use crate::StateVarAccess;
+
+        match name {
+            "value" => Option::Some(StateVarAccess::String(&self.value)),
+            "hide" => Option::Some(StateVarAccess::Bool(&self.hide)),
+            _ => Option::None,
+        }
+    }
+
     fn get_trait_names(&self) -> Vec<ComponentTraitName> {
         vec![ComponentTraitName::TextLikeComponent]
     }
 
-    // fn state_vars(&self) -> Vec<Rc<dyn StateVariable>> {
-    //     vec![
-    //         Rc::new(self.value) as Rc<dyn StateVariable>
-    //     ]
-    // }
-
-}
-
-
-
-
-
-
-
-pub struct MyTextValue {
-    value: String,
-}
-/** #[derive(Debug, Clone)]
-pub struct TextValue(pub String);
-impl StateVariable for TextValue {
-
-    fn return_dependency_instructions(
-        prerequisite_state_values: HashMap<String, StateVarValue>
-    ) -> HashMap<String, DependencyInstruction> {
-
-        let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-            desired_children: vec![ComponentTraitName::TextLikeComponent],
-            desired_state_vars: vec!["value".to_owned()],
-        });
-
-        HashMap::from([("text_value".to_owned(), instruction)])
-
+    fn get_component_type(&self) -> &'static str {
+        "Text"
     }
 
-    fn determine_state_var_from_dependencies(
-        dependency_values: HashMap<String, StateVarValue>
-    ) -> StateVarUpdateInstruction {
 
-        let mut val = String::new();
-
-        for (_, child_text_value) in dependency_values {
-            if let StateVarValue::Text(text) = child_text_value {
-                val.push_str(&text);
-            }
-        }
-
-        StateVarUpdateInstruction::SetValue(StateVarValue::Text(val))
-    }
 }
 
 
-**/
 
 
-// #[derive(Debug, Clone)]
-// enum TextChildRef {
-//     String(String),
-//     TextLikeComponent(Rc<dyn TextLikeComponent>),
-// }
+
+
+
+
 
 
 // impl ComponentLike for Text {

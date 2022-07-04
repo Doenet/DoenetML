@@ -4,9 +4,8 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
-use core::Dependency;
+
 use core::create_all_dependencies_for_component;
-use core::load_state_var_definitions_for_component_type;
 use core::state_var_access;
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -17,7 +16,8 @@ use core::ComponentChild;
 
 use core::text::Text;
 use core::number::Number;
-use core::StateVar;
+
+use core::state_variable_setup::{StateVar, Dependency};
 
 use serde_json::Value;
 
@@ -39,13 +39,14 @@ macro_rules! log {
 #[derive(Debug)]
 pub struct DoenetCore {
     components: HashMap<String, Component>,
-    // state_var_definitions: HashMap<&'static str, HashMap<&'static str, StateVar>>,
 }
 
 
 #[wasm_bindgen]
 impl DoenetCore {
     pub fn new(program: &str) -> DoenetCore {
+
+        utils::set_panic_hook();
                 
         // log!("core recieved the string: {}", program);
 
@@ -57,29 +58,11 @@ impl DoenetCore {
         let mut component_type_counter: HashMap<String, u32> = HashMap::new();
         add_json_subtree_to_components(&mut components, &json_deserialized, "", &mut component_type_counter);
 
-
-        let mut state_var_definitions: 
-            HashMap<&'static str, HashMap<&'static str, StateVar>> = HashMap::new();
-
         let mut dependencies: Vec<Dependency> = vec![];
         
         for (component_name, component) in components.iter() {
 
-            let component_type = match component {
-                Component::Text(_) => "text",
-                Component::Number(_) => "number",
-            };
-
-            //If haven't already loaded definitions for this type
-            if state_var_definitions.contains_key(component_type) == false {
-                load_state_var_definitions_for_component_type(
-                    &mut state_var_definitions, component_type);
-            };
-
-
-            let dependencies_for_this_component = create_all_dependencies_for_component(
-                &mut state_var_definitions, &component
-            );
+            let dependencies_for_this_component = create_all_dependencies_for_component(&component.component());
 
             for dependency in dependencies_for_this_component {
                 dependencies.push(dependency);
@@ -89,55 +72,38 @@ impl DoenetCore {
 
 
 
+        for (component_name, component_variant) in components.iter() {
 
+            let component = component_variant.component();
 
-
-        for (component_name, component) in components.iter() {
-            let component_type = match component {
-                Component::Text(_) => "text",
-                Component::Number(_) => "number",
-            };
-   
-
-            for (state_var_name, state_var) in state_var_definitions.get(component_type).unwrap() {
-
-                // log!("{} of {}", state_var_name, component_name);
-                // log!("this component is {:#?}", component);
-
+            for (state_var_name, state_var) in component.state_variable_instructions().entries() {
 
                 match state_var {
                     StateVar::String(def) => {
-                        let state_field = (def.access)(&component);
-                        // log!("{:#?}", state_field);
-                        // *state_field.borrow_mut() = "again i am edited".to_owned();
-                        *state_field.borrow_mut() = format!("I am string for the state var '{}' of component {}", state_var_name, component_name);
+
+                        component.set_state_var_string(state_var_name, format!("I am string for the state var '{}' of component {}", state_var_name, component_name));
 
                     }
                     StateVar::Bool(def) => {
-                        let state_field = (def.access)(&component);
-                        *state_field.borrow_mut() = true;
+                        component.set_state_var_bool(state_var_name, true);
                     }
+
                     StateVar::Integer(def) => {
-                        let state_field = (def.access)(&component);
-                        *state_field.borrow_mut() = 49;
+                        component.set_state_var_integer(state_var_name, 49);
 
                     }
                     StateVar::Number(def) => {
-                        let state_field = (def.access)(&component);
-                        *state_field.borrow_mut() = 123.456;
+                        component.set_state_var_number(state_var_name, 123.456);
+
                     }
                 }
 
-
-
-                // log!("Now this component is {:#?}", component);
             }
         
         }
 
 
         log!("Components: {:#?}", components);
-        log!("State var definitions\n{:#?}", state_var_definitions);
         log!("Dependencies\n{:#?}", dependencies);
 
         
@@ -215,8 +181,8 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                 };
 
                 if let Some(parent) = components.get(parent_name) {
-                    parent.clone().to_component_like().add_as_child(
-                        ComponentChild::Component(component.clone().to_component_like()));
+                    parent.clone().component().add_as_child(
+                        ComponentChild::Component(component.clone().component()));
                 }
 
         
@@ -238,7 +204,7 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
 
         Value::String(string_value) => {
             if let Some(parent) = components.get(parent_name) {
-                parent.clone().to_component_like().add_as_child(ComponentChild::String(string_value.to_string()));
+                parent.clone().component().add_as_child(ComponentChild::String(string_value.to_string()));
             }
         },
 

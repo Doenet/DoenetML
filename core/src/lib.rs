@@ -4,24 +4,25 @@
 
 use std::cell::RefCell;
 use std::rc::Rc;
-use std::collections::HashMap;
 use std::fmt;
 
 
-/**
+/*
 Why we need RefCells: the Rc does not allow mutability in the
 thing it wraps. If it any point we might want to mutate a field, its value should be wrapped in a RefCell
-**/
+*/
 
-
-
+pub mod state_variable_setup;
 pub mod text;
+pub mod number;
+
+
+
 use text::{Text};
 
-pub mod number;
 use number::Number;
 
-// use crate::Component;
+use state_variable_setup::*;
 
 
 #[macro_export]
@@ -46,145 +47,67 @@ macro_rules! state_var_access {
 
 
 
-
-
-// trait StateVariable<T> {
-
-//     fn state_vars_to_determine_dependencies() -> Vec<String> {
-//         vec![]
-//     }
-//     fn return_dependency_instructions(
-//         prerequisite_state_values: HashMap<String, StateVarValue>
-//     ) -> HashMap<String, DependencyInstruction>;
-
-//     fn determine_state_var_from_dependencies(
-//         dependency_values: HashMap<String, StateVarValue>
-//     ) -> StateVarUpdateInstruction<T>;
-// }
-
-
-type StateVarValuesMap = HashMap<String, StateVarValue>;
-type DependencyInstructionMap = HashMap<String, DependencyInstruction>;
-
-// #[derive(Debug)]
-pub struct StateVarDef<T> {
-    state_vars_to_determine_dependencies: fn() -> Vec<String>,
-    return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
-    determine_state_var_from_dependencies:fn(StateVarValuesMap) -> StateVarUpdateInstruction<T>,
-
-    //Note: this might not need to be pub later
-    pub access: fn(&Component) -> &RefCell<T>,
-}
-
-
-
-
-// impl<T> fmt::Debug for fn(&Component) -> RefCell<T> {
-//     fn fmt<'a>(&'a self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.debug_tuple("access").field(&(self.0 as fn(&'a Component) -> RefCell<T>)).finish()
-//     }
-// }
-
-impl<T> fmt::Debug for StateVarDef<T> {
-    fn fmt<'a>(&'a self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("StateVarDef")
-            .field("state_vars_to_determine_dependencies", &self.state_vars_to_determine_dependencies)
-            .field("return_dependency_instructions", &self.return_dependency_instructions)
-            .field("determine_state_var_from_dependencies", &self.determine_state_var_from_dependencies)
-            .field("access", &"Can't print access pointer")
-            .finish()
-
-    }
-}
-
-
-pub fn default_state_vars_for_dependencies() -> Vec<String> { vec![] }
-
-
-// impl<T> Default for StateVarDef<T> {
-//     fn default() -> Self {
-//         fn state_vars_to_det_deps() -> Vec<String> { vec![] }
-//         fn return_dep(_: StateVarValuesMap) -> DependencyInstructionMap { DependencyInstructionMap::new() }
-//         fn determine_values<T>(_: StateVarValuesMap) -> StateVarUpdateInstruction<T> {
-//             StateVarUpdateInstruction::NoChange
-//         }
-//         StateVarDef {
-//             name: "",
-//             state_vars_to_determine_dependencies: state_vars_to_det_deps,
-//             return_dependency_instructions: return_dep,
-//             determine_state_var_from_dependencies: determine_values,
-//         }    
-//     }
-// }
-
-
-#[derive(Debug)]
-pub enum StateVar {
-    String(StateVarDef<String>),
-    Bool(StateVarDef<bool>),
-    Number(StateVarDef<f64>),
-    Integer(StateVarDef<i64>),
-}
-
-
-
-enum StateVarValue {
-    Text(String),
-    Number(f64),
-    Integer(i64),
-    Boolean(bool),
-}
-
-
-
-#[derive(Clone, Debug)]
-enum DependencyInstruction {
-    Child(ChildDependencyInstruction),
-    StateVar(StateVarDependencyInstruction),
-    Parent(ParentDependencyInstruction),
-}
-
-#[derive(Clone, Debug)]
-struct ChildDependencyInstruction {
-    desired_children: Vec<ComponentTraitName>,
-    desired_state_vars: Vec<String>,
-}
-
-#[derive(Default, Clone, Debug)]
-struct StateVarDependencyInstruction {
-    component_name: Option<String>, //default: Option::None
-    state_var: String, //default: ""
-}
-
-#[derive(Clone, Debug)]
-struct ParentDependencyInstruction {
-    parent_trait: ComponentTraitName,
-    state_var: String,
-}
-
-
-
-
-enum StateVarUpdateInstruction<T> {
-    SetValue(T),
-    UseDefault,
-    NoChange,
-}
-
-
-pub trait HasStateVariables {
-    fn define_state_variables() -> HashMap<&'static str, StateVar>;
-}
-
-
-pub trait HasComponentTraits {
+pub trait ComponentSpecificBehavior {
     fn get_trait_names(&self) -> Vec<ComponentTraitName>;
-    // fn state_vars(&self) -> Vec<Rc<dyn StateVariable>>;
 
+    /**
+     * Capitalize names, eg, Text.
+     */
+    fn get_component_type(&self) -> &'static str;
+
+    /**
+     * This function should never use self in the function body.
+     * Treat as if this is a constant
+     */
+    fn state_variable_instructions(&self) -> phf::Map<&'static str, StateVar>;
+
+    fn state_var(&self, name: &'static str) -> Option<StateVarAccess>;
+
+
+    fn set_state_var_string(&self, name: &'static str, val: String) {
+
+        match self.state_var(name).unwrap() {
+            StateVarAccess::String(sva) => { sva.replace(val); }
+            _ => { unreachable!(); }
+        }
+    }
+
+    fn set_state_var_integer(&self, name: &'static str, val: i64) {
+
+        match self.state_var(name).unwrap() {
+            StateVarAccess::Integer(sva) => { sva.replace(val); }
+            _ => { unreachable!(); }
+        }
+    }
+
+    fn set_state_var_number(&self, name: &'static str, val: f64) {
+
+        match self.state_var(name).unwrap() {
+            StateVarAccess::Number(sva) => { sva.replace(val); }
+            _ => { unreachable!(); }
+        }
+    }
+
+    fn set_state_var_bool(&self, name: &'static str, val: bool) {
+
+        match self.state_var(name).unwrap() {
+            StateVarAccess::Bool(sva) => { sva.replace(val); }
+            _ => { unreachable!(); }
+        }
+    }
+    
 }
 
 
-pub trait ComponentLike: HasComponentTraits {
+pub enum StateVarAccess<'a> {
+    String(&'a RefCell<String>),
+    Number(&'a RefCell<f64>),
+    Integer(&'a RefCell<i64>),
+    Bool(&'a RefCell<bool>),
+}
+
+
+pub trait ComponentLike: ComponentSpecificBehavior {
     fn name(&self) -> String;
     fn children(&self) -> RefCell<Vec<ComponentChild>>;
     fn parent(&self) -> RefCell<String>;
@@ -201,8 +124,9 @@ trait TextLikeComponent: ComponentLike {
     fn text_value(&self) -> String;
 }
 trait NumberLikeComponent: ComponentLike {
-    fn add_one(&self) -> i32;
+    fn add_one(&self) -> i64;
 }
+
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum ComponentTraitName {
@@ -223,19 +147,10 @@ pub enum Component {
 
 impl Component {
 
-    //Note: this method consumes self
-    pub fn to_component_like(self) -> Rc<dyn ComponentLike> {
+    pub fn component(&self) -> Rc<dyn ComponentLike> {
         match self {
-            Component::Text(comp) => comp as Rc<dyn ComponentLike>,
-            Component::Number(comp) => comp as Rc<dyn ComponentLike>,
-        }
-    }
-
-
-    pub fn name(&self) -> String {
-        match self {
-            Component::Text(comp) => comp.name(),
-            Component::Number(comp) => comp.name(),
+            Component::Text(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
+            Component::Number(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
         }
     }
 
@@ -249,54 +164,17 @@ pub enum ComponentChild {
 }
 
 
-#[derive(Debug)]
-pub struct Dependency {
-    component: String,
-    state_var: &'static str,
-
-    // We will use outer product of entries
-    depends_on_components: Vec<String>,
-    depends_on_state_vars: Vec<String>,
-
-    instruction: DependencyInstruction,
-    variables_optional: bool,
-}
 
 
-
-
-
-pub fn load_state_var_definitions_for_component_type(
-    state_var_definitions: &mut HashMap<&'static str, HashMap<&'static str, StateVar>>,
-    component_name: &'static str) {
-
-    let definitions_from_component = match component_name {
-        "text" => Text::define_state_variables(),
-        _ => panic!("Invalid component name"),
-    };
-
-    state_var_definitions.insert(component_name, definitions_from_component);
-}
-
-
-
-
-pub fn create_all_dependencies_for_component(
-    state_var_definitions: &HashMap<&'static str, HashMap<&'static str, StateVar>>, 
-    component: &Component) -> Vec<Dependency> {
+pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) -> Vec<Dependency> {
         
         let mut dependencies: Vec<Dependency> = vec![];
 
 
-        let my_definitions = state_var_definitions.get(
-            match component {
-                Component::Text(_) => "text",
-                Component::Number(_) => "number",
-            }
-        ).unwrap();
+        let my_definitions = component.state_variable_instructions();
 
 
-        for (&state_var_name, state_var_def) in my_definitions.iter() {
+        for (&state_var_name, state_var_def) in my_definitions.entries() {
 
             //Eventually, call state_vars_to_determine_dependencies() and go calculate those values
 
@@ -311,20 +189,8 @@ pub fn create_all_dependencies_for_component(
             for (_, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
 
-                let dependency;
-                match component {
-                    Component::Text(ref text) => {
-                        dependency = create_dependency_from_instruction(
-                            &text, state_var_name, dep_instruction
-                        );
-                    },
-                    Component::Number(ref number) => {
-                        dependency = create_dependency_from_instruction(
-                            &number, state_var_name, dep_instruction
-                        );
-                    },
+                let dependency =  create_dependency_from_instruction(component, state_var_name, dep_instruction);
 
-                }
                 dependencies.push(dependency);
             }
         
@@ -336,7 +202,8 @@ pub fn create_all_dependencies_for_component(
 }
 
 
-fn create_dependency_from_instruction(component: &Rc<impl ComponentLike>, state_var: &'static str, instruction: DependencyInstruction) -> Dependency {
+fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_var: &'static str, instruction: DependencyInstruction) -> Dependency {
+
     let mut dependency = Dependency {
         component: component.name(),
         state_var: state_var,
@@ -388,7 +255,7 @@ fn create_dependency_from_instruction(component: &Rc<impl ComponentLike>, state_
             dependency.depends_on_state_vars = child_instruction.desired_state_vars;
 
         },
-        DependencyInstruction::Parent(parent_instruction) => {
+        DependencyInstruction::Parent(_) => {
 
         },
     };
@@ -419,63 +286,52 @@ impl fmt::Debug for dyn NumberLikeComponent {
 }
 
 
+#[cfg(test)]
+mod tests {
+    use std::collections::HashMap;
 
-
-#[test]
-fn test_core() {
-
-    //Setup Tree
-    let mut components: HashMap<String, Component> = HashMap::new();
-
-    let text2 = Rc::new(Text {
-        name: "text2".to_owned(),
-        value: RefCell::new("hi there".to_owned()),
-        hide: RefCell::new(false),
-        parent: RefCell::new(String::new()),
-        children: RefCell::new(vec![]),
-    });
-    components.insert(text2.name(), Component::Text(Rc::clone(&text2)));
-
-
-    let text1 = Rc::new(Text {
-        name: "text1".to_owned(),
-        value: RefCell::new("banana".to_owned()),
-        hide: RefCell::new(false),
-        parent: RefCell::new(String::new()),
-        children: RefCell::new(vec![]),
-    });
-    components.insert(text1.name(), Component::Text(Rc::clone(&text1)));
-
-
-    text1.add_as_child(ComponentChild::Component(text2));
-
-
-    //Load state var definitions
-    let mut state_var_definitions: HashMap<&str, HashMap<&str, StateVar>> = HashMap::new();
-    load_state_var_definitions_for_component_type(&mut state_var_definitions, "text");
-
-
-    //Create dependencies
-    let dependencies = create_all_dependencies_for_component(&state_var_definitions,
-        components.get(&text1.name).unwrap());
-
-    println!("Components\n{:#?}", components);
-    println!("State var definitions\n{:#?}", state_var_definitions);
-    println!("Dependencies\n{:#?}", dependencies);
-
-    assert!(true);
-
-    // let dep_instructions_hashmap = text1.value.return_dependency_instructions(HashMap::new());
-    // for (_, dep_instruction) in dep_instructions_hashmap.into_iter() {
-    //     let dependency = create_dependency_from_instruction(
-    //         Rc::clone(&text1), "value", dep_instruction
-    //     );
-
-    //     println!("{:#?}\n", dependency);
+    use super::*;
     
-    // }
 
-    let value_ref_cell: RefCell<String> = state_var_access(text1, "value");
 
+    #[test]
+    fn test_core() {
+
+        //Setup Tree
+        let mut components: HashMap<String, Component> = HashMap::new();
+
+        let text2 = Rc::new(Text {
+            name: "text2".to_owned(),
+            value: RefCell::new("hi there".to_owned()),
+            hide: RefCell::new(false),
+            parent: RefCell::new(String::new()),
+            children: RefCell::new(vec![]),
+        });
+        components.insert(text2.name(), Component::Text(Rc::clone(&text2)));
+
+
+        let text1 = Rc::new(Text {
+            name: "text1".to_owned(),
+            value: RefCell::new("banana".to_owned()),
+            hide: RefCell::new(false),
+            parent: RefCell::new(String::new()),
+            children: RefCell::new(vec![]),
+        });
+        components.insert(text1.name(), Component::Text(Rc::clone(&text1)));
+
+
+        text1.add_as_child(ComponentChild::Component(text2));
+
+
+        //Create dependencies
+        let dependencies = create_all_dependencies_for_component(& (text1 as Rc<dyn ComponentLike>) );
+
+        println!("Components\n{:#?}", components);
+        println!("Dependencies\n{:#?}", dependencies);
+
+        assert!(true);
+
+
+    }
 
 }
