@@ -2,7 +2,7 @@
 #![allow(dead_code)] 
 #![allow(unused_variables)] 
 
-use std::cell::RefCell;
+use std::cell::{RefCell, Ref};
 use std::rc::Rc;
 use std::fmt;
 
@@ -25,24 +25,24 @@ use number::Number;
 use state_variable_setup::*;
 
 
-#[macro_export]
-macro_rules! state_var_access {
-    ($component_type:ident, $state_var_field:ident, $state_var_type:ty) => {
+// #[macro_export]
+// macro_rules! state_var_access {
+//     ($component_type:ident, $state_var_field:ident, $state_var_type:ty) => {
 
-        |component: &crate::Component| -> &RefCell<$state_var_type> {
+//         |component: &crate::Component| -> &RefCell<$state_var_type> {
 
-            match component {
-                crate::Component::$component_type(my_component) => {
-                    &my_component.$state_var_field
-                },
-                _ => {
-                    panic!("State var access used wrong Component type argument for $component_type");
-                }
-            }
-        }
+//             match component {
+//                 crate::Component::$component_type(my_component) => {
+//                     &my_component.$state_var_field
+//                 },
+//                 _ => {
+//                     panic!("State var access used wrong Component type argument for $component_type");
+//                 }
+//             }
+//         }
         
-    }
-}
+//     }
+// }
 
 
 
@@ -108,9 +108,9 @@ pub enum StateVarAccess<'a> {
 
 
 pub trait ComponentLike: ComponentSpecificBehavior {
-    fn name(&self) -> String;
-    fn children(&self) -> RefCell<Vec<ComponentChild>>;
-    fn parent(&self) -> RefCell<String>;
+    fn name(&self) -> &str;
+    fn children(&self) -> &RefCell<Vec<ComponentChild>>;
+    fn parent(&self) -> &RefCell<String>;
     fn parent_name(&self) -> Option<String>;
     fn add_as_child(&self, child: ComponentChild);
 
@@ -153,7 +153,6 @@ impl Component {
             Component::Number(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
         }
     }
-
 }
 
 
@@ -205,45 +204,51 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
 fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_var: &'static str, instruction: DependencyInstruction) -> Dependency {
 
     let mut dependency = Dependency {
-        component: component.name(),
-        state_var: state_var,
+        component: component.name().clone().to_owned(),
+        state_var: state_var,        
+        // instruction: instruction,
+        variables_optional: false,
+
+        //We will fill in these fields next
         depends_on_components: vec![],
         depends_on_state_vars: vec![],
-        instruction: instruction.clone(),
-        variables_optional: false,
     };
 
     match instruction {
+
         DependencyInstruction::StateVar(state_var_instruction) => {
 
             if let Option::Some(name) = state_var_instruction.component_name {
                 dependency.depends_on_components = vec![name];
             } else {
-                dependency.depends_on_components = vec![component.name()];
+                dependency.depends_on_components = vec![component.name().clone().to_owned()];
             }
             dependency.depends_on_state_vars = vec![state_var_instruction.state_var];
         },
 
         DependencyInstruction::Child(child_instruction) => {
-            let all_children = component.children();
+            let all_children = component.children().borrow();
 
             let mut depends_on_children: Vec<String> = vec![];
-            for child in all_children.borrow().iter() {
+            for child in all_children.iter() {
+
                 for desired_child_type in child_instruction.desired_children.iter() {
                     match child {
                         ComponentChild::Component(child_component) => {
                             if child_component.get_trait_names().contains(desired_child_type) {
                                 //If not already in list, add it to the list
-                                if !depends_on_children.contains(&child_component.name()) {
-                                    depends_on_children.push(child_component.name());
+                                if !depends_on_children.contains(&child_component.name().to_owned()) {
+                                    depends_on_children.push(child_component.name().to_owned());
                                 }
                             }
                         },
 
                         ComponentChild::String(string_value) => {
                             if desired_child_type == &ComponentTraitName::TextLikeComponent {
+                                
                                 //or do nothing here?
                                 depends_on_children.push(format!("#{}", string_value));
+
                             }
                         },
                     }

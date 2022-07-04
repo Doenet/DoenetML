@@ -29,10 +29,10 @@ fn value_return_dependency_instructions(prerequisite_state_values: StateVarValue
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
         desired_children: vec![ComponentTraitName::TextLikeComponent],
-        desired_state_vars: vec!["value".to_owned()],
+        desired_state_vars: vec!["value"],
     });
 
-    HashMap::from([("value".to_owned(), instruction)])
+    HashMap::from([("value", instruction)])
 }
 
 fn value_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<String> {
@@ -108,44 +108,6 @@ impl ComponentSpecificBehavior for Text {
 
 
 
-
-
-
-
-
-
-
-// impl ComponentLike for Text {
-//     fn name(&self) -> String {
-//         self.name.clone()
-//     }
-//     fn children(&self) -> RefCell<Vec<Rc<dyn ComponentLike>>> {
-//         // Is this really the best way to do this?
-//         self.children.clone()
-//     }
-//     fn parent(&self) -> RefCell<String> {
-//         // Is this really the best way to do this?
-//         self.parent.clone()
-//     }
-//     fn parent_name(&self) -> Option<String> {
-//         let parent_name = self.parent.borrow().to_string();
-//         if parent_name.is_empty() {
-//             Option::None
-//         } else {
-//             Option::Some(parent_name)
-//         }
-//     }
-//     fn add_as_child(&self, child: Rc<dyn ComponentLike>) {
-//         let child_parent = Rc::clone(&child).parent();
-//         let mut child_parent_cell = child_parent.borrow_mut();
-//         *child_parent_cell = self.name.clone();
-//         self.children.borrow_mut().push(child); 
-//     }
-// }
-
-
-
-
 impl TextLikeComponent for Text {
     fn text_value(&self) -> String {
         self.value.borrow().clone()
@@ -158,4 +120,49 @@ impl Text {
         Rc::clone(&text) as Rc<dyn ComponentLike>
     }
 }
+
+
+
+
+
+
+// impl ComponentLike for Text {
+
+
+//     fn name(&self) -> &str {
+//         &self.name
+//     }
+//     fn children(&self) -> &RefCell<Vec<ComponentChild>> {
+//         // Is this really the best way to do this?
+//         &self.children
+//     }
+//     fn parent(&self) -> &RefCell<String> {
+//         // Is this really the best way to do this?
+//         &self.parent
+//     }
+
+
+//     fn parent_name(&self) -> Option<String> {
+//         let parent_name = self.parent.borrow().to_string();
+//         if parent_name.is_empty() {
+//             Option::None
+//         } else {
+//             Option::Some(parent_name)
+//         }
+//     }
+
+//     fn add_as_child(&self, child: ComponentChild) {
+//         if let ComponentChild::Component(ref child_component) = child {
+//             let child_parent = child_component.parent();
+//             let mut child_parent_cell = child_parent.borrow_mut();
+//             *child_parent_cell = self.name.clone();
+//         }
+
+//         self.children.borrow_mut().push(child); 
+//     }
+
+
+    
+// }
+
 

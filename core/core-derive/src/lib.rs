@@ -19,16 +19,16 @@ fn impl_component_like(ast: &syn::DeriveInput) -> TokenStream {
         impl ComponentLike for #name {
 
 
-            fn name(&self) -> String {
-                self.name.clone()
+            fn name(&self) -> &str {
+                &self.name
             }
-            fn children(&self) -> RefCell<Vec<ComponentChild>> {
+            fn children(&self) -> &RefCell<Vec<ComponentChild>> {
                 // Is this really the best way to do this?
-                self.children.clone()
+                &self.children
             }
-            fn parent(&self) -> RefCell<String> {
+            fn parent(&self) -> &RefCell<String> {
                 // Is this really the best way to do this?
-                self.parent.clone()
+                &self.parent
             }
         
         
@@ -43,7 +43,7 @@ fn impl_component_like(ast: &syn::DeriveInput) -> TokenStream {
         
             fn add_as_child(&self, child: ComponentChild) {
                 if let ComponentChild::Component(ref child_component) = child {
-                    let child_parent = Rc::clone(&child_component).parent();
+                    let child_parent = child_component.parent();
                     let mut child_parent_cell = child_parent.borrow_mut();
                     *child_parent_cell = self.name.clone();
                 }

@@ -6,7 +6,6 @@ use wasm_bindgen::prelude::*;
 use serde::Serialize;
 
 use core::create_all_dependencies_for_component;
-use core::state_var_access;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -62,7 +61,8 @@ impl DoenetCore {
         
         for (component_name, component) in components.iter() {
 
-            let dependencies_for_this_component = create_all_dependencies_for_component(&component.component());
+            let comp = component.component();
+            let dependencies_for_this_component = create_all_dependencies_for_component(&comp);
 
             for dependency in dependencies_for_this_component {
                 dependencies.push(dependency);

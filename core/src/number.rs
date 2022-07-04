@@ -25,10 +25,10 @@ fn value_return_dependency_instructions(prerequisite_state_values: StateVarValue
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
         desired_children: vec![ComponentTraitName::TextLikeComponent],
-        desired_state_vars: vec!["value".to_owned()],
+        desired_state_vars: vec!["value"],
     });
 
-    HashMap::from([("value".to_owned(), instruction)])
+    HashMap::from([("value", instruction)])
 }
 
 fn value_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<i64> {

@@ -5,11 +5,12 @@ use std::collections::HashMap;
 use crate::{ComponentTraitName};
 
 
-pub type StateVarValuesMap = HashMap<String, StateVarValue>;
-pub type DependencyInstructionMap = HashMap<String, DependencyInstruction>;
+pub type StateVarValuesMap = HashMap<&'static str, StateVarValue>;
+
+pub type DependencyInstructionMap = HashMap<&'static str, DependencyInstruction>;
 
 pub struct StateVarDef<T> {
-    pub state_vars_to_determine_dependencies: fn() -> Vec<String>,
+    pub state_vars_to_determine_dependencies: fn() -> Vec<&'static str>,
     pub return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
     pub determine_state_var_from_dependencies:fn(StateVarValuesMap) -> StateVarUpdateInstruction<T>,
 
@@ -17,7 +18,7 @@ pub struct StateVarDef<T> {
     // pub access: fn(&Component) -> &std::cell::RefCell<T>,
 }
 
-pub fn default_state_vars_for_dependencies() -> Vec<String> { vec![] }
+pub fn default_state_vars_for_dependencies() -> Vec<&'static str> { vec![] }
 
 
 impl<T> std::fmt::Debug for StateVarDef<T> {
@@ -52,14 +53,19 @@ pub enum StateVarValue {
 
 #[derive(Debug)]
 pub struct Dependency {
+    //There are references because we should never refer to a component instance
+    //unless it exists in the document (the component instance owns its own String name)
+
     pub component: String,
     pub state_var: &'static str,
 
     // We will use outer product of entries
     pub depends_on_components: Vec<String>,
-    pub depends_on_state_vars: Vec<String>,
+    pub depends_on_state_vars: Vec<&'static str>,
 
-    pub instruction: DependencyInstruction,
+    //TODO: Do we really need this field? It would be easier if we didn't
+    // pub instruction: DependencyInstruction,
+
     pub variables_optional: bool,
 }
 
@@ -76,19 +82,22 @@ pub enum DependencyInstruction {
 #[derive(Clone, Debug)]
 pub struct ChildDependencyInstruction {
     pub desired_children: Vec<ComponentTraitName>,
-    pub desired_state_vars: Vec<String>,
+    pub desired_state_vars: Vec<&'static str>,
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct StateVarDependencyInstruction {
+    //Since component_name is the name of a component instance, we don't want to clone the name and therefore allow a dependency to refer to that instance even if it doesn't exist anymore
+
     pub component_name: Option<String>, //default: Option::None
-    pub state_var: String, //default: ""
+
+    pub state_var: &'static str, //default: ""
 }
 
 #[derive(Clone, Debug)]
 pub struct ParentDependencyInstruction {
     pub parent_trait: ComponentTraitName,
-    pub state_var: String,
+    pub state_var: &'static str,
 }
 
 
