@@ -14,10 +14,11 @@ use crate::{ObjectTraitName, TextLikeComponent, NumberLikeComponent,ComponentLik
 #[derive(Debug, ComponentLike)]
 pub struct Number {
     name: String,
-    value: StateVar<i64>,
-    hide: StateVar<bool>,
     parent: RefCell<String>,
     children: RefCell<Vec<ComponentChild>>,
+
+    value: StateVar<i64>,
+    hide: StateVar<bool>,
 }
 
 

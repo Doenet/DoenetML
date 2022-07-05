@@ -130,7 +130,6 @@ impl Text {
 
 // impl ComponentLike for Text {
 
-
 //     fn name(&self) -> &str {
 //         &self.name
 //     }
@@ -163,8 +162,6 @@ impl Text {
 //         self.children.borrow_mut().push(child); 
 //     }
 
-
-    
 // }
 
 

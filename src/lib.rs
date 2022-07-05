@@ -41,9 +41,6 @@ macro_rules! log {
 #[derive(Debug)]
 pub struct PublicDoenetCore(DoenetCore);
 
-// pub struct DoenetCore {
-//     components: HashMap<String, Component>,
-// }
 
 
 #[wasm_bindgen]
@@ -76,7 +73,7 @@ impl PublicDoenetCore {
         }
 
 
-        //Define Doenet Core structure
+        // Define Doenet Core structure
         let core: DoenetCore = DoenetCore {components, dependencies};
 
 
@@ -130,7 +127,7 @@ impl PublicDoenetCore {
         
 
 
-        //Reference counter testing
+        // Reference counter testing
 
         // for (component_name, component) in components.iter() {
         //     if let Component::Text(text) = component {
@@ -165,13 +162,18 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                 add_json_subtree_to_components(components, value, parent_name, component_type_counter);
             }
         },
+        
+        Value::String(string_value) => {
+            if let Some(parent) = components.get(parent_name) {
+                parent.clone().component().add_as_child(ComponentChild::String(string_value.to_string()));
+            }
+        },
 
         serde_json::Value::Object(map) => {
             log!("object");
             let component_type_value = map.get("componentType").unwrap();
 
             if let Value::String(component_type) = component_type_value {
-
 
                 let count = *component_type_counter.get(component_type).unwrap_or(&0);
                 component_type_counter.insert(component_type.to_string(), count + 1);
@@ -185,9 +187,8 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                         }
                     }
 
-
+                    // Adress other props here
                 }
-
 
                 let component = match component_type.as_str() {
                     "text" => Component::Text( Rc::new(Text{
@@ -197,6 +198,9 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                         children: RefCell::new(vec![]),
                         parent: RefCell::new(parent_name.to_string()),
                     })),
+
+                    // Add components to this match here
+ 
                     _ => {panic!("Unrecognized component type")}
                 };
 
@@ -205,9 +209,6 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                         ComponentChild::Component(component.clone().component()));
                 }
 
-        
-
-
                 let children_value = map.get("children").unwrap();
 
                 components.insert(component_name.clone(), component);
@@ -215,16 +216,6 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
 
             } else {
                 panic!("componentType is not a string");
-            }
-
-
-
-
-        },
-
-        Value::String(string_value) => {
-            if let Some(parent) = components.get(parent_name) {
-                parent.clone().component().add_as_child(ComponentChild::String(string_value.to_string()));
             }
         },
 

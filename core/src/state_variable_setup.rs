@@ -11,12 +11,13 @@ pub type StateVarValuesMap = HashMap<&'static str, StateVarValue>;
 
 pub type DependencyInstructionMap = HashMap<&'static str, DependencyInstruction>;
 
+/// State variable functions core uses
 pub struct StateVarDefinition<T> {
     pub state_vars_to_determine_dependencies: fn() -> Vec<&'static str>,
     pub return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
     pub determine_state_var_from_dependencies:fn(HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<T>,
 
-    //Note: this might not need to be pub later
+    // Note: this might not need to be pub later
     // pub access: fn(&Component) -> &std::cell::RefCell<T>,
 }
 
@@ -64,7 +65,7 @@ pub struct Dependency {
     pub depends_on_components_and_strings: Vec<ObjectName>,
     pub depends_on_state_vars: Vec<&'static str>,
 
-    //TODO: Do we really need this field? It would be easier if we didn't
+    // TODO: Do we really need this field? It would be easier if we didn't
     // pub instruction: DependencyInstruction,
 
     pub variables_optional: bool,
@@ -79,8 +80,8 @@ pub enum ObjectName {
 
 #[derive(Eq, Hash, PartialEq)]
 pub struct StateVarAddress {
-    component: String, //should this be &str? It can't be 'static because it refers
-    //to a component instance
+    component: String, // should this be &str? It can't be 'static because it refers
+    // to a component instance
     state_var: &'static str,
 }
 
@@ -108,7 +109,7 @@ pub struct ChildDependencyInstruction {
 
 #[derive(Default, Clone, Debug)]
 pub struct StateVarDependencyInstruction {
-    //Since component_name is the name of a component instance, we don't want to clone the name and therefore allow a dependency to refer to that instance even if it doesn't exist anymore
+    // Since component_name is the name of a component instance, we don't want to clone the name and therefore allow a dependency to refer to that instance even if it doesn't exist anymore
 
     pub component_name: Option<String>, //default: Option::None
 

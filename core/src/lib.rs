@@ -28,25 +28,6 @@ use number::Number;
 use state_variable_setup::*;
 
 
-// #[macro_export]
-// macro_rules! state_var_access {
-//     ($component_type:ident, $state_var_field:ident, $state_var_type:ty) => {
-
-//         |component: &crate::Component| -> &RefCell<$state_var_type> {
-
-//             match component {
-//                 crate::Component::$component_type(my_component) => {
-//                     &my_component.$state_var_field
-//                 },
-//                 _ => {
-//                     panic!("State var access used wrong Component type argument for $component_type");
-//                 }
-//             }
-//         }
-        
-//     }
-// }
-
 #[derive(Debug)]
 pub struct DoenetCore {
     pub components: HashMap<String, Component>,
@@ -58,15 +39,11 @@ pub struct DoenetCore {
 pub trait ComponentSpecificBehavior {
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
 
-    /**
-     * Capitalize names, eg, Text.
-     */
+    /// Capitalize names, eg, Text.
     fn get_component_type(&self) -> &'static str;
 
-    /**
-     * This function should never use self in the function body.
-     * Treat as if this is a constant
-     */
+    /// This function should never use self in the function body.
+    /// Treat as if this is a constant.
     fn state_variable_instructions(&self) -> &phf::Map<&'static str, StateVarVariant>;
 
     fn state_var(&self, name: &'static str) -> Option<StateVarAccess>;
@@ -108,10 +85,10 @@ pub trait ComponentSpecificBehavior {
 
 
 pub enum StateVarAccess<'a> {
-    String(&'a RefCell<String>),
-    Number(&'a RefCell<f64>),
-    Integer(&'a RefCell<i64>),
-    Bool(&'a RefCell<bool>),
+    String(&'a StateVar<String>),
+    Number(&'a StateVar<f64>),
+    Integer(&'a StateVar<i64>),
+    Bool(&'a StateVar<bool>),
 }
 
 
@@ -177,13 +154,11 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
         
         let mut dependencies: Vec<Dependency> = vec![];
 
-
         let my_definitions = component.state_variable_instructions();
-
 
         for (&state_var_name, state_var_def) in my_definitions.entries() {
 
-            //Eventually, call state_vars_to_determine_dependencies() and go calculate those values
+            // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
 
             let dependency_instructions_hashmap = match state_var_def {
                 StateVarVariant::String(def)  => (def.return_dependency_instructions)(StateVarValuesMap::new()),
@@ -194,7 +169,6 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
             
             
             for (_, dep_instruction) in dependency_instructions_hashmap.into_iter() {
-
 
                 let dependency =  create_dependency_from_instruction(component, state_var_name, dep_instruction);
 
@@ -217,7 +191,7 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
         // instruction: instruction,
         variables_optional: false,
 
-        //We will fill in these fields next
+        // We will fill in these fields next
         depends_on_components_and_strings: vec![],
         depends_on_state_vars: vec![],
     };
@@ -384,7 +358,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
 
 
-/** Implement Debug for trait objects **/
+// Implement Debug for trait objects.
 impl fmt::Debug for dyn ComponentLike {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.name())
