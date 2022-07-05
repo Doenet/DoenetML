@@ -1,18 +1,20 @@
 
 
-use std::collections::HashMap;
+use std::{collections::HashMap, cell::RefCell};
 
-use crate::{ComponentTraitName};
+use crate::{ObjectTraitName};
 
+
+pub type StateVar<T> = RefCell<T>;
 
 pub type StateVarValuesMap = HashMap<&'static str, StateVarValue>;
 
 pub type DependencyInstructionMap = HashMap<&'static str, DependencyInstruction>;
 
-pub struct StateVarDef<T> {
+pub struct StateVarDefinition<T> {
     pub state_vars_to_determine_dependencies: fn() -> Vec<&'static str>,
     pub return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
-    pub determine_state_var_from_dependencies:fn(StateVarValuesMap) -> StateVarUpdateInstruction<T>,
+    pub determine_state_var_from_dependencies:fn(HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<T>,
 
     //Note: this might not need to be pub later
     // pub access: fn(&Component) -> &std::cell::RefCell<T>,
@@ -21,7 +23,7 @@ pub struct StateVarDef<T> {
 pub fn default_state_vars_for_dependencies() -> Vec<&'static str> { vec![] }
 
 
-impl<T> std::fmt::Debug for StateVarDef<T> {
+impl<T> std::fmt::Debug for StateVarDefinition<T> {
     fn fmt<'a>(&'a self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("StateVarDef")
             .field("state_vars_to_determine_dependencies", &self.state_vars_to_determine_dependencies)
@@ -34,17 +36,18 @@ impl<T> std::fmt::Debug for StateVarDef<T> {
 }
 
 #[derive(Debug)]
-pub enum StateVar {
-    String(StateVarDef<String>),
-    Bool(StateVarDef<bool>),
-    Number(StateVarDef<f64>),
-    Integer(StateVarDef<i64>),
+pub enum StateVarVariant {
+    String(StateVarDefinition<String>),
+    Bool(StateVarDefinition<bool>),
+    Number(StateVarDefinition<f64>),
+    Integer(StateVarDefinition<i64>),
 }
 
 
 
+#[derive(Debug)]
 pub enum StateVarValue {
-    Text(String),
+    String(String),
     Number(f64),
     Integer(i64),
     Boolean(bool),
@@ -53,14 +56,12 @@ pub enum StateVarValue {
 
 #[derive(Debug)]
 pub struct Dependency {
-    //There are references because we should never refer to a component instance
-    //unless it exists in the document (the component instance owns its own String name)
 
     pub component: String,
     pub state_var: &'static str,
 
     // We will use outer product of entries
-    pub depends_on_components: Vec<String>,
+    pub depends_on_components_and_strings: Vec<ObjectName>,
     pub depends_on_state_vars: Vec<&'static str>,
 
     //TODO: Do we really need this field? It would be easier if we didn't
@@ -69,19 +70,39 @@ pub struct Dependency {
     pub variables_optional: bool,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ObjectName {
+    Component(String),
+    String(String),
+}
 
+
+#[derive(Eq, Hash, PartialEq)]
+pub struct StateVarAddress {
+    component: String, //should this be &str? It can't be 'static because it refers
+    //to a component instance
+    state_var: &'static str,
+}
+
+impl StateVarAddress {
+    pub fn new(component: String, state_var: &'static str) -> StateVarAddress {
+        StateVarAddress {
+            component, state_var
+        }
+    }
+}
 
 
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child(ChildDependencyInstruction),
-    StateVar(StateVarDependencyInstruction),
+    StateVarVariant(StateVarDependencyInstruction),
     Parent(ParentDependencyInstruction),
 }
 
 #[derive(Clone, Debug)]
 pub struct ChildDependencyInstruction {
-    pub desired_children: Vec<ComponentTraitName>,
+    pub desired_children: Vec<ObjectTraitName>,
     pub desired_state_vars: Vec<&'static str>,
 }
 
@@ -96,7 +117,7 @@ pub struct StateVarDependencyInstruction {
 
 #[derive(Clone, Debug)]
 pub struct ParentDependencyInstruction {
-    pub parent_trait: ComponentTraitName,
+    pub parent_trait: ObjectTraitName,
     pub state_var: &'static str,
 }
 

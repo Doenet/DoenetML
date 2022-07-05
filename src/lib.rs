@@ -5,7 +5,10 @@ extern crate web_sys;
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
 
+use core::DoenetCore;
 use core::create_all_dependencies_for_component;
+use core::resolve_state_variable;
+use core::state_variable_setup::StateVar;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -16,7 +19,7 @@ use core::ComponentChild;
 use core::text::Text;
 use core::number::Number;
 
-use core::state_variable_setup::{StateVar, Dependency};
+use core::state_variable_setup::{StateVarVariant, Dependency};
 
 use serde_json::Value;
 
@@ -36,14 +39,16 @@ macro_rules! log {
 
 #[wasm_bindgen]
 #[derive(Debug)]
-pub struct DoenetCore {
-    components: HashMap<String, Component>,
-}
+pub struct PublicDoenetCore(DoenetCore);
+
+// pub struct DoenetCore {
+//     components: HashMap<String, Component>,
+// }
 
 
 #[wasm_bindgen]
-impl DoenetCore {
-    pub fn new(program: &str) -> DoenetCore {
+impl PublicDoenetCore {
+    pub fn new(program: &str) -> PublicDoenetCore {
 
         utils::set_panic_hook();
                 
@@ -59,7 +64,7 @@ impl DoenetCore {
 
         let mut dependencies: Vec<Dependency> = vec![];
         
-        for (component_name, component) in components.iter() {
+        for (_, component) in components.iter() {
 
             let comp = component.component();
             let dependencies_for_this_component = create_all_dependencies_for_component(&comp);
@@ -71,28 +76,32 @@ impl DoenetCore {
         }
 
 
+        //Define Doenet Core structure
+        let core: DoenetCore = DoenetCore {components, dependencies};
 
-        for (component_name, component_variant) in components.iter() {
+
+
+        for (component_name, component_variant) in core.components.iter() {
 
             let component = component_variant.component();
 
             for (state_var_name, state_var) in component.state_variable_instructions().entries() {
 
                 match state_var {
-                    StateVar::String(def) => {
+                    StateVarVariant::String(def) => {
 
                         component.set_state_var_string(state_var_name, format!("I am string for the state var '{}' of component {}", state_var_name, component_name));
 
                     }
-                    StateVar::Bool(def) => {
+                    StateVarVariant::Bool(def) => {
                         component.set_state_var_bool(state_var_name, true);
                     }
 
-                    StateVar::Integer(def) => {
+                    StateVarVariant::Integer(def) => {
                         component.set_state_var_integer(state_var_name, 49);
 
                     }
-                    StateVar::Number(def) => {
+                    StateVarVariant::Number(def) => {
                         component.set_state_var_number(state_var_name, 123.456);
 
                     }
@@ -103,8 +112,20 @@ impl DoenetCore {
         }
 
 
-        log!("Components: {:#?}", components);
-        log!("Dependencies\n{:#?}", dependencies);
+
+
+        for (component_name, component) in core.components.iter() {
+            log!("State var value of component {:#?}: {:#?}", 
+                component_name,
+                resolve_state_variable(&core, &component.component(), "value")
+            );
+
+        }
+
+        log!("Components: {:#?}", core.components);
+        log!("Dependencies\n{:#?}", core.dependencies);
+
+
 
         
 
@@ -129,9 +150,8 @@ impl DoenetCore {
         // }
 
 
-        DoenetCore {
-            components
-        }
+    
+        PublicDoenetCore(core)
         
     }
 }
@@ -172,8 +192,8 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                 let component = match component_type.as_str() {
                     "text" => Component::Text( Rc::new(Text{
                         name: component_name.clone(),
-                        hide: RefCell::new(false),
-                        value: RefCell::new("".to_owned()),
+                        hide: StateVar::new(false),
+                        value: StateVar::new("".to_owned()),
                         children: RefCell::new(vec![]),
                         parent: RefCell::new(parent_name.to_string()),
                     })),

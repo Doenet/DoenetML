@@ -1,21 +1,21 @@
 
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
-use std::cell::{RefCell};
 
 use core_derive::ComponentLike;
 use phf::phf_map;
 
 use crate::state_variable_setup::*;
 
-use crate::{ComponentTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike, ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike, ComponentSpecificBehavior, ComponentChild};
 
 
 #[derive(Debug, ComponentLike)]
 pub struct Number {
     name: String,
-    value: RefCell<i64>,
-    hide: RefCell<bool>,
+    value: StateVar<i64>,
+    hide: StateVar<bool>,
     parent: RefCell<String>,
     children: RefCell<Vec<ComponentChild>>,
 }
@@ -24,14 +24,14 @@ pub struct Number {
 fn value_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-        desired_children: vec![ComponentTraitName::TextLikeComponent],
+        desired_children: vec![ObjectTraitName::TextLike],
         desired_state_vars: vec!["value"],
     });
 
     HashMap::from([("value", instruction)])
 }
 
-fn value_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<i64> {
+fn value_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<i64> {
     StateVarUpdateInstruction::NoChange
 }
 
@@ -39,7 +39,7 @@ fn hide_return_dependency_instructions(prerequisite_state_values: StateVarValues
     DependencyInstructionMap::new()
 }
 
-fn hide_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<bool> {
+fn hide_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<bool> {
     StateVarUpdateInstruction::NoChange
 }
 
@@ -47,15 +47,15 @@ fn hide_determine_state_var_from_dependencies(dependency_values: StateVarValuesM
 
 impl ComponentSpecificBehavior for Number {
 
-    // fn define_state_variables() -> std::collections::HashMap<&'static str, crate::StateVar> {
+    // fn define_state_variables() -> std::collections::HashMap<&'static str, crate::StateVarVariant> {
     //     HashMap::new()
     // }
 
-    fn state_variable_instructions(&self) -> phf::Map<&'static str, StateVar> {
+    fn state_variable_instructions(&self) -> &phf::Map<&'static str, StateVarVariant> {
 
         
-        phf_map! {
-            "value" => StateVar::Integer(StateVarDef {
+        &phf_map! {
+            "value" => StateVarVariant::Integer(StateVarDefinition {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: value_return_dependency_instructions,
                 determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
@@ -64,7 +64,7 @@ impl ComponentSpecificBehavior for Number {
 
             }),
 
-            "hide" => StateVar::Bool(StateVarDef { 
+            "hide" => StateVarVariant::Bool(StateVarDefinition { 
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: hide_return_dependency_instructions,
                 determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
@@ -87,8 +87,8 @@ impl ComponentSpecificBehavior for Number {
     }
 
 
-    fn get_trait_names(&self) -> Vec<ComponentTraitName> {
-        vec![ComponentTraitName::TextLikeComponent]
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![ObjectTraitName::TextLike]
     }
 
     fn get_component_type(&self) -> &'static str {

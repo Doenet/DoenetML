@@ -8,7 +8,7 @@ use core_derive::ComponentLike;
 
 use crate::state_variable_setup::*;
 
-use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ComponentTraitName, TextLikeComponent};
+use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName, TextLikeComponent};
 
 use phf::phf_map;
 
@@ -18,29 +18,30 @@ use phf::phf_map;
 #[derive(Debug, ComponentLike)]
 pub struct Text {
     pub name: String,
-    pub value: RefCell<String>,
-    pub hide: RefCell<bool>,
     pub parent: RefCell<String>,
     pub children: RefCell<Vec<ComponentChild>>,
+
+    pub value: StateVar<String>,
+    pub hide: StateVar<bool>,
 }
 
 
 fn value_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-        desired_children: vec![ComponentTraitName::TextLikeComponent],
+        desired_children: vec![ObjectTraitName::TextLike],
         desired_state_vars: vec!["value"],
     });
 
     HashMap::from([("value", instruction)])
 }
 
-fn value_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<String> {
+fn value_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<String> {
 
     let mut val = String::new();
 
     for (_, child_text_value) in dependency_values {
-        if let StateVarValue::Text(text) = child_text_value {
+        if let StateVarValue::String(text) = child_text_value {
             val.push_str(&text);
         }
     }
@@ -52,20 +53,21 @@ fn hide_return_dependency_instructions(prerequisite_state_values: StateVarValues
     DependencyInstructionMap::new()
 }
 
-fn hide_determine_state_var_from_dependencies(dependency_values: StateVarValuesMap) -> StateVarUpdateInstruction<bool> {
+fn hide_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<bool> {
     StateVarUpdateInstruction::NoChange
 }
 
 
 
 
+
 impl ComponentSpecificBehavior for Text {
 
-    fn state_variable_instructions(&self) -> phf::Map<&'static str, StateVar> {
+    fn state_variable_instructions(&self) -> &phf::Map<&'static str, StateVarVariant> {
 
 
-        phf_map! {
-            "value" => StateVar::String(StateVarDef {
+        &phf_map! {
+            "value" => StateVarVariant::String(StateVarDefinition {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: value_return_dependency_instructions,
                 determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
@@ -74,7 +76,7 @@ impl ComponentSpecificBehavior for Text {
 
             }),
 
-            "hide" => StateVar::Bool(StateVarDef { 
+            "hide" => StateVarVariant::Bool(StateVarDefinition { 
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: hide_return_dependency_instructions,
                 determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
@@ -94,9 +96,9 @@ impl ComponentSpecificBehavior for Text {
             _ => Option::None,
         }
     }
-
-    fn get_trait_names(&self) -> Vec<ComponentTraitName> {
-        vec![ComponentTraitName::TextLikeComponent]
+  
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![ObjectTraitName::TextLike]
     }
 
     fn get_component_type(&self) -> &'static str {
