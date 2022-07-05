@@ -2,3 +2,5 @@
 target/
 pkg/
 www/node_modules
+
+core/Cargo.lock
