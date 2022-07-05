@@ -1,7 +1,8 @@
 import { PublicDoenetCore } from "doenet_rust_wasm"
 import { parseAndCompile } from "./Parser/parser.js"
 
-const DoenetText = `<text name="label">hello <text>world</text></text>`;
+const DoenetText =
+`<text name="root">hello<number>1</number></text>`;
 // const DoenetText = "<answer><award><math>x</math></award></answer>";
 // const DoenetText = "<answer symbolicEquality><award><math>x</math></award></answer>";
 

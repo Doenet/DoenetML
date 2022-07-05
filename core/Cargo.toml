@@ -11,3 +11,9 @@ crate-type = ["rlib"]
 [dependencies]
 core-derive = { path = "core-derive" }
 phf = { version = "0.10", features = ["macros"] }
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+  "console",
+]

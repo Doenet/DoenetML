@@ -5,13 +5,14 @@ extern crate web_sys;
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
 
+use core::ComponentLike;
+use core::ComponentSpecificBehavior;
 use core::DoenetCore;
 use core::create_all_dependencies_for_component;
+use core::number;
 use core::resolve_state_variable;
 use core::state_variable_setup::StateVar;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use core::Component;
 use core::ComponentChild;
@@ -78,38 +79,13 @@ impl PublicDoenetCore {
 
 
 
-        for (component_name, component_variant) in core.components.iter() {
 
-            let component = component_variant.component();
+        log!("Components: {:#?}", core.components);
+        log!("Dependencies\n{:#?}", core.dependencies);
 
-            for (state_var_name, state_var) in component.state_variable_instructions().entries() {
 
-                match state_var {
-                    StateVarVariant::String(def) => {
 
-                        component.set_state_var_string(state_var_name, format!("I am string for the state var '{}' of component {}", state_var_name, component_name));
-
-                    }
-                    StateVarVariant::Bool(def) => {
-                        component.set_state_var_bool(state_var_name, true);
-                    }
-
-                    StateVarVariant::Integer(def) => {
-                        component.set_state_var_integer(state_var_name, 49);
-
-                    }
-                    StateVarVariant::Number(def) => {
-                        component.set_state_var_number(state_var_name, 123.456);
-
-                    }
-                }
-
-            }
         
-        }
-
-
-
 
         for (component_name, component) in core.components.iter() {
             log!("State var value of component {:#?}: {:#?}", 
@@ -118,13 +94,6 @@ impl PublicDoenetCore {
             );
 
         }
-
-        log!("Components: {:#?}", core.components);
-        log!("Dependencies\n{:#?}", core.dependencies);
-
-
-
-        
 
 
         // Reference counter testing
@@ -165,7 +134,7 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
         
         Value::String(string_value) => {
             if let Some(parent) = components.get(parent_name) {
-                parent.clone().component().add_as_child(ComponentChild::String(string_value.to_string()));
+                parent.component().add_as_child(ComponentChild::String(string_value.to_string()));
             }
         },
 
@@ -187,17 +156,19 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                         }
                     }
 
-                    // Adress other props here
+                    // Address other props here
                 }
 
                 let component = match component_type.as_str() {
-                    "text" => Component::Text( Rc::new(Text{
-                        name: component_name.clone(),
-                        hide: StateVar::new(false),
-                        value: StateVar::new("".to_owned()),
-                        children: RefCell::new(vec![]),
-                        parent: RefCell::new(parent_name.to_string()),
-                    })),
+                    
+
+                    "text" => Component::Text(
+                        Text::create(component_name.clone(), parent_name.to_string())
+                    ),
+
+                    "number" => Component::Number(
+                        Number::create(component_name.clone(), parent_name.to_string())
+                    ),
 
                     // Add components to this match here
  

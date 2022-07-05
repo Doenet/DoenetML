@@ -8,12 +8,16 @@ use std::rc::Rc;
 use std::fmt;
 
 
+
+
 /*
 Why we need RefCells: the Rc does not allow mutability in the
 thing it wraps. If it any point we might want to mutate a field, its value should be wrapped in a RefCell
 */
 
 // 'Object' refers to a component or string
+
+#[macro_use]
 
 pub mod state_variable_setup;
 pub mod text;
@@ -44,12 +48,50 @@ pub trait ComponentSpecificBehavior {
 
     /// This function should never use self in the function body.
     /// Treat as if this is a constant.
-    fn state_variable_instructions(&self) -> &phf::Map<&'static str, StateVarVariant>;
+    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
 
-    fn state_var(&self, name: &'static str) -> Option<StateVarAccess>;
+    fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
 
 
-    fn set_state_var_string(&self, name: &'static str, val: String) {
+
+
+
+    fn set_state_var(&self, name: StateVarName, val: StateVarValue) {
+        match self.state_var(name).unwrap() {
+            StateVarAccess::String(sv) => {
+                if let StateVarValue::String(string_val) = val {
+                    sv.replace(string_val);
+                } else {
+                    unreachable!();
+                }
+            },
+            StateVarAccess::Integer(sv) => {
+                if let StateVarValue::Integer(integer_val) = val {
+                    sv.replace(integer_val);
+                } else {
+                    unreachable!();
+                }
+            },
+            StateVarAccess::Number(sv) => {
+                if let StateVarValue::Number(number_val) = val {
+                    sv.replace(number_val);
+                } else {
+                    unreachable!();
+                }
+            },
+            StateVarAccess::Bool(sv) => {
+                if let StateVarValue::Boolean(bool_val) = val {
+                    sv.replace(bool_val);
+                } else {
+                    unreachable!();
+                }
+            }
+
+        }
+    }
+
+
+    fn set_state_var_string(&self, name: StateVarName, val: String) {
 
         match self.state_var(name).unwrap() {
             StateVarAccess::String(sva) => { sva.replace(val); }
@@ -57,7 +99,7 @@ pub trait ComponentSpecificBehavior {
         }
     }
 
-    fn set_state_var_integer(&self, name: &'static str, val: i64) {
+    fn set_state_var_integer(&self, name: StateVarName, val: i64) {
 
         match self.state_var(name).unwrap() {
             StateVarAccess::Integer(sva) => { sva.replace(val); }
@@ -65,7 +107,7 @@ pub trait ComponentSpecificBehavior {
         }
     }
 
-    fn set_state_var_number(&self, name: &'static str, val: f64) {
+    fn set_state_var_number(&self, name: StateVarName, val: f64) {
 
         match self.state_var(name).unwrap() {
             StateVarAccess::Number(sva) => { sva.replace(val); }
@@ -73,7 +115,7 @@ pub trait ComponentSpecificBehavior {
         }
     }
 
-    fn set_state_var_bool(&self, name: &'static str, val: bool) {
+    fn set_state_var_bool(&self, name: StateVarName, val: bool) {
 
         match self.state_var(name).unwrap() {
             StateVarAccess::Bool(sva) => { sva.replace(val); }
@@ -109,7 +151,7 @@ trait TextLikeComponent: ComponentLike {
     fn text_value(&self) -> String;
 }
 trait NumberLikeComponent: ComponentLike {
-    fn add_one(&self) -> i64;
+    fn add_one(&self) -> f64;
 }
 
 
@@ -161,16 +203,16 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
             // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
 
             let dependency_instructions_hashmap = match state_var_def {
-                StateVarVariant::String(def)  => (def.return_dependency_instructions)(StateVarValuesMap::new()),
-                StateVarVariant::Bool(def)    => (def.return_dependency_instructions)(StateVarValuesMap::new()),
-                StateVarVariant::Number(def)  => (def.return_dependency_instructions)(StateVarValuesMap::new()),
-                StateVarVariant::Integer(def) => (def.return_dependency_instructions)(StateVarValuesMap::new()),
+                StateVarVariant::String(def)  => (def.return_dependency_instructions)(HashMap::new()),
+                StateVarVariant::Bool(def)    => (def.return_dependency_instructions)(HashMap::new()),
+                StateVarVariant::Number(def)  => (def.return_dependency_instructions)(HashMap::new()),
+                StateVarVariant::Integer(def) => (def.return_dependency_instructions)(HashMap::new()),
             };
             
             
-            for (_, dep_instruction) in dependency_instructions_hashmap.into_iter() {
+            for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-                let dependency =  create_dependency_from_instruction(component, state_var_name, dep_instruction);
+                let dependency =  create_dependency_from_instruction(component, state_var_name, dep_instruction, dep_name);
 
                 dependencies.push(dependency);
             }
@@ -183,24 +225,25 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
 }
 
 
-fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_var: &'static str, instruction: DependencyInstruction) -> Dependency {
+fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_var: StateVarName, instruction: DependencyInstruction, instruction_name: InstructionName) -> Dependency {
 
     let mut dependency = Dependency {
+        name: instruction_name,
         component: component.name().clone().to_owned(),
         state_var: state_var,        
         // instruction: instruction,
         variables_optional: false,
 
         // We will fill in these fields next
-        depends_on_components_and_strings: vec![],
+        depends_on_objects: vec![],
         depends_on_state_vars: vec![],
     };
 
     match instruction {
 
-        DependencyInstruction::StateVarVariant(state_var_instruction) => {
+        DependencyInstruction::StateVar(state_var_instruction) => {
 
-                dependency.depends_on_components_and_strings = if let Option::Some(name) = state_var_instruction.component_name {
+                dependency.depends_on_objects = if let Option::Some(name) = state_var_instruction.component_name {
                     vec![ObjectName::Component(name)]
                 } else {
                     vec![ObjectName::Component(component.name().clone().to_owned())]
@@ -218,7 +261,7 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
                     match child {
                         ComponentChild::Component(child_component) => {
                             if child_component.get_trait_names().contains(desired_child_type) {
-                                //If not already in list, add it to the list
+                                // If not already in list, add it to the list
                                 if !depends_on_children.contains(&ObjectName::Component(child_component.name().to_owned())) {
                                     depends_on_children.push(ObjectName::Component(child_component.name().to_owned()));
                                 }
@@ -226,9 +269,9 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
                         },
 
                         ComponentChild::String(string_value) => {
-                            if desired_child_type == &ObjectTraitName::TextLike {
+                            if desired_child_type == &ObjectTraitName::TextLike ||
+                                desired_child_type == &ObjectTraitName::NumberLike {
                                 
-                                //or do nothing here?
                                 depends_on_children.push(ObjectName::String(string_value.to_owned()));
 
                             }
@@ -238,7 +281,7 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
                 }
             }
 
-            dependency.depends_on_components_and_strings = depends_on_children;
+            dependency.depends_on_objects = depends_on_children;
             dependency.depends_on_state_vars = child_instruction.desired_state_vars;
 
         },
@@ -254,41 +297,39 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
 
 
 
-pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: &'static str) -> StateVarValue {
+pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) -> StateVarValue {
 
-    let mut map: HashMap<StateVarAddress, StateVarValue> = HashMap::new();
+    let mut map: HashMap<InstructionName, Vec<StateVarValue>> = HashMap::new();
+
 
     let my_dependencies = core.dependencies.iter().filter(|dep| dep.component == component.name() && dep.state_var == name);
 
     for dep in my_dependencies {
 
-        for depends_on in &dep.depends_on_components_and_strings {
+        let mut values_for_this_dep: Vec<StateVarValue> = Vec::new();
+
+        for depends_on in &dep.depends_on_objects {
+
             match depends_on {
                 ObjectName::String(string) => {
                     if dep.depends_on_state_vars.contains(&"value") {
-
-                        map.insert(
-                            // TODO: what to call the state var address of a string
-                            StateVarAddress::new("string".to_owned(), "value"),
-
-                            StateVarValue::String(string.to_string())
-                        );
+                        values_for_this_dep.push(StateVarValue::String(string.to_string()));
                
                     }
                 },
                 ObjectName::Component(component_name) => {
                     let depends_on_component = &core.components.get(component_name).unwrap().component();
                     for state_var_name in &dep.depends_on_state_vars {
-                        let state_var_value = resolve_state_variable(core, depends_on_component, name);
 
-                        map.insert(
-                            StateVarAddress::new(component_name.clone(), state_var_name),
-                            state_var_value
-                        );
+                        let state_var_value = resolve_state_variable(core, depends_on_component, name);
+                        values_for_this_dep.push(state_var_value);
+
                     }
                 }
             }
         }
+
+        map.insert(dep.name, values_for_this_dep);
     }
 
     let definition = component.state_variable_instructions().get(name).unwrap();

@@ -5,36 +5,40 @@ use std::{collections::HashMap, cell::RefCell};
 use crate::{ObjectTraitName};
 
 
-pub type StateVar<T> = RefCell<T>;
 
-pub type StateVarValuesMap = HashMap<&'static str, StateVarValue>;
+// A macro to provide println! style syntax for console.log logging.
+#[macro_export]
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        
+        extern crate web_sys;
 
-pub type DependencyInstructionMap = HashMap<&'static str, DependencyInstruction>;
-
-/// State variable functions core uses
-pub struct StateVarDefinition<T> {
-    pub state_vars_to_determine_dependencies: fn() -> Vec<&'static str>,
-    pub return_dependency_instructions: fn(StateVarValuesMap) -> DependencyInstructionMap,
-    pub determine_state_var_from_dependencies:fn(HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<T>,
-
-    // Note: this might not need to be pub later
-    // pub access: fn(&Component) -> &std::cell::RefCell<T>,
-}
-
-pub fn default_state_vars_for_dependencies() -> Vec<&'static str> { vec![] }
-
-
-impl<T> std::fmt::Debug for StateVarDefinition<T> {
-    fn fmt<'a>(&'a self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("StateVarDef")
-            .field("state_vars_to_determine_dependencies", &self.state_vars_to_determine_dependencies)
-            .field("return_dependency_instructions", &self.return_dependency_instructions)
-            .field("determine_state_var_from_dependencies", &self.determine_state_var_from_dependencies)
-            .field("access", &"Can't print access pointer")
-            .finish()
-
+        web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
+
+
+
+
+pub type StateVar<T> = RefCell<T>;
+
+pub type StateVarName = &'static str;
+pub type InstructionName = &'static str;
+
+/// State variable functions core uses
+#[derive(Debug)]
+pub struct StateVarDefinition<T> {
+    pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
+    pub return_dependency_instructions: fn(HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction>,
+    
+    pub determine_state_var_from_dependencies: fn(
+        HashMap<InstructionName, Vec<StateVarValue>>
+    ) -> StateVarUpdateInstruction<T>,
+
+}
+
+pub fn default_state_vars_for_dependencies() -> Vec<StateVarName> { vec![] }
+
 
 #[derive(Debug)]
 pub enum StateVarVariant {
@@ -59,15 +63,17 @@ pub enum StateVarValue {
 pub struct Dependency {
 
     pub component: String,
-    pub state_var: &'static str,
+    pub state_var: StateVarName,
 
-    // We will use outer product of entries
-    pub depends_on_components_and_strings: Vec<ObjectName>,
-    pub depends_on_state_vars: Vec<&'static str>,
+    pub name: InstructionName,
+
+
+    // We will use outer product of entries (except for the strings, which don't have state vars)
+    pub depends_on_objects: Vec<ObjectName>,
+    pub depends_on_state_vars: Vec<StateVarName>,
 
     // TODO: Do we really need this field? It would be easier if we didn't
     // pub instruction: DependencyInstruction,
-
     pub variables_optional: bool,
 }
 
@@ -80,13 +86,12 @@ pub enum ObjectName {
 
 #[derive(Eq, Hash, PartialEq)]
 pub struct StateVarAddress {
-    component: String, // should this be &str? It can't be 'static because it refers
-    // to a component instance
-    state_var: &'static str,
+    component: String,
+    state_var: StateVarName,
 }
 
 impl StateVarAddress {
-    pub fn new(component: String, state_var: &'static str) -> StateVarAddress {
+    pub fn new(component: String, state_var: StateVarName) -> StateVarAddress {
         StateVarAddress {
             component, state_var
         }
@@ -97,29 +102,27 @@ impl StateVarAddress {
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child(ChildDependencyInstruction),
-    StateVarVariant(StateVarDependencyInstruction),
+    StateVar(StateVarDependencyInstruction),
     Parent(ParentDependencyInstruction),
 }
 
 #[derive(Clone, Debug)]
 pub struct ChildDependencyInstruction {
     pub desired_children: Vec<ObjectTraitName>,
-    pub desired_state_vars: Vec<&'static str>,
+    pub desired_state_vars: Vec<StateVarName>,
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct StateVarDependencyInstruction {
-    // Since component_name is the name of a component instance, we don't want to clone the name and therefore allow a dependency to refer to that instance even if it doesn't exist anymore
-
     pub component_name: Option<String>, //default: Option::None
 
-    pub state_var: &'static str, //default: ""
+    pub state_var: StateVarName, //default: ""
 }
 
 #[derive(Clone, Debug)]
 pub struct ParentDependencyInstruction {
     pub parent_trait: ObjectTraitName,
-    pub state_var: &'static str,
+    pub state_var: StateVarName,
 }
 
 

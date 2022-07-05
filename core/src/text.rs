@@ -21,12 +21,13 @@ pub struct Text {
     pub parent: RefCell<String>,
     pub children: RefCell<Vec<ComponentChild>>,
 
-    pub value: StateVar<String>,
-    pub hide: StateVar<bool>,
+    // State variables
+    value: StateVar<String>,
+    hide: StateVar<bool>,
 }
 
 
-fn value_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
+fn value_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
         desired_children: vec![ObjectTraitName::TextLike],
@@ -36,24 +37,46 @@ fn value_return_dependency_instructions(prerequisite_state_values: StateVarValue
     HashMap::from([("value", instruction)])
 }
 
-fn value_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<String> {
+fn value_determine_state_var_from_dependencies(
+    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
+) -> StateVarUpdateInstruction<String> {
+
+    log!("text dep vals: {:#?}", dependency_values);
 
     let mut val = String::new();
 
-    for (_, child_text_value) in dependency_values {
-        if let StateVarValue::String(text) = child_text_value {
-            val.push_str(&text);
+    let textlike_children_values = dependency_values.get("value").unwrap();
+
+    for child_text_value in textlike_children_values {
+        match child_text_value {
+            StateVarValue::String(text) => {
+                val.push_str(&text);
+            },
+            StateVarValue::Number(num) => {
+                val.push_str(&num.to_string());
+            },
+            StateVarValue::Integer(integer) => {
+                val.push_str(&integer.to_string());
+            },
+            StateVarValue::Boolean(bool_val) => {
+                val.push_str(&bool_val.to_string());
+            },
+
+
         }
     }
 
     StateVarUpdateInstruction::SetValue(val)
 }
 
-fn hide_return_dependency_instructions(prerequisite_state_values: StateVarValuesMap) -> DependencyInstructionMap {
-    DependencyInstructionMap::new()
+fn hide_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
+    HashMap::new()
 }
 
-fn hide_determine_state_var_from_dependencies(dependency_values: HashMap<StateVarAddress, StateVarValue>) -> StateVarUpdateInstruction<bool> {
+fn hide_determine_state_var_from_dependencies(
+    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
+) -> StateVarUpdateInstruction<bool> {
+
     StateVarUpdateInstruction::NoChange
 }
 
@@ -63,31 +86,26 @@ fn hide_determine_state_var_from_dependencies(dependency_values: HashMap<StateVa
 
 impl ComponentSpecificBehavior for Text {
 
-    fn state_variable_instructions(&self) -> &phf::Map<&'static str, StateVarVariant> {
-
+    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
 
         &phf_map! {
             "value" => StateVarVariant::String(StateVarDefinition {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: value_return_dependency_instructions,
                 determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
-
-                // access: state_var_access!(Text, value, String),
-
             }),
 
             "hide" => StateVarVariant::Bool(StateVarDefinition { 
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: hide_return_dependency_instructions,
                 determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
-                // access: state_var_access!(Text, hide, bool),
             }),
 
         }
         
     }
 
-    fn state_var(&self, name: &'static str) -> Option<crate::StateVarAccess> {
+    fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
         use crate::StateVarAccess;
 
         match name {
@@ -96,7 +114,7 @@ impl ComponentSpecificBehavior for Text {
             _ => Option::None,
         }
     }
-  
+
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
         vec![ObjectTraitName::TextLike]
     }
@@ -118,11 +136,17 @@ impl TextLikeComponent for Text {
 
 
 impl Text {
-    pub fn to_component_like(text: Rc<Text>) -> Rc<dyn ComponentLike> {
-        Rc::clone(&text) as Rc<dyn ComponentLike>
+    pub fn create(name: String, parent: String) -> Rc<Text> {
+        Rc::new(Text {
+            name,
+            parent: RefCell::new(parent),
+            children: RefCell::new(vec![]),
+
+            value: StateVar::new("".to_owned()),
+            hide: StateVar::new(false)
+        })
     }
 }
-
 
 
 
