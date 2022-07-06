@@ -360,10 +360,10 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
             match update_instruction {
                 StateVarUpdateInstruction::NoChange => {
-                    StateVarValue::String("no change".to_owned())
+                    return;
                 },
                 StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::String("string default".to_owned())
+                    StateVarValue::String((def.default_value)())
                 },
                 StateVarUpdateInstruction::SetValue(v) => {
                     StateVarValue::String(v)
@@ -374,10 +374,10 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
             let update_instruction = (def.determine_state_var_from_dependencies)(map);
             match update_instruction {
                 StateVarUpdateInstruction::NoChange => {
-                    StateVarValue::Integer(0)
+                    return;
                 },
                 StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Integer(0)
+                    StateVarValue::Integer((def.default_value)())
                 },
                 StateVarUpdateInstruction::SetValue(v) => {
                     StateVarValue::Integer(v)
@@ -388,10 +388,10 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
             let update_instruction = (def.determine_state_var_from_dependencies)(map);
             match update_instruction {
                 StateVarUpdateInstruction::NoChange => {
-                    StateVarValue::Number(0.0)
+                    return;
                 },
                 StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Number(0.0)
+                    StateVarValue::Number((def.default_value)())
                 },
                 StateVarUpdateInstruction::SetValue(v) => {
                     StateVarValue::Number(v)
@@ -402,10 +402,10 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
             let update_instruction = (def.determine_state_var_from_dependencies)(map);
             match update_instruction {
                 StateVarUpdateInstruction::NoChange => {
-                    StateVarValue::Boolean(false)
+                    return;
                 },
                 StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Boolean(false)
+                    StateVarValue::Boolean((def.default_value)())
                 },
                 StateVarUpdateInstruction::SetValue(v) => {
                     StateVarValue::Boolean(v)
