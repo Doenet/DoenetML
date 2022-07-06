@@ -1,7 +1,3 @@
-
-#![allow(dead_code)] 
-#![allow(unused_variables)] 
-
 use std::cell::{RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
