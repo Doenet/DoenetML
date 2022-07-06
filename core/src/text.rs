@@ -39,7 +39,7 @@ fn value_determine_state_var_from_dependencies(
     dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<String> {
 
-    log!("text dep vals: {:#?}", dependency_values);
+    // log!("text dep vals: {:#?}", dependency_values);
 
     let mut val = String::new();
 
@@ -71,6 +71,8 @@ fn value_determine_state_var_from_dependencies(
 
 impl ComponentSpecificBehavior for Text {
 
+    fn should_render_children(&self) -> bool { true }
+
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
 
         &phf_map! {
@@ -101,9 +103,7 @@ impl ComponentSpecificBehavior for Text {
         vec![ObjectTraitName::TextLike]
     }
 
-    fn get_component_type(&self) -> &'static str {
-        "Text"
-    }
+    fn get_component_type(&self) -> &'static str { "text" }
 
 
 }

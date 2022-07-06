@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::cell::{RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -31,6 +32,7 @@ use state_variable_setup::*;
 pub struct DoenetCore {
     pub components: HashMap<String, Component>,
     pub dependencies: Vec<Dependency>,
+    pub root_component_name: String,
 }
 
 
@@ -38,8 +40,11 @@ pub struct DoenetCore {
 pub trait ComponentSpecificBehavior {
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
 
-    /// Capitalize names, eg, Text.
+    /// lower case name
     fn get_component_type(&self) -> &'static str;
+
+
+    fn should_render_children(&self) -> bool;
 
     /// This function should never use self in the function body.
     /// Treat as if this is a constant.
@@ -289,10 +294,7 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
 }
 
 
-
-
-
-pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) -> StateVarValue {
+pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) {
 
     let mut map: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
@@ -320,7 +322,20 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                     let depends_on_component = &core.components.get(component_name).unwrap().component();
                     for state_var_name in &dep.depends_on_state_vars {
 
-                        let state_var_value = resolve_state_variable(core, depends_on_component, name);
+                        resolve_state_variable(core, depends_on_component, name);
+                        let state_var_access = depends_on_component.state_var(name).unwrap();
+                        let state_var_value = match state_var_access {
+                            StateVarAccess::Bool(val) => StateVarValue::Boolean(*val.borrow()),
+                            StateVarAccess::Number(val) => StateVarValue::Number(*val.borrow()),
+                            StateVarAccess::Integer(val) => StateVarValue::Integer(*val.borrow()),
+
+                            StateVarAccess::String(val) => {
+                                let string_val = &*val.borrow();
+                                StateVarValue::String(String::from(string_val))
+                            },
+
+                        };
+
                         values_for_this_dep.push((
                             core.components.get(component_name).unwrap().component().get_component_type(),
                             state_var_name,
@@ -337,9 +352,12 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
     let definition = component.state_variable_instructions().get(name).unwrap();
 
-    match definition {
+
+    let new_state_var_value = match definition {
+
         StateVarVariant::String(def) => {
             let update_instruction = (def.determine_state_var_from_dependencies)(map);
+
             match update_instruction {
                 StateVarUpdateInstruction::NoChange => {
                     StateVarValue::String("no change".to_owned())
@@ -394,11 +412,11 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                 }
             }
         },
-    }
+    };
+
+    component.set_state_var(name, new_state_var_value);
 
 }
-
-
 
 
 

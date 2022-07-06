@@ -12,7 +12,7 @@ console.log("JSON", DoenetTextJson);
 
 const dc = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
 
-// const render_tree_string = dc.render_tree();
-// const render_tree_json = JSON.parse(render_tree_string);
+const render_tree_string = dc.update_renderers();
+const render_tree_json = JSON.parse(render_tree_string);
 
-// console.log("JS deserialized JSON", render_tree_json);
+console.log("JS deserialized JSON", render_tree_json);

@@ -2,6 +2,7 @@ mod utils;
 
 extern crate web_sys;
 
+use serde_json::json;
 use wasm_bindgen::prelude::*;
 use serde::Serialize;
 
@@ -12,6 +13,8 @@ use core::create_all_dependencies_for_component;
 use core::number;
 use core::resolve_state_variable;
 use core::state_variable_setup::StateVar;
+use std::borrow::Borrow;
+use std::clone;
 use std::collections::HashMap;
 
 use core::Component;
@@ -21,6 +24,8 @@ use core::text::Text;
 use core::number::Number;
 
 use core::state_variable_setup::{StateVarVariant, Dependency};
+use std::hash::Hash;
+use std::rc::Rc;
 
 use serde_json::Value;
 
@@ -58,7 +63,17 @@ impl PublicDoenetCore {
 
         let mut components: HashMap<String, Component> = HashMap::new();
         let mut component_type_counter: HashMap<String, u32> = HashMap::new();
-        add_json_subtree_to_components(&mut components, &json_deserialized, "", &mut component_type_counter);
+
+        let mut root_component_name: Option<String> = None;
+
+        add_json_subtree_to_components(
+            &mut components,
+            &json_deserialized, "",
+            &mut component_type_counter,
+            &mut root_component_name,
+        );
+
+        let root_component_name = root_component_name.unwrap();
 
         let mut dependencies: Vec<Dependency> = vec![];
         
@@ -75,7 +90,7 @@ impl PublicDoenetCore {
 
 
         // Define Doenet Core structure
-        let core: DoenetCore = DoenetCore {components, dependencies};
+        let core: DoenetCore = DoenetCore {components, dependencies, root_component_name };
 
 
 
@@ -84,51 +99,24 @@ impl PublicDoenetCore {
         log!("Dependencies\n{:#?}", core.dependencies);
 
 
-
-        
-
-        for (component_name, component) in core.components.iter() {
-            log!("State var value of component {:#?}: {:#?}", 
-                component_name,
-                resolve_state_variable(&core, &component.component(), "value")
-            );
-
-        }
-
-
-        // Reference counter testing
-
-        // for (component_name, component) in components.iter() {
-        //     if let Component::Text(text) = component {
-        //         log!("{} has {} references right now", component_name, Rc::strong_count(&text));
-        //     }
-        // }
-        // for (component_name, component) in components.iter() {
-        //     if let Component::Text(text) = component {
-        //         let children = text.children.borrow();
-        //         for child in children.iter() {
-        //             if let ComponentChild::Component(child_comp) = child {
-        //                 log!("{}'s child {} has {} references right now",
-        //                 component_name, child_comp.name(), Rc::strong_count(&child_comp));
-        //             }
-        //         }
-        //     }
-        // }
-
-
     
         PublicDoenetCore(core)
         
     }
+
+    pub fn update_renderers(&self) -> String {
+        let json_obj = generate_render_tree(&self.0);
+        serde_json::to_string(&json_obj).unwrap()
+    }
 }
 
-fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, json_obj: &serde_json::Value, parent_name: &str, component_type_counter: &mut HashMap<String, u32>) {
+fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, json_obj: &serde_json::Value, parent_name: &str, component_type_counter: &mut HashMap<String, u32>, root_component_name: &mut Option<String>) {
 
     match json_obj {
         serde_json::Value::Array(value_vec) => {
             log!("array");
             for value in value_vec.iter() {
-                add_json_subtree_to_components(components, value, parent_name, component_type_counter);
+                add_json_subtree_to_components(components, value, parent_name, component_type_counter, root_component_name);
             }
         },
         
@@ -159,6 +147,13 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                     // Address other props here
                 }
 
+
+                // Make sure to do this before you recurse to the next Value::Object
+                if root_component_name.is_none() {
+                    *root_component_name = Option::Some(component_name.clone());
+                }
+                
+
                 let component = match component_type.as_str() {
                     
 
@@ -183,7 +178,10 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
                 let children_value = map.get("children").unwrap();
 
                 components.insert(component_name.clone(), component);
-                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter);
+
+
+
+                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter, root_component_name);
 
             } else {
                 panic!("componentType is not a string");
@@ -192,4 +190,73 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
 
         _ => {log!("other");},
     }
+}
+
+pub fn generate_render_tree(core: &DoenetCore) -> Value {
+    let root_node = core.components.get(&core.root_component_name).unwrap();
+    let mut json_obj: Vec<Value> = vec![];
+    generate_render_tree_internal(core, &root_node.component(), &mut json_obj);
+    json!(json_obj)
+}
+
+pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<Value>) {
+
+    let state_vars = component.state_variable_instructions();
+
+    let renderered_state_vars = state_vars.into_iter().filter(|kv| match kv.1 {
+        StateVarVariant::Integer(sv) => sv.for_renderer,
+        StateVarVariant::Number(sv) => sv.for_renderer,
+        StateVarVariant::String(sv) => sv.for_renderer,
+        StateVarVariant::Bool(sv) => sv.for_renderer,
+    });
+
+    let mut map = serde_json::Map::new();
+    for (name, _variant) in renderered_state_vars {
+
+        resolve_state_variable(core, component, name);
+        let state_var_value = component.state_var(name).unwrap();
+
+        map.insert(name.to_string(),
+            match state_var_value {
+                core::StateVarAccess::Integer(v) => json!(v.borrow().clone()),
+                core::StateVarAccess::Number(v) => json!(v.borrow().clone()),
+                core::StateVarAccess::String(v) => json!(v.borrow().clone()),
+                core::StateVarAccess::Bool(v) => json!(v.borrow().clone()),
+            }
+        );
+    }
+
+
+    let children_instructions = if component.should_render_children() {
+        let children = component.children().borrow();
+        children.iter().map(|child| match child {
+            ComponentChild::Component(comp) => {
+                // recurse for children
+                generate_render_tree_internal(core, comp, json_obj);
+
+                json!({
+                    "actions": {},
+                    "componentName": comp.name().to_string(),
+                    "componentType": comp.get_component_type().to_string(),
+                    "effectiveName": comp.name().to_string(),
+                    "renderType": comp.get_component_type().to_string(),
+                })},
+            ComponentChild::String(string) => {
+                json!({
+                    "actions": {},
+                    "componentName": string.to_string(),
+                    "componentType": "string".to_string(),
+                    "effectiveName": string.to_string(),
+                    "renderType": "string".to_string(),
+                })},
+        }).collect()
+    } else {
+        vec![]
+    };
+
+    json_obj.push(json!({
+        "componentName": component.name(),
+        "stateValues": Value::Object(map),
+        "childrenInstructions": json!(children_instructions),
+    }));
 }

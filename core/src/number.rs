@@ -39,7 +39,7 @@ fn value_determine_state_var_from_dependencies(
 ) -> StateVarUpdateInstruction<f64> {
 
 
-    log!("number dependency values: {:#?}", dependency_values);
+    // log!("number dependency values: {:#?}", dependency_values);
 
     let first_obj = &dependency_values.get("value").unwrap()[0];
     let value = &first_obj.2;
@@ -56,6 +56,8 @@ fn value_determine_state_var_from_dependencies(
 
 
 impl ComponentSpecificBehavior for Number {
+
+    fn should_render_children(&self) -> bool { false }
 
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
 
@@ -91,9 +93,7 @@ impl ComponentSpecificBehavior for Number {
         vec![ObjectTraitName::NumberLike, ObjectTraitName::TextLike]
     }
 
-    fn get_component_type(&self) -> &'static str {
-        "Number"
-    }
+    fn get_component_type(&self) -> &'static str { "number" }
 
 
 }
