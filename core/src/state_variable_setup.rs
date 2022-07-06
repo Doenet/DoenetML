@@ -24,6 +24,7 @@ pub type StateVar<T> = RefCell<T>;
 
 pub type StateVarName = &'static str;
 pub type InstructionName = &'static str;
+pub type ComponentType = &'static str;
 
 /// State variable functions core uses
 #[derive(Debug)]
@@ -32,9 +33,11 @@ pub struct StateVarDefinition<T> {
     pub return_dependency_instructions: fn(HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction>,
     
     pub determine_state_var_from_dependencies: fn(
-        HashMap<InstructionName, Vec<StateVarValue>>
+        HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
     ) -> StateVarUpdateInstruction<T>,
 
+    pub for_renderer: bool,
+    pub default_value: fn() -> T,
 }
 
 pub fn default_state_vars_for_dependencies() -> Vec<StateVarName> { vec![] }
@@ -132,3 +135,27 @@ pub enum StateVarUpdateInstruction<T> {
     NoChange,
 }
 
+
+
+
+// Hide
+
+pub const HIDE_DEFAULT_DEFINITION: StateVarVariant = StateVarVariant::Bool(StateVarDefinition { 
+    state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+    return_dependency_instructions: default_hide_return_dependency_instructions,
+    determine_state_var_from_dependencies: default_hide_determine_state_var_from_dependencies,
+    for_renderer: true,
+    default_value: || false,
+});
+
+
+fn default_hide_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
+    HashMap::new()
+}
+
+fn default_hide_determine_state_var_from_dependencies(
+    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+) -> StateVarUpdateInstruction<bool> {
+
+    StateVarUpdateInstruction::NoChange
+}

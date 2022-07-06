@@ -20,7 +20,6 @@ pub mod text;
 pub mod number;
 
 
-
 use text::{Text};
 
 use number::Number;
@@ -295,21 +294,25 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
 
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) -> StateVarValue {
 
-    let mut map: HashMap<InstructionName, Vec<StateVarValue>> = HashMap::new();
+    let mut map: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
 
     let my_dependencies = core.dependencies.iter().filter(|dep| dep.component == component.name() && dep.state_var == name);
 
     for dep in my_dependencies {
 
-        let mut values_for_this_dep: Vec<StateVarValue> = Vec::new();
+        let mut values_for_this_dep: Vec<(ComponentType, StateVarName, StateVarValue)> = Vec::new();
 
         for depends_on in &dep.depends_on_objects {
 
             match depends_on {
                 ObjectName::String(string) => {
                     if dep.depends_on_state_vars.contains(&"value") {
-                        values_for_this_dep.push(StateVarValue::String(string.to_string()));
+                        values_for_this_dep.push((
+                            "string",
+                            "value",
+                            StateVarValue::String(string.to_string())
+                    ));
                
                     }
                 },
@@ -318,7 +321,11 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                     for state_var_name in &dep.depends_on_state_vars {
 
                         let state_var_value = resolve_state_variable(core, depends_on_component, name);
-                        values_for_this_dep.push(state_var_value);
+                        values_for_this_dep.push((
+                            core.components.get(component_name).unwrap().component().get_component_type(),
+                            state_var_name,
+                            state_var_value
+                        ));
 
                     }
                 }

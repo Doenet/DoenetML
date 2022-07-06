@@ -13,8 +13,6 @@ use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTrai
 use phf::phf_map;
 
 
-
-
 #[derive(Debug, ComponentLike)]
 pub struct Text {
     pub name: String,
@@ -38,7 +36,7 @@ fn value_return_dependency_instructions(prerequisite_state_values: HashMap<State
 }
 
 fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
+    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<String> {
 
     log!("text dep vals: {:#?}", dependency_values);
@@ -47,7 +45,7 @@ fn value_determine_state_var_from_dependencies(
 
     let textlike_children_values = dependency_values.get("value").unwrap();
 
-    for child_text_value in textlike_children_values {
+    for (_, _, child_text_value) in textlike_children_values {
         match child_text_value {
             StateVarValue::String(text) => {
                 val.push_str(&text);
@@ -69,19 +67,6 @@ fn value_determine_state_var_from_dependencies(
     StateVarUpdateInstruction::SetValue(val)
 }
 
-fn hide_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
-    HashMap::new()
-}
-
-fn hide_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
-) -> StateVarUpdateInstruction<bool> {
-
-    StateVarUpdateInstruction::NoChange
-}
-
-
-
 
 
 impl ComponentSpecificBehavior for Text {
@@ -93,14 +78,11 @@ impl ComponentSpecificBehavior for Text {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: value_return_dependency_instructions,
                 determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+                for_renderer: true,
+                default_value: || "".to_owned(),
             }),
 
-            "hide" => StateVarVariant::Bool(StateVarDefinition { 
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions: hide_return_dependency_instructions,
-                determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
-            }),
-
+            "hide" => HIDE_DEFAULT_DEFINITION,
         }
         
     }

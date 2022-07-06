@@ -35,13 +35,14 @@ fn value_return_dependency_instructions(prerequisite_state_values: HashMap<State
 }
 
 fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
+    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<f64> {
 
 
     log!("number dependency values: {:#?}", dependency_values);
 
-    let value = &dependency_values.get("value").unwrap()[0];
+    let first_obj = &dependency_values.get("value").unwrap()[0];
+    let value = &first_obj.2;
     
     if let StateVarValue::String(string_val) = value {
         let num_val = string_val.parse::<f64>().unwrap_or(0.0);
@@ -50,17 +51,6 @@ fn value_determine_state_var_from_dependencies(
         panic!();
     }
 
-}
-
-fn hide_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
-    HashMap::new()
-}
-
-fn hide_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<StateVarValue>>
-) -> StateVarUpdateInstruction<bool> {
-
-    StateVarUpdateInstruction::NoChange
 }
 
 
@@ -75,13 +65,11 @@ impl ComponentSpecificBehavior for Number {
                 state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
                 return_dependency_instructions: value_return_dependency_instructions,
                 determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+                for_renderer: true,
+                default_value: || 0.0,
             }),
 
-            "hide" => StateVarVariant::Bool(StateVarDefinition { 
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions: hide_return_dependency_instructions,
-                determine_state_var_from_dependencies: hide_determine_state_var_from_dependencies,
-            }),
+            "hide" => HIDE_DEFAULT_DEFINITION,
 
         }
         
