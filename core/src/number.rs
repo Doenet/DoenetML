@@ -100,17 +100,17 @@ impl ComponentSpecificBehavior for Number {
 
 
 
-impl TextLikeComponent for Number {
-    fn text_value(&self) -> String {
-        let val = *self.value.borrow();
-        val.to_string()
-    }
-}
-impl NumberLikeComponent for Number {
-    fn add_one(&self) -> f64 {
-        *self.value.borrow() + 1.0
-    }
-}
+// impl TextLikeComponent for Number {
+//     fn text_value(&self) -> String {
+//         let val = *self.value.borrow();
+//         val.to_string()
+//     }
+// }
+// impl NumberLikeComponent for Number {
+//     fn add_one(&self) -> f64 {
+//         *self.value.borrow() + 1.0
+//     }
+// }
 
 
 
@@ -121,8 +121,8 @@ impl Number {
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
             
-            value: StateVar::new(0.0),
-            hide: StateVar::new(false)
+            value: StateVar::new(),
+            hide: StateVar::new(),
         })
     }
 }

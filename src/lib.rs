@@ -12,7 +12,7 @@ use core::DoenetCore;
 use core::create_all_dependencies_for_component;
 use core::number;
 use core::resolve_state_variable;
-use core::state_variable_setup::StateVar;
+use core::state_variable_setup::StateVarAccess;
 use std::borrow::Borrow;
 use std::clone;
 use std::collections::HashMap;
@@ -216,12 +216,16 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
         resolve_state_variable(core, component, name);
         let state_var_value = component.state_var(name).unwrap();
 
+        log!("components right now {:#?}", core.components);
+
+        log!("{:#?}", state_var_value);
+
         map.insert(name.to_string(),
             match state_var_value {
-                core::StateVarAccess::Integer(v) => json!(v.borrow().clone()),
-                core::StateVarAccess::Number(v) => json!(v.borrow().clone()),
-                core::StateVarAccess::String(v) => json!(v.borrow().clone()),
-                core::StateVarAccess::Bool(v) => json!(v.borrow().clone()),
+                StateVarAccess::Integer(state_var) => json!(state_var.unwrap()),
+                StateVarAccess::Number(state_var) =>  json!(state_var.unwrap()),
+                StateVarAccess::String(state_var) =>  json!(state_var.unwrap()),
+                StateVarAccess::Bool(state_var) =>    json!(state_var.unwrap()),
             }
         );
     }

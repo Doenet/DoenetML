@@ -56,82 +56,79 @@ pub trait ComponentSpecificBehavior {
 
 
 
-    fn set_state_var(&self, name: StateVarName, val: StateVarValue) {
-        match self.state_var(name).unwrap() {
-            StateVarAccess::String(sv) => {
-                if let StateVarValue::String(string_val) = val {
-                    sv.replace(string_val);
-                } else {
-                    unreachable!();
-                }
-            },
-            StateVarAccess::Integer(sv) => {
-                if let StateVarValue::Integer(integer_val) = val {
-                    sv.replace(integer_val);
-                } else {
-                    unreachable!();
-                }
-            },
-            StateVarAccess::Number(sv) => {
-                if let StateVarValue::Number(number_val) = val {
-                    sv.replace(number_val);
-                } else {
-                    unreachable!();
-                }
-            },
-            StateVarAccess::Bool(sv) => {
-                if let StateVarValue::Boolean(bool_val) = val {
-                    sv.replace(bool_val);
-                } else {
-                    unreachable!();
-                }
-            }
-
-        }
-    }
-
-
-    fn set_state_var_string(&self, name: StateVarName, val: String) {
-
-        match self.state_var(name).unwrap() {
-            StateVarAccess::String(sva) => { sva.replace(val); }
-            _ => { unreachable!(); }
-        }
-    }
-
-    fn set_state_var_integer(&self, name: StateVarName, val: i64) {
-
-        match self.state_var(name).unwrap() {
-            StateVarAccess::Integer(sva) => { sva.replace(val); }
-            _ => { unreachable!(); }
-        }
-    }
-
-    fn set_state_var_number(&self, name: StateVarName, val: f64) {
-
-        match self.state_var(name).unwrap() {
-            StateVarAccess::Number(sva) => { sva.replace(val); }
-            _ => { unreachable!(); }
-        }
-    }
-
-    fn set_state_var_bool(&self, name: StateVarName, val: bool) {
-
-        match self.state_var(name).unwrap() {
-            StateVarAccess::Bool(sva) => { sva.replace(val); }
-            _ => { unreachable!(); }
-        }
-    }
     
 }
 
 
-pub enum StateVarAccess<'a> {
-    String(&'a StateVar<String>),
-    Number(&'a StateVar<f64>),
-    Integer(&'a StateVar<i64>),
-    Bool(&'a StateVar<bool>),
+
+
+fn set_state_var(component: &Rc<dyn ComponentLike>, name: StateVarName, val: StateVarValue) {
+    match component.state_var(name).unwrap() {
+        StateVarAccess::String(cell) => {
+            if let StateVarValue::String(string_val) = val {
+                cell.0.replace(State::Resolved(string_val));
+            } else {
+                unreachable!();
+            }
+        },
+        StateVarAccess::Integer(cell) => {
+            if let StateVarValue::Integer(integer_val) = val {
+                cell.0.replace(State::Resolved(integer_val));
+            } else {
+                unreachable!();
+            }
+        },
+        StateVarAccess::Number(cell) => {
+            if let StateVarValue::Number(number_val) = val {
+                cell.0.replace(State::Resolved(number_val));
+            } else {
+                unreachable!();
+            }
+        },
+        StateVarAccess::Bool(cell) => {
+            if let StateVarValue::Boolean(bool_val) = val {
+                cell.0.replace(State::Resolved(bool_val));
+            } else {
+                unreachable!();
+            }
+        }
+
+    }
 }
+
+
+// fn set_state_var_string(component: Rc<dyn ComponentLike>, name: StateVarName, val: String) {
+
+//     match component.state_var(name).unwrap() {
+//         StateVarAccess::String(sva) => { sva.replace(val); }
+//         _ => { unreachable!(); }
+//     }
+// }
+
+// fn set_state_var_integer(component: Rc<dyn ComponentLike>, name: StateVarName, val: i64) {
+
+//     match component.state_var(name).unwrap() {
+//         StateVarAccess::Integer(sva) => { sva.replace(val); }
+//         _ => { unreachable!(); }
+//     }
+// }
+
+// fn set_state_var_number(component: Rc<dyn ComponentLike>, name: StateVarName, val: f64) {
+
+//     match component.state_var(name).unwrap() {
+//         StateVarAccess::Number(sva) => { sva.replace(val); }
+//         _ => { unreachable!(); }
+//     }
+// }
+
+// fn set_state_var_bool(component: Rc<dyn ComponentLike>, name: StateVarName, val: bool) {
+
+//     match component.state_var(name).unwrap() {
+//         StateVarAccess::Bool(sva) => { sva.replace(val); }
+//         _ => { unreachable!(); }
+//     }
+// }
+
 
 
 pub trait ComponentLike: ComponentSpecificBehavior {
@@ -296,6 +293,8 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
 
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) {
 
+    log!("Resolving state variable {}:{}", component.name(), name);
+
     let mut map: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
 
@@ -320,21 +319,28 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                 },
                 ObjectName::Component(component_name) => {
                     let depends_on_component = &core.components.get(component_name).unwrap().component();
-                    for state_var_name in &dep.depends_on_state_vars {
+                    for &state_var_name in &dep.depends_on_state_vars {
 
                         resolve_state_variable(core, depends_on_component, name);
                         let state_var_access = depends_on_component.state_var(name).unwrap();
                         let state_var_value = match state_var_access {
-                            StateVarAccess::Bool(val) => StateVarValue::Boolean(*val.borrow()),
-                            StateVarAccess::Number(val) => StateVarValue::Number(*val.borrow()),
-                            StateVarAccess::Integer(val) => StateVarValue::Integer(*val.borrow()),
-
-                            StateVarAccess::String(val) => {
-                                let string_val = &*val.borrow();
-                                StateVarValue::String(String::from(string_val))
+                            StateVarAccess::Bool(state_var) => {
+                                state_var.get_value()
                             },
-
+                            StateVarAccess::Number(state_var) => {
+                                state_var.get_value()   
+                            },
+                            StateVarAccess::Integer(state_var) => {
+                                state_var.get_value()   
+                            },
+                            StateVarAccess::String(state_var) => {
+                                state_var.get_value()   
+                            }
                         };
+
+                        let state_var_value = state_var_value.expect(
+                            &format!("Tried to access stale state var {}", state_var_name)
+                        );
 
                         values_for_this_dep.push((
                             core.components.get(component_name).unwrap().component().get_component_type(),
@@ -352,70 +358,31 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
     let definition = component.state_variable_instructions().get(name).unwrap();
 
+    let update_instruction = definition.determine_state_var_from_dependencies(map);
+    
+    
+    match update_instruction {
+        StateVarUpdateInstruction::NoChange => {
+            // POSSIBLE BUG HERE
+            // Use default. We need it anyway
+            // TODO: When we have memoization, change this?
 
-    let new_state_var_value = match definition {
+            let new_state_var_value = definition.default_value();
+            set_state_var(component, name, new_state_var_value);
 
-        StateVarVariant::String(def) => {
-            let update_instruction = (def.determine_state_var_from_dependencies)(map);
-
-            match update_instruction {
-                StateVarUpdateInstruction::NoChange => {
-                    return;
-                },
-                StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::String((def.default_value)())
-                },
-                StateVarUpdateInstruction::SetValue(v) => {
-                    StateVarValue::String(v)
-                }
-            }
         },
-        StateVarVariant::Integer(def) => {
-            let update_instruction = (def.determine_state_var_from_dependencies)(map);
-            match update_instruction {
-                StateVarUpdateInstruction::NoChange => {
-                    return;
-                },
-                StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Integer((def.default_value)())
-                },
-                StateVarUpdateInstruction::SetValue(v) => {
-                    StateVarValue::Integer(v)
-                }
-            }
+        StateVarUpdateInstruction::UseDefault => {
+            let new_state_var_value = definition.default_value();
+            set_state_var(component, name, new_state_var_value);
+
         },
-        StateVarVariant::Number(def) => {
-            let update_instruction = (def.determine_state_var_from_dependencies)(map);
-            match update_instruction {
-                StateVarUpdateInstruction::NoChange => {
-                    return;
-                },
-                StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Number((def.default_value)())
-                },
-                StateVarUpdateInstruction::SetValue(v) => {
-                    StateVarValue::Number(v)
-                }
-            }
+        StateVarUpdateInstruction::SetValue(new_value) => {
+            let new_state_var_value = new_value;
+            set_state_var(component, name, new_state_var_value);
         }
-        StateVarVariant::Bool(def) => {
-            let update_instruction = (def.determine_state_var_from_dependencies)(map);
-            match update_instruction {
-                StateVarUpdateInstruction::NoChange => {
-                    return;
-                },
-                StateVarUpdateInstruction::UseDefault => {
-                    StateVarValue::Boolean((def.default_value)())
-                },
-                StateVarUpdateInstruction::SetValue(v) => {
-                    StateVarValue::Boolean(v)
-                }
-            }
-        },
+
     };
-
-    component.set_state_var(name, new_state_var_value);
-
+    
 }
 
 

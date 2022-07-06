@@ -20,11 +20,44 @@ macro_rules! log {
 
 
 
-pub type StateVar<T> = RefCell<T>;
 
 pub type StateVarName = &'static str;
 pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
+
+
+#[derive(Debug)]
+pub struct StateVar<T> (pub RefCell<State<T>>);
+
+impl<T> StateVar<T> {
+
+    pub fn new() -> StateVar<T> {
+        StateVar(RefCell::new(State::Stale))
+    }
+}
+
+impl<T> StateVar<T> 
+    where T: Clone {
+    /// Note: don't implement variants of this function, such as `unwrap_or`
+    /// because we really don't want to sidestep when a state var is stale
+    pub fn unwrap(&self) -> T {
+        if let State::Resolved(value) = &*self.0.borrow() {
+            (*value).clone()
+        } else {
+            panic!("Tried to unwrap stale value");
+        }
+    }
+}
+
+
+
+
+#[derive(Debug)]
+pub enum State<T> {
+    Stale,
+    Resolved(T),
+}
+
 
 /// State variable functions core uses
 #[derive(Debug)]
@@ -53,6 +86,9 @@ pub enum StateVarVariant {
 
 
 
+
+
+
 #[derive(Debug)]
 pub enum StateVarValue {
     String(String),
@@ -60,6 +96,21 @@ pub enum StateVarValue {
     Integer(i64),
     Boolean(bool),
 }
+
+
+
+
+
+#[derive(Debug)]
+pub enum StateVarAccess<'a> {
+    String(&'a StateVar<String>),
+    Number(&'a StateVar<f64>),
+    Integer(&'a StateVar<i64>),
+    Bool(&'a StateVar<bool>),
+}
+
+
+
 
 
 #[derive(Debug)]
@@ -136,6 +187,49 @@ pub enum StateVarUpdateInstruction<T> {
 }
 
 
+impl StateVar<String> {
+    pub fn get_value(&self) -> Option<StateVarValue> {
+        if let State::Resolved(value) = &*self.0.borrow() {
+            Some(StateVarValue::String(value.to_string()))
+        } else {
+            None
+        }
+    }
+}
+
+impl StateVar<bool> {
+    pub fn get_value(&self) -> Option<StateVarValue> {
+        if let State::Resolved(value) = *self.0.borrow() {
+            Some(StateVarValue::Boolean(value))
+        } else {
+            None
+        }
+    }
+}
+
+impl StateVar<i64> {
+    pub fn get_value(&self) -> Option<StateVarValue> {
+        if let State::Resolved(value) = *self.0.borrow() {
+            Some(StateVarValue::Integer(value))
+        } else {
+            None
+        }
+    }
+}
+
+impl StateVar<f64> {
+    pub fn get_value(&self) -> Option<StateVarValue> {
+        if let State::Resolved(value) = *self.0.borrow() {
+            Some(StateVarValue::Number(value))
+        } else {
+            None
+        }
+    }
+}
+
+
+
+
 
 
 // Hide
@@ -158,4 +252,111 @@ fn default_hide_determine_state_var_from_dependencies(
 ) -> StateVarUpdateInstruction<bool> {
 
     StateVarUpdateInstruction::NoChange
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// Boilerplate so we don't have to match over StateVarVariant elsewhere
+
+impl StateVarVariant {
+
+    pub fn state_vars_to_determine_dependencies(&self) -> Vec<StateVarName> {
+
+        match self {
+            StateVarVariant::String(def) => (def.state_vars_to_determine_dependencies)(),
+            StateVarVariant::Bool(def) => (def.state_vars_to_determine_dependencies)(),
+            StateVarVariant::Number(def) => (def.state_vars_to_determine_dependencies)(),
+            StateVarVariant::Integer(def) => (def.state_vars_to_determine_dependencies)(),
+        }
+    }
+
+    pub fn return_dependency_instructions(&self,
+        prerequisite_state_values: HashMap<StateVarName, StateVarValue>)
+         -> HashMap<InstructionName, DependencyInstruction> {
+
+        match self {
+            StateVarVariant::String(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Bool(def) =>    (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Number(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Integer(def) => (def.return_dependency_instructions)(prerequisite_state_values),
+        }
+    }
+    
+    pub fn determine_state_var_from_dependencies(&self,
+        dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    ) -> StateVarUpdateInstruction<StateVarValue> {
+
+        match self {
+            StateVarVariant::String(def) => {
+                let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
+                match instruction {
+                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+
+                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::String(val)),
+                }
+            },
+            StateVarVariant::Integer(def) => {
+                let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
+                match instruction {
+                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+
+                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Integer(val)),
+                }
+            },
+            StateVarVariant::Number(def) => {
+                let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
+                match instruction {
+                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+
+                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Number(val)),
+                }
+            },
+            StateVarVariant::Bool(def) => {
+                let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
+                match instruction {
+                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+
+                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Boolean(val)),
+                }
+            }                     
+        }
+    }
+
+
+
+    pub fn for_renderer(&self) -> bool {
+        match self {
+            StateVarVariant::String(def) => def.for_renderer,
+            StateVarVariant::Integer(def) => def.for_renderer,
+            StateVarVariant::Number(def) => def.for_renderer,
+            StateVarVariant::Bool(def) => def.for_renderer,
+        }
+
+    }
+
+    pub fn default_value(&self) -> StateVarValue {
+        match self {
+            StateVarVariant::String(def) =>   StateVarValue::String(  (def.default_value)()),
+            StateVarVariant::Integer(def) =>  StateVarValue::Integer( (def.default_value)()),
+            StateVarVariant::Number(def) =>   StateVarValue::Number(  (def.default_value)()),
+            StateVarVariant::Bool(def) =>     StateVarValue::Boolean( (def.default_value)()),
+        }
+    }
+
 }

@@ -110,11 +110,11 @@ impl ComponentSpecificBehavior for Text {
 
 
 
-impl TextLikeComponent for Text {
-    fn text_value(&self) -> String {
-        self.value.borrow().clone()
-    }
-}
+// impl TextLikeComponent for Text {
+//     fn text_value(&self) -> String {
+//         // self.value.borrow().clone()
+//     }
+// }
 
 
 impl Text {
@@ -124,8 +124,8 @@ impl Text {
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
 
-            value: StateVar::new("".to_owned()),
-            hide: StateVar::new(false)
+            value: StateVar::new(),
+            hide: StateVar::new(),
         })
     }
 }
