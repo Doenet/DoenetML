@@ -4,17 +4,14 @@ extern crate web_sys;
 
 use serde_json::json;
 use wasm_bindgen::prelude::*;
-use serde::Serialize;
 
 use core::ComponentLike;
 use core::ComponentSpecificBehavior;
 use core::DoenetCore;
 use core::create_all_dependencies_for_component;
-use core::number;
 use core::resolve_state_variable;
 use core::state_variable_setup::StateVarAccess;
 use std::borrow::Borrow;
-use std::clone;
 use std::collections::HashMap;
 
 use core::Component;
@@ -24,7 +21,6 @@ use core::text::Text;
 use core::number::Number;
 
 use core::state_variable_setup::{StateVarVariant, Dependency};
-use std::hash::Hash;
 use std::rc::Rc;
 
 use serde_json::Value;
@@ -51,6 +47,7 @@ pub struct PublicDoenetCore(DoenetCore);
 
 #[wasm_bindgen]
 impl PublicDoenetCore {
+    /// Create components from JSON tree and create all dependencies.
     pub fn new(program: &str) -> PublicDoenetCore {
 
         utils::set_panic_hook();
@@ -68,7 +65,8 @@ impl PublicDoenetCore {
 
         add_json_subtree_to_components(
             &mut components,
-            &json_deserialized, "",
+            &json_deserialized,
+            "",
             &mut component_type_counter,
             &mut root_component_name,
         );
@@ -88,20 +86,13 @@ impl PublicDoenetCore {
             
         }
 
-
         // Define Doenet Core structure
         let core: DoenetCore = DoenetCore {components, dependencies, root_component_name };
 
-
-
-
         log!("Components: {:#?}", core.components);
         log!("Dependencies\n{:#?}", core.dependencies);
-
-
     
         PublicDoenetCore(core)
-        
     }
 
     pub fn update_renderers(&self) -> String {
@@ -110,7 +101,13 @@ impl PublicDoenetCore {
     }
 }
 
-fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, json_obj: &serde_json::Value, parent_name: &str, component_type_counter: &mut HashMap<String, u32>, root_component_name: &mut Option<String>) {
+fn add_json_subtree_to_components(
+    components: &mut HashMap<String, Component>,
+    json_obj: &serde_json::Value,
+    parent_name: &str,
+    component_type_counter: &mut HashMap<String, u32>,
+    root_component_name: &mut Option<String>
+) {
 
     match json_obj {
         serde_json::Value::Array(value_vec) => {
@@ -195,7 +192,9 @@ fn add_json_subtree_to_components(components: &mut HashMap<String, Component>, j
 pub fn generate_render_tree(core: &DoenetCore) -> Value {
     let root_node = core.components.get(&core.root_component_name).unwrap();
     let mut json_obj: Vec<Value> = vec![];
+
     generate_render_tree_internal(core, &root_node.component(), &mut json_obj);
+
     json!(json_obj)
 }
 
@@ -210,7 +209,7 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
         StateVarVariant::Bool(sv) => sv.for_renderer,
     });
 
-    let mut map = serde_json::Map::new();
+    let mut state_values = serde_json::Map::new();
     for (name, _variant) in renderered_state_vars {
 
         resolve_state_variable(core, component, name);
@@ -220,7 +219,7 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
 
         log!("{:#?}", state_var_value);
 
-        map.insert(name.to_string(),
+        state_values.insert(name.to_string(),
             match state_var_value {
                 StateVarAccess::Integer(state_var) => json!(state_var.unwrap()),
                 StateVarAccess::Number(state_var) =>  json!(state_var.unwrap()),
@@ -260,7 +259,7 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
 
     json_obj.push(json!({
         "componentName": component.name(),
-        "stateValues": Value::Object(map),
+        "stateValues": Value::Object(state_values),
         "childrenInstructions": json!(children_instructions),
     }));
 }

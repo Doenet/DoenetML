@@ -77,17 +77,13 @@ impl ComponentSpecificBehavior for Number {
         
     }
 
-
     fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-        use crate::StateVarAccess;
-
         match name {
             "value" => Option::Some(StateVarAccess::Number(&self.value)),
             "hide" => Option::Some(StateVarAccess::Bool(&self.hide)),
             _ => Option::None,
         }
     }
-
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
         vec![ObjectTraitName::NumberLike, ObjectTraitName::TextLike]

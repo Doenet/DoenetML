@@ -59,7 +59,7 @@ pub enum State<T> {
 }
 
 
-/// State variable functions core uses
+/// State variable functions core uses.
 #[derive(Debug)]
 pub struct StateVarDefinition<T> {
     pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
@@ -131,6 +131,7 @@ pub struct Dependency {
     pub variables_optional: bool,
 }
 
+/// Object refers to a component or a primitive string
 #[derive(Debug, PartialEq)]
 pub enum ObjectName {
     Component(String),

@@ -90,8 +90,6 @@ impl ComponentSpecificBehavior for Text {
     }
 
     fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-        use crate::StateVarAccess;
-
         match name {
             "value" => Option::Some(StateVarAccess::String(&self.value)),
             "hide" => Option::Some(StateVarAccess::Bool(&self.hide)),

@@ -4,16 +4,6 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::fmt;
 
-
-
-
-/*
-Why we need RefCells: the Rc does not allow mutability in the
-thing it wraps. If it any point we might want to mutate a field, its value should be wrapped in a RefCell
-*/
-
-// 'Object' refers to a component or string
-
 #[macro_use]
 
 pub mod state_variable_setup;
@@ -28,6 +18,12 @@ use number::Number;
 use state_variable_setup::*;
 
 
+/*
+Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
+If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
+*/
+
+
 #[derive(Debug)]
 pub struct DoenetCore {
     pub components: HashMap<String, Component>,
@@ -38,24 +34,21 @@ pub struct DoenetCore {
 
 
 pub trait ComponentSpecificBehavior {
+    /// This function should never use self in the body.
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
 
-    /// lower case name
+    /// Lower case name.
+    /// This function should never use self in the body.
     fn get_component_type(&self) -> &'static str;
 
 
+    /// This function should never use self in the body.
     fn should_render_children(&self) -> bool;
 
-    /// This function should never use self in the function body.
-    /// Treat as if this is a constant.
+    /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
 
     fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
-
-
-
-
-
     
 }
 
@@ -97,39 +90,6 @@ fn set_state_var(component: &Rc<dyn ComponentLike>, name: StateVarName, val: Sta
 }
 
 
-// fn set_state_var_string(component: Rc<dyn ComponentLike>, name: StateVarName, val: String) {
-
-//     match component.state_var(name).unwrap() {
-//         StateVarAccess::String(sva) => { sva.replace(val); }
-//         _ => { unreachable!(); }
-//     }
-// }
-
-// fn set_state_var_integer(component: Rc<dyn ComponentLike>, name: StateVarName, val: i64) {
-
-//     match component.state_var(name).unwrap() {
-//         StateVarAccess::Integer(sva) => { sva.replace(val); }
-//         _ => { unreachable!(); }
-//     }
-// }
-
-// fn set_state_var_number(component: Rc<dyn ComponentLike>, name: StateVarName, val: f64) {
-
-//     match component.state_var(name).unwrap() {
-//         StateVarAccess::Number(sva) => { sva.replace(val); }
-//         _ => { unreachable!(); }
-//     }
-// }
-
-// fn set_state_var_bool(component: Rc<dyn ComponentLike>, name: StateVarName, val: bool) {
-
-//     match component.state_var(name).unwrap() {
-//         StateVarAccess::Bool(sva) => { sva.replace(val); }
-//         _ => { unreachable!(); }
-//     }
-// }
-
-
 
 pub trait ComponentLike: ComponentSpecificBehavior {
     fn name(&self) -> &str;
@@ -160,17 +120,16 @@ pub enum ObjectTraitName {
 }
 
 
-
+/// A component enum is needed because Rc<dyn ComponentLike> cannot go into a HashMap,
+/// but this enum implements a conversion into Rc<dyn ComponentLike>.
 #[derive(Debug, Clone)]
 pub enum Component {
     Text(Rc<Text>),
     Number(Rc<Number>),
 }
 
-
-
 impl Component {
-
+    /// Convert Component enum to ComponentLike trait object.
     pub fn component(&self) -> Rc<dyn ComponentLike> {
         match self {
             Component::Text(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
@@ -222,30 +181,26 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
 }
 
 
-fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_var: StateVarName, instruction: DependencyInstruction, instruction_name: InstructionName) -> Dependency {
+fn create_dependency_from_instruction(
+    component: &Rc<dyn ComponentLike>,
+    state_var: StateVarName,
+    instruction: DependencyInstruction,
+    instruction_name: InstructionName
+) -> Dependency {
 
-    let mut dependency = Dependency {
-        name: instruction_name,
-        component: component.name().clone().to_owned(),
-        state_var: state_var,        
-        // instruction: instruction,
-        variables_optional: false,
-
-        // We will fill in these fields next
-        depends_on_objects: vec![],
-        depends_on_state_vars: vec![],
-    };
+    let depends_on_objects: Vec<ObjectName>;
+    let depends_on_state_vars: Vec<StateVarName>;
 
     match instruction {
 
         DependencyInstruction::StateVar(state_var_instruction) => {
 
-                dependency.depends_on_objects = if let Option::Some(name) = state_var_instruction.component_name {
+            depends_on_objects = if let Option::Some(name) = state_var_instruction.component_name {
                     vec![ObjectName::Component(name)]
                 } else {
                     vec![ObjectName::Component(component.name().clone().to_owned())]
                 };
-            dependency.depends_on_state_vars = vec![state_var_instruction.state_var];
+            depends_on_state_vars = vec![state_var_instruction.state_var];
         },
 
         DependencyInstruction::Child(child_instruction) => {
@@ -278,24 +233,34 @@ fn create_dependency_from_instruction(component: &Rc<dyn ComponentLike>, state_v
                 }
             }
 
-            dependency.depends_on_objects = depends_on_children;
-            dependency.depends_on_state_vars = child_instruction.desired_state_vars;
+            depends_on_objects = depends_on_children;
+            depends_on_state_vars = child_instruction.desired_state_vars;
 
         },
         DependencyInstruction::Parent(_) => {
-
+            // TODO
+            depends_on_objects = vec![];
+            depends_on_state_vars = vec![];
         },
     };
 
-    dependency
+    Dependency {
+        name: instruction_name,
+        component: component.name().clone().to_owned(),
+        state_var,
+        variables_optional: false,
+
+        depends_on_objects,
+        depends_on_state_vars,
+    }
 }
 
-
+/// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) {
 
     log!("Resolving state variable {}:{}", component.name(), name);
 
-    let mut map: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
+    let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
 
     let my_dependencies = core.dependencies.iter().filter(|dep| dep.component == component.name() && dep.state_var == name);
@@ -353,12 +318,12 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
             }
         }
 
-        map.insert(dep.name, values_for_this_dep);
+        dependency_values.insert(dep.name, values_for_this_dep);
     }
 
     let definition = component.state_variable_instructions().get(name).unwrap();
 
-    let update_instruction = definition.determine_state_var_from_dependencies(map);
+    let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
     
     
     match update_instruction {
