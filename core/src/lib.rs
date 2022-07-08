@@ -412,6 +412,17 @@ pub fn handle_update_instruction(
 
 
 
+pub fn handle_action(core: &DoenetCore, action_obj: serde_json::Value) {
+    let action = parse_json::parse_action_from_json(core, action_obj);
+
+    let update_instructions_and_names = (action.action_func)(action.args);
+    for (state_var_name, update_instruction) in update_instructions_and_names {
+        log!("Updating {} with update instruction {:?}", state_var_name, update_instruction);
+
+        handle_update_instruction(&action.component, state_var_name, update_instruction);
+    }
+}
+
 
 
 pub fn update_renderers(core: &DoenetCore) -> serde_json::Value {

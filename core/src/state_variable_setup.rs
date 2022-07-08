@@ -190,6 +190,7 @@ pub struct ParentDependencyInstruction {
 }
 
 
+#[derive(Debug)]
 pub enum StateVarUpdateInstruction<T> {
     SetValue(T),
     UseDefault,

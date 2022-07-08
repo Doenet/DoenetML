@@ -2,60 +2,99 @@
 use serde_json::Value;
 
 
+use crate::ComponentLike;
 use crate::DoenetCore;
 use crate::handle_update_instruction;
 use crate::Component;
 use crate::ComponentChild;
+use crate::state_variable_setup::StateVarName;
+use crate::state_variable_setup::StateVarUpdateInstruction;
 use crate::state_variable_setup::StateVarValue;
 use crate::text::Text;
 use crate::number::Number;
 use crate::text_input::TextInput;
 
 use std::collections::HashMap;
+use std::rc::Rc;
 
 
 
 
+pub struct ParsedAction {
+    pub component: Rc<dyn ComponentLike>,
+    pub component_name: String,
+    pub action_name: String,
+    pub action_func: fn(HashMap<String, StateVarValue>)
+        -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>,
+    pub args: HashMap<String, StateVarValue>,
+}
 
 
 
-pub fn handle_action(core: &DoenetCore, action: &str) {
-    let json_deserialized: serde_json::Value = serde_json::from_str(&action).unwrap();
-    let component_name;
-    let action_name;
-    let args;
-    if let Value::Object(ref map) = json_deserialized {
-        component_name = map.get("componentName").expect("no componentName for action");
-        action_name = map.get("actionName").expect("no actionName for action");
-        args = map.get("args").expect("no args for action");
+pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value) -> ParsedAction {
+
+    let component: Rc<dyn ComponentLike>;
+    let component_name: String;
+    let action_name: String;
+    let action_func;
+    let args: HashMap<String, StateVarValue>;
+    
+    if let Value::Object(map) = json_action {
+
+        // Get component, component_name from JSON input
+        let component_name_obj = map.get("componentName").expect("no componentName for action");
+        if let Value::String(component_name_str) = component_name_obj {
+            component_name = component_name_str.to_string();
+            component = core.components.get(&component_name).unwrap().component();
+        } else {
+            panic!("componentName should be a string");
+        }
+
+        // Get action, action_name from JSON input
+        let action_name_obj = map.get("actionName").expect("no actionName for action");
+        if let Value::String(action_name_str) = action_name_obj {
+            action_name = action_name_str.to_string();
+            action_func = *core.components.get(&component_name).unwrap().component()
+                .actions().get(&action_name).unwrap();
+        } else {
+            panic!("action should be a string");
+        }
+
+        let args_obj = map.get("args").expect("no args for action");
+        if let Value::Object(args_json_obj) = args_obj {
+
+            args = args_json_obj.into_iter().map(|(k, v)| 
+                (k.clone(), match v {
+
+                    Value::Bool(v) => StateVarValue::Boolean(*v),
+                    Value::String(v) => StateVarValue::String(v.clone()),
+                    Value::Number(v) => if v.is_i64() {
+                        StateVarValue::Integer(v.as_i64().unwrap())
+                    } else {
+                        StateVarValue::Number(v.as_f64().unwrap())
+                    },
+                    _ => panic!("action {} arg is not bool, number, or string", action_name),
+                })
+            ).collect();
+
+        } else {
+            panic!("args should be an object");
+        }
+
+
     } else {
         panic!("wrong json structure for action");
     }
 
-    if let Value::String(component_name) = component_name {
-        if let Value::String(action_name) = action_name {
-            if let Value::Object(args) = args {
-                let component = core.components.get(component_name).unwrap().component();
-                let action = component.actions().get(action_name).unwrap();
-                let args = args.into_iter().map(|(k, v)| (k.clone(), match v {
-                        Value::Bool(v) => StateVarValue::Boolean(*v),
-                        Value::String(v) => StateVarValue::String(v.clone()),
-                        Value::Number(v) => if v.is_i64() {
-                            StateVarValue::Integer(v.as_i64().unwrap())
-                        } else {
-                            StateVarValue::Number(v.as_f64().unwrap())
-                        },
-                        _ => panic!("action {} arg is not bool, number, or string", action_name),
-                    })
-                ).collect();
 
-                let update_instructions_and_names = (action)(args);
-                for (state_var_name, update_instruction) in update_instructions_and_names {
-                    handle_update_instruction(&component, state_var_name, update_instruction);
-                }
-            }
-        }
+    ParsedAction {
+        component,
+        component_name,
+        action_name,
+        action_func,
+        args,
     }
+
 }
 
 

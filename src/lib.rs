@@ -63,7 +63,11 @@ impl PublicDoenetCore {
 
 
     pub fn handle_action(&self, action: &str) {
-        core::parse_json::handle_action(&self.0, action);
+        let json_action: serde_json::Value = serde_json::from_str(&action).unwrap();
+        
+        core::handle_action(&self.0, json_action);
+
+        log!("Components after action: {:#?}", &self.0.components);
     }
 }
 
