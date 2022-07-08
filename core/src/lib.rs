@@ -8,7 +8,9 @@ use std::fmt;
 pub mod state_variable_setup;
 pub mod text;
 pub mod number;
+pub mod text_input;
 
+use phf::phf_map;
 use state_variable_setup::*;
 use text::Text;
 use number::Number;
@@ -31,6 +33,14 @@ pub trait ComponentSpecificBehavior {
 
     fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
 
+
+    fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
+        &phf_map! {}
+    }
+
+
+
+
     /// Lower case name.
     /// This function should never use self in the body.
     fn get_component_type(&self) -> &'static str;
@@ -41,6 +51,9 @@ pub trait ComponentSpecificBehavior {
     
     /// This function should never use self in the body.
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
+
+
+    
 
 }
 
@@ -282,28 +295,30 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                         let state_var_access = depends_on_component.state_var(name).unwrap();
                         let state_var_value = match state_var_access {
                             StateVarAccess::Bool(state_var) => {
-                                state_var.get_value()
+                                state_var.get_state()
                             },
                             StateVarAccess::Number(state_var) => {
-                                state_var.get_value()   
+                                state_var.get_state()   
                             },
                             StateVarAccess::Integer(state_var) => {
-                                state_var.get_value()   
+                                state_var.get_state()   
                             },
                             StateVarAccess::String(state_var) => {
-                                state_var.get_value()   
+                                state_var.get_state()   
                             }
                         };
 
-                        let state_var_value = state_var_value.expect(
-                            &format!("Tried to access stale state var {}", state_var_name)
-                        );
 
-                        values_for_this_dep.push((
-                            core.components.get(component_name).unwrap().component().get_component_type(),
-                            state_var_name,
-                            state_var_value
-                        ));
+                        if let State::Resolved(state_var_value) = state_var_value {
+                            values_for_this_dep.push((
+                                core.components.get(component_name).unwrap().component().get_component_type(),
+                                state_var_name,
+                                state_var_value
+                            ));
+    
+                        } else {
+                            panic!("Tried to access stale state var {}", state_var_name);
+                        }
 
                     }
                 }
@@ -317,15 +332,30 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
     let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
     
+    handle_update_instruction(component, name, update_instruction);
     
-    match update_instruction {
-        StateVarUpdateInstruction::NoChange => {
-            // POSSIBLE BUG HERE
-            // Use default. We need it anyway
-            // TODO: When we have memoization, change this?
+}
 
-            let new_state_var_value = definition.default_value();
-            set_state_var(component, name, new_state_var_value);
+pub fn handle_update_instruction(
+    component: &Rc<dyn ComponentLike>,
+    name: StateVarName,
+    instruction: StateVarUpdateInstruction<StateVarValue>)
+{
+    let definition = component.state_variable_instructions().get(name).unwrap();
+    match instruction {
+        StateVarUpdateInstruction::NoChange => {
+            let current_value = match component.state_var(name).unwrap() {
+                StateVarAccess::Bool(v) => v.get_state(),
+                StateVarAccess::Number(v) => v.get_state(),
+                StateVarAccess::Integer(v) => v.get_state(),
+                StateVarAccess::String(v) => v.get_state(),
+            };
+
+            if let State::Resolved(_) = current_value {
+                // Do nothing. It's resolved, so we can use it as is
+            } else {
+                panic!("Cannot use NoChange update instruction on a stale value");
+            }
 
         },
         StateVarUpdateInstruction::UseDefault => {
@@ -339,8 +369,8 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
         }
 
     };
-    
 }
+
 
 
 

@@ -47,6 +47,14 @@ impl<T> StateVar<T>
             panic!("Tried to unwrap stale value");
         }
     }
+
+    pub fn expect_resolved(&self, msg: &str) -> T {
+        if let State::Resolved(value) = &*self.0.borrow() {
+            (*value).clone()
+        } else {
+            panic!("{}", msg);
+        }
+    }
 }
 
 
@@ -97,7 +105,7 @@ pub enum StateVarVariant {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum StateVarValue {
     String(String),
     Number(f64),
@@ -193,42 +201,45 @@ pub enum StateVarUpdateInstruction<T> {
 }
 
 
+
+
+
 impl StateVar<String> {
-    pub fn get_value(&self) -> Option<StateVarValue> {
+    pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = &*self.0.borrow() {
-            Some(StateVarValue::String(value.to_string()))
+            State::Resolved(StateVarValue::String(value.to_string()))
         } else {
-            None
+            State::Stale
         }
     }
 }
 
 impl StateVar<bool> {
-    pub fn get_value(&self) -> Option<StateVarValue> {
+    pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
-            Some(StateVarValue::Boolean(value))
+            State::Resolved(StateVarValue::Boolean(value))
         } else {
-            None
+            State::Stale
         }
     }
 }
 
 impl StateVar<i64> {
-    pub fn get_value(&self) -> Option<StateVarValue> {
+    pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
-            Some(StateVarValue::Integer(value))
+            State::Resolved(StateVarValue::Integer(value))
         } else {
-            None
+            State::Stale
         }
     }
 }
 
 impl StateVar<f64> {
-    pub fn get_value(&self) -> Option<StateVarValue> {
+    pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
-            Some(StateVarValue::Number(value))
+            State::Resolved(StateVarValue::Number(value))
         } else {
-            None
+            State::Stale
         }
     }
 }
