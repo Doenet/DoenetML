@@ -109,15 +109,13 @@ pub fn create_components_tree_from_json(root: &serde_json::Value)
     let mut components: HashMap<String, Component> = HashMap::new();
     let mut root_component_name: Option<String> = None;
 
-    add_json_subtree_to_components(&mut components, root, "", &mut component_type_counter, &mut root_component_name);
+    add_json_subtree_to_components(&mut components, root, "", &mut component_type_counter, &mut root_component_name)?;
 
     if let Some(actual_root_name) = root_component_name {
         Ok((components, actual_root_name))
     } else {
         Err( "json empty" )
     }
-
-
 }
 
 
@@ -127,13 +125,13 @@ fn add_json_subtree_to_components(
     parent_name: &str,
     component_type_counter: &mut HashMap<String, u32>,
     root_component_name: &mut Option<String>
-) {
+) -> Result<(), &'static str> {
 
     match json_obj {
         serde_json::Value::Array(value_vec) => {
             // log!("array");
             for value in value_vec.iter() {
-                add_json_subtree_to_components(components, value, parent_name, component_type_counter, root_component_name);
+                add_json_subtree_to_components(components, value, parent_name, component_type_counter, root_component_name)?;
             }
         },
         
@@ -191,7 +189,7 @@ fn add_json_subtree_to_components(
 
                     // Add components to this match here
  
-                    _ => {panic!("Unrecognized component type")}
+                    _ => {return Err("Unrecognized component type")}
                 };
 
                 if let Some(parent) = components.get(parent_name) {
@@ -205,10 +203,10 @@ fn add_json_subtree_to_components(
 
 
 
-                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter, root_component_name);
+                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter, root_component_name)?;
 
             } else {
-                panic!("componentType is not a string");
+                return Err("componentType is not a string");
             }
         },
 
@@ -216,5 +214,6 @@ fn add_json_subtree_to_components(
             // log!("other");
         },
     }
+    Ok(())
 }
 
