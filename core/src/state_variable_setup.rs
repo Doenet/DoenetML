@@ -3,14 +3,13 @@ use std::{collections::HashMap, cell::RefCell};
 use crate::ObjectTraitName;
 
 
+// extern crate web_sys;
+
 
 // A macro to provide println! style syntax for console.log logging.
 #[macro_export]
 macro_rules! log {
     ( $( $t:tt )* ) => {
-        
-        extern crate web_sys;
-
         web_sys::console::log_1(&format!( $( $t )* ).into());
     }
 }
@@ -260,12 +259,12 @@ pub const HIDE_DEFAULT_DEFINITION: StateVarVariant = StateVarVariant::Bool(State
 });
 
 
-fn default_hide_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
+fn default_hide_return_dependency_instructions(_prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
     HashMap::new()
 }
 
 fn default_hide_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<bool> {
 
     StateVarUpdateInstruction::NoChange

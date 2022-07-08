@@ -36,6 +36,8 @@ version = "0.1.0"
 dependencies = [
  "core-derive",
  "phf",
+ "serde",
+ "serde_json",
  "web-sys",
 ]
 

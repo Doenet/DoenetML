@@ -6,6 +6,7 @@ use std::fmt;
 #[macro_use]
 
 pub mod state_variable_setup;
+pub mod parse_json;
 pub mod text;
 pub mod number;
 pub mod text_input;
@@ -51,9 +52,6 @@ pub trait ComponentSpecificBehavior {
     
     /// This function should never use self in the body.
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
-
-
-    
 
 }
 
@@ -151,6 +149,42 @@ pub enum ComponentChild {
 }
 
 
+
+
+pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
+
+    let components: HashMap<String, Component>;
+    let root_component_name: String;
+
+    let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized);
+    if let Some((parsed_components, parsed_root)) = possible_components_tree {
+        components = parsed_components;
+        root_component_name = parsed_root;
+    } else {
+        // Empty, panic for now
+        panic!("Empty json components tree");
+    }
+
+    let mut dependencies: Vec<Dependency> = vec![];
+    
+    for (_, component) in components.iter() {
+
+        let comp = component.component();
+        let dependencies_for_this_component = create_all_dependencies_for_component(&comp);
+
+        for dependency in dependencies_for_this_component {
+            dependencies.push(dependency);
+        }
+        
+    }
+
+    // Return Doenet Core structure
+    DoenetCore {
+        components,
+        dependencies,
+        root_component_name
+    }
+}
 
 
 pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) -> Vec<Dependency> {
@@ -374,6 +408,97 @@ pub fn handle_update_instruction(
 
 
 
+
+
+pub fn update_renderers(core: &DoenetCore) -> serde_json::Value {
+    let json_obj = generate_render_tree(core);
+    json_obj
+}
+
+
+pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
+
+    let root_node = core.components.get(&core.root_component_name).unwrap();
+    let mut json_obj: Vec<serde_json::Value> = vec![];
+
+    generate_render_tree_internal(core, &root_node.component(), &mut json_obj);
+
+    serde_json::json!(json_obj)
+}
+
+pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
+
+    use serde_json::Value;
+    use serde_json::json;
+
+    let state_vars = component.state_variable_instructions();
+
+    let renderered_state_vars = state_vars.into_iter().filter(|kv| match kv.1 {
+        StateVarVariant::Integer(sv) => sv.for_renderer,
+        StateVarVariant::Number(sv) => sv.for_renderer,
+        StateVarVariant::String(sv) => sv.for_renderer,
+        StateVarVariant::Bool(sv) => sv.for_renderer,
+    });
+
+    let mut state_values = serde_json::Map::new();
+    for (name, _variant) in renderered_state_vars {
+
+        resolve_state_variable(core, component, name);
+        let state_var_value = component.state_var(name).unwrap();
+
+        log!("components right now {:#?}", core.components);
+
+        log!("{:#?}", state_var_value);
+
+        state_values.insert(name.to_string(),
+            match state_var_value {
+                StateVarAccess::Integer(state_var) => json!(state_var.unwrap()),
+                StateVarAccess::Number(state_var) =>  json!(state_var.unwrap()),
+                StateVarAccess::String(state_var) =>  json!(state_var.unwrap()),
+                StateVarAccess::Bool(state_var) =>    json!(state_var.unwrap()),
+            }
+        );
+    }
+
+
+    let children_instructions = if component.should_render_children() {
+        let children = component.children().borrow();
+        children.iter().map(|child| match child {
+            ComponentChild::Component(comp) => {
+                // recurse for children
+                generate_render_tree_internal(core, comp, json_obj);
+
+                json!({
+                    "actions": {},
+                    "componentName": comp.name().to_string(),
+                    "componentType": comp.get_component_type().to_string(),
+                    "effectiveName": comp.name().to_string(),
+                    "renderType": comp.get_component_type().to_string(),
+                })},
+            ComponentChild::String(string) => {
+                json!({
+                    "actions": {},
+                    "componentName": string.to_string(),
+                    "componentType": "string".to_string(),
+                    "effectiveName": string.to_string(),
+                    "renderType": "string".to_string(),
+                })},
+        }).collect()
+    } else {
+        vec![]
+    };
+
+    json_obj.push(json!({
+        "componentName": component.name(),
+        "stateValues": Value::Object(state_values),
+        "childrenInstructions": json!(children_instructions),
+    }));
+}
+
+
+
+
+
 // Implement Debug for trait objects.
 impl fmt::Debug for dyn ComponentLike {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -390,56 +515,4 @@ impl fmt::Debug for dyn NumberLikeComponent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(&self.name())
     }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use std::collections::HashMap;
-
-    use super::*;
-    
-
-
-    #[test]
-    fn test_core() {
-
-        //Setup Tree
-        let mut components: HashMap<String, Component> = HashMap::new();
-
-        let text2 = Rc::new(Text {
-            name: "text2".to_owned(),
-            value: RefCell::new("hi there".to_owned()),
-            hide: RefCell::new(false),
-            parent: RefCell::new(String::new()),
-            children: RefCell::new(vec![]),
-        });
-        components.insert(text2.name(), Component::Text(Rc::clone(&text2)));
-
-
-        let text1 = Rc::new(Text {
-            name: "text1".to_owned(),
-            value: RefCell::new("banana".to_owned()),
-            hide: RefCell::new(false),
-            parent: RefCell::new(String::new()),
-            children: RefCell::new(vec![]),
-        });
-        components.insert(text1.name(), Component::Text(Rc::clone(&text1)));
-
-
-        text1.add_as_child(ComponentChild::Component(text2));
-
-
-        //Create dependencies
-        let dependencies = create_all_dependencies_for_component(& (text1 as Rc<dyn ComponentLike>) );
-
-        println!("Components\n{:#?}", components);
-        println!("Dependencies\n{:#?}", dependencies);
-
-        assert!(true);
-
-
-    }
-
-
 }
