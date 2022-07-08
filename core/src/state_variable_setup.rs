@@ -1,8 +1,6 @@
-
-
 use std::{collections::HashMap, cell::RefCell};
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
 
 
@@ -26,6 +24,8 @@ pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
 
 
+/// Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
+/// If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
 #[derive(Debug)]
 pub struct StateVar<T> (pub RefCell<State<T>>);
 
@@ -62,14 +62,22 @@ pub enum State<T> {
 /// State variable functions core uses.
 #[derive(Debug)]
 pub struct StateVarDefinition<T> {
+
+    /// Some state variable's dependencies change based on other variables.
     pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
-    pub return_dependency_instructions: fn(HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction>,
+
+    /// Reutrn the instructions that core can use to make Dependency structs.
+    pub return_dependency_instructions: fn(
+        HashMap<StateVarName, StateVarValue>
+    ) -> HashMap<InstructionName, DependencyInstruction>,
     
+    /// Determine the value and return that to core as an update instruction.
     pub determine_state_var_from_dependencies: fn(
         HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
     ) -> StateVarUpdateInstruction<T>,
 
     pub for_renderer: bool,
+
     pub default_value: fn() -> T,
 }
 
@@ -131,7 +139,7 @@ pub struct Dependency {
     pub variables_optional: bool,
 }
 
-/// Object refers to a component or a primitive string
+/// An object refers to a component or a primitive string
 #[derive(Debug, PartialEq)]
 pub enum ObjectName {
     Component(String),
@@ -147,9 +155,7 @@ pub struct StateVarAddress {
 
 impl StateVarAddress {
     pub fn new(component: String, state_var: StateVarName) -> StateVarAddress {
-        StateVarAddress {
-            component, state_var
-        }
+        StateVarAddress { component, state_var }
     }
 }
 
@@ -170,7 +176,6 @@ pub struct ChildDependencyInstruction {
 #[derive(Default, Clone, Debug)]
 pub struct StateVarDependencyInstruction {
     pub component_name: Option<String>, //default: Option::None
-
     pub state_var: StateVarName, //default: ""
 }
 

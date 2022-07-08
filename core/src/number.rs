@@ -1,4 +1,3 @@
-
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
@@ -8,7 +7,8 @@ use phf::phf_map;
 
 use crate::state_variable_setup::*;
 
-use crate::{ObjectTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike, ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike,
+ComponentSpecificBehavior, ComponentChild};
 
 
 #[derive(Debug, ComponentLike)]
@@ -23,7 +23,9 @@ pub struct Number {
 }
 
 
-fn value_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
+fn value_return_dependency_instructions(
+    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
+) -> HashMap<InstructionName, DependencyInstruction> {
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
         desired_children: vec![ObjectTraitName::NumberLike],
@@ -57,10 +59,7 @@ fn value_determine_state_var_from_dependencies(
 
 impl ComponentSpecificBehavior for Number {
 
-    fn should_render_children(&self) -> bool { false }
-
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
-
         
         &phf_map! {
             "value" => StateVarVariant::Number(StateVarDefinition {
@@ -76,7 +75,7 @@ impl ComponentSpecificBehavior for Number {
         }
         
     }
-
+    
     fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
         match name {
             "value" => Option::Some(StateVarAccess::Number(&self.value)),
@@ -85,12 +84,13 @@ impl ComponentSpecificBehavior for Number {
         }
     }
 
+    fn get_component_type(&self) -> &'static str { "number" }
+
+    fn should_render_children(&self) -> bool { false }
+
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
         vec![ObjectTraitName::NumberLike, ObjectTraitName::TextLike]
     }
-
-    fn get_component_type(&self) -> &'static str { "number" }
-
 
 }
 

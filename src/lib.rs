@@ -3,27 +3,24 @@ mod utils;
 extern crate web_sys;
 
 use serde_json::json;
+use serde_json::Value;
+
 use wasm_bindgen::prelude::*;
 
 use core::ComponentLike;
-use core::ComponentSpecificBehavior;
 use core::DoenetCore;
 use core::create_all_dependencies_for_component;
 use core::resolve_state_variable;
 use core::state_variable_setup::StateVarAccess;
-use std::borrow::Borrow;
-use std::collections::HashMap;
-
 use core::Component;
 use core::ComponentChild;
-
 use core::text::Text;
 use core::number::Number;
-
 use core::state_variable_setup::{StateVarVariant, Dependency};
+
+use std::collections::HashMap;
 use std::rc::Rc;
 
-use serde_json::Value;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.

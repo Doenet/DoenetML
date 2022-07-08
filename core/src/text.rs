@@ -1,6 +1,5 @@
-
 use std::rc::Rc;
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 
 
@@ -8,7 +7,8 @@ use core_derive::ComponentLike;
 
 use crate::state_variable_setup::*;
 
-use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName, TextLikeComponent};
+use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName,
+TextLikeComponent};
 
 use phf::phf_map;
 
@@ -25,7 +25,9 @@ pub struct Text {
 }
 
 
-fn value_return_dependency_instructions(prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
+fn value_return_dependency_instructions(
+    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
+) -> HashMap<InstructionName, DependencyInstruction> {
 
     let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
         desired_children: vec![ObjectTraitName::TextLike],
@@ -71,8 +73,6 @@ fn value_determine_state_var_from_dependencies(
 
 impl ComponentSpecificBehavior for Text {
 
-    fn should_render_children(&self) -> bool { true }
-
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
 
         &phf_map! {
@@ -97,12 +97,13 @@ impl ComponentSpecificBehavior for Text {
         }
     }
 
+    fn get_component_type(&self) -> &'static str { "text" }
+
+    fn should_render_children(&self) -> bool { true }
+
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
         vec![ObjectTraitName::TextLike]
     }
-
-    fn get_component_type(&self) -> &'static str { "text" }
-
 
 }
 

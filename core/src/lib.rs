@@ -1,5 +1,4 @@
-use std::borrow::Borrow;
-use std::cell::{RefCell};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::fmt;
@@ -10,18 +9,10 @@ pub mod state_variable_setup;
 pub mod text;
 pub mod number;
 
-
-use text::{Text};
-
+use state_variable_setup::*;
+use text::Text;
 use number::Number;
 
-use state_variable_setup::*;
-
-
-/*
-Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
-If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
-*/
 
 
 #[derive(Debug)]
@@ -34,8 +25,11 @@ pub struct DoenetCore {
 
 
 pub trait ComponentSpecificBehavior {
+
     /// This function should never use self in the body.
-    fn get_trait_names(&self) -> Vec<ObjectTraitName>;
+    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
+
+    fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
 
     /// Lower case name.
     /// This function should never use self in the body.
@@ -44,12 +38,10 @@ pub trait ComponentSpecificBehavior {
 
     /// This function should never use self in the body.
     fn should_render_children(&self) -> bool;
-
-    /// This function should never use self in the body.
-    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
-
-    fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
     
+    /// This function should never use self in the body.
+    fn get_trait_names(&self) -> Vec<ObjectTraitName>;
+
 }
 
 
@@ -90,7 +82,7 @@ fn set_state_var(component: &Rc<dyn ComponentLike>, name: StateVarName, val: Sta
 }
 
 
-
+/// Struct that derive this must have the correct fields: name, parent, and child.
 pub trait ComponentLike: ComponentSpecificBehavior {
     fn name(&self) -> &str;
     fn children(&self) -> &RefCell<Vec<ComponentChild>>;
