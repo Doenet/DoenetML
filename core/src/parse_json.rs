@@ -20,7 +20,7 @@ use std::rc::Rc;
 
 
 
-pub struct ParsedAction {
+pub struct Action {
     pub component: Rc<dyn ComponentLike>,
     pub component_name: String,
     pub action_name: String,
@@ -31,7 +31,8 @@ pub struct ParsedAction {
 
 
 
-pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value) -> ParsedAction {
+pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
+    -> Result<Action, String> {
 
     let component: Rc<dyn ComponentLike>;
     let component_name: String;
@@ -47,7 +48,7 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
             component_name = component_name_str.to_string();
             component = core.components.get(&component_name).unwrap().component();
         } else {
-            panic!("componentName should be a string");
+            return Err("componentName should be a string".to_string())
         }
 
         // Get action, action_name from JSON input
@@ -57,43 +58,44 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
             action_func = *core.components.get(&component_name).unwrap().component()
                 .actions().get(&action_name).unwrap();
         } else {
-            panic!("action should be a string");
+            return Err("action should be a string".to_string());
         }
 
         let args_obj = map.get("args").expect("no args for action");
         if let Value::Object(args_json_obj) = args_obj {
 
-            args = args_json_obj.into_iter().map(|(k, v)| 
-                (k.clone(), match v {
+            let args_result: Result<HashMap<String, StateVarValue>, String> =
+                args_json_obj.into_iter().map(|(k, v)| 
+                    match v {
+                        Value::Bool(v) => Ok((k.clone(), StateVarValue::Boolean(*v))),
+                        Value::String(v) => Ok((k.clone(), StateVarValue::String(v.clone()))),
+                        Value::Number(v) => Ok((k.clone(), if v.is_i64() {
+                            StateVarValue::Integer(v.as_i64().unwrap())
+                        } else {
+                            StateVarValue::Number(v.as_f64().unwrap())
+                        })),
+                        _ => Err(format!("action {} arg is not bool, number, or string", action_name)),
+                    }
+                ).collect();
 
-                    Value::Bool(v) => StateVarValue::Boolean(*v),
-                    Value::String(v) => StateVarValue::String(v.clone()),
-                    Value::Number(v) => if v.is_i64() {
-                        StateVarValue::Integer(v.as_i64().unwrap())
-                    } else {
-                        StateVarValue::Number(v.as_f64().unwrap())
-                    },
-                    _ => panic!("action {} arg is not bool, number, or string", action_name),
-                })
-            ).collect();
-
+            args = args_result?;
         } else {
-            panic!("args should be an object");
+            return Err("args should be an object".to_string());
         }
 
 
     } else {
-        panic!("wrong json structure for action");
+        return Err("wrong json structure for action".to_string());
     }
 
 
-    ParsedAction {
+    Ok(Action {
         component,
         component_name,
         action_name,
         action_func,
         args,
-    }
+    })
 
 }
 
@@ -101,7 +103,7 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(root: &serde_json::Value)
-    -> Option<(HashMap<String, Component>, String)>
+    -> Result<(HashMap<String, Component>, String), &str>
 {
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut components: HashMap<String, Component> = HashMap::new();
@@ -110,9 +112,9 @@ pub fn create_components_tree_from_json(root: &serde_json::Value)
     add_json_subtree_to_components(&mut components, root, "", &mut component_type_counter, &mut root_component_name);
 
     if let Some(actual_root_name) = root_component_name {
-        Some((components, actual_root_name))
+        Ok((components, actual_root_name))
     } else {
-        None
+        Err( "json empty" )
     }
 
 

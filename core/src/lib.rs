@@ -160,14 +160,11 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     let components: HashMap<String, Component>;
     let root_component_name: String;
 
-    let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized);
-    if let Some((parsed_components, parsed_root)) = possible_components_tree {
-        components = parsed_components;
-        root_component_name = parsed_root;
-    } else {
-        // Empty, panic for now
-        panic!("Empty json components tree");
-    }
+    let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
+        .expect("Error parsing json for components");
+    let (parsed_components, parsed_root) = possible_components_tree;
+    components = parsed_components;
+    root_component_name = parsed_root;
 
     let mut dependencies: Vec<Dependency> = vec![];
     
@@ -413,7 +410,8 @@ pub fn handle_update_instruction(
 
 
 pub fn handle_action(core: &DoenetCore, action_obj: serde_json::Value) {
-    let action = parse_json::parse_action_from_json(core, action_obj);
+    let action = parse_json::parse_action_from_json(core, action_obj)
+        .expect("Error parsing json action");
 
     let update_instructions_and_names = (action.action_func)(action.args);
     for (state_var_name, update_instruction) in update_instructions_and_names {
