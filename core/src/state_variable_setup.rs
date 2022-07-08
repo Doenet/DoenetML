@@ -1,12 +1,10 @@
 use std::{collections::HashMap, cell::RefCell};
+use std::fmt;
 
 use crate::ObjectTraitName;
 
 
-// extern crate web_sys;
-
-
-// A macro to provide println! style syntax for console.log logging.
+/// A macro to provide println! style syntax for console.log logging.
 #[macro_export]
 macro_rules! log {
     ( $( $t:tt )* ) => {
@@ -25,7 +23,6 @@ pub type ComponentType = &'static str;
 
 /// Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
 /// If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
-#[derive(Debug)]
 pub struct StateVar<T> (pub RefCell<State<T>>);
 
 impl<T> StateVar<T> {
@@ -267,16 +264,35 @@ fn default_hide_determine_state_var_from_dependencies(
     _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<bool> {
 
-    StateVarUpdateInstruction::NoChange
+    StateVarUpdateInstruction::UseDefault
 }
 
 
 
 
 
+// Boilerplate to display StateVar better
 
-
-
+impl fmt::Debug for StateVar<String> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_state()))
+    }
+}
+impl fmt::Debug for StateVar<bool> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_state()))
+    }
+}
+impl fmt::Debug for StateVar<f64> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_state()))
+    }
+}
+impl fmt::Debug for StateVar<i64> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_state()))
+    }
+}
 
 
 

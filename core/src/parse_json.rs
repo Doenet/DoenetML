@@ -9,6 +9,7 @@ use crate::ComponentChild;
 use crate::state_variable_setup::StateVarValue;
 use crate::text::Text;
 use crate::number::Number;
+use crate::text_input::TextInput;
 
 use std::collections::HashMap;
 
@@ -89,7 +90,7 @@ fn add_json_subtree_to_components(
 
     match json_obj {
         serde_json::Value::Array(value_vec) => {
-            log!("array");
+            // log!("array");
             for value in value_vec.iter() {
                 add_json_subtree_to_components(components, value, parent_name, component_type_counter, root_component_name);
             }
@@ -102,7 +103,7 @@ fn add_json_subtree_to_components(
         },
 
         serde_json::Value::Object(map) => {
-            log!("object");
+            // log!("object");
             let component_type_value = map.get("componentType").unwrap();
 
             if let Value::String(component_type) = component_type_value {
@@ -111,7 +112,10 @@ fn add_json_subtree_to_components(
                 component_type_counter.insert(component_type.to_string(), count + 1);
                 let mut component_name =  format!("/_{}{}", component_type, count + 1);
 
-                let props_value = map.get("props").unwrap();
+                let props_value = map.get("props").expect(
+                    &format!("No JSON 'props' field for this {} component", component_type_value)
+                );
+                
                 if let Value::Object(props_map) = props_value {
                     if let Some(name_value) = props_map.get("name") {
                         if let Value::String(name) = name_value {
@@ -140,6 +144,10 @@ fn add_json_subtree_to_components(
                         Number::create(component_name.clone(), parent_name.to_string())
                     ),
 
+                    "textInput" => Component::TextInput(
+                        TextInput::create(component_name.clone(), parent_name.to_string())
+                    ),
+
                     // Add components to this match here
  
                     _ => {panic!("Unrecognized component type")}
@@ -150,7 +158,7 @@ fn add_json_subtree_to_components(
                         ComponentChild::Component(component.clone().component()));
                 }
 
-                let children_value = map.get("children").unwrap();
+                let children_value = map.get("children").expect("No children JSON field");
 
                 components.insert(component_name.clone(), component);
 
@@ -163,7 +171,9 @@ fn add_json_subtree_to_components(
             }
         },
 
-        _ => {log!("other");},
+        _ => {
+            // log!("other");
+        },
     }
 }
 

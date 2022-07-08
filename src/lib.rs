@@ -42,7 +42,7 @@ impl PublicDoenetCore {
 
         let json_deserialized: serde_json::Value = serde_json::from_str(program).unwrap();
 
-        log!("rust json: {:#?}", json_deserialized);
+        // log!("rust json: {:#?}", json_deserialized);
 
         let core = core::create_doenet_core(json_deserialized);
 

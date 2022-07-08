@@ -15,6 +15,7 @@ use phf::phf_map;
 use state_variable_setup::*;
 use text::Text;
 use number::Number;
+use text_input::TextInput;
 
 
 
@@ -129,14 +130,17 @@ pub enum ObjectTraitName {
 pub enum Component {
     Text(Rc<Text>),
     Number(Rc<Number>),
+    TextInput(Rc<TextInput>),
 }
 
 impl Component {
     /// Convert Component enum to ComponentLike trait object.
     pub fn component(&self) -> Rc<dyn ComponentLike> {
         match self {
-            Component::Text(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
-            Component::Number(comp) => Rc::clone(comp) as Rc<dyn ComponentLike>,
+            Component::Text(comp) =>        Rc::clone(comp) as Rc<dyn ComponentLike>,
+            Component::Number(comp) =>      Rc::clone(comp) as Rc<dyn ComponentLike>,
+            Component::TextInput(comp) =>   Rc::clone(comp) as Rc<dyn ComponentLike>,
+
         }
     }
 }
@@ -297,7 +301,7 @@ fn create_dependency_from_instruction(
 /// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) {
 
-    log!("Resolving state variable {}:{}", component.name(), name);
+    // log!("Resolving state variable {}:{}", component.name(), name);
 
     let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
@@ -446,9 +450,8 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
         resolve_state_variable(core, component, name);
         let state_var_value = component.state_var(name).unwrap();
 
-        log!("components right now {:#?}", core.components);
-
-        log!("{:#?}", state_var_value);
+        // log!("components right now {:#?}", core.components);
+        // log!("{:#?}", state_var_value);
 
         state_values.insert(name.to_string(),
             match state_var_value {
