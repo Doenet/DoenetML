@@ -6,14 +6,14 @@ const DoenetText =
 
 const DoenetTextJson = parseAndCompile(DoenetText);
 
-console.log("JSON", DoenetTextJson);
+console.log("DoenetML as JSON\n", DoenetTextJson);
 
 const dc = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
 
 const render_tree_string = dc.update_renderers();
 const render_tree_json = JSON.parse(render_tree_string);
 
-console.log("JS deserialized JSON", render_tree_json);
+console.log("JS deserialized JSON\n", render_tree_json);
 
 let action = {
     componentName: "myInput",

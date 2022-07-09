@@ -13,22 +13,19 @@ pub mod text_input;
 
 use phf::phf_map;
 use state_variable_setup::*;
-use text::Text;
-use number::Number;
-use text_input::TextInput;
 
 
 
 #[derive(Debug)]
 pub struct DoenetCore {
-    pub components: HashMap<String, Component>,
+    pub components: HashMap<String, Rc<dyn ComponentLike>>,
     pub dependencies: Vec<Dependency>,
     pub root_component_name: String,
 }
 
 
 
-pub trait ComponentSpecificBehavior {
+pub trait ComponentSpecificBehavior: fmt::Debug {
 
     /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
@@ -124,26 +121,26 @@ pub enum ObjectTraitName {
 }
 
 
-/// A component enum is needed because Rc<dyn ComponentLike> cannot go into a HashMap,
-/// but this enum implements a conversion into Rc<dyn ComponentLike>.
-#[derive(Debug, Clone)]
-pub enum Component {
-    Text(Rc<Text>),
-    Number(Rc<Number>),
-    TextInput(Rc<TextInput>),
-}
+// /// A component enum is needed because Rc<dyn ComponentLike> cannot go into a HashMap,
+// /// but this enum implements a conversion into Rc<dyn ComponentLike>.
+// #[derive(Debug, Clone)]
+// pub enum Component {
+//     Text(Rc<Text>),
+//     Number(Rc<Number>),
+//     TextInput(Rc<TextInput>),
+// }
 
-impl Component {
-    /// Convert Component enum to ComponentLike trait object.
-    pub fn component(&self) -> Rc<dyn ComponentLike> {
-        match self {
-            Component::Text(comp) =>        Rc::clone(comp) as Rc<dyn ComponentLike>,
-            Component::Number(comp) =>      Rc::clone(comp) as Rc<dyn ComponentLike>,
-            Component::TextInput(comp) =>   Rc::clone(comp) as Rc<dyn ComponentLike>,
+// impl Component {
+//     /// Convert Component enum to ComponentLike trait object.
+//     pub fn component(&self) -> Rc<dyn ComponentLike> {
+//         match self {
+//             Component::Text(comp) =>        Rc::clone(comp) as Rc<dyn ComponentLike>,
+//             Component::Number(comp) =>      Rc::clone(comp) as Rc<dyn ComponentLike>,
+//             Component::TextInput(comp) =>   Rc::clone(comp) as Rc<dyn ComponentLike>,
 
-        }
-    }
-}
+//         }
+//     }
+// }
 
 
 #[derive(Debug, Clone)]
@@ -157,21 +154,19 @@ pub enum ComponentChild {
 
 pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
-    let components: HashMap<String, Component>;
+    let components: HashMap<String, Rc<dyn ComponentLike>>;
     let root_component_name: String;
 
     let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
         .expect("Error parsing json for components");
-    let (parsed_components, parsed_root) = possible_components_tree;
-    components = parsed_components;
-    root_component_name = parsed_root;
 
+    (components, root_component_name) = possible_components_tree;
+    
     let mut dependencies: Vec<Dependency> = vec![];
     
     for (_, component) in components.iter() {
 
-        let comp = component.component();
-        let dependencies_for_this_component = create_all_dependencies_for_component(&comp);
+        let dependencies_for_this_component = create_all_dependencies_for_component(&component);
 
         for dependency in dependencies_for_this_component {
             dependencies.push(dependency);
@@ -298,7 +293,7 @@ fn create_dependency_from_instruction(
 /// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, name: StateVarName) {
 
-    // log!("Resolving state variable {}:{}", component.name(), name);
+    log!("Resolving state variable {}:{}", component.name(), name);
 
     let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
@@ -323,7 +318,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                     }
                 },
                 ObjectName::Component(component_name) => {
-                    let depends_on_component = &core.components.get(component_name).unwrap().component();
+                    let depends_on_component = &core.components.get(component_name).unwrap();
                     for &state_var_name in &dep.depends_on_state_vars {
 
                         resolve_state_variable(core, depends_on_component, name);
@@ -346,7 +341,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
                         if let State::Resolved(state_var_value) = state_var_value {
                             values_for_this_dep.push((
-                                core.components.get(component_name).unwrap().component().get_component_type(),
+                                core.components.get(component_name).unwrap().get_component_type(),
                                 state_var_name,
                                 state_var_value
                             ));
@@ -434,7 +429,7 @@ pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     let root_node = core.components.get(&core.root_component_name).unwrap();
     let mut json_obj: Vec<serde_json::Value> = vec![];
 
-    generate_render_tree_internal(core, &root_node.component(), &mut json_obj);
+    generate_render_tree_internal(core, &root_node, &mut json_obj);
 
     serde_json::json!(json_obj)
 }
@@ -507,24 +502,3 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
     }));
 }
 
-
-
-
-
-// Implement Debug for trait objects.
-impl fmt::Debug for dyn ComponentLike {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.name())
-    }
-}
-impl fmt::Debug for dyn TextLikeComponent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let debug_text = format!("{}:{}", self.name(), self.text_value());
-        f.write_str(&debug_text)
-    }
-}
-impl fmt::Debug for dyn NumberLikeComponent {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&self.name())
-    }
-}

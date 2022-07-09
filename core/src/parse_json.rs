@@ -4,8 +4,6 @@ use serde_json::Value;
 
 use crate::ComponentLike;
 use crate::DoenetCore;
-use crate::handle_update_instruction;
-use crate::Component;
 use crate::ComponentChild;
 use crate::state_variable_setup::StateVarName;
 use crate::state_variable_setup::StateVarUpdateInstruction;
@@ -46,7 +44,7 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
         let component_name_obj = map.get("componentName").expect("no componentName for action");
         if let Value::String(component_name_str) = component_name_obj {
             component_name = component_name_str.to_string();
-            component = core.components.get(&component_name).unwrap().component();
+            component = Rc::clone(core.components.get(&component_name).unwrap());
         } else {
             return Err("componentName should be a string".to_string())
         }
@@ -55,7 +53,7 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
         let action_name_obj = map.get("actionName").expect("no actionName for action");
         if let Value::String(action_name_str) = action_name_obj {
             action_name = action_name_str.to_string();
-            action_func = *core.components.get(&component_name).unwrap().component()
+            action_func = *core.components.get(&component_name).unwrap()
                 .actions().get(&action_name).unwrap();
         } else {
             return Err("action should be a string".to_string());
@@ -103,10 +101,10 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(root: &serde_json::Value)
-    -> Result<(HashMap<String, Component>, String), &str>
+    -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
 {
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
-    let mut components: HashMap<String, Component> = HashMap::new();
+    let mut components: HashMap<String, Rc<dyn ComponentLike>> = HashMap::new();
     let mut root_component_name: Option<String> = None;
 
     add_json_subtree_to_components(&mut components, root, "", &mut component_type_counter, &mut root_component_name)?;
@@ -120,7 +118,7 @@ pub fn create_components_tree_from_json(root: &serde_json::Value)
 
 
 fn add_json_subtree_to_components(
-    components: &mut HashMap<String, Component>,
+    components: &mut HashMap<String, Rc<dyn ComponentLike>>,
     json_obj: &serde_json::Value,
     parent_name: &str,
     component_type_counter: &mut HashMap<String, u32>,
@@ -137,7 +135,7 @@ fn add_json_subtree_to_components(
         
         Value::String(string_value) => {
             if let Some(parent) = components.get(parent_name) {
-                parent.component().add_as_child(ComponentChild::String(string_value.to_string()));
+                parent.add_as_child(ComponentChild::String(string_value.to_string()));
             }
         },
 
@@ -173,19 +171,10 @@ fn add_json_subtree_to_components(
                 
 
                 let component = match component_type.as_str() {
-                    
 
-                    "text" => Component::Text(
-                        Text::create(component_name.clone(), parent_name.to_string())
-                    ),
-
-                    "number" => Component::Number(
-                        Number::create(component_name.clone(), parent_name.to_string())
-                    ),
-
-                    "textInput" => Component::TextInput(
-                        TextInput::create(component_name.clone(), parent_name.to_string())
-                    ),
+                    "text" => Text::create(component_name.clone(), parent_name.to_string()),
+                    "number" => Number::create(component_name.clone(), parent_name.to_string()),
+                    "textInput" => TextInput::create(component_name.clone(), parent_name.to_string()),
 
                     // Add components to this match here
  
@@ -193,8 +182,8 @@ fn add_json_subtree_to_components(
                 };
 
                 if let Some(parent) = components.get(parent_name) {
-                    parent.clone().component().add_as_child(
-                        ComponentChild::Component(component.clone().component()));
+                    parent.clone().add_as_child(
+                        ComponentChild::Component(Rc::clone(&component)));
                 }
 
                 let children_value = map.get("children").expect("No children JSON field");

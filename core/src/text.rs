@@ -7,8 +7,7 @@ use core_derive::ComponentLike;
 
 use crate::state_variable_setup::*;
 
-use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName,
-TextLikeComponent};
+use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName};
 
 use phf::phf_map;
 
@@ -117,7 +116,7 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: String) -> Rc<Text> {
+    pub fn create(name: String, parent: String) -> Rc<dyn ComponentLike> {
         Rc::new(Text {
             name,
             parent: RefCell::new(parent),

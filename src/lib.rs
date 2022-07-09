@@ -46,7 +46,7 @@ impl PublicDoenetCore {
 
         let core = core::create_doenet_core(json_deserialized);
 
-        log!("Components: {:#?}", core.components);
+        log!("Components\n{:#?}", core.components);
         log!("Dependencies\n{:#?}", core.dependencies);
     
         PublicDoenetCore(core)
@@ -64,10 +64,10 @@ impl PublicDoenetCore {
 
     pub fn handle_action(&self, action: &str) {
         let json_action: serde_json::Value = serde_json::from_str(&action).unwrap();
-        
+
         core::handle_action(&self.0, json_action);
 
-        log!("Components after action: {:#?}", &self.0.components);
+        log!("Components after action: {:#?}", self.0.components);
     }
 }
 

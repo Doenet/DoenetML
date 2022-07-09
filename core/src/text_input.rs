@@ -7,7 +7,7 @@ use phf::phf_map;
 
 use crate::state_variable_setup::*;
 
-use crate::{ObjectTraitName, TextLikeComponent, ComponentLike,
+use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
 
@@ -32,7 +32,7 @@ fn value_return_dependency_instructions(
 }
 
 fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
 ) -> StateVarUpdateInstruction<String> {
 
     StateVarUpdateInstruction::NoChange
@@ -113,7 +113,7 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 impl TextInput {
-    pub fn create(name: String, parent: String) -> Rc<TextInput> {
+    pub fn create(name: String, parent: String) -> Rc<dyn ComponentLike> {
         Rc::new(TextInput {
             name,
             parent: RefCell::new(parent),

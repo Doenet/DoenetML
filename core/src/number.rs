@@ -7,7 +7,7 @@ use phf::phf_map;
 
 use crate::state_variable_setup::*;
 
-use crate::{ObjectTraitName, TextLikeComponent, NumberLikeComponent,ComponentLike,
+use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
 
@@ -111,7 +111,7 @@ impl ComponentSpecificBehavior for Number {
 
 
 impl Number {
-    pub fn create(name: String, parent: String) -> Rc<Number> {
+    pub fn create(name: String, parent: String) -> Rc<dyn ComponentLike> {
         Rc::new(Number {
             name,
             parent: RefCell::new(parent),
