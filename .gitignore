@@ -24,3 +24,14 @@ dist-ssr
 *.sw?
 
 src/media/byPageId/
+
+
+
+core/target
+core/Cargo.lock
+
+core/core-derive/Cargo.lock
+
+rust-doenet-core-wasm/target
+rust-doenet-core-wasm/pkg
+rust-doenet-core-wasm/Cargo.lock
