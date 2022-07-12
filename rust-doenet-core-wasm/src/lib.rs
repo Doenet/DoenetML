@@ -2,8 +2,6 @@ mod utils;
 
 extern crate web_sys;
 
-use serde_json::Value;
-
 use wasm_bindgen::prelude::*;
 
 use core::DoenetCore;
@@ -69,9 +67,13 @@ impl PublicDoenetCore {
 
         log!("Components after action: {:#?}", self.0.components);
     }
-}
 
 
-pub fn generate_render_tree(core: &DoenetCore) -> Value {
-    core::generate_render_tree(core)
+    pub fn component_tree_as_json_string(&self) -> String {
+
+        let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
+        let json_obj = core::package_subtree_as_json(&self.0, root_component);
+
+        serde_json::to_string(&json_obj).unwrap()
+    }
 }

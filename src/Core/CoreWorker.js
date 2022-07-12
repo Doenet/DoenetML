@@ -66,10 +66,10 @@ async function createCore(args) {
               childrenInstructions: [
                 "\n\n  ",
                 {
-                  componentName: "/_text1",
-                  effectiveName: "/_text1",
-                  componentType: "text",
-                  rendererType: "text",
+                  componentName: "/_textInput1",
+                  effectiveName: "/_textInput1",
+                  componentType: "textInput",
+                  rendererType: "textInput",
                   actions: {}
                 }]
             }]
@@ -77,7 +77,6 @@ async function createCore(args) {
     },
     init: true
   };
-
 
   for (let key in render_tree) {
     let componentRenderState = render_tree[key]
@@ -96,7 +95,8 @@ async function createCore(args) {
         generatedVariantString: "{\"index\":1,\"name\":\"a\",\"meta\":{\"createdBy\":\"/_document1\"},\"subvariants\":[]}",
         allPossibleVariants: ["a"],
         variantIndicesToIgnore: [],
-        rendererTypesInDocument: ["section", "text", "number"],
+        // For now, just assume we've got all the render types
+        rendererTypesInDocument: ["section", "text", "number", "textInput"],
         documentToRender: {
           componentName: "/_document1",
           effectiveName: "/_document1",
@@ -112,6 +112,9 @@ async function createCore(args) {
   })
 
   postMessage({ messageType: "coreCreated" })
+
+
+  console.log(JSON.parse(dc.component_tree_as_json_string()));
 
 }
 

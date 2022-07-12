@@ -35,6 +35,15 @@ impl<T> StateVar<T> {
     pub fn new() -> StateVar<T> {
         StateVar(RefCell::new(State::Stale))
     }
+
+    // pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
+    //     match *self.0.borrow() {
+    //         State::Resolved(val) => match T {
+    //             String => 
+    //         }
+    //     }
+
+    // }
 }
 
 impl<T> StateVar<T> 
@@ -88,7 +97,27 @@ pub struct StateVarDefinition<T> {
     pub for_renderer: bool,
 
     pub default_value: fn() -> T,
+
+    // pub has_essential: bool,
 }
+
+impl<T> Default for StateVarDefinition<T>
+    where T: Default
+{
+    fn default() -> Self {
+
+        StateVarDefinition {
+            state_vars_to_determine_dependencies: || vec![],
+            return_dependency_instructions: |_| HashMap::new(),
+            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::UseDefault,
+            for_renderer: false,
+            default_value: || T::default()
+        }
+    
+    }
+}
+
+
 
 pub fn default_state_vars_for_dependencies() -> Vec<StateVarName> { vec![] }
 
@@ -204,9 +233,30 @@ pub enum StateVarUpdateInstruction<T> {
 
 
 
+impl StateVar<StateVarValue> {
+    pub fn get_state(&self) -> State<StateVarValue> {
+        if let State::Resolved(value) = &*self.0.borrow() {
+            State::Resolved(value.clone())
+        } else {
+            State::Stale
+        }
+    }
+}
 
 
 impl StateVar<String> {
+    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
+
+        // TODO: it could be a problem that once this is created, 
+        // it doesn't have any attachment to the original state var
+        match &*self.0.borrow() {
+            State::Stale => StateVar(RefCell::new(State::Stale)),
+            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::String(val.to_string())))),
+        }
+
+    }
+
+
     pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = &*self.0.borrow() {
             State::Resolved(StateVarValue::String(value.to_string()))
@@ -217,6 +267,17 @@ impl StateVar<String> {
 }
 
 impl StateVar<bool> {
+    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
+
+        // TODO: it could be a problem that once this is created, 
+        // it doesn't have any attachment to the original state var
+        match *self.0.borrow() {
+            State::Stale => StateVar(RefCell::new(State::Stale)),
+            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Boolean(val)))),
+        }
+
+    }
+
     pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
             State::Resolved(StateVarValue::Boolean(value))
@@ -227,6 +288,18 @@ impl StateVar<bool> {
 }
 
 impl StateVar<i64> {
+
+    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
+
+        // TODO: it could be a problem that once this is created, 
+        // it doesn't have any attachment to the original state var
+        match *self.0.borrow() {
+            State::Stale => StateVar(RefCell::new(State::Stale)),
+            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Integer(val)))),
+        }
+
+    }
+
     pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
             State::Resolved(StateVarValue::Integer(value))
@@ -237,6 +310,17 @@ impl StateVar<i64> {
 }
 
 impl StateVar<f64> {
+    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
+
+        // TODO: it could be a problem that once this is created, 
+        // it doesn't have any attachment to the original state var
+        match *self.0.borrow() {
+            State::Stale => StateVar(RefCell::new(State::Stale)),
+            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Number(val)))),
+        }
+
+    }
+
     pub fn get_state(&self) -> State<StateVarValue> {
         if let State::Resolved(value) = *self.0.borrow() {
             State::Resolved(StateVarValue::Number(value))

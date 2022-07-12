@@ -28,16 +28,19 @@ pub struct DoenetCore {
 pub trait ComponentSpecificBehavior: fmt::Debug {
 
     /// This function should never use self in the body.
-    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant>;
+    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant>;
 
-    fn state_var(&self, name: StateVarName) -> Option<StateVarAccess>;
+    fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
+
+    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>>;
 
 
     fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
         &phf_map! {}
     }
 
-
+    // fn on_action(&self, action_name: &str, args: HashMap<String, StateVarValue>) -> 
+    // HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>;
 
 
     /// Lower case name.
@@ -57,7 +60,7 @@ pub trait ComponentSpecificBehavior: fmt::Debug {
 
 
 fn set_state_var(component: &Rc<dyn ComponentLike>, name: StateVarName, val: StateVarValue) {
-    match component.state_var(name)
+    match component.get_state_var_access(name)
         .expect(&format!("Component {} of type {} does not have state var {}",
             component.name(), component.get_component_type(), name))
         
@@ -193,7 +196,7 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
 
         let my_definitions = component.state_variable_instructions();
 
-        for (&state_var_name, state_var_def) in my_definitions.entries() {
+        for (&state_var_name, state_var_def) in my_definitions {
 
             // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
 
@@ -331,7 +334,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                         // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
 
                         resolve_state_variable(core, depends_on_component, dep_state_var_name);
-                        let state_var_access = depends_on_component.state_var(dep_state_var_name).unwrap();
+                        let state_var_access = depends_on_component.get_state_var_access(dep_state_var_name).unwrap();
                         let state_var_value = match state_var_access {
                             StateVarAccess::Bool(state_var) => {
                                 state_var.get_state()
@@ -387,7 +390,7 @@ pub fn handle_update_instruction(
     let definition = component.state_variable_instructions().get(name).unwrap();
     match instruction {
         StateVarUpdateInstruction::NoChange => {
-            let current_value = match component.state_var(name).unwrap() {
+            let current_value = match component.get_state_var_access(name).unwrap() {
                 StateVarAccess::Bool(v) => v.get_state(),
                 StateVarAccess::Number(v) => v.get_state(),
                 StateVarAccess::Integer(v) => v.get_state(),
@@ -447,7 +450,7 @@ pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     serde_json::json!(json_obj)
 }
 
-pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
+fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
 
     use serde_json::Value;
     use serde_json::json;
@@ -465,7 +468,7 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
     for (name, _variant) in renderered_state_vars {
 
         resolve_state_variable(core, component, name);
-        let state_var_value = component.state_var(name).unwrap();
+        let state_var_value = component.get_state_var_access(name).unwrap();
 
         // log!("components right now {:#?}", core.components);
         // log!("{:#?}", state_var_value);
@@ -518,3 +521,54 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
     log!("Components {:#?}", core.components);
 }
 
+
+
+
+pub fn package_subtree_as_json(core: &DoenetCore, component: &Rc<dyn ComponentLike>) -> serde_json::Value {
+
+    use serde_json::Value;
+    use serde_json::json;
+
+    let mut children: Vec<Value> = vec![];
+
+    let children_normal_ref = &*component.children().borrow();
+    for child in children_normal_ref {
+
+        let child_json = match child {
+            ComponentChild::Component(comp_child) => package_subtree_as_json(core, comp_child),
+            ComponentChild::String(str) => Value::String(str.to_string()),
+        };
+        children.push(child_json);
+    }
+
+
+    let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
+
+    my_json_props.insert("name".into(), json!(component.name()));
+    my_json_props.insert("parent".into(), json!(*component.parent().borrow()));
+    my_json_props.insert("children".into(), Value::Array(children));    
+
+    for state_var_name in component.state_variable_instructions().keys() {
+        let state_var = component.get_state_var(state_var_name).unwrap();
+
+        my_json_props.insert(
+
+            state_var_name.to_string(),
+
+            match state_var.get_state() {
+                State::Resolved(value) => match value {
+                    StateVarValue::String(v) => json!(v),
+                    StateVarValue::Number(v) => json!(v),
+                    StateVarValue::Integer(v) => json!(v),
+                    StateVarValue::Boolean(v) => json!(v),
+                },
+                State::Stale => json!("Stale"),
+            }
+        );
+
+    }
+
+    Value::Object(my_json_props)
+
+
+}

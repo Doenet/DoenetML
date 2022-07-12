@@ -3,7 +3,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use core_derive::ComponentLike;
-use phf::phf_map;
+
+use lazy_static::lazy_static;
 
 use crate::state_variable_setup::*;
 
@@ -56,33 +57,62 @@ fn value_determine_state_var_from_dependencies(
 }
 
 
+lazy_static! {
+    static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+        let mut svd = HashMap::new();
+        
+        svd.insert("value", StateVarVariant::Number(StateVarDefinition {
+            state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+            return_dependency_instructions: value_return_dependency_instructions,
+            determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+            for_renderer: true,
+            default_value: || 0.0,
+        }));
+
+        svd.insert("hidden", HIDDEN_DEFAULT_DEFINITION);
+
+        svd
+    };
+}
+
 
 impl ComponentSpecificBehavior for Number {
 
-    fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
+    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant> {
+
+        &MY_STATE_VAR_DEFINITIONS
         
-        &phf_map! {
-            "value" => StateVarVariant::Number(StateVarDefinition {
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions: value_return_dependency_instructions,
-                determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
-                for_renderer: true,
-                default_value: || 0.0,
-            }),
+        // &phf_map! {
+        //     "value" => StateVarVariant::Number(StateVarDefinition {
+        //         state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+        //         return_dependency_instructions: value_return_dependency_instructions,
+        //         determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+        //         for_renderer: true,
+        //         default_value: || 0.0,
+        //     }),
 
-            "hidden" => HIDDEN_DEFAULT_DEFINITION,
+        //     "hidden" => HIDDEN_DEFAULT_DEFINITION,
 
-        }
+        // }
         
     }
     
-    fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
+    fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
         match name {
             "value" => Option::Some(StateVarAccess::Number(&self.value)),
             "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
             _ => Option::None,
         }
     }
+
+    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>> {
+        match name {
+            "value" => Some(self.value.as_general_state_var()),
+            "hidden" => Some(self.hidden.as_general_state_var()),
+ 
+            _ => None,
+        }        
+    }        
 
     fn get_component_type(&self) -> &'static str { "number" }
 
