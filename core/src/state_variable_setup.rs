@@ -8,7 +8,12 @@ use crate::ObjectTraitName;
 #[macro_export]
 macro_rules! log {
     ( $( $t:tt )* ) => {
+
+        #[cfg(feature = "web")]
         web_sys::console::log_1(&format!( $( $t )* ).into());
+
+        #[cfg(not(feature = "web"))]
+        println!( $( $t )* )
     }
 }
 

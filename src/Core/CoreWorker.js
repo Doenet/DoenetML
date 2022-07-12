@@ -24,18 +24,7 @@ async function createCore(args) {
   
   const render_tree_string = dc.update_renderers();
   const render_tree = JSON.parse(render_tree_string);
-  
-  // console.log("JS deserialized JSON\n", render_tree_json);
-  
-  // let action = {
-  //     componentName: "myInput",
-  //     actionName: "updateValue",
-  //     args: {
-  //         "value": "hi there",
-  //     },
-  // };
-  
-  // dc.handle_action(JSON.stringify(action));
+
 
   console.log(render_tree);
 
@@ -125,3 +114,17 @@ async function createCore(args) {
   postMessage({ messageType: "coreCreated" })
 
 }
+
+
+
+  // console.log("JS deserialized JSON\n", render_tree_json);
+  
+  // let action = {
+  //     componentName: "myInput",
+  //     actionName: "updateValue",
+  //     args: {
+  //         "value": "hi there",
+  //     },
+  // };
+  
+  // dc.handle_action(JSON.stringify(action));

@@ -23,21 +23,21 @@ pub struct TextInput {
 }
 
 
-fn value_return_dependency_instructions(
-    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
-) -> HashMap<InstructionName, DependencyInstruction> {
+// fn value_return_dependency_instructions(
+//     _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
+// ) -> HashMap<InstructionName, DependencyInstruction> {
 
-    HashMap::new()
+//     HashMap::new()
 
-}
+// }
 
-fn value_determine_state_var_from_dependencies(
-    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
-) -> StateVarUpdateInstruction<String> {
+// fn value_determine_state_var_from_dependencies(
+//     _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+// ) -> StateVarUpdateInstruction<String> {
 
-    StateVarUpdateInstruction::UseDefault
+//     StateVarUpdateInstruction::UseDefault
 
-}
+// }
 
 
 
@@ -52,23 +52,32 @@ fn update_value_action(args: HashMap<String, StateVarValue>) -> HashMap<StateVar
 
 
 
+const MY_STATE_VAR_DEFINITIONS: phf::Map<StateVarName, StateVarVariant> = phf_map! {
+
+    "value" => StateVarVariant::String(StateVarDefinition {
+        state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+
+        return_dependency_instructions: |prereq_state_vars| {
+            HashMap::new()
+        },
+
+        determine_state_var_from_dependencies: |dependency_values| {
+            StateVarUpdateInstruction::UseDefault
+        },
+
+        for_renderer: true,
+        default_value: || "".to_owned(),
+    }),
+
+    "hidden" => HIDDEN_DEFAULT_DEFINITION,
+
+};
+
+
 impl ComponentSpecificBehavior for TextInput {
 
     fn state_variable_instructions(&self) -> &phf::Map<StateVarName, StateVarVariant> {
-        
-        &phf_map! {
-            "value" => StateVarVariant::String(StateVarDefinition {
-                state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-                return_dependency_instructions: value_return_dependency_instructions,
-                determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
-                for_renderer: true,
-                default_value: || "".to_owned(),
-            }),
-
-            "hidden" => HIDDEN_DEFAULT_DEFINITION,
-
-        }
-        
+        &MY_STATE_VAR_DEFINITIONS        
     }
     
     fn state_var(&self, name: StateVarName) -> Option<crate::StateVarAccess> {

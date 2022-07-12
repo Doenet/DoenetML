@@ -513,5 +513,8 @@ pub fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Compo
         "stateValues": Value::Object(state_values),
         "childrenInstructions": json!(children_instructions),
     }));
+
+
+    log!("Components {:#?}", core.components);
 }
 
