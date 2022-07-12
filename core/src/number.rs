@@ -6,7 +6,7 @@ use core_derive::ComponentLike;
 
 use lazy_static::lazy_static;
 
-use crate::state_variable_setup::*;
+use crate::state_variables::*;
 
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
@@ -59,19 +59,19 @@ fn value_determine_state_var_from_dependencies(
 
 lazy_static! {
     static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
-        let mut svd = HashMap::new();
+        let mut state_var_definitions = HashMap::new();
         
-        svd.insert("value", StateVarVariant::Number(StateVarDefinition {
-            state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
+        state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: value_return_dependency_instructions,
             determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
             for_renderer: true,
-            default_value: || 0.0,
+            ..Default::default()
         }));
 
-        svd.insert("hidden", HIDDEN_DEFAULT_DEFINITION);
+        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
-        svd
+
+        return state_var_definitions
     };
 }
 
@@ -79,23 +79,9 @@ lazy_static! {
 impl ComponentSpecificBehavior for Number {
 
     fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant> {
-
         &MY_STATE_VAR_DEFINITIONS
-        
-        // &phf_map! {
-        //     "value" => StateVarVariant::Number(StateVarDefinition {
-        //         state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-        //         return_dependency_instructions: value_return_dependency_instructions,
-        //         determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
-        //         for_renderer: true,
-        //         default_value: || 0.0,
-        //     }),
-
-        //     "hidden" => HIDDEN_DEFAULT_DEFINITION,
-
-        // }
-        
     }
+
     
     fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
         match name {

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use core_derive::ComponentLike;
 
-use crate::state_variable_setup::*;
+use crate::state_variables::*;
 
 use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName};
 
@@ -100,41 +100,30 @@ fn value_determine_state_var_from_dependencies(
 
 lazy_static! {
     static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
-        let mut svd = HashMap::new();
+        let mut state_var_definitions = HashMap::new();
 
-        svd.insert("value", StateVarVariant::String(StateVarDefinition {
+        state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
             return_dependency_instructions: value_return_dependency_instructions,
             determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
             ..Default::default()
         }));
 
 
-        svd.insert("text", StateVarVariant::String(StateVarDefinition {
+        state_var_definitions.insert("text", StateVarVariant::String(StateVarDefinition {
             return_dependency_instructions: text_return_dependency_instructions,
             determine_state_var_from_dependencies: text_determine_state_var_from_dependencies,
             for_renderer: true,
             ..Default::default()
         }));
 
-        svd.insert("hidden", StateVarVariant::Bool(StateVarDefinition {
-            for_renderer: true,
-            ..Default::default()
-        }));
 
-        svd.insert("disabled", StateVarVariant::Bool(StateVarDefinition {
-            for_renderer: true,
-            ..Default::default()
-        }));
-
-        svd.insert("fixed", StateVarVariant::Bool(StateVarDefinition {
-            for_renderer: true,
-            ..Default::default()
-        }));
+        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+        state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
+        state_var_definitions.insert("fixed", FIXED_DEFAULT_DEFINITION());
 
 
 
-
-        svd
+        return state_var_definitions
     };
 }
 

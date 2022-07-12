@@ -1,8 +1,9 @@
 [package]
 name = "rust-doenet-core-wasm"
 version = "0.1.0"
-authors = ["daniel <djnykamp@gmail.com>"]
+authors = ["daniel <djnykamp@gmail.com>", "charles <cqnykamp@gmail.com>"]
 edition = "2018"
+description = "A WASM wrapper for the Doenet Core package"
 
 [lib]
 crate-type = ["cdylib", "rlib"]

@@ -7,7 +7,7 @@ use phf::phf_map;
 
 use lazy_static::lazy_static;
 
-use crate::state_variable_setup::*;
+use crate::state_variables::*;
 
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
@@ -69,9 +69,9 @@ lazy_static! {
 
     static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
 
-        let mut svd = HashMap::new();
+        let mut state_var_definitions = HashMap::new();
 
-        svd.insert("value", StateVarVariant::String(StateVarDefinition {
+        state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
 
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
@@ -97,14 +97,17 @@ lazy_static! {
             ..Default::default()
         }));
 
-        svd.insert("expanded", StateVarVariant::Bool(StateVarDefinition {
+
+
+
+        state_var_definitions.insert("expanded", StateVarVariant::Bool(StateVarDefinition {
             for_renderer: true,
             ..Default::default()
             
         }));
 
 
-        svd.insert("size", StateVarVariant::Number(StateVarDefinition {
+        state_var_definitions.insert("size", StateVarVariant::Number(StateVarDefinition {
 
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
@@ -127,30 +130,31 @@ lazy_static! {
 
             },
             for_renderer: true,
-            default_value: || 10.0,
+            default_value: 10.0,
             ..Default::default()
         }));
 
 
-        svd.insert("width", StateVarVariant::Number(StateVarDefinition {
+
+
+        state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
-            default_value: || 600.0,
+            default_value: 600.0,
             ..Default::default()
         }));
 
 
-        svd.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
+        state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             //hasEssential: true,
             for_renderer: true,
             ..Default::default()
         }));
 
 
-        svd.insert("hidden", HIDDEN_DEFAULT_DEFINITION);
+        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
 
-        svd
-
+        return state_var_definitions
     };
 
 

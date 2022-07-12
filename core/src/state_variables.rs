@@ -36,14 +36,6 @@ impl<T> StateVar<T> {
         StateVar(RefCell::new(State::Stale))
     }
 
-    // pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
-    //     match *self.0.borrow() {
-    //         State::Resolved(val) => match T {
-    //             String => 
-    //         }
-    //     }
-
-    // }
 }
 
 impl<T> StateVar<T> 
@@ -96,30 +88,33 @@ pub struct StateVarDefinition<T> {
 
     pub for_renderer: bool,
 
-    pub default_value: fn() -> T,
+    pub default_value: T,
 
-    // pub has_essential: bool,
+    pub has_essential: bool,
 }
+
+
+
+
+
+
 
 impl<T> Default for StateVarDefinition<T>
     where T: Default
 {
     fn default() -> Self {
-
         StateVarDefinition {
             state_vars_to_determine_dependencies: || vec![],
             return_dependency_instructions: |_| HashMap::new(),
             determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::UseDefault,
             for_renderer: false,
-            default_value: || T::default()
+            default_value: T::default(),
+            has_essential: false,
         }
     
     }
 }
 
-
-
-pub fn default_state_vars_for_dependencies() -> Vec<StateVarName> { vec![] }
 
 
 #[derive(Debug)]
@@ -335,67 +330,31 @@ impl StateVar<f64> {
 
 
 
-// Hidden state var
+#[allow(non_snake_case)]
+pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
+    StateVarVariant::Bool(StateVarDefinition { 
+        for_renderer: true,
+       ..Default::default()
 
-pub const HIDDEN_DEFAULT_DEFINITION: StateVarVariant = StateVarVariant::Bool(StateVarDefinition { 
-    state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-    return_dependency_instructions: default_hidden_return_dependency_instructions,
-    determine_state_var_from_dependencies: default_hidden_determine_state_var_from_dependencies,
-    for_renderer: true,
-    default_value: || false,
-});
-
-
-fn default_hidden_return_dependency_instructions(_prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
-    HashMap::new()
-}
-
-fn default_hidden_determine_state_var_from_dependencies(
-    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
-) -> StateVarUpdateInstruction<bool> {
-
-    StateVarUpdateInstruction::UseDefault
+    })
 }
 
 
-// Disabled state var
-
-pub const DISABLED_DEFAULT_DEFINITION: StateVarVariant = StateVarVariant::Bool(StateVarDefinition { 
-    state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-    return_dependency_instructions: default_disabled_return_dependency_instructions,
-    determine_state_var_from_dependencies: default_disabled_determine_state_var_from_dependencies,
-    for_renderer: true,
-    default_value: || false,
-});
-
-fn default_disabled_return_dependency_instructions(_prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
-    HashMap::new()
-}
-
-fn default_disabled_determine_state_var_from_dependencies(
-    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
-) -> StateVarUpdateInstruction<bool> {
-    StateVarUpdateInstruction::UseDefault
+#[allow(non_snake_case)]
+pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
+    StateVarVariant::Bool(StateVarDefinition {     
+        for_renderer: true,
+        ..Default::default()
+    })
 }
 
 
-// Fixed state var
-
-
-pub const FIXED_DEFAULT_DEFINITION: StateVarVariant = StateVarVariant::Bool(StateVarDefinition { 
-    state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-    return_dependency_instructions: default_fixed_return_dependency_instructions,
-    determine_state_var_from_dependencies: default_fixed_determine_state_var_from_dependencies,
-    for_renderer: true,
-    default_value: || false,
-});
-fn default_fixed_return_dependency_instructions(_prerequisite_state_values: HashMap<StateVarName, StateVarValue>) -> HashMap<InstructionName, DependencyInstruction> {
-    HashMap::new()
-}
-fn default_fixed_determine_state_var_from_dependencies(
-    _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
-) -> StateVarUpdateInstruction<bool> {
-    StateVarUpdateInstruction::UseDefault
+#[allow(non_snake_case)]
+pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
+    StateVarVariant::Bool(StateVarDefinition {     
+        for_renderer: true,
+        ..Default::default()
+    })
 }
 
 
@@ -516,10 +475,10 @@ impl StateVarVariant {
 
     pub fn default_value(&self) -> StateVarValue {
         match self {
-            StateVarVariant::String(def) =>   StateVarValue::String(  (def.default_value)()),
-            StateVarVariant::Integer(def) =>  StateVarValue::Integer( (def.default_value)()),
-            StateVarVariant::Number(def) =>   StateVarValue::Number(  (def.default_value)()),
-            StateVarVariant::Bool(def) =>     StateVarValue::Boolean( (def.default_value)()),
+            StateVarVariant::String(def) =>   StateVarValue::String( def.default_value.clone()),
+            StateVarVariant::Integer(def) =>  StateVarValue::Integer(def.default_value),
+            StateVarVariant::Number(def) =>   StateVarValue::Number( def.default_value),
+            StateVarVariant::Bool(def) =>     StateVarValue::Boolean(def.default_value),
         }
     }
 

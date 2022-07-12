@@ -1,5 +1,5 @@
 
-use core::{self, ComponentChild, state_variable_setup::StateVar};
+use core::{self, ComponentChild, state_variables::StateVar};
 use std::cell::RefCell;
 
 #[test]

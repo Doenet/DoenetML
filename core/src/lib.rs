@@ -5,14 +5,14 @@ use std::fmt;
 
 #[macro_use]
 
-pub mod state_variable_setup;
+pub mod state_variables;
 pub mod parse_json;
 pub mod text;
 pub mod number;
 pub mod text_input;
 
 use phf::phf_map;
-use state_variable_setup::*;
+use state_variables::*;
 
 
 
