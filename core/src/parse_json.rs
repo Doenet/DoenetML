@@ -5,9 +5,13 @@ use serde_json::Value;
 use crate::ComponentLike;
 use crate::DoenetCore;
 use crate::ComponentChild;
+use crate::state_var::EssentialStateVar;
+use crate::state_var::StateVar;
+use crate::state_var::StateVarValueType;
 use crate::state_variables::StateVarName;
 use crate::state_variables::StateVarUpdateInstruction;
 use crate::state_variables::StateVarValue;
+use crate::state_variables::StateVarVariant;
 use crate::text::Text;
 use crate::number::Number;
 use crate::text_input::TextInput;
@@ -168,13 +172,55 @@ fn add_json_subtree_to_components(
                 if root_component_name.is_none() {
                     *root_component_name = Option::Some(component_name.clone());
                 }
+
+                // Before we create the component, we have to figure out which of its 
+                // state vars are essential state vars. Note that we're technically doing more
+                // work than we have to because we're doing all the work for each component,
+                // rather than each component type
+
+                let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type.as_str() {
+                    "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
+                    "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
+                    "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
+                    _ => {return Err("Unrecognized component type")}
+                };
+
+                let mut essential_state_vars = HashMap::new();
+                for (&state_var_name, state_var_def) in state_var_definitions {
+                    
+                    if state_var_def.has_essential() {
+                        essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
+                            
+                            // TODO: This is hacky. We should create the actual StateVars first
+                            match state_var_def {
+                                StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
+                                StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
+                                StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
+                                StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
+                            }
+                        ));
+                    }
+                }
+                
                 
 
                 let component = match component_type.as_str() {
 
-                    "text" => Text::create(component_name.clone(), parent_name.to_string()),
-                    "number" => Number::create(component_name.clone(), parent_name.to_string()),
-                    "textInput" => TextInput::create(component_name.clone(), parent_name.to_string()),
+                    "text" => Text::create(
+                        component_name.clone(),
+                        parent_name.to_string(),
+                        essential_state_vars,
+                    ),
+                    "number" => Number::create(
+                        component_name.clone(),
+                        parent_name.to_string(),
+                        essential_state_vars,
+                    ),
+                    "textInput" => TextInput::create(
+                        component_name.clone(),
+                        parent_name.to_string(),
+                        essential_state_vars,
+                    ),
 
                     // Add components to this match here
  

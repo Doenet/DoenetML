@@ -11,7 +11,7 @@ use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTrai
 
 use lazy_static::lazy_static;
 
-use crate::state_var::{StateVar, StateVarValueType};
+use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 
 
@@ -20,6 +20,10 @@ pub struct Text {
     pub name: String,
     pub parent: RefCell<String>,
     pub children: RefCell<Vec<ComponentChild>>,
+
+    // Note that this is not behind a RefCell, so we can't change the hashmap
+    // once the component is created    
+    pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 
     // State variables
     value: StateVar,
@@ -102,7 +106,7 @@ fn value_determine_state_var_from_dependencies(
 
 
 lazy_static! {
-    static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+    pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
@@ -137,43 +141,8 @@ impl ComponentSpecificBehavior for Text {
 
         &MY_STATE_VAR_DEFINITIONS
 
-
-        // &phf_map! {
-        //     "value" => StateVarVariant::String(StateVarDefinition {
-        //         state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-        //         return_dependency_instructions: value_return_dependency_instructions,
-        //         determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
-        //         for_renderer: false,
-        //         default_value: || "".to_owned(),
-        //     }),
-
-        //     "text" => StateVarVariant::String(StateVarDefinition {
-        //         state_vars_to_determine_dependencies: default_state_vars_for_dependencies,
-        //         return_dependency_instructions: text_return_dependency_instructions,
-        //         determine_state_var_from_dependencies: text_determine_state_var_from_dependencies,
-        //         for_renderer: true,
-        //         default_value: || "".to_owned(),
-        //     }),
-
-        //     "hidden" => HIDDEN_DEFAULT_DEFINITION,
-        //     "disabled" => DISABLED_DEFAULT_DEFINITION,
-        //     "fixed" => FIXED_DEFAULT_DEFINITION,
-
-        // }
     }
 
-
-    // fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-    //     match name {
-    //         "value" => Option::Some(StateVarAccess::String(&self.value)),
-    //         "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
-    //         "disabled" => Option::Some(StateVarAccess::Bool(&self.disabled)),
-    //         "fixed" => Option::Some(StateVarAccess::Bool(&self.fixed)),
-    //         "text" => Option::Some(StateVarAccess::String(&self.text)),
-
-    //         _ => Option::None,
-    //     }
-    // }
 
     fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
@@ -186,6 +155,10 @@ impl ComponentSpecificBehavior for Text {
             _ => Option::None,
         }        
     }    
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
+    }
 
     fn get_component_type(&self) -> &'static str { "text" }
 
@@ -207,11 +180,13 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: String) -> Rc<dyn ComponentLike> {
+    pub fn create(name: String, parent: String, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Rc<dyn ComponentLike> {
         Rc::new(Text {
             name,
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
+
+            essential_state_vars,
 
             value: StateVar::new(StateVarValueType::String),
             text: StateVar::new(StateVarValueType::String),

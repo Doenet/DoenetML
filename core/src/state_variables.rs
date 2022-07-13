@@ -80,7 +80,7 @@ impl<T> Default for StateVarDefinition<T>
 #[derive(Debug)]
 pub enum StateVarVariant {
     String(StateVarDefinition<String>),
-    Bool(StateVarDefinition<bool>),
+    Boolean(StateVarDefinition<bool>),
     Number(StateVarDefinition<f64>),
     Integer(StateVarDefinition<i64>),
 }
@@ -184,7 +184,7 @@ pub enum StateVarUpdateInstruction<T> {
 
 #[allow(non_snake_case)]
 pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
-    StateVarVariant::Bool(StateVarDefinition { 
+    StateVarVariant::Boolean(StateVarDefinition { 
         for_renderer: true,
         determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
        ..Default::default()
@@ -195,7 +195,7 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
 
 #[allow(non_snake_case)]
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
-    StateVarVariant::Bool(StateVarDefinition {     
+    StateVarVariant::Boolean(StateVarDefinition {     
         for_renderer: true,
         determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
         ..Default::default()
@@ -205,7 +205,7 @@ pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 #[allow(non_snake_case)]
 pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
-    StateVarVariant::Bool(StateVarDefinition {     
+    StateVarVariant::Boolean(StateVarDefinition {     
         for_renderer: true,
         determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
         ..Default::default()
@@ -254,7 +254,7 @@ impl StateVarVariant {
 
         match self {
             StateVarVariant::String(def) => (def.state_vars_to_determine_dependencies)(),
-            StateVarVariant::Bool(def) => (def.state_vars_to_determine_dependencies)(),
+            StateVarVariant::Boolean(def) => (def.state_vars_to_determine_dependencies)(),
             StateVarVariant::Number(def) => (def.state_vars_to_determine_dependencies)(),
             StateVarVariant::Integer(def) => (def.state_vars_to_determine_dependencies)(),
         }
@@ -266,7 +266,7 @@ impl StateVarVariant {
 
         match self {
             StateVarVariant::String(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Bool(def) =>    (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Boolean(def) =>    (def.return_dependency_instructions)(prerequisite_state_values),
             StateVarVariant::Number(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
             StateVarVariant::Integer(def) => (def.return_dependency_instructions)(prerequisite_state_values),
         }
@@ -304,7 +304,7 @@ impl StateVarVariant {
                     StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Number(val)),
                 }
             },
-            StateVarVariant::Bool(def) => {
+            StateVarVariant::Boolean(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
@@ -323,7 +323,7 @@ impl StateVarVariant {
             StateVarVariant::String(def) =>     def.for_renderer,
             StateVarVariant::Integer(def) =>    def.for_renderer,
             StateVarVariant::Number(def) =>     def.for_renderer,
-            StateVarVariant::Bool(def) =>       def.for_renderer,
+            StateVarVariant::Boolean(def) =>       def.for_renderer,
         }
 
     }
@@ -333,7 +333,7 @@ impl StateVarVariant {
             StateVarVariant::String(def) =>     def.has_essential,
             StateVarVariant::Integer(def) =>    def.has_essential,
             StateVarVariant::Number(def) =>     def.has_essential,
-            StateVarVariant::Bool(def) =>       def.has_essential,
+            StateVarVariant::Boolean(def) =>       def.has_essential,
         }
 
     }
@@ -344,7 +344,7 @@ impl StateVarVariant {
             StateVarVariant::String(def) =>   StateVarValue::String( def.default_value.clone()),
             StateVarVariant::Integer(def) =>  StateVarValue::Integer(def.default_value),
             StateVarVariant::Number(def) =>   StateVarValue::Number( def.default_value),
-            StateVarVariant::Bool(def) =>     StateVarValue::Boolean(def.default_value),
+            StateVarVariant::Boolean(def) =>     StateVarValue::Boolean(def.default_value),
         }
     }
 

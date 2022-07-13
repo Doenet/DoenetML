@@ -16,7 +16,7 @@ use phf::phf_map;
 
 
 use state_variables::*;
-use state_var::{StateVar, State};
+use state_var::{StateVar, State, EssentialStateVar};
 
 
 
@@ -37,6 +37,8 @@ pub trait ComponentSpecificBehavior: Debug {
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
     fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
 
 
     fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
@@ -183,7 +185,7 @@ pub fn create_all_dependencies_for_component(component: &Rc<dyn ComponentLike>) 
 
             let dependency_instructions_hashmap = match state_var_def {
                 StateVarVariant::String(def)  => (def.return_dependency_instructions)(HashMap::new()),
-                StateVarVariant::Bool(def)    => (def.return_dependency_instructions)(HashMap::new()),
+                StateVarVariant::Boolean(def)    => (def.return_dependency_instructions)(HashMap::new()),
                 StateVarVariant::Number(def)  => (def.return_dependency_instructions)(HashMap::new()),
                 StateVarVariant::Integer(def) => (def.return_dependency_instructions)(HashMap::new()),
             };
@@ -453,7 +455,7 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
         StateVarVariant::Integer(sv) => sv.for_renderer,
         StateVarVariant::Number(sv) => sv.for_renderer,
         StateVarVariant::String(sv) => sv.for_renderer,
-        StateVarVariant::Bool(sv) => sv.for_renderer,
+        StateVarVariant::Boolean(sv) => sv.for_renderer,
     });
 
     let mut state_values = serde_json::Map::new();

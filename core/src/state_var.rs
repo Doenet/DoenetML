@@ -7,19 +7,15 @@ use crate::state_variables::*;
 use std::{cell::RefCell, fmt};
 
 
+
 pub struct StateVar {
     // This field should remain private
-    state_ref: RefCell<ValueTypeProtector>
-}
 
-// This enum should remain private
-enum ValueTypeProtector {
-    String(State<String>),
-    Boolean(State<bool>),
-    Integer(State<i64>),
-    Number(State<f64>),
-}
+    // For state var, the ValueType protector's option means whether or not the value
+    // is stale. Some(T) -> Resolved(T), and None -> Stale
 
+    state_ref: RefCell<ValueTypeProtector>,
+}
 
 
 #[derive(Debug)]
@@ -27,6 +23,27 @@ pub enum State<T> {
     Stale,
     Resolved(T),
 }
+
+
+
+pub struct EssentialStateVar {
+    value: RefCell<ValueTypeProtector>,
+}
+
+
+
+// This enum should remain private
+enum ValueTypeProtector {
+    String(Option<String>),
+    Boolean(Option<bool>),
+    Integer(Option<i64>),
+    Number(Option<f64>),
+}
+
+
+
+
+
 
 
 pub enum StateVarValueType {
@@ -44,10 +61,10 @@ impl StateVar {
             state_ref: RefCell::new(
 
                 match value_type {
-                    StateVarValueType::Boolean =>   ValueTypeProtector::Boolean(State::Stale),
-                    StateVarValueType::Integer =>   ValueTypeProtector::Integer(State::Stale),
-                    StateVarValueType::Number =>   ValueTypeProtector::Number(State::Stale),
-                    StateVarValueType::String =>   ValueTypeProtector::String(State::Stale),
+                    StateVarValueType::Boolean =>   ValueTypeProtector::Boolean(None),
+                    StateVarValueType::Integer =>   ValueTypeProtector::Integer(None),
+                    StateVarValueType::Number =>   ValueTypeProtector::Number(None),
+                    StateVarValueType::String =>   ValueTypeProtector::String(None),
                 }
             )
         }
@@ -56,6 +73,139 @@ impl StateVar {
 
     pub fn set_value(&self, new_value: StateVarValue) -> Result<(), String> {
 
+        let type_protector = &mut *self.state_ref.borrow_mut();
+
+        type_protector.set_value(new_value)
+    }
+
+
+
+    pub fn get_state(&self) -> State<StateVarValue> {
+
+        use State::Resolved;
+        use State::Stale;
+
+        // NOTE: Internally, we store the Option enum inside the ValueType
+        // enum so that the ValueType is retained even when we're Stale/None.
+        // However, it is more convenient to pass around a
+        // State<StateVarValue> externally.
+
+        let type_protector = &*self.state_ref.borrow();
+
+        match type_protector {
+            ValueTypeProtector::String(value_option) => match value_option {
+                Some(val) => Resolved(StateVarValue::String(val.clone())),
+                None => Stale
+            },
+            ValueTypeProtector::Number(value_option) => match value_option {
+                Some(val) => Resolved(StateVarValue::Number(val.clone())),
+                None => Stale
+            },
+            ValueTypeProtector::Boolean(value_option) => match value_option {
+                Some(val) => Resolved(StateVarValue::Boolean(val.clone())),
+                None => Stale
+            },
+            ValueTypeProtector::Integer(value_option) => match value_option {
+                Some(val) => Resolved(StateVarValue::Integer(val.clone())),
+                None => Stale
+            }                                    
+
+        }
+
+    }
+
+
+
+    pub fn copy_value_if_resolved(&self) -> Option<StateVarValue> {
+        let state = self.get_state();
+        if let State::Resolved(value) = state {
+            Some(value)
+        } else {
+            None
+        }
+    }
+
+
+}
+
+
+
+impl EssentialStateVar {
+
+    pub fn derive_from(state_var: StateVar) -> Self {
+
+        EssentialStateVar {
+            value: RefCell::new(
+
+                match &*state_var.state_ref.borrow() {
+                    ValueTypeProtector::String(_) => ValueTypeProtector::String(None),
+                    ValueTypeProtector::Boolean(_) => ValueTypeProtector::Boolean(None),
+                    ValueTypeProtector::Integer(_) => ValueTypeProtector::Integer(None),
+                    ValueTypeProtector::Number(_) => ValueTypeProtector::Number(None),
+                }
+            )
+        }
+    }
+
+    pub fn set_value(&self, new_value: StateVarValue) -> Result<(), String> {
+
+        let type_protector = &mut *self.value.borrow_mut();
+        type_protector.set_value(new_value)
+    }
+
+
+    pub fn get_value(&self) -> Option<StateVarValue> {
+
+        let type_protector = &*self.value.borrow();
+
+        match type_protector {
+            ValueTypeProtector::String(value_option) => match value_option {
+                Some(val) => Some(StateVarValue::String(val.clone())),
+                None => None,
+            },
+            ValueTypeProtector::Number(value_option) => match value_option {
+                Some(val) => Some(StateVarValue::Number(val.clone())),
+                None => None,
+            },
+            ValueTypeProtector::Boolean(value_option) => match value_option {
+                Some(val) => Some(StateVarValue::Boolean(val.clone())),
+                None => None,
+            },
+            ValueTypeProtector::Integer(value_option) => match value_option {
+                Some(val) => Some(StateVarValue::Integer(val.clone())),
+                None => None,
+            }
+        }
+    }
+
+}
+
+
+
+
+// Boilerplate to display StateVar better
+impl fmt::Debug for StateVar {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_state()))
+    }
+}
+
+
+// Boilerplate to display EssentialStateVar better
+impl fmt::Debug for EssentialStateVar {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&format!("{:?}", &self.get_value()))
+    }
+}
+
+
+
+
+
+impl ValueTypeProtector {
+
+    fn set_value(&mut self, new_value: StateVarValue) -> Result<(), String> {
+
 
         fn invalid_new_value<T: std::fmt::Display>(
             my_type: &'static str,
@@ -63,21 +213,19 @@ impl StateVar {
             new_val: T)
         -> String
         {                
-            format!("Invalid value for state var: State var is type {}, but tried to set it to {} ({})",
+            format!("Value is type {}, but tried to set it to {} ({})",
                 my_type, new_val.to_string(), new_value_type)
         }
 
 
 
-        let type_protector = &mut *self.state_ref.borrow_mut();
-
-        match type_protector {
+        match self {
         
             ValueTypeProtector::String(state) => {                
 
                 match new_value {
                     StateVarValue::String(val) => {
-                        *state = State::Resolved(val);
+                        *state = Some(val);
                     },
 
 
@@ -101,7 +249,7 @@ impl StateVar {
 
                 match new_value {
                     StateVarValue::Integer(val) => {
-                        *state = State::Resolved(val);
+                        *state = Some(val);
                     },
 
 
@@ -124,7 +272,7 @@ impl StateVar {
             ValueTypeProtector::Number(state) => {
                 match new_value {
                     StateVarValue::Number(val) => {
-                        *state = State::Resolved(val);
+                        *state = Some(val);
                     },
 
 
@@ -134,10 +282,10 @@ impl StateVar {
                     },
                     StateVarValue::Integer(val) => {
                         return Err(invalid_new_value("Number", "Integer", val));
-                    },   
+                    },
                     StateVarValue::String(val) => {
                         return Err(invalid_new_value("Number", "String", val));
-                    },                                     
+                    },
                 }
             },
 
@@ -146,7 +294,7 @@ impl StateVar {
 
                 match new_value {
                     StateVarValue::Boolean(val) => {
-                        *state = State::Resolved(val);
+                        *state = Some(val);
                     },
 
 
@@ -168,63 +316,10 @@ impl StateVar {
         Result::Ok(())
 
     }
-
-
-
-    pub fn get_state(&self) -> State<StateVarValue> {
-
-        use State::Resolved;
-        use State::Stale;
-
-        // NOTE: Internally, we store the State enum inside the ValueType
-        // enum so that the ValueType is retained even when we're Stale.
-        // However, it is more convenient to pass around a
-        // State<StateVarValue> externally.
-
-        let type_protector = &*self.state_ref.borrow();
-
-        match type_protector {
-            ValueTypeProtector::String(state) => match state {
-                Resolved(val) => Resolved(StateVarValue::String(val.clone())),
-                Stale => Stale
-            },
-            ValueTypeProtector::Number(state) => match state {
-                Resolved(val) => Resolved(StateVarValue::Number(val.clone())),
-                Stale => Stale
-            },
-            ValueTypeProtector::Boolean(state) => match state {
-                Resolved(val) => Resolved(StateVarValue::Boolean(val.clone())),
-                Stale => Stale
-            },
-            ValueTypeProtector::Integer(state) => match state {
-                Resolved(val) => Resolved(StateVarValue::Integer(val.clone())),
-                Stale => Stale
-            }                                    
-
-        }
-
-    }
-
-
-
-
-    pub fn copy_value_if_resolved(&self) -> Option<StateVarValue> {
-        let state = self.get_state();
-        if let State::Resolved(value) = state {
-            Some(value)
-        } else {
-            None
-        }
-    }
 }
 
 
 
 
 
-// Boilerplate to display StateVar better
-impl fmt::Debug for StateVar {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_state()))
-    }
-}
+

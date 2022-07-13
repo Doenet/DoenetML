@@ -12,7 +12,7 @@ use crate::state_variables::*;
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
-use crate::state_var::{StateVar, StateVarValueType};
+use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 
 
@@ -22,7 +22,9 @@ pub struct TextInput {
     pub parent: RefCell<String>,
     pub children: RefCell<Vec<ComponentChild>>,
 
-    // pub essentialStateVars: HashMap<StateVarName, StateVar>,
+    // Note that this is not behind a RefCell, so we can't change the hashmap
+    // once the component is created
+    pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 
     // State variables
     value: StateVar,
@@ -47,7 +49,7 @@ fn update_immediate_value_action(args: HashMap<String, StateVarValue>) -> HashMa
 
 lazy_static! {
 
-    static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+    pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
 
         let mut state_var_definitions = HashMap::new();
 
@@ -80,7 +82,7 @@ lazy_static! {
 
 
 
-        state_var_definitions.insert("expanded", StateVarVariant::Bool(StateVarDefinition {
+        state_var_definitions.insert("expanded", StateVarVariant::Boolean(StateVarDefinition {
             for_renderer: true,
             determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
             ..Default::default()
@@ -90,25 +92,9 @@ lazy_static! {
 
         state_var_definitions.insert("size", StateVarVariant::Number(StateVarDefinition {
 
-            return_dependency_instructions: |_| {
-                let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
-                    component_name: None, //myself
-                    state_var: "width",
-                });
-            
-                HashMap::from([("my_width_sv", instruction)])
-            },
 
-            determine_state_var_from_dependencies: |dependency_values| {
-                let width_state_var = dependency_values.get("my_width_sv")
-                    .expect("no width state var given")
-                    .get(0).expect("no first element");
-
-                StateVarUpdateInstruction::SetValue(match width_state_var.2 {
-                    StateVarValue::Number(val_of_width_sv) => val_of_width_sv,
-                    _ => panic!()
-                })
-
+            determine_state_var_from_dependencies: |_| {
+                StateVarUpdateInstruction::SetValue(10.0)
             },
             for_renderer: true,
             default_value: 10.0,
@@ -150,19 +136,6 @@ impl ComponentSpecificBehavior for TextInput {
     }
     
 
-    // fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-    //     match name {
-    //         "value" => Option::Some(StateVarAccess::String(&self.value)),
-    //         "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
-    //         "immediateValue" => Option::Some(StateVarAccess::String(&self.immediate_value)),
-    //         "expanded" => Option::Some(StateVarAccess::Bool(&self.expanded)),
-    //         "width" => Option::Some(StateVarAccess::Number(&self.width)),
-    //         "size" => Option::Some(StateVarAccess::Number(&self.size)),
- 
-    //         _ => Option::None,
-    //     }
-    // }
-
     fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
             "value" =>          Some(&self.value),
@@ -174,6 +147,10 @@ impl ComponentSpecificBehavior for TextInput {
  
             _ => None,
         }        
+    }
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
     }
 
 
@@ -240,11 +217,13 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 impl TextInput {
-    pub fn create(name: String, parent: String) -> Rc<dyn ComponentLike> {
+    pub fn create(name: String, parent: String, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Rc<dyn ComponentLike> {
         Rc::new(TextInput {
             name,
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
+
+            essential_state_vars,
             
             value: StateVar::new(StateVarValueType::String),
             hidden: StateVar::new(StateVarValueType::Boolean),
