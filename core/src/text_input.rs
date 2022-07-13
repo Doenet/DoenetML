@@ -12,6 +12,9 @@ use crate::state_variables::*;
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
+use crate::state_var::{StateVar, StateVarValueType};
+
+
 
 #[derive(Debug, ComponentLike)]
 pub struct TextInput {
@@ -19,47 +22,24 @@ pub struct TextInput {
     pub parent: RefCell<String>,
     pub children: RefCell<Vec<ComponentChild>>,
 
+    // pub essentialStateVars: HashMap<StateVarName, StateVar>,
+
     // State variables
-    value: StateVar<String>,
-    hidden: StateVar<bool>,
-    expanded: StateVar<bool>,
-    size: StateVar<f64>,
-    immediate_value: StateVar<String>,
-    width: StateVar<f64>,
+    value: StateVar,
+    hidden: StateVar,
+    expanded: StateVar,
+    size: StateVar,
+    immediate_value: StateVar,
+    width: StateVar,
 }
 
-
-// fn value_return_dependency_instructions(
-//     _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
-// ) -> HashMap<InstructionName, DependencyInstruction> {
-
-//     HashMap::new()
-
-// }
-
-// fn value_determine_state_var_from_dependencies(
-//     _dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
-// ) -> StateVarUpdateInstruction<String> {
-
-//     StateVarUpdateInstruction::UseDefault
-
-// }
-
-
-
-// fn update_value_action(args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>> {
-
-//     HashMap::from([
-//         ("value", StateVarUpdateInstruction::SetValue(new_val.clone()))
-//     ])
-// }
 
 
 fn update_immediate_value_action(args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>> {
 
-    let new_val = args.get("immediateValue").expect("No immediateValue argument");
+    let new_val = args.get("immediateValue").expect("No immediateValue argument").clone();
     HashMap::from([
-        ("immediateValue", StateVarUpdateInstruction::SetValue(new_val.clone()))
+        ("immediateValue", StateVarUpdateInstruction::SetValue(new_val))
     ])
 }
 
@@ -102,6 +82,7 @@ lazy_static! {
 
         state_var_definitions.insert("expanded", StateVarVariant::Bool(StateVarDefinition {
             for_renderer: true,
+            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
             ..Default::default()
             
         }));
@@ -140,12 +121,13 @@ lazy_static! {
         state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
             default_value: 600.0,
+            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(600.0),
             ..Default::default()
         }));
 
 
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
-            //hasEssential: true,
+            has_essential: true,
             for_renderer: true,
             ..Default::default()
         }));
@@ -168,29 +150,29 @@ impl ComponentSpecificBehavior for TextInput {
     }
     
 
-    fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-        match name {
-            "value" => Option::Some(StateVarAccess::String(&self.value)),
-            "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
-            "immediateValue" => Option::Some(StateVarAccess::String(&self.immediate_value)),
-            "expanded" => Option::Some(StateVarAccess::Bool(&self.expanded)),
-            "width" => Option::Some(StateVarAccess::Number(&self.width)),
-            "size" => Option::Some(StateVarAccess::Number(&self.size)),
+    // fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
+    //     match name {
+    //         "value" => Option::Some(StateVarAccess::String(&self.value)),
+    //         "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
+    //         "immediateValue" => Option::Some(StateVarAccess::String(&self.immediate_value)),
+    //         "expanded" => Option::Some(StateVarAccess::Bool(&self.expanded)),
+    //         "width" => Option::Some(StateVarAccess::Number(&self.width)),
+    //         "size" => Option::Some(StateVarAccess::Number(&self.size)),
  
-            _ => Option::None,
-        }
-    }
+    //         _ => Option::None,
+    //     }
+    // }
 
-    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>> {
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
-            "value" => Option::Some(self.value.as_general_state_var()),
-            "hidden" => Option::Some(self.hidden.as_general_state_var()),
-            "immediateValue" => Option::Some(self.immediate_value.as_general_state_var()),
-            "expanded" => Option::Some(self.expanded.as_general_state_var()),
-            "width" => Option::Some(self.width.as_general_state_var()),
-            "size" => Option::Some(self.size.as_general_state_var()),
+            "value" =>          Some(&self.value),
+            "hidden" =>         Some(&self.hidden),
+            "immediateValue" => Some(&self.immediate_value),
+            "expanded" =>       Some(&self.expanded),
+            "width" =>          Some(&self.width),
+            "size" =>           Some(&self.size),
  
-            _ => Option::None,
+            _ => None,
         }        
     }
 
@@ -264,12 +246,12 @@ impl TextInput {
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
             
-            value: StateVar::new(),
-            hidden: StateVar::new(),
-            immediate_value: StateVar::new(),
-            size: StateVar::new(),
-            width: StateVar::new(),
-            expanded: StateVar::new(),
+            value: StateVar::new(StateVarValueType::String),
+            hidden: StateVar::new(StateVarValueType::Boolean),
+            immediate_value: StateVar::new(StateVarValueType::String),
+            size: StateVar::new(StateVarValueType::Number),
+            width: StateVar::new(StateVarValueType::Number),
+            expanded: StateVar::new(StateVarValueType::Boolean),
 
         })
     }

@@ -1,18 +1,22 @@
-use std::cell::RefCell;
-use std::collections::HashMap;
-use std::rc::Rc;
-use std::fmt;
-
-#[macro_use]
 
 pub mod state_variables;
+pub mod state_var;
 pub mod parse_json;
 pub mod text;
 pub mod number;
 pub mod text_input;
 
+
+use std::cell::RefCell;
+use std::collections::HashMap;
+use std::rc::Rc;
+use std::fmt::Debug;
+
 use phf::phf_map;
+
+
 use state_variables::*;
+use state_var::{StateVar, State};
 
 
 
@@ -25,14 +29,14 @@ pub struct DoenetCore {
 
 
 
-pub trait ComponentSpecificBehavior: fmt::Debug {
+pub trait ComponentSpecificBehavior: Debug {
 
     /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant>;
 
-    fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
+    // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
-    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>>;
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
 
 
     fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
@@ -59,42 +63,19 @@ pub trait ComponentSpecificBehavior: fmt::Debug {
 
 
 
-fn set_state_var(component: &Rc<dyn ComponentLike>, name: StateVarName, val: StateVarValue) {
-    match component.get_state_var_access(name)
-        .expect(&format!("Component {} of type {} does not have state var {}",
-            component.name(), component.get_component_type(), name))
-        
-    {
-        StateVarAccess::String(cell) => {
-            if let StateVarValue::String(string_val) = val {
-                cell.0.replace(State::Resolved(string_val));
-            } else {
-                unreachable!();
-            }
-        },
-        StateVarAccess::Integer(cell) => {
-            if let StateVarValue::Integer(integer_val) = val {
-                cell.0.replace(State::Resolved(integer_val));
-            } else {
-                unreachable!();
-            }
-        },
-        StateVarAccess::Number(cell) => {
-            if let StateVarValue::Number(number_val) = val {
-                cell.0.replace(State::Resolved(number_val));
-            } else {
-                unreachable!();
-            }
-        },
-        StateVarAccess::Bool(cell) => {
-            if let StateVarValue::Boolean(bool_val) = val {
-                cell.0.replace(State::Resolved(bool_val));
-            } else {
-                unreachable!();
-            }
-        }
+fn set_state_var(
+    component: &Rc<dyn ComponentLike>,
+    name: StateVarName,
+    val: StateVarValue)
+-> Result<(), String>    
+{
+    let state_var = component.get_state_var(name).expect(
+        &format!("Component {} of type {} does not have state var {}",
+        component.name(), component.get_component_type(), name)
+    );
 
-    }
+    state_var.set_value(val)
+        
 }
 
 
@@ -334,21 +315,23 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                         // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
 
                         resolve_state_variable(core, depends_on_component, dep_state_var_name);
-                        let state_var_access = depends_on_component.get_state_var_access(dep_state_var_name).unwrap();
-                        let state_var_value = match state_var_access {
-                            StateVarAccess::Bool(state_var) => {
-                                state_var.get_state()
-                            },
-                            StateVarAccess::Number(state_var) => {
-                                state_var.get_state()   
-                            },
-                            StateVarAccess::Integer(state_var) => {
-                                state_var.get_state()   
-                            },
-                            StateVarAccess::String(state_var) => {
-                                state_var.get_state()   
-                            }
-                        };
+                        let state_var = depends_on_component.get_state_var(dep_state_var_name).unwrap();
+                        let state_var_value = state_var.get_state();
+                        
+                        // match state_var_access {
+                        //     StateVarAccess::Bool(state_var) => {
+                        //         state_var.get_state()
+                        //     },
+                        //     StateVarAccess::Number(state_var) => {
+                        //         state_var.get_state()   
+                        //     },
+                        //     StateVarAccess::Integer(state_var) => {
+                        //         state_var.get_state()   
+                        //     },
+                        //     StateVarAccess::String(state_var) => {
+                        //         state_var.get_state()   
+                        //     }
+                        // };
 
 
                         if let State::Resolved(state_var_value) = state_var_value {
@@ -390,12 +373,7 @@ pub fn handle_update_instruction(
     let definition = component.state_variable_instructions().get(name).unwrap();
     match instruction {
         StateVarUpdateInstruction::NoChange => {
-            let current_value = match component.get_state_var_access(name).unwrap() {
-                StateVarAccess::Bool(v) => v.get_state(),
-                StateVarAccess::Number(v) => v.get_state(),
-                StateVarAccess::Integer(v) => v.get_state(),
-                StateVarAccess::String(v) => v.get_state(),
-            };
+            let current_value = component.get_state_var(name).unwrap().get_state();
 
             if let State::Resolved(_) = current_value {
                 // Do nothing. It's resolved, so we can use it as is
@@ -404,14 +382,28 @@ pub fn handle_update_instruction(
             }
 
         },
-        StateVarUpdateInstruction::UseDefault => {
+        StateVarUpdateInstruction::UseEssentialOrDefault => {
+            if definition.has_essential() == false {
+                panic!(
+                    "Cannot do UseEssentialOrDefault update instruction on {}:{},
+                    which does not have essential (Component type {}) ",
+                    component.name(), name, component.get_component_type()
+                );
+            }
+
+
             let new_state_var_value = definition.default_value();
-            set_state_var(component, name, new_state_var_value);
+            set_state_var(component, name, new_state_var_value).expect(
+                &format!("Failed to set {}:{}", component.name(), name)
+            );
 
         },
         StateVarUpdateInstruction::SetValue(new_value) => {
+
             let new_state_var_value = new_value;
-            set_state_var(component, name, new_state_var_value);
+            set_state_var(component, name, new_state_var_value).expect(
+                &format!("Failed to set {}:{}", component.name(), name)
+            );
         }
 
     };
@@ -468,19 +460,21 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
     for (name, _variant) in renderered_state_vars {
 
         resolve_state_variable(core, component, name);
-        let state_var_value = component.get_state_var_access(name).unwrap();
+
+        let state_var_value = component.get_state_var(name).unwrap().copy_value_if_resolved();
+
+        let state_var_value = state_var_value.unwrap();
 
         // log!("components right now {:#?}", core.components);
         // log!("{:#?}", state_var_value);
 
-        state_values.insert(name.to_string(),
-            match state_var_value {
-                StateVarAccess::Integer(state_var) => json!(state_var.unwrap()),
-                StateVarAccess::Number(state_var) =>  json!(state_var.unwrap()),
-                StateVarAccess::String(state_var) =>  json!(state_var.unwrap()),
-                StateVarAccess::Bool(state_var) =>    json!(state_var.unwrap()),
-            }
-        );
+        state_values.insert(name.to_string(), match state_var_value {
+            StateVarValue::Integer(v) => json!(v),
+            StateVarValue::Number(v) =>  json!(v),
+            StateVarValue::String(v) =>  json!(v),
+            StateVarValue::Boolean(v) =>    json!(v),
+        });
+
     }
 
 
@@ -542,16 +536,19 @@ pub fn package_subtree_as_json(core: &DoenetCore, component: &Rc<dyn ComponentLi
     }
 
 
-    let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
+    // let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
 
-    my_json_props.insert("name".into(), json!(component.name()));
-    my_json_props.insert("parent".into(), json!(*component.parent().borrow()));
-    my_json_props.insert("children".into(), Value::Array(children));    
+    // my_json_props.insert("name".into(), json!(component.name()));
+    // my_json_props.insert("parent".into(), json!(*component.parent().borrow()));
+    // my_json_props.insert("children".into(), Value::Array(children));  
+    
+    let mut my_json_state_vars: serde_json::Map<String, Value> = serde_json::Map::new();
+
 
     for state_var_name in component.state_variable_instructions().keys() {
         let state_var = component.get_state_var(state_var_name).unwrap();
 
-        my_json_props.insert(
+        my_json_state_vars.insert(
 
             state_var_name.to_string(),
 
@@ -562,13 +559,22 @@ pub fn package_subtree_as_json(core: &DoenetCore, component: &Rc<dyn ComponentLi
                     StateVarValue::Integer(v) => json!(v),
                     StateVarValue::Boolean(v) => json!(v),
                 },
-                State::Stale => json!("Stale"),
+                State::Stale => Value::Null,
             }
         );
 
     }
 
-    Value::Object(my_json_props)
+    let my_props = json!({
+        "type": component.get_component_type(),
+        "stateVars": my_json_state_vars,
+        "parent": *component.parent().borrow(),
+        "children": children,
+    });
 
+    let mut my_json_obj = serde_json::Map::new();
+    my_json_obj.insert(component.name().to_string(), my_props);
+
+    my_json_obj.into()
 
 }

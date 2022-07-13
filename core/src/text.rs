@@ -11,6 +11,9 @@ use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTrai
 
 use lazy_static::lazy_static;
 
+use crate::state_var::{StateVar, StateVarValueType};
+
+
 
 #[derive(Debug, ComponentLike)]
 pub struct Text {
@@ -19,12 +22,12 @@ pub struct Text {
     pub children: RefCell<Vec<ComponentChild>>,
 
     // State variables
-    value: StateVar<String>,
-    hidden: StateVar<bool>,
-    disabled: StateVar<bool>,
-    fixed: StateVar<bool>,
+    value: StateVar,
+    hidden: StateVar,
+    disabled: StateVar,
+    fixed: StateVar,
     // text is same as value state var, but this one gets sent to rendere
-    text: StateVar<String>, 
+    text: StateVar,
 
 }
 
@@ -160,25 +163,25 @@ impl ComponentSpecificBehavior for Text {
     }
 
 
-    fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-        match name {
-            "value" => Option::Some(StateVarAccess::String(&self.value)),
-            "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
-            "disabled" => Option::Some(StateVarAccess::Bool(&self.disabled)),
-            "fixed" => Option::Some(StateVarAccess::Bool(&self.fixed)),
-            "text" => Option::Some(StateVarAccess::String(&self.text)),
+    // fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
+    //     match name {
+    //         "value" => Option::Some(StateVarAccess::String(&self.value)),
+    //         "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
+    //         "disabled" => Option::Some(StateVarAccess::Bool(&self.disabled)),
+    //         "fixed" => Option::Some(StateVarAccess::Bool(&self.fixed)),
+    //         "text" => Option::Some(StateVarAccess::String(&self.text)),
 
-            _ => Option::None,
-        }
-    }
+    //         _ => Option::None,
+    //     }
+    // }
 
-    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>> {
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
-            "value" => Some(self.value.as_general_state_var()),
-            "hidden" => Some(self.hidden.as_general_state_var()),
-            "disabled" => Some(self.disabled.as_general_state_var()),
-            "fixed" => Some(self.fixed.as_general_state_var()),
-            "text" => Some(self.text.as_general_state_var()),
+            "value" =>      Some(&self.value),
+            "hidden" =>     Some(&self.hidden),
+            "disabled" =>   Some(&self.disabled),
+            "fixed" =>      Some(&self.fixed),
+            "text" =>       Some(&self.text),
  
             _ => Option::None,
         }        
@@ -210,11 +213,12 @@ impl Text {
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
 
-            value: StateVar::new(),
-            hidden: StateVar::new(),
-            disabled: StateVar::new(),
-            fixed: StateVar::new(),
-            text: StateVar::new(),
+            value: StateVar::new(StateVarValueType::String),
+            text: StateVar::new(StateVarValueType::String),
+
+            hidden: StateVar::new(StateVarValueType::Boolean),
+            disabled: StateVar::new(StateVarValueType::Boolean),
+            fixed: StateVar::new(StateVarValueType::Boolean),
 
         })
     }

@@ -1,5 +1,4 @@
-use std::{collections::HashMap, cell::RefCell};
-use std::fmt;
+use std::{collections::HashMap};
 
 use crate::ObjectTraitName;
 
@@ -26,47 +25,9 @@ pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
 
 
-/// Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
-/// If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
-pub struct StateVar<T> (pub RefCell<State<T>>);
-
-impl<T> StateVar<T> {
-
-    pub fn new() -> StateVar<T> {
-        StateVar(RefCell::new(State::Stale))
-    }
-
-}
-
-impl<T> StateVar<T> 
-    where T: Clone {
-    /// Note: don't implement variants of this function, such as `unwrap_or`
-    /// because we really don't want to sidestep when a state var is stale
-    pub fn unwrap(&self) -> T {
-        if let State::Resolved(value) = &*self.0.borrow() {
-            (*value).clone()
-        } else {
-            panic!("Tried to unwrap stale value");
-        }
-    }
-
-    pub fn expect_resolved(&self, msg: &str) -> T {
-        if let State::Resolved(value) = &*self.0.borrow() {
-            (*value).clone()
-        } else {
-            panic!("{}", msg);
-        }
-    }
-}
 
 
 
-
-#[derive(Debug)]
-pub enum State<T> {
-    Stale,
-    Resolved(T),
-}
 
 
 /// State variable functions core uses.
@@ -106,12 +67,11 @@ impl<T> Default for StateVarDefinition<T>
         StateVarDefinition {
             state_vars_to_determine_dependencies: || vec![],
             return_dependency_instructions: |_| HashMap::new(),
-            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::UseDefault,
+            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(T::default()),
             for_renderer: false,
             default_value: T::default(),
             has_essential: false,
         }
-    
     }
 }
 
@@ -137,19 +97,6 @@ pub enum StateVarValue {
     Integer(i64),
     Boolean(bool),
 }
-
-
-
-
-
-#[derive(Debug)]
-pub enum StateVarAccess<'a> {
-    String(&'a StateVar<String>),
-    Number(&'a StateVar<f64>),
-    Integer(&'a StateVar<i64>),
-    Bool(&'a StateVar<bool>),
-}
-
 
 
 
@@ -222,108 +169,13 @@ pub struct ParentDependencyInstruction {
 #[derive(Debug)]
 pub enum StateVarUpdateInstruction<T> {
     SetValue(T),
-    UseDefault,
+    UseEssentialOrDefault,
     NoChange,
 }
 
 
 
-impl StateVar<StateVarValue> {
-    pub fn get_state(&self) -> State<StateVarValue> {
-        if let State::Resolved(value) = &*self.0.borrow() {
-            State::Resolved(value.clone())
-        } else {
-            State::Stale
-        }
-    }
-}
 
-
-impl StateVar<String> {
-    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
-
-        // TODO: it could be a problem that once this is created, 
-        // it doesn't have any attachment to the original state var
-        match &*self.0.borrow() {
-            State::Stale => StateVar(RefCell::new(State::Stale)),
-            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::String(val.to_string())))),
-        }
-
-    }
-
-
-    pub fn get_state(&self) -> State<StateVarValue> {
-        if let State::Resolved(value) = &*self.0.borrow() {
-            State::Resolved(StateVarValue::String(value.to_string()))
-        } else {
-            State::Stale
-        }
-    }
-}
-
-impl StateVar<bool> {
-    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
-
-        // TODO: it could be a problem that once this is created, 
-        // it doesn't have any attachment to the original state var
-        match *self.0.borrow() {
-            State::Stale => StateVar(RefCell::new(State::Stale)),
-            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Boolean(val)))),
-        }
-
-    }
-
-    pub fn get_state(&self) -> State<StateVarValue> {
-        if let State::Resolved(value) = *self.0.borrow() {
-            State::Resolved(StateVarValue::Boolean(value))
-        } else {
-            State::Stale
-        }
-    }
-}
-
-impl StateVar<i64> {
-
-    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
-
-        // TODO: it could be a problem that once this is created, 
-        // it doesn't have any attachment to the original state var
-        match *self.0.borrow() {
-            State::Stale => StateVar(RefCell::new(State::Stale)),
-            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Integer(val)))),
-        }
-
-    }
-
-    pub fn get_state(&self) -> State<StateVarValue> {
-        if let State::Resolved(value) = *self.0.borrow() {
-            State::Resolved(StateVarValue::Integer(value))
-        } else {
-            State::Stale
-        }
-    }
-}
-
-impl StateVar<f64> {
-    pub fn as_general_state_var(&self) -> StateVar<StateVarValue> {
-
-        // TODO: it could be a problem that once this is created, 
-        // it doesn't have any attachment to the original state var
-        match *self.0.borrow() {
-            State::Stale => StateVar(RefCell::new(State::Stale)),
-            State::Resolved(val) => StateVar(RefCell::new(State::Resolved(StateVarValue::Number(val)))),
-        }
-
-    }
-
-    pub fn get_state(&self) -> State<StateVarValue> {
-        if let State::Resolved(value) = *self.0.borrow() {
-            State::Resolved(StateVarValue::Number(value))
-        } else {
-            State::Stale
-        }
-    }
-}
 
 
 
@@ -334,6 +186,7 @@ impl StateVar<f64> {
 pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
     StateVarVariant::Bool(StateVarDefinition { 
         for_renderer: true,
+        determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
        ..Default::default()
 
     })
@@ -344,6 +197,7 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
     StateVarVariant::Bool(StateVarDefinition {     
         for_renderer: true,
+        determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
         ..Default::default()
     })
 }
@@ -353,6 +207,7 @@ pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
 pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
     StateVarVariant::Bool(StateVarDefinition {     
         for_renderer: true,
+        determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
         ..Default::default()
     })
 }
@@ -362,28 +217,28 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 
 
-// Boilerplate to display StateVar better
 
-impl fmt::Debug for StateVar<String> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_state()))
-    }
-}
-impl fmt::Debug for StateVar<bool> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_state()))
-    }
-}
-impl fmt::Debug for StateVar<f64> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_state()))
-    }
-}
-impl fmt::Debug for StateVar<i64> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_state()))
-    }
-}
+
+// impl fmt::Debug for StateVar<String> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.write_str(&format!("{:?}", &self.get_state()))
+//     }
+// }
+// impl fmt::Debug for StateVar<bool> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.write_str(&format!("{:?}", &self.get_state()))
+//     }
+// }
+// impl fmt::Debug for StateVar<f64> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.write_str(&format!("{:?}", &self.get_state()))
+//     }
+// }
+// impl fmt::Debug for StateVar<i64> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         f.write_str(&format!("{:?}", &self.get_state()))
+//     }
+// }
 
 
 
@@ -426,7 +281,7 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
 
                     StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::String(val)),
                 }
@@ -435,7 +290,7 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
 
                     StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Integer(val)),
                 }
@@ -444,7 +299,7 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
 
                     StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Number(val)),
                 }
@@ -453,7 +308,7 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseDefault => StateVarUpdateInstruction::UseDefault,
+                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
 
                     StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Boolean(val)),
                 }
@@ -465,13 +320,24 @@ impl StateVarVariant {
 
     pub fn for_renderer(&self) -> bool {
         match self {
-            StateVarVariant::String(def) => def.for_renderer,
-            StateVarVariant::Integer(def) => def.for_renderer,
-            StateVarVariant::Number(def) => def.for_renderer,
-            StateVarVariant::Bool(def) => def.for_renderer,
+            StateVarVariant::String(def) =>     def.for_renderer,
+            StateVarVariant::Integer(def) =>    def.for_renderer,
+            StateVarVariant::Number(def) =>     def.for_renderer,
+            StateVarVariant::Bool(def) =>       def.for_renderer,
         }
 
     }
+
+    pub fn has_essential(&self) -> bool {
+        match self {
+            StateVarVariant::String(def) =>     def.has_essential,
+            StateVarVariant::Integer(def) =>    def.has_essential,
+            StateVarVariant::Number(def) =>     def.has_essential,
+            StateVarVariant::Bool(def) =>       def.has_essential,
+        }
+
+    }
+
 
     pub fn default_value(&self) -> StateVarValue {
         match self {
@@ -481,5 +347,6 @@ impl StateVarVariant {
             StateVarVariant::Bool(def) =>     StateVarValue::Boolean(def.default_value),
         }
     }
+
 
 }

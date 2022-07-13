@@ -11,6 +11,9 @@ use crate::state_variables::*;
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
+use crate::state_var::{StateVar, StateVarValueType};
+
+
 
 #[derive(Debug, ComponentLike)]
 pub struct Number {
@@ -19,8 +22,8 @@ pub struct Number {
     pub children: RefCell<Vec<ComponentChild>>,
 
     // State variables
-    value: StateVar<f64>,
-    hidden: StateVar<bool>,
+    value: StateVar,
+    hidden: StateVar,
 }
 
 
@@ -83,18 +86,18 @@ impl ComponentSpecificBehavior for Number {
     }
 
     
-    fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
-        match name {
-            "value" => Option::Some(StateVarAccess::Number(&self.value)),
-            "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
-            _ => Option::None,
-        }
-    }
+    // fn get_state_var_access(&self, name: StateVarName) -> Option<crate::StateVarAccess> {
+    //     match name {
+    //         "value" => Option::Some(StateVarAccess::Number(&self.value)),
+    //         "hidden" => Option::Some(StateVarAccess::Bool(&self.hidden)),
+    //         _ => Option::None,
+    //     }
+    // }
 
-    fn get_state_var(&self, name: StateVarName) -> Option<StateVar<StateVarValue>> {
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
-            "value" => Some(self.value.as_general_state_var()),
-            "hidden" => Some(self.hidden.as_general_state_var()),
+            "value" =>  Some(&self.value),
+            "hidden" => Some(&self.hidden),
  
             _ => None,
         }        
@@ -133,8 +136,8 @@ impl Number {
             parent: RefCell::new(parent),
             children: RefCell::new(vec![]),
             
-            value: StateVar::new(),
-            hidden: StateVar::new(),
+            value: StateVar::new(StateVarValueType::Number),
+            hidden: StateVar::new(StateVarValueType::Boolean),
         })
     }
 }
