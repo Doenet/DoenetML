@@ -5,10 +5,9 @@ pub mod parse_json;
 pub mod text;
 pub mod number;
 pub mod text_input;
+pub mod document;
 
-
-use std::slice::Iter;
-use std::{cell::RefCell, iter::Filter};
+use std::{cell::RefCell};
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::fmt::Debug;
@@ -45,9 +44,15 @@ pub trait ComponentSpecificBehavior: Debug {
     //     &phf_map! {}
     // }
 
+    fn action_names(&self) -> Vec<&'static str>;
 
-    fn on_action(&self, _action_name: &str, _args: HashMap<String, StateVarValue>) -> 
-    HashMap<StateVarName, StateVarValue> {
+
+    fn on_action<'a>(
+        &'a self, _action_name: &str, _args: HashMap<String, StateVarValue>,
+        _resolve_and_retrieve_state_var: &'a dyn Fn(StateVarName) -> StateVarValue
+    ) -> HashMap<StateVarName, StateVarValue>
+    {
+
         HashMap::new()
     }
 
@@ -457,7 +462,7 @@ pub fn handle_update_instruction(
 
 pub fn handle_action_from_json(core: &DoenetCore, action_obj: serde_json::Value) {
     
-    let action = parse_json::parse_action_from_json(core, action_obj)
+    let action = parse_json::parse_action_from_json(action_obj)
         .expect("Error parsing json action");
 
     handle_action(core, action);
@@ -465,10 +470,18 @@ pub fn handle_action_from_json(core: &DoenetCore, action_obj: serde_json::Value)
 
 
 // This should be private eventually
-pub fn handle_action(core: &DoenetCore, action: Action) {
+pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
-    let component = core.components.get(&action.component_name).unwrap();
-    let state_vars_to_update = component.on_action(&action.action_name, action.args);
+    log!("Handling action {:#?}", action);
+    let component = core.components.get(&action.component_name)
+        .expect(&format!("Can't handle action on {} which doesn't exist", action.component_name));
+
+    let state_var_resolver = | state_var_name | {
+        resolve_state_variable(core, component, state_var_name);
+        component.get_state_var(state_var_name).unwrap().copy_value_if_resolved().unwrap()
+    };
+
+    let state_vars_to_update = component.on_action(&action.action_name, action.args, &state_var_resolver);
 
     for (name, requested_value) in state_vars_to_update {
 
@@ -545,6 +558,7 @@ pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     serde_json::json!(json_obj)
 }
 
+
 fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
 
     use serde_json::Value;
@@ -588,21 +602,24 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
                 // recurse for children
                 generate_render_tree_internal(core, comp, json_obj);
 
+                let mut child_actions = serde_json::Map::new();
+                for action_name in comp.action_names() {
+                    child_actions.insert(action_name.to_string(), json!({
+                        "actionName": action_name,
+                        "componentName": comp.name(),
+                    }));
+                }
+
                 json!({
-                    "actions": {},
+                    "actions": child_actions,
                     "componentName": comp.name().to_string(),
                     "componentType": comp.get_component_type().to_string(),
                     "effectiveName": comp.name().to_string(),
-                    "renderType": comp.get_component_type().to_string(),
+                    "rendererType": comp.get_component_type().to_string(),
                 })},
             ComponentChild::String(string) => {
-                json!({
-                    "actions": {},
-                    "componentName": string.to_string(),
-                    "componentType": "string".to_string(),
-                    "effectiveName": string.to_string(),
-                    "renderType": "string".to_string(),
-                })},
+                json!(string)
+            },
         }).collect()
     } else {
         vec![]
@@ -614,8 +631,6 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
         "childrenInstructions": json!(children_instructions),
     }));
 
-
-    // log!("Components {:#?}", core.components);
 }
 
 

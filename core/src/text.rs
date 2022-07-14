@@ -168,6 +168,9 @@ impl ComponentSpecificBehavior for Text {
         vec![ObjectTraitName::TextLike]
     }
 
+    fn action_names(&self) -> Vec<&'static str> { vec![] }
+
+
 }
 
 

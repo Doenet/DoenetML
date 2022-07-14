@@ -12,8 +12,6 @@ use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
 use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
-use crate::state_var::State::*;
-
 
 
 #[derive(Debug, ComponentLike)]
@@ -174,8 +172,15 @@ impl ComponentSpecificBehavior for TextInput {
     }
 
 
+    fn action_names(&self) -> Vec<&'static str> {
+        vec!["updateImmediateValue", "updateValue"]
+    }
 
-    fn on_action(&self, action_name: &str, args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarValue>
+    fn on_action(
+        &self,
+        action_name: &str,
+        args: HashMap<String, StateVarValue>,
+        resolve_and_retrieve_state_var: &dyn Fn(StateVarName) -> StateVarValue) -> HashMap<StateVarName, StateVarValue>
     {
 
         match action_name {
@@ -189,14 +194,9 @@ impl ComponentSpecificBehavior for TextInput {
 
             "updateValue" => {
 
-                let new_val = if let Resolved(val) = self.immediate_value.get_state() {
-                    StateVarValue::String(val.inner_string().unwrap().to_uppercase())
-                } else {
-
-                    // Mark that we need to resolve immediate value?
-                    // panic!("Stale immediate value")
-                    StateVarValue::String("immediateValue was unresolved so you get me instead".to_string())
-                };
+                let new_val = resolve_and_retrieve_state_var("immediateValue");
+                
+                let new_val = StateVarValue::String(new_val.inner_string().unwrap().to_uppercase());
 
 
                 HashMap::from([("value", new_val)])

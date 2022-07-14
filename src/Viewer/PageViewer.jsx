@@ -260,8 +260,6 @@ export default function PageViewer(props) {
         })
       }
 
-      console.log("action", action);
-
       let actionArgs = {
         actionName: action.actionName,
         componentName: action.componentName,

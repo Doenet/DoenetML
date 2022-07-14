@@ -335,33 +335,33 @@ impl StateVarVariant {
             StateVarVariant::String(def) =>  {
                 match desired_value {
                     StateVarValue::String(v) =>     (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to String"),
-                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to String"),
-                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to String"),
+                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to String"),
+                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to String"),
+                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to String"),
                 }
             },
             StateVarVariant::Integer(def) => {
                 match desired_value {
                     StateVarValue::Integer(v) =>    (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(v) =>     panic!("Requested String state var update to Integer"),
-                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to Integer"),
-                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to Integer"),
+                    StateVarValue::String(_) =>     panic!("Requested String state var update to Integer"),
+                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to Integer"),
+                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to Integer"),
                 }
             },
             StateVarVariant::Number(def) =>  {
                 match desired_value {
                     StateVarValue::Number(v) =>     (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(v) =>     panic!("Requested String state var update to Number"),
-                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to Number"),
-                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to Number"),
+                    StateVarValue::String(_) =>     panic!("Requested String state var update to Number"),
+                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to Number"),
+                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to Number"),
                 }
             },
             StateVarVariant::Boolean(def) => {
                 match desired_value {
                     StateVarValue::Boolean(v) =>    (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(v) =>     panic!("Requested String state var update to Boolean"),
-                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to Boolean"),
-                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to Boolean"),
+                    StateVarValue::String(_) =>     panic!("Requested String state var update to Boolean"),
+                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to Boolean"),
+                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to Boolean"),
                 }
             }
         }       

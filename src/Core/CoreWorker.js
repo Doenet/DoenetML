@@ -7,6 +7,9 @@ onmessage = function (e) {
 
   if(e.data.messageType === "createCore") {
     createCore(e.data.args)
+
+  } else if (e.data.messageType == 'requestAction') {
+    //core.requestAction(e.data.args);
   }
 }
 
@@ -25,8 +28,21 @@ async function createCore(args) {
   const render_tree_string = dc.update_renderers();
   const render_tree = JSON.parse(render_tree_string);
 
+  // console.log("Render tree from rust", render_tree);
 
-  console.log(render_tree);
+
+  let rendererStates = [];
+  for (let key in render_tree) {
+    let componentRenderState = render_tree[key];
+
+    if(componentRenderState.componentName === "/_document1") {
+      // We don't know how to represent null SVs in Rust yet
+      componentRenderState.childrenInstructions.push("\n\n ");
+      componentRenderState.stateValues.titleChildName = null;
+
+    }
+    rendererStates.push(componentRenderState);
+  }
 
   let updateRendererMessage = {
     messageType: "updateRenderers",
@@ -34,7 +50,8 @@ async function createCore(args) {
       updateInstructions: [
         {
           instructionType: "updateRendererStates",
-          rendererStatesToUpdate: [
+          rendererStatesToUpdate: rendererStates,
+          // rendererStatesToUpdate: [
             // {
             //   componentName: "/_text1",
             //   stateValues:
@@ -46,43 +63,50 @@ async function createCore(args) {
             //   },
             //   childrenInstructions: []
             // },
-            {
-              componentName: "/_document1",
-              stateValues: {
-                submitLabel: "Check Work",
-                submitLabelNoCorrectness: "Submit Response",
-                hidden: false,
-                disabled: false,
-                fixed: false,
-                titleChildName: null,
-                title: "",
-                level: 0,
-                justSubmitted: true,
-                showCorrectness: true,
-                creditAchieved: 1,
-                createSubmitAllButton: false,
-                suppressAnswerSubmitButtons: false
-              },
-              childrenInstructions: [
-                "\n\n  ",
-                {
-                  componentName: "/_textInput1",
-                  effectiveName: "/_textInput1",
-                  componentType: "textInput",
-                  rendererType: "textInput",
-                  actions: {}
-                }]
-            }]
+            // {
+            //   childrenInstructions: [
+            //     "\n\n  ",
+            //     {
+            //       actions: {
+            //         // updateImmediateValue: {
+            //         //   actionName: "updateImmediateValue",
+            //         //   componentName: "/_textInput1",
+            //         // }
+            //       },
+            //       componentName: "/_textInput1",
+            //       componentType: "textInput",
+            //       effectiveName: "/_textInput1",
+            //       rendererType: "textInput",
+
+            //     }
+            //   ],
+            //   componentName: "/_document1",
+            //   stateValues: {
+            //     submitLabel: "Check Work",
+            //     submitLabelNoCorrectness: "Submit Response",
+            //     hidden: false,
+            //     disabled: false,
+            //     fixed: false,
+            //     titleChildName: null,
+            //     title: "",
+            //     level: 0,
+            //     justSubmitted: true,
+            //     showCorrectness: true,
+            //     creditAchieved: 1,
+            //     createSubmitAllButton: false,
+            //     suppressAnswerSubmitButtons: false
+            //   },
+
+            // }
+          // ]
         }]
     },
     init: true
   };
 
-  for (let key in render_tree) {
-    let componentRenderState = render_tree[key]
-    updateRendererMessage.args.updateInstructions[0].rendererStatesToUpdate.push(componentRenderState);
-  }
 
+
+  // console.log("Renderer message", JSON.stringify(updateRendererMessage, null, 2));
 
   postMessage(updateRendererMessage);
 
@@ -114,7 +138,7 @@ async function createCore(args) {
   postMessage({ messageType: "coreCreated" })
 
 
-  console.log(JSON.parse(dc.component_tree_as_json_string()));
+  // console.log("Components", JSON.parse(dc.component_tree_as_json_string()));
 
 }
 

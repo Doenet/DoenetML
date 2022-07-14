@@ -129,7 +129,6 @@ impl StateVar {
     }
 
 
-
     pub fn copy_value_if_resolved(&self) -> Option<StateVarValue> {
         let state = self.get_state();
         if let State::Resolved(value) = state {

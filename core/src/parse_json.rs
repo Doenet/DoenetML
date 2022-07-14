@@ -1,15 +1,17 @@
 
+use crate::log;
+
+
 use serde_json::Value;
 
 
 use crate::ComponentLike;
-use crate::DoenetCore;
 use crate::ComponentChild;
+use crate::document::Document;
 use crate::state_var::EssentialStateVar;
 use crate::state_var::StateVar;
 use crate::state_var::StateVarValueType;
 use crate::state_variables::StateVarName;
-use crate::state_variables::StateVarUpdateInstruction;
 use crate::state_variables::StateVarValue;
 use crate::state_variables::StateVarVariant;
 use crate::text::Text;
@@ -21,7 +23,7 @@ use std::rc::Rc;
 
 
 
-
+#[derive(Debug)]
 pub struct Action {
     // pub component: Rc<dyn ComponentLike>,
     pub component_name: String,
@@ -33,7 +35,7 @@ pub struct Action {
 
 
 
-pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
+pub fn parse_action_from_json(json_action: serde_json::Value)
     -> Result<Action, String> {
 
     // let component: Rc<dyn ComponentLike>;
@@ -104,14 +106,32 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
 
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
-pub fn create_components_tree_from_json(root: &serde_json::Value)
+pub fn create_components_tree_from_json(json_input: &serde_json::Value)
     -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
 {
+
+    // log!("Parse json input {:#?}", json_input);
+
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut components: HashMap<String, Rc<dyn ComponentLike>> = HashMap::new();
     let mut root_component_name: Option<String> = None;
 
-    add_json_subtree_to_components(&mut components, root, "", &mut component_type_counter, &mut root_component_name)?;
+
+    let trimmed_json_input = if let serde_json::Value::Array(json_array) = json_input {
+
+        if json_array.len() == 1 {
+            &json_array[0]
+        } else {
+            return Err("Json object did not have one root");
+        }
+
+    } else {
+        json_input
+    };
+
+
+
+    add_json_subtree_to_components(&mut components, trimmed_json_input, "", &mut component_type_counter, &mut root_component_name)?;
 
     if let Some(actual_root_name) = root_component_name {
         Ok((components, actual_root_name))
@@ -182,6 +202,8 @@ fn add_json_subtree_to_components(
                     "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
                     "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
                     "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
+                    "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
+
                     _ => {return Err("Unrecognized component type")}
                 };
 
@@ -217,6 +239,11 @@ fn add_json_subtree_to_components(
                         essential_state_vars,
                     ),
                     "textInput" => TextInput::create(
+                        component_name.clone(),
+                        parent_name.to_string(),
+                        essential_state_vars,
+                    ),
+                    "document" => Document::create(
                         component_name.clone(),
                         parent_name.to_string(),
                         essential_state_vars,
