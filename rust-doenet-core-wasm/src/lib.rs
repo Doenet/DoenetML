@@ -22,6 +22,18 @@ macro_rules! log {
     }
 }
 
+// Raw module means that this relative path is based on the wasm file's location
+#[wasm_bindgen(raw_module = "/src/Core/CoreWorker.js")]
+extern "C" {
+    fn logJson(label: String, json_obj: String);
+}
+
+
+
+// pub extern "Rust" fn log_json(_json_obj: serde_json::Value) {
+//     logJson();
+// }
+
 
 #[wasm_bindgen]
 #[derive(Debug)]
@@ -55,29 +67,9 @@ impl PublicDoenetCore {
 
     pub fn update_renderers(&self) -> String {
 
-        core::handle_action(&self.0,
-            core::parse_json::Action {
-                component_name: "/_textInput1".to_string(),
-                action_name: "updateImmediateValue".to_string(),
-                args: std::collections::HashMap::from([(
-                    "text".to_string(),
-                    core::state_variables::StateVarValue::String("user wrote this text".to_string()),
-                )]),
-            }
-        );
-
-        core::handle_action(&self.0,
-            core::parse_json::Action {
-                component_name: "/_textInput1".to_string(),
-                action_name: "updateValue".to_string(),
-                args: std::collections::HashMap::new(),
-            }
-        );
-
         let json_obj = core::update_renderers(&self.0);
 
-        log!("Components\n{:#?}", &self.0.components);
-
+        // log!("Components\n{:#?}", &self.0.components);
 
         serde_json::to_string(&json_obj).unwrap()
 
@@ -90,14 +82,20 @@ impl PublicDoenetCore {
 
         core::handle_action_from_json(&self.0, json_action);
 
-        log!("Components after action: {:#?}", self.0.components);
+        let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
+
+        logJson(
+            "Updated component tree".to_string(),
+            serde_json::to_string(&core::package_subtree_as_json(root_component)).unwrap()
+        );
+        // log!("Components after action: {:#?}", self.0.components);
     }
 
 
     pub fn component_tree_as_json_string(&self) -> String {
 
         let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
-        let json_obj = core::package_subtree_as_json(&self.0, root_component);
+        let json_obj = core::package_subtree_as_json(root_component);
 
         serde_json::to_string(&json_obj).unwrap()
     }

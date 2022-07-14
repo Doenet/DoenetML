@@ -1,6 +1,6 @@
 
-use crate::log;
 
+use crate::state_variables::*;
 
 use serde_json::Value;
 
@@ -11,9 +11,6 @@ use crate::document::Document;
 use crate::state_var::EssentialStateVar;
 use crate::state_var::StateVar;
 use crate::state_var::StateVarValueType;
-use crate::state_variables::StateVarName;
-use crate::state_variables::StateVarValue;
-use crate::state_variables::StateVarVariant;
 use crate::text::Text;
 use crate::number::Number;
 use crate::text_input::TextInput;
@@ -119,9 +116,24 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
 
     let trimmed_json_input = if let serde_json::Value::Array(json_array) = json_input {
 
-        if json_array.len() == 1 {
-            &json_array[0]
+
+        // Assuming that the outer tag is a <document>
+
+        let mut trimmed_array = vec![];
+        for val in json_array {
+            if let serde_json::Value::String(_) = val {
+                // don't include it
+            } else {
+                trimmed_array.push(val);
+            }
+        }
+
+        if trimmed_array.len() == 1 {
+            trimmed_array[0]
         } else {
+
+
+
             return Err("Json object did not have one root");
         }
 

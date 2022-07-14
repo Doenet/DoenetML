@@ -19,5 +19,5 @@ web-sys = {version = "0.3", features = ["console"], optional = true}
 
 
 [features]
-# The web feature reroutes printing to web-sys:console
+# The web feature makes the log! macro additionally go to web-sys:console
 web = ["dep:web-sys"]

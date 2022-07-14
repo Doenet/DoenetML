@@ -72,7 +72,6 @@ pub trait ComponentSpecificBehavior: Debug {
 
 
 
-
 fn set_state_var(
     component: &Rc<dyn ComponentLike>,
     name: StateVarName,
@@ -148,8 +147,6 @@ pub enum ComponentChild {
 }
 
 
-
-
 pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
     let components: HashMap<String, Rc<dyn ComponentLike>>;
@@ -171,6 +168,14 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
         }
         
     }
+
+    
+    // let json_tree = package_subtree_as_json(components.get(&root_component_name).unwrap());
+    // unsafe {
+        // log_json(json_tree);
+    // }
+
+
 
     // Return Doenet Core structure
     DoenetCore {
@@ -303,7 +308,7 @@ pub fn dependencies_for_component<'a>(
 /// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, state_var_name: StateVarName) {
 
-    log!("Resolving state variable {}:{}", component.name(), state_var_name);
+    // log!("Resolving state variable {}:{}", component.name(), state_var_name);
 
     let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
@@ -380,7 +385,7 @@ pub fn mark_stale_state_var_and_dependencies(
     state_var_name: StateVarName)
 {
 
-    log!("Marking stale {}:{}", component.name(), state_var_name);
+    // log!("Marking stale {}:{}", component.name(), state_var_name);
 
     let state_var = component.get_state_var(state_var_name).unwrap();
     state_var.mark_stale();
@@ -472,7 +477,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action_obj: serde_json::Value)
 // This should be private eventually
 pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
-    log!("Handling action {:#?}", action);
+    // log!("Handling action {:#?}", action);
     let component = core.components.get(&action.component_name)
         .expect(&format!("Can't handle action on {} which doesn't exist", action.component_name));
 
@@ -504,7 +509,7 @@ pub fn process_update_request(
     update_request: UpdateRequest) 
 {
 
-    log!("Processing update request for {}:{}", component.name(), state_var_name);
+    // log!("Processing update request for {}:{}", component.name(), state_var_name);
 
     match update_request {
         UpdateRequest::SetEssentialValue(their_name, requested_value) => {
@@ -636,7 +641,7 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
 
 
 
-pub fn package_subtree_as_json(core: &DoenetCore, component: &Rc<dyn ComponentLike>) -> serde_json::Value {
+pub fn package_subtree_as_json(component: &Rc<dyn ComponentLike>) -> serde_json::Value {
 
     use serde_json::Value;
     use serde_json::json;
@@ -647,7 +652,7 @@ pub fn package_subtree_as_json(core: &DoenetCore, component: &Rc<dyn ComponentLi
     for child in children_normal_ref {
 
         let child_json = match child {
-            ComponentChild::Component(comp_child) => package_subtree_as_json(core, comp_child),
+            ComponentChild::Component(comp_child) => package_subtree_as_json(comp_child),
             ComponentChild::String(str) => Value::String(str.to_string()),
         };
         children.push(child_json);

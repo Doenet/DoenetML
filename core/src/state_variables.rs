@@ -17,6 +17,12 @@ macro_rules! log {
 }
 
 
+// #[link(name = "logger", kind = "static")]
+// extern "Rust" {
+//     pub fn log_json(json_obj: serde_json::Value);
+// }
+
+
 
 
 

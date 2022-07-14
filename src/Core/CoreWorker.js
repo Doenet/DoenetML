@@ -1,6 +1,8 @@
 import init, { PublicDoenetCore } from "rust-doenet-core-wasm";
 import { parseAndCompile } from "../Parser/parser";
 
+let doenetCore;
+
 
 onmessage = function (e) {
   console.log('received message', e);
@@ -9,7 +11,10 @@ onmessage = function (e) {
     createCore(e.data.args)
 
   } else if (e.data.messageType == 'requestAction') {
-    //core.requestAction(e.data.args);
+
+    // Assuming doenetCore has already been initialized
+    // console.log(e.data.args);
+    doenetCore.handle_action(JSON.stringify(e.data.args));
   }
 }
 
@@ -23,9 +28,9 @@ async function createCore(args) {
 
   await init();
 
-  const dc = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
+  doenetCore = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
   
-  const render_tree_string = dc.update_renderers();
+  const render_tree_string = doenetCore.update_renderers();
   const render_tree = JSON.parse(render_tree_string);
 
   // console.log("Render tree from rust", render_tree);
@@ -138,7 +143,7 @@ async function createCore(args) {
   postMessage({ messageType: "coreCreated" })
 
 
-  // console.log("Components", JSON.parse(dc.component_tree_as_json_string()));
+  // console.log("Components", JSON.parse(doenetCore.component_tree_as_json_string()));
 
 }
 
@@ -154,4 +159,10 @@ async function createCore(args) {
   //     },
   // };
   
-  // dc.handle_action(JSON.stringify(action));
+  // doenetCore.handle_action(JSON.stringify(action));
+
+
+
+  export function logJson(label, json_string) {
+    console.log(label, JSON.parse(json_string));
+  }
