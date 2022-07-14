@@ -79,6 +79,20 @@ impl StateVar {
     }
 
 
+    pub fn mark_stale(&self) {
+
+        let type_protector = &mut *self.state_ref.borrow_mut();
+
+        *type_protector = match type_protector {
+            ValueTypeProtector::String(_) => ValueTypeProtector::String(None),
+            ValueTypeProtector::Boolean(_) => ValueTypeProtector::Boolean(None),
+            ValueTypeProtector::Number(_) => ValueTypeProtector::Number(None),
+            ValueTypeProtector::Integer(_) => ValueTypeProtector::Integer(None),
+        }
+
+    }
+
+
 
     pub fn get_state(&self) -> State<StateVarValue> {
 

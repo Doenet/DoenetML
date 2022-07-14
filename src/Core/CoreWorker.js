@@ -16,7 +16,7 @@ async function createCore(args) {
 
   const DoenetTextJson = parseAndCompile(args.doenetML);
     
-  console.log("DoenetML as JSON\n", DoenetTextJson);
+  // console.log("DoenetML as JSON\n", DoenetTextJson);
 
   await init();
 

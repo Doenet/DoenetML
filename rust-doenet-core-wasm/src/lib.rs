@@ -44,8 +44,8 @@ impl PublicDoenetCore {
 
         let core = core::create_doenet_core(json_deserialized);
 
-        log!("Components\n{:#?}", core.components);
-        log!("Dependencies\n{:#?}", core.dependencies);
+        log!("Components on core creation\n{:#?}", core.components);
+        log!("Dependencies on core creation\n{:#?}", core.dependencies);
     
         PublicDoenetCore(core)
     }
@@ -54,8 +54,33 @@ impl PublicDoenetCore {
 
 
     pub fn update_renderers(&self) -> String {
+
+        core::handle_action(&self.0,
+            core::parse_json::Action {
+                component_name: "/_textInput1".to_string(),
+                action_name: "updateImmediateValue".to_string(),
+                args: std::collections::HashMap::from([(
+                    "text".to_string(),
+                    core::state_variables::StateVarValue::String("user wrote this text".to_string()),
+                )]),
+            }
+        );
+
+        core::handle_action(&self.0,
+            core::parse_json::Action {
+                component_name: "/_textInput1".to_string(),
+                action_name: "updateValue".to_string(),
+                args: std::collections::HashMap::new(),
+            }
+        );
+
         let json_obj = core::update_renderers(&self.0);
+
+        log!("Components\n{:#?}", &self.0.components);
+
+
         serde_json::to_string(&json_obj).unwrap()
+
     }
 
 
@@ -63,7 +88,7 @@ impl PublicDoenetCore {
     pub fn handle_action(&self, action: &str) {
         let json_action: serde_json::Value = serde_json::from_str(&action).unwrap();
 
-        core::handle_action(&self.0, json_action);
+        core::handle_action_from_json(&self.0, json_action);
 
         log!("Components after action: {:#?}", self.0.components);
     }

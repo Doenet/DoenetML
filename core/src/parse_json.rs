@@ -23,11 +23,11 @@ use std::rc::Rc;
 
 
 pub struct Action {
-    pub component: Rc<dyn ComponentLike>,
+    // pub component: Rc<dyn ComponentLike>,
     pub component_name: String,
     pub action_name: String,
-    pub action_func: fn(HashMap<String, StateVarValue>)
-        -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>,
+    // pub action_func: fn(HashMap<String, StateVarValue>)
+        // -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>,
     pub args: HashMap<String, StateVarValue>,
 }
 
@@ -36,10 +36,10 @@ pub struct Action {
 pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
     -> Result<Action, String> {
 
-    let component: Rc<dyn ComponentLike>;
+    // let component: Rc<dyn ComponentLike>;
     let component_name: String;
     let action_name: String;
-    let action_func;
+    // let action_func;
     let args: HashMap<String, StateVarValue>;
     
     if let Value::Object(map) = json_action {
@@ -48,17 +48,17 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
         let component_name_obj = map.get("componentName").expect("no componentName for action");
         if let Value::String(component_name_str) = component_name_obj {
             component_name = component_name_str.to_string();
-            component = Rc::clone(core.components.get(&component_name).unwrap());
+            // component = Rc::clone(core.components.get(&component_name).unwrap());
         } else {
             return Err("componentName should be a string".to_string())
         }
 
-        // Get action, action_name from JSON input
+        // Get action_name from JSON input
         let action_name_obj = map.get("actionName").expect("no actionName for action");
         if let Value::String(action_name_str) = action_name_obj {
             action_name = action_name_str.to_string();
-            action_func = *core.components.get(&component_name).unwrap()
-                .actions().get(&action_name).unwrap();
+            // action_func = *core.components.get(&component_name).unwrap()
+                // .actions().get(&action_name).unwrap();
         } else {
             return Err("action should be a string".to_string());
         }
@@ -92,10 +92,10 @@ pub fn parse_action_from_json(core: &DoenetCore, json_action: serde_json::Value)
 
 
     Ok(Action {
-        component,
+        // component,
         component_name,
         action_name,
-        action_func,
+        // action_func,
         args,
     })
 

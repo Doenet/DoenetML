@@ -7,16 +7,16 @@ pub mod number;
 pub mod text_input;
 
 
-use std::cell::RefCell;
+use std::slice::Iter;
+use std::{cell::RefCell, iter::Filter};
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::fmt::Debug;
 
-use phf::phf_map;
-
-
 use state_variables::*;
 use state_var::{StateVar, State, EssentialStateVar};
+
+use crate::parse_json::Action;
 
 
 
@@ -41,12 +41,15 @@ pub trait ComponentSpecificBehavior: Debug {
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
 
 
-    fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
-        &phf_map! {}
-    }
+    // fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
+    //     &phf_map! {}
+    // }
 
-    // fn on_action(&self, action_name: &str, args: HashMap<String, StateVarValue>) -> 
-    // HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>;
+
+    fn on_action(&self, _action_name: &str, _args: HashMap<String, StateVarValue>) -> 
+    HashMap<StateVarName, StateVarValue> {
+        HashMap::new()
+    }
 
 
     /// Lower case name.
@@ -280,6 +283,18 @@ fn create_dependency_from_instruction(
     }
 }
 
+
+pub fn dependencies_for_component<'a>(
+    core: &'a DoenetCore,
+    component_name: &str,
+    state_var_name: StateVarName) -> Vec<&'a Dependency>
+{
+    core.dependencies.iter().filter(
+        |dep| dep.component == component_name && dep.state_var == state_var_name
+    ).collect()
+}
+
+
 /// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, state_var_name: StateVarName) {
 
@@ -287,8 +302,8 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
     let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
 
+    let my_dependencies = dependencies_for_component(core, component.name(), state_var_name);
 
-    let my_dependencies = core.dependencies.iter().filter(|dep| dep.component == component.name() && dep.state_var == state_var_name);
 
     for dep in my_dependencies {
 
@@ -319,21 +334,6 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
                         resolve_state_variable(core, depends_on_component, dep_state_var_name);
                         let state_var = depends_on_component.get_state_var(dep_state_var_name).unwrap();
                         let state_var_value = state_var.get_state();
-                        
-                        // match state_var_access {
-                        //     StateVarAccess::Bool(state_var) => {
-                        //         state_var.get_state()
-                        //     },
-                        //     StateVarAccess::Number(state_var) => {
-                        //         state_var.get_state()   
-                        //     },
-                        //     StateVarAccess::Integer(state_var) => {
-                        //         state_var.get_state()   
-                        //     },
-                        //     StateVarAccess::String(state_var) => {
-                        //         state_var.get_state()   
-                        //     }
-                        // };
 
 
                         if let State::Resolved(state_var_value) = state_var_value {
@@ -367,6 +367,41 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
     
 }
 
+
+
+pub fn mark_stale_state_var_and_dependencies(
+    core: &DoenetCore,
+    component: &Rc<dyn ComponentLike>,
+    state_var_name: StateVarName)
+{
+
+    log!("Marking stale {}:{}", component.name(), state_var_name);
+
+    let state_var = component.get_state_var(state_var_name).unwrap();
+    state_var.mark_stale();
+
+    let my_dependencies = dependencies_for_component(core, component.name(), state_var_name);
+    for dependency in my_dependencies {
+
+        for depends_on in &dependency.depends_on_objects {
+            match depends_on {
+                ObjectName::String(_) => {
+                    // do nothing
+                },
+                ObjectName::Component(dep_comp_name) => {
+                    let dep_component = core.components.get(dep_comp_name).unwrap();
+
+                    for &dep_state_var_name in &dependency.depends_on_state_vars {
+
+                        mark_stale_state_var_and_dependencies(core, dep_component, dep_state_var_name);
+                    }
+                }
+            }
+        }
+    }
+
+}
+
 pub fn handle_update_instruction(
     component: &Rc<dyn ComponentLike>,
     name: StateVarName,
@@ -387,14 +422,20 @@ pub fn handle_update_instruction(
         StateVarUpdateInstruction::UseEssentialOrDefault => {
             if definition.has_essential() == false {
                 panic!(
-                    "Cannot do UseEssentialOrDefault update instruction on {}:{},
-                    which does not have essential (Component type {}) ",
+                    "Cannot UseEssentialOrDefault on {}:{},
+                    which has no essential (Component type {}) ",
                     component.name(), name, component.get_component_type()
                 );
             }
 
+            let possible_essential_val = component.get_essential_state_vars().get(name).unwrap().get_value();
+            let new_state_var_value = if let Some(actual_val) = possible_essential_val {
+                actual_val
+            } else {
+                definition.default_value()
+            };
+            
 
-            let new_state_var_value = definition.default_value();
             set_state_var(component, name, new_state_var_value).expect(
                 &format!("Failed to set {}:{}", component.name(), name)
             );
@@ -414,17 +455,77 @@ pub fn handle_update_instruction(
 
 
 
-pub fn handle_action(core: &DoenetCore, action_obj: serde_json::Value) {
+pub fn handle_action_from_json(core: &DoenetCore, action_obj: serde_json::Value) {
+    
     let action = parse_json::parse_action_from_json(core, action_obj)
         .expect("Error parsing json action");
 
-    let update_instructions_and_names = (action.action_func)(action.args);
-    for (state_var_name, update_instruction) in update_instructions_and_names {
-        log!("Updating {} with update instruction {:?}", state_var_name, update_instruction);
-
-        handle_update_instruction(&action.component, state_var_name, update_instruction);
-    }
+    handle_action(core, action);
 }
+
+
+// This should be private eventually
+pub fn handle_action(core: &DoenetCore, action: Action) {
+
+    let component = core.components.get(&action.component_name).unwrap();
+    let state_vars_to_update = component.on_action(&action.action_name, action.args);
+
+    for (name, requested_value) in state_vars_to_update {
+
+        let definition = component.state_variable_instructions().get(name).unwrap();
+        let requests = definition.request_dependencies_to_update_value(requested_value);
+
+        for request in requests {
+            process_update_request(core, &component, name, request);
+
+        }
+    }
+
+}
+
+
+pub fn process_update_request(
+    core: &DoenetCore,
+    component: &Rc<dyn ComponentLike>,
+    state_var_name: StateVarName,
+    update_request: UpdateRequest) 
+{
+
+    log!("Processing update request for {}:{}", component.name(), state_var_name);
+
+    match update_request {
+        UpdateRequest::SetEssentialValue(their_name, requested_value) => {
+
+            let essential_var = component.get_essential_state_vars().get(their_name).unwrap();
+            essential_var.set_value(requested_value).expect(
+                &format!("Failed to set essential value for {}:{}", component.name(), their_name)
+            );
+        },
+
+        UpdateRequest::SetStateVarDependingOnMe(their_name, requested_value) => {
+
+            log!("desired value {:?}", requested_value);
+
+
+            let state_var_definition = component.state_variable_instructions().get(their_name).unwrap();
+
+            let their_update_requests = state_var_definition.request_dependencies_to_update_value(requested_value);
+
+            for their_update_request in their_update_requests {
+                process_update_request(core, component, their_name, their_update_request);
+            }
+
+        }
+    }
+
+    mark_stale_state_var_and_dependencies(core, component, state_var_name);
+
+
+}
+
+
+
+
 
 
 
@@ -514,7 +615,7 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
     }));
 
 
-    log!("Components {:#?}", core.components);
+    // log!("Components {:#?}", core.components);
 }
 
 

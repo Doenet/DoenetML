@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use std::rc::Rc;
 
 use core_derive::ComponentLike;
-use phf::phf_map;
 
 use lazy_static::lazy_static;
 
@@ -13,6 +12,7 @@ use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
 use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
+use crate::state_var::State::*;
 
 
 
@@ -37,13 +37,13 @@ pub struct TextInput {
 
 
 
-fn update_immediate_value_action(args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>> {
+// fn update_immediate_value_action(args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>> {
 
-    let new_val = args.get("immediateValue").expect("No immediateValue argument").clone();
-    HashMap::from([
-        ("immediateValue", StateVarUpdateInstruction::SetValue(new_val))
-    ])
-}
+//     let new_val = args.get("immediateValue").expect("No immediateValue argument").clone();
+//     HashMap::from([
+//         ("immediateValue", StateVarUpdateInstruction::SetValue(new_val))
+//     ])
+// }
 
 
 
@@ -51,29 +51,37 @@ lazy_static! {
 
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
 
+        use StateVarUpdateInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
 
-            return_dependency_instructions: |_| {
-                let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
-                    component_name: None, //myself
-                    state_var: "immediateValue",
-                });
+            // return_dependency_instructions: |_| {
+            //     let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
+            //         component_name: None, //myself
+            //         state_var: "immediateValue",
+            //     });
             
-                HashMap::from([("my_immediateValue_sv", instruction)])
-            },
+            //     HashMap::from([("my_immediateValue_sv", instruction)])
+            // },
 
-            determine_state_var_from_dependencies: |dependency_values| {
+            // determine_state_var_from_dependencies: |dependency_values| {
 
-                let immediate_value_state_var = dependency_values.get("my_immediateValue_sv")
-                    .expect("no immediateValue var given")
-                    .get(0).expect("no first element");
+            //     let immediate_value_state_var = dependency_values.get("my_immediateValue_sv")
+            //         .expect("no immediateValue var given")
+            //         .get(0).expect("no first element");
 
-                StateVarUpdateInstruction::SetValue(match &immediate_value_state_var.2 {
-                    StateVarValue::String(val) => val.to_string(),
-                    _ => panic!()
-                })
+            //     SetValue(match &immediate_value_state_var.2 {
+            //         StateVarValue::String(val) => val.to_string(),
+            //         _ => panic!()
+            //     })
+            // },
+            has_essential: true,
+            request_dependencies_to_update_value: |desired_value| {
+                vec![UpdateRequest::SetEssentialValue(
+                    "value", StateVarValue::String(desired_value)
+                )]
             },
 
             ..Default::default()
@@ -84,7 +92,7 @@ lazy_static! {
 
         state_var_definitions.insert("expanded", StateVarVariant::Boolean(StateVarDefinition {
             for_renderer: true,
-            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
+            determine_state_var_from_dependencies: |_| SetValue(false),
             ..Default::default()
             
         }));
@@ -94,7 +102,7 @@ lazy_static! {
 
 
             determine_state_var_from_dependencies: |_| {
-                StateVarUpdateInstruction::SetValue(10.0)
+                SetValue(10.0)
             },
             for_renderer: true,
             default_value: 10.0,
@@ -107,7 +115,7 @@ lazy_static! {
         state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
             default_value: 600.0,
-            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(600.0),
+            determine_state_var_from_dependencies: |_| SetValue(600.0),
             ..Default::default()
         }));
 
@@ -115,6 +123,18 @@ lazy_static! {
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             has_essential: true,
             for_renderer: true,
+            determine_state_var_from_dependencies: |_| UseEssentialOrDefault,
+
+            request_dependencies_to_update_value: |my_desired_value| {
+                vec![
+                    UpdateRequest::SetEssentialValue(
+
+                        // Should the update request really use a StateVarValue?
+                        "immediateValue", StateVarValue::String(my_desired_value)
+                    )
+                ]
+            },
+
             ..Default::default()
         }));
 
@@ -155,42 +175,41 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 
-    fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
-        &phf_map! {
-            "updateImmediateValue" => update_immediate_value_action,
+    fn on_action(&self, action_name: &str, args: HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarValue>
+    {
+
+        match action_name {
+            "updateImmediateValue" => {
+                // Note: the key here is whatever the renderers call the new value
+                let new_val = args.get("text").expect("No text argument");
+
+                HashMap::from([("immediateValue", new_val.clone())])
+            },
+
+
+            "updateValue" => {
+
+                let new_val = if let Resolved(val) = self.immediate_value.get_state() {
+                    StateVarValue::String(val.inner_string().unwrap().to_uppercase())
+                } else {
+
+                    // Mark that we need to resolve immediate value?
+                    // panic!("Stale immediate value")
+                    StateVarValue::String("immediateValue was unresolved so you get me instead".to_string())
+                };
+
+
+                HashMap::from([("value", new_val)])
+
+            }
+
+
+
+            _ => panic!("Unknown action '{}' called on {}", action_name, self.name())
+
         }
+
     }
-
-
-    // fn on_action(&self, action_name: &str, args: HashMap<String, StateVarValue>) -> 
-    // HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>
-    // {
-
-    //     match action_name {
-    //         "updateImmediateValue" => {
-    //             // Note: the key here is whatever the renderers call the new value
-    //             let new_val = args.get("text").expect("No text argument");
-
-    //             HashMap::from([
-    //                 // the key here is my state var name
-    //                 ("immediateValue", StateVarUpdateInstruction::SetValue(new_val.clone()))
-    //             ])
-    //         },
-
-    //         "updateValue" => {
-
-    //             let new_value = self.immediate_value
-    //                 .expect_resolved("Action updateValue called when immediateValue was unresolved");
-                
-    //             // Assuming immediateValue sv is resolved already
-
-    //             HashMap::from([
-    //                 ("value", StateVarUpdateInstruction::SetValue(StateVarValue::String(new_value)))
-    //             ])
-    //         }
-    //     }
-
-    // }
 
 
 

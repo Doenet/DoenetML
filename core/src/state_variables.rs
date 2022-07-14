@@ -52,12 +52,19 @@ pub struct StateVarDefinition<T> {
     pub default_value: T,
 
     pub has_essential: bool,
+
+
+    // arg is desired value
+    pub request_dependencies_to_update_value: fn(T) -> Vec<UpdateRequest>,
 }
 
 
 
 
+// Would it be better for the default_value to be coupled with the existence
+// of an essential state var?
 
+// Note that default_value won't get used unless you specify UseEssentialOrDefault
 
 
 impl<T> Default for StateVarDefinition<T>
@@ -71,6 +78,11 @@ impl<T> Default for StateVarDefinition<T>
             for_renderer: false,
             default_value: T::default(),
             has_essential: false,
+
+            request_dependencies_to_update_value: |_| {
+                log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
+                vec![]
+            },
         }
     }
 }
@@ -116,6 +128,8 @@ pub struct Dependency {
 
     // TODO: Do we really need this field? It would be easier if we didn't
     // pub instruction: DependencyInstruction,
+
+
     pub variables_optional: bool,
 }
 
@@ -175,6 +189,13 @@ pub enum StateVarUpdateInstruction<T> {
 
 
 
+pub enum UpdateRequest {
+    SetEssentialValue(StateVarName, StateVarValue),
+    SetStateVarDependingOnMe(StateVarName, StateVarValue),
+}
+
+
+
 
 
 
@@ -216,30 +237,24 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 
 
+impl StateVarValue {
+    fn value_type_name(&self) -> &'static str {
+        match self {
+            Self::String(_) => "String",
+            Self::Boolean(_) => "Boolean",
+            Self::Integer(_) => "Integer",
+            Self::Number(_) => "Number",
+        }
+    }
 
-
-
-// impl fmt::Debug for StateVar<String> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.write_str(&format!("{:?}", &self.get_state()))
-//     }
-// }
-// impl fmt::Debug for StateVar<bool> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.write_str(&format!("{:?}", &self.get_state()))
-//     }
-// }
-// impl fmt::Debug for StateVar<f64> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.write_str(&format!("{:?}", &self.get_state()))
-//     }
-// }
-// impl fmt::Debug for StateVar<i64> {
-//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-//         f.write_str(&format!("{:?}", &self.get_state()))
-//     }
-// }
-
+    pub fn inner_string(self) -> Result<String, String> {
+        if let StateVarValue::String(str_val) = self {
+            Ok(str_val)
+        } else {
+            Err(format!("StateVarValue was {}, not String", self.value_type_name()))
+        }
+    }
+}
 
 
 
@@ -276,44 +291,80 @@ impl StateVarVariant {
         dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
     ) -> StateVarUpdateInstruction<StateVarValue> {
 
+        use StateVarUpdateInstruction::*;
+
         match self {
             StateVarVariant::String(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
-                match instruction {
-                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
-
-                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::String(val)),
+                match instruction {                    
+                    NoChange => NoChange,
+                    UseEssentialOrDefault => UseEssentialOrDefault,
+                    SetValue(val) => SetValue(StateVarValue::String(val)),
                 }
             },
             StateVarVariant::Integer(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
-                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
-
-                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Integer(val)),
+                    NoChange => NoChange,
+                    UseEssentialOrDefault => UseEssentialOrDefault,
+                    SetValue(val) => SetValue(StateVarValue::Integer(val)),
                 }
             },
             StateVarVariant::Number(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
-                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
-
-                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Number(val)),
+                    NoChange => NoChange,
+                    UseEssentialOrDefault => UseEssentialOrDefault,
+                    SetValue(val) => SetValue(StateVarValue::Number(val)),
                 }
             },
             StateVarVariant::Boolean(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
-                    StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-                    StateVarUpdateInstruction::UseEssentialOrDefault => StateVarUpdateInstruction::UseEssentialOrDefault,
-
-                    StateVarUpdateInstruction::SetValue(val) => StateVarUpdateInstruction::SetValue(StateVarValue::Boolean(val)),
+                    NoChange => NoChange,
+                    UseEssentialOrDefault => UseEssentialOrDefault,
+                    SetValue(val) => SetValue(StateVarValue::Boolean(val)),
                 }
             }                     
         }
+    }
+
+    pub fn request_dependencies_to_update_value(&self, desired_value: StateVarValue) -> Vec<UpdateRequest> {
+
+        match self {
+            StateVarVariant::String(def) =>  {
+                match desired_value {
+                    StateVarValue::String(v) =>     (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to String"),
+                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to String"),
+                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to String"),
+                }
+            },
+            StateVarVariant::Integer(def) => {
+                match desired_value {
+                    StateVarValue::Integer(v) =>    (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(v) =>     panic!("Requested String state var update to Integer"),
+                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to Integer"),
+                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to Integer"),
+                }
+            },
+            StateVarVariant::Number(def) =>  {
+                match desired_value {
+                    StateVarValue::Number(v) =>     (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(v) =>     panic!("Requested String state var update to Number"),
+                    StateVarValue::Boolean(v) =>    panic!("Requested Boolean state var update to Number"),
+                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to Number"),
+                }
+            },
+            StateVarVariant::Boolean(def) => {
+                match desired_value {
+                    StateVarValue::Boolean(v) =>    (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(v) =>     panic!("Requested String state var update to Boolean"),
+                    StateVarValue::Number(v) =>     panic!("Requested Number state var update to Boolean"),
+                    StateVarValue::Integer(v) =>    panic!("Requested Integer state var update to Boolean"),
+                }
+            }
+        }       
     }
 
 
