@@ -104,7 +104,8 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(json_input: &serde_json::Value)
-    -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
+    -> Result<Rc<dyn ComponentLike>, &str>
+    // -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
 {
 
     // log!("Parse json input {:#?}", json_input);
@@ -146,7 +147,11 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
     add_json_subtree_to_components(&mut components, trimmed_json_input, "", &mut component_type_counter, &mut root_component_name)?;
 
     if let Some(actual_root_name) = root_component_name {
-        Ok((components, actual_root_name))
+
+        // Ok((components, actual_root_name))
+
+        Ok(Rc::clone(components.get(&actual_root_name).unwrap()))
+
     } else {
         Err( "json empty" )
     }

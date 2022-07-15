@@ -1,10 +1,5 @@
 <document>
 
-
-<text>hi</text><number>7</number>
-
-<textInput />
-
-
+<text>hello <text>world</text></text>
 
 </document>

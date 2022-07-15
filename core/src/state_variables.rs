@@ -1,6 +1,6 @@
-use std::{collections::HashMap};
+use std::{collections::HashMap, rc::Rc};
 
-use crate::ObjectTraitName;
+use crate::{ObjectTraitName, ComponentLike};
 
 
 /// A macro to provide println! style syntax for console.log logging.
@@ -31,8 +31,27 @@ pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
 
 
+#[derive(Debug, PartialEq)]
+pub struct UncreatedComponentName(pub String);
 
 
+
+
+// // The only way to make this should be through the constructor
+// #[derive(Debug, PartialEq, Eq, Hash, Clone)]
+// pub struct ComponentName(String);
+
+// impl ComponentName {
+//     pub fn new(name: &str, components: &HashMap<String, Rc<dyn ComponentLike>>) -> Result<Self, String> {
+        
+//         if components.contains_key(name) {
+//             Ok(ComponentName(name.to_string()))
+//         } else {
+//             Err(format!("{} is not a component name", name))
+//         }
+
+//     }
+// }
 
 
 
@@ -147,10 +166,10 @@ pub enum ObjectName {
 }
 
 
-#[derive(Eq, Hash, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub struct StateVarAddress {
-    component: String,
-    state_var: StateVarName,
+    pub component: String,
+    pub state_var: StateVarName,
 }
 
 impl StateVarAddress {
@@ -158,6 +177,16 @@ impl StateVarAddress {
         StateVarAddress { component, state_var }
     }
 }
+
+
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+pub struct DepInstructAddress {
+    pub component_name: String,
+    pub state_var_name: StateVarName,
+    pub instruction_name: InstructionName,
+}
+
 
 
 #[derive(Clone, Debug)]
@@ -181,7 +210,10 @@ pub struct StateVarDependencyInstruction {
 
 #[derive(Clone, Debug)]
 pub struct ParentDependencyInstruction {
-    pub parent_trait: ObjectTraitName,
+    // pub parent_trait: ObjectTraitName,
+
+    // pub parent_of_component: Option<String>,
+
     pub state_var: StateVarName,
 }
 
@@ -199,6 +231,36 @@ pub enum UpdateRequest {
     SetEssentialValue(StateVarName, StateVarValue),
     SetStateVarDependingOnMe(StateVarName, StateVarValue),
 }
+
+
+
+
+
+// Is there any information that is common across all block types?
+#[derive(Debug)]
+pub enum Block {    
+    UncreatedComponent(UncreatedComponentBlock),
+    // UncreatedComponentStateVar(UncreatedComponentStateVarBlocker)
+    // StandardBlockType()
+}
+
+#[derive(Debug)]
+pub struct UncreatedComponentBlock {
+    pub blocked_component: String,
+    pub blocked_dependency_instruction: DependencyInstruction,
+    pub blocked_dependency_instruction_name: InstructionName,
+
+    pub blocked_by_uncreated_component: UncreatedComponentName,
+    // pub 
+}
+
+
+
+pub enum DependencyResolutionAttempt {
+    Success(Dependency),
+    Blocked(Block),
+}
+
 
 
 

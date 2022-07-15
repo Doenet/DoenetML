@@ -32,6 +32,7 @@ pub struct Text {
     fixed: StateVar,
     // text is same as value state var, but this one gets sent to rendere
     text: StateVar,
+    hide: StateVar,
 
 }
 
@@ -107,6 +108,8 @@ fn value_determine_state_var_from_dependencies(
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+        use StateVarUpdateInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
@@ -124,7 +127,41 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+
+
+        state_var_definitions.insert("hidden", StateVarVariant::Boolean(StateVarDefinition {
+            return_dependency_instructions: |_| {
+                let parent_dep_instruct = ParentDependencyInstruction {
+                    state_var: "hidden",
+                };
+
+                let from_hide_instruct = StateVarDependencyInstruction {
+                    component_name: None,
+                    state_var: "hide",
+                };
+
+                HashMap::from([
+                    ("parent_hidden", DependencyInstruction::Parent(parent_dep_instruct)),
+                    ("my_hide", DependencyInstruction::StateVar(from_hide_instruct)),
+                ])
+            },
+
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                SetValue(false)
+            },
+
+            for_renderer: true,
+            ..Default::default()
+        }));
+
+
+        state_var_definitions.insert("hide", StateVarVariant::Boolean(StateVarDefinition {
+            ..Default::default()
+        }));
+
+
+
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
         state_var_definitions.insert("fixed", FIXED_DEFAULT_DEFINITION());
 
@@ -151,6 +188,7 @@ impl ComponentSpecificBehavior for Text {
             "disabled" =>   Some(&self.disabled),
             "fixed" =>      Some(&self.fixed),
             "text" =>       Some(&self.text),
+            "hide" =>       Some(&self.hide),
  
             _ => Option::None,
         }        
@@ -195,6 +233,7 @@ impl Text {
             text: StateVar::new(StateVarValueType::String),
 
             hidden: StateVar::new(StateVarValueType::Boolean),
+            hide: StateVar::new(StateVarValueType::Boolean),
             disabled: StateVar::new(StateVarValueType::Boolean),
             fixed: StateVar::new(StateVarValueType::Boolean),
 

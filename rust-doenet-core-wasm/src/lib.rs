@@ -6,6 +6,8 @@ use wasm_bindgen::prelude::*;
 
 use core::DoenetCore;
 
+use serde_json::*;
+
 
 
 
@@ -25,7 +27,7 @@ macro_rules! log {
 // Raw module means that this relative path is based on the wasm file's location
 #[wasm_bindgen(raw_module = "/src/Core/CoreWorker.js")]
 extern "C" {
-    fn logJson(label: String, json_obj: String);
+    fn logJson(label: &str, json_obj: String);
 }
 
 
@@ -56,7 +58,7 @@ impl PublicDoenetCore {
 
         let core = core::create_doenet_core(json_deserialized);
 
-        log!("Components on core creation\n{:#?}", core.components);
+        logJson("Components on core creation", to_string(&core.json_components()).unwrap());
         log!("Dependencies on core creation\n{:#?}", core.dependencies);
     
         PublicDoenetCore(core)
@@ -82,21 +84,20 @@ impl PublicDoenetCore {
 
         core::handle_action_from_json(&self.0, json_action);
 
-        let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
+        // log!("{}", serde_json::to_string_pretty(&self.0.json_components()).unwrap());
 
         logJson(
-            "Updated component tree".to_string(),
-            serde_json::to_string(&core::package_subtree_as_json(root_component)).unwrap()
+            "Updated component tree",
+            serde_json::to_string(&self.0.json_components()).unwrap()
         );
-        // log!("Components after action: {:#?}", self.0.components);
     }
 
 
-    pub fn component_tree_as_json_string(&self) -> String {
+    // pub fn components_as_json_string(&self) -> String {
 
-        let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
-        let json_obj = core::package_subtree_as_json(root_component);
+    //     let root_component = self.0.components.get(&self.0.root_component_name).unwrap();
+    //     let json_obj = core::package_subtree_as_json(root_component);
 
-        serde_json::to_string(&json_obj).unwrap()
-    }
+    //     serde_json::to_string(&json_obj).unwrap()
+    // }
 }
