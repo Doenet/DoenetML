@@ -229,6 +229,8 @@ pub enum StateVarUpdateInstruction<T> {
 
 pub enum UpdateRequest {
     SetEssentialValue(StateVarName, StateVarValue),
+
+    // rename this
     SetStateVarDependingOnMe(StateVarName, StateVarValue),
 }
 
@@ -247,10 +249,12 @@ pub enum Block {
 #[derive(Debug)]
 pub struct UncreatedComponentBlock {
     pub blocked_component: String,
-    pub blocked_dependency_instruction: DependencyInstruction,
+    pub blocked_state_var: StateVarName,
     pub blocked_dependency_instruction_name: InstructionName,
 
-    pub blocked_by_uncreated_component: UncreatedComponentName,
+    // pub blocked_dependency_instruction: DependencyInstruction,
+
+    pub blocked_by_uncreated_component: String,
     // pub 
 }
 
@@ -258,7 +262,7 @@ pub struct UncreatedComponentBlock {
 
 pub enum DependencyResolutionAttempt {
     Success(Dependency),
-    Blocked(Block),
+    Blocked(Vec<Block>),
 }
 
 
