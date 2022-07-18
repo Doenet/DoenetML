@@ -7,10 +7,6 @@ pub mod number;
 pub mod text_input;
 pub mod document;
 
-<<<<<<< HEAD
-=======
-use std::cell::RefCell;
->>>>>>> 1836a8a (cleanup hidden definition and static map)
 use std::collections::HashMap;
 use std::fmt::Debug;
 
