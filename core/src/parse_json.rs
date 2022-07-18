@@ -104,8 +104,7 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(json_input: &serde_json::Value)
-    -> Result<Rc<dyn ComponentLike>, &str>
-    // -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
+    -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
 {
 
     // log!("Parse json input {:#?}", json_input);
@@ -134,7 +133,6 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
         } else {
 
 
-
             return Err("Json object did not have one root");
         }
 
@@ -150,7 +148,7 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
 
         // Ok((components, actual_root_name))
 
-        Ok(Rc::clone(components.get(&actual_root_name).unwrap()))
+        Ok((components, actual_root_name))
 
     } else {
         Err( "json empty" )

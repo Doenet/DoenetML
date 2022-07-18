@@ -130,40 +130,19 @@ pub enum ComponentChild {
 
 pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
-    // let components: HashMap<String, Rc<dyn ComponentLike>>;
-    // let root_component_name: String;
-
     let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
         .expect("Error parsing json for components");
 
-    let root_component = possible_components_tree;
-    let root_component_name = root_component.name().to_string();
+    let (components, root_component_name) = possible_components_tree;
 
-    let mut uncreated_blocking_components: HashMap<String, Vec<DepInstructAddress>> = HashMap::new();
-
-    // Indexed by component name / state var name
-    let mut blocked_dependency_instructions: HashMap<DepInstructAddress, Vec<Block>> = HashMap::new();
-
-    let mut components: HashMap<String, Rc<dyn ComponentLike>> = HashMap::new();
-
-    let dependencies: Vec<Dependency> = create_all_dependencies_for_component(root_component, &mut uncreated_blocking_components, &mut components, &mut blocked_dependency_instructions);
+    let mut dependencies: Vec<Dependency> = vec![];
     
-    // for (_, component) in components.iter() {
+    for (_, component) in components.iter() {
 
-    //     let dependencies_for_this_component = create_all_dependencies_for_component(&component, &mut uncreated_blocking_components, &components, &mut blocked_components);
-
-    //     for dependency in dependencies_for_this_component {
-    //         dependencies.push(dependency);
-    //     }
+        let mut dependencies_for_this_component = create_all_dependencies_for_component(component);
+        dependencies.append(&mut dependencies_for_this_component);
         
-    // }
-
-    
-    // let json_tree = package_subtree_as_json(components.get(&root_component_name).unwrap());
-    // unsafe {
-        // log_json(json_tree);
-    // }
-
+    }
 
 
     // Return Doenet Core structure
@@ -176,105 +155,13 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
 
 pub fn create_all_dependencies_for_component(
-    component: Rc<dyn ComponentLike>,
-    uncreated_blocking_components: &mut HashMap<String, Vec<DepInstructAddress>>,
-    components: &mut HashMap<String, Rc<dyn ComponentLike>>,
-    blocked_dependency_instructions: &mut HashMap<DepInstructAddress, Vec<Block>>,
+    component: &Rc<dyn ComponentLike>,
 ) -> Vec<Dependency>
 
 {
 
     log!("Creating depencies for {:?}", component.name());
     let mut dependencies: Vec<Dependency> = vec![];
-
-    // First create dependencies for all (component) children
-    for child in &*component.children().borrow() {
-        
-        if let ComponentChild::Component(child_component) = child {
-            let mut child_dependencies = create_all_dependencies_for_component(Rc::clone(child_component), uncreated_blocking_components, components, blocked_dependency_instructions);
-
-            dependencies.append(&mut child_dependencies);
-
-        }
-
-    }
-
-
-    // Create me
-    components.insert(component.name().to_string(), Rc::clone(&component));
-
-
-
-
-    // let mut will_be_unblocked_dep_instructions: Vec<(InstructionName, DependencyInstruction)> = vec![];
-
-
-    if let Some(instructions_blocked_by_me) = uncreated_blocking_components.get(component.name()) {
-
-        for instruction_address in instructions_blocked_by_me {
-
-            // These are all the blocks on one particular dep instruct.
-            // At least one of the blocks is due to me
-            let blocks = blocked_dependency_instructions.get(instruction_address).unwrap();
-
-            if blocks.len() == 1 {
-
-                match &blocks[0] {
-
-                    Block::UncreatedComponent(block) => {
-
-                        // I should be the only block
-                        debug_assert_eq!(block.blocked_by_uncreated_component, component.name().to_string());
-
-                        // Resolve the dep instruct.
-                        log!("Mark dep instruct {:?} to be resolved", instruction_address);
-
-                        // will_be_unblocked_dep_instructions.push(
-                        //     (block.blocked_dependency_instruction_name, block.blocked_dependency_instruction)
-                        // );
-
-                        let component_of_instruction = components.get(&instruction_address.component_name).unwrap();
-
-                        // create_dependency_from_instruction(
-                        //     component_of_instruction, instruction_address.state_var_name,
-                        //     block.blocked_dependency_instruction, block.blocked_dependency_instruction_name,
-                        //     uncreated_blocking_components, blocked_dependency_instructions
-                        // );
-
-                    }
-
-                }
-            } 
-            
-            let mut blocks = blocked_dependency_instructions.get_mut(instruction_address).unwrap();
-
-            // Remove all the entries that said I blocked the instruction
-            blocks.retain(|block| {
-                match block {
-                    Block::UncreatedComponent(uncreated_comp_block) => {
-                        uncreated_comp_block.blocked_by_uncreated_component != component.name().to_string()
-                    }
-                }           
-            });
-            log!("Filtered blocks on state var, {:#?}", blocks);
-
-
-            if blocks.is_empty() {
-                blocked_dependency_instructions.remove(instruction_address);
-            }
-
-
-            log!("{} should no longer block {:?}", component.name(), instruction_address);
-            log!("Blocked components: {:#?}", blocked_dependency_instructions);
-        }
-
-        uncreated_blocking_components.remove(component.name());
-
-        // log!("Uncreated blocking components: {:#?}", uncreated_blocking_components);
-
-
-    }
-
 
     let my_definitions = component.state_variable_instructions();
 
@@ -283,63 +170,13 @@ pub fn create_all_dependencies_for_component(
         // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
         let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
         
-        
-        
         for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-            let instruction_address = DepInstructAddress {
-                component_name: component.name().to_string(),
-                state_var_name,
-                instruction_name: dep_name
-            };
+            let dependency =  create_dependency_from_instruction(&component, state_var_name, dep_instruction, dep_name);
 
+            dependencies.push(dependency);
 
-            let dependency_resolution_attempt =  create_dependency_from_instruction_or_mark_blocked(&component, state_var_name, dep_instruction, dep_name, components);
-
-
-            match dependency_resolution_attempt {
-                DependencyResolutionAttempt::Success(dependency) => {
-                    dependencies.push(dependency);
-                },
-
-                DependencyResolutionAttempt::Blocked(blocks) => {
-
-
-
-                    for block in blocks.iter() {
-                        let blocker_component = match block {
-                            Block::UncreatedComponent(uncreated_comp_block) => &uncreated_comp_block.blocked_by_uncreated_component,
-                        };
-
-                        let uncreated_blocker = uncreated_blocking_components.entry(blocker_component.clone()).or_insert(vec![]);
-
-                        uncreated_blocker.push(instruction_address.clone());
-                    }
-
-                    blocked_dependency_instructions.insert(instruction_address, blocks);
-
-                }
-            }
-
-            // let mut blocked = false;
-            // for depends_on_object in &dependency.depends_on_objects {
-            //     if let ObjectName::Component(depends_on_component) = depends_on_object {
-
-            //         if !components.contains_key(depends_on_component) {
-            //             // Blocked!!
-            //             log!("{}:{}:{} is blocked by {}", component.name(), state_var_name, dep_name, depends_on_component);
-
-            //             blocked = true;
-            //         }
-
-            //     }
-            // }
-
-            // if blocked == false {
-            //     dependencies.push(dependency);
-            // }
         }
-    
 
     }
 
@@ -348,25 +185,14 @@ pub fn create_all_dependencies_for_component(
 }
 
 
-fn create_dependency_from_instruction_or_mark_blocked(
+fn create_dependency_from_instruction(
 
     component: &Rc<dyn ComponentLike>,
     state_var_name: StateVarName,
     instruction: DependencyInstruction,
     instruction_name: InstructionName,
 
-    components: &HashMap<String, Rc<dyn ComponentLike>>,
-
-    // Components that don't exist yet, but that state vars of created components depend on
-    // uncreated_blocking_components: &mut HashMap<String, Vec<DepInstructAddress>>,
-    // blocked_dependency_instructions: &mut HashMap<DepInstructAddress, Vec<Block>>,
-
-    // blocking_component_state_vars: &mut HashMap<StateVarAddress, 
-
-) -> DependencyResolutionAttempt {
-
-    // Outside of this function, we will check to see if all these
-    // component names are valid
+) -> Dependency {
 
     let depends_on_objects: Vec<ObjectName>;
     let depends_on_state_vars: Vec<StateVarName>;
@@ -425,99 +251,20 @@ fn create_dependency_from_instruction_or_mark_blocked(
                 "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",component.name(), state_var_name, instruction_name
             ));
 
-
-            // let my_new_block = Block::UncreatedComponent(UncreatedComponentBlock {
-            //     blocked_component: component.name().to_string(),
-            //     blocked_dependency_instruction: instruction.clone(),
-            //     blocked_dependency_instruction_name: instruction_name,
-            //     blocked_by_uncreated_component: UncreatedComponentName(parent_name.to_string()),
-            // });
-
-            // log!("Block on {} by {}", component.name(), parent_name);
-            // // log!("{:#?}", my_new_block);
-
-            // let instruction_address = DepInstructAddress {
-            //     component_name: component.name().to_string(),
-            //     state_var_name: state_var,
-            //     instruction_name: instruction_name,
-            // };
-
-            // // Add this block to the blocked dep instructs map
-            // if let Some(existing_blocks) = blocked_dependency_instructions.get_mut(&instruction_address) {
-
-            //     existing_blocks.push(my_new_block);
-
-            // } else {
-            //     blocked_dependency_instructions.insert(
-            //         instruction_address.clone(), 
-            //         vec![my_new_block]
-            //     );
-            // }
-
-
-            // // Add that this block was caused by parent component
-            // if let Some(parent_already_blocking) = uncreated_blocking_components.get_mut(&parent_name) {
-            //     parent_already_blocking.push(instruction_address);
-            // } else {
-            //     uncreated_blocking_components.insert(
-            //         parent_name.to_string(),
-            //         vec![instruction_address]
-            //     );
-            // }
-
-
-            // log!("Updated block book-keeping");
-            // log!("Blocked instructions: {:#?}", blocked_dependency_instructions);
-            // log!("Uncreated blocking components: {:#?}", uncreated_blocking_components);
-
-
-            // Note that here we're referring to the parent even though it doesn't exist yet
             depends_on_objects = vec![ObjectName::Component(parent_name)];
             depends_on_state_vars = vec![parent_instruction.state_var];
-
         },
     };
 
 
-    // Scan for blocks due to names of uncreated components
+    Dependency {
+        name: instruction_name,
+        component: component.name().clone().to_owned(),
+        state_var: state_var_name,
+        variables_optional: false,
 
-    let mut blocks: Vec<Block> = vec![];
-    for depends_on_object in depends_on_objects.iter() {
-
-        if let ObjectName::Component(depends_on_component) = depends_on_object {
-
-            if !components.contains_key(depends_on_component) {
-                // Blocked!!
-                log!("{}:{}:{} is blocked by {}", component.name(), state_var_name, instruction_name, depends_on_component);
-
-                blocks.push(Block::UncreatedComponent(UncreatedComponentBlock {
-                    blocked_component: component.name().to_string(),
-                    blocked_state_var: state_var_name,
-                    blocked_dependency_instruction_name: instruction_name,
-                    // blocked_dependency_instruction: instruction.clone(),
-
-                    blocked_by_uncreated_component: depends_on_component.clone(),
-                }));
-
-            }
-
-        }
-    }
-
-
-    if blocks.is_empty() {
-        DependencyResolutionAttempt::Success(Dependency {
-            name: instruction_name,
-            component: component.name().clone().to_owned(),
-            state_var: state_var_name,
-            variables_optional: false,
-    
-            depends_on_objects,
-            depends_on_state_vars,
-        })
-
-    } else {
-        DependencyResolutionAttempt::Blocked(blocks)
+        depends_on_objects,
+        depends_on_state_vars,
     }
 
 

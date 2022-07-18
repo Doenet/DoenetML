@@ -238,38 +238,6 @@ pub enum UpdateRequest {
 
 
 
-// Is there any information that is common across all block types?
-#[derive(Debug)]
-pub enum Block {    
-    UncreatedComponent(UncreatedComponentBlock),
-    // UncreatedComponentStateVar(UncreatedComponentStateVarBlocker)
-    // StandardBlockType()
-}
-
-#[derive(Debug)]
-pub struct UncreatedComponentBlock {
-    pub blocked_component: String,
-    pub blocked_state_var: StateVarName,
-    pub blocked_dependency_instruction_name: InstructionName,
-
-    // pub blocked_dependency_instruction: DependencyInstruction,
-
-    pub blocked_by_uncreated_component: String,
-    // pub 
-}
-
-
-
-pub enum DependencyResolutionAttempt {
-    Success(Dependency),
-    Blocked(Vec<Block>),
-}
-
-
-
-
-
-
 
 
 
