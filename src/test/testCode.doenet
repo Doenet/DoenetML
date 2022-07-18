@@ -1,7 +1,7 @@
 <document>
 
 <textInput />
-<text>hello <number>6</number></text>
+<text hide>hello <number>6</number></text>
 
 
 </document>

@@ -48,11 +48,11 @@ fn text_return_dependency_instructions(
 }
 
 fn text_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> StateVarUpdateInstruction<String> {
 
     let value_state_var = dependency_values.get("text_value_of_value").expect("no value given").get(0).expect("no first element");
-    StateVarUpdateInstruction::SetValue(match &value_state_var.2 {
+    StateVarUpdateInstruction::SetValue(match &value_state_var.value {
         StateVarValue::String(str_val_of_value_sv) => str_val_of_value_sv.to_string(),
         _ => panic!()
     })
@@ -72,7 +72,7 @@ fn value_return_dependency_instructions(
 }
 
 fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> StateVarUpdateInstruction<String> {
 
     // log!("text dep vals: {:#?}", dependency_values);
@@ -81,8 +81,8 @@ fn value_determine_state_var_from_dependencies(
 
     let textlike_children_values = dependency_values.get("value_state_vars_of_my_children").unwrap();
 
-    for (_, _, child_text_value) in textlike_children_values {
-        match child_text_value {
+    for dependency_value in textlike_children_values {
+        match &dependency_value.value {
             StateVarValue::String(text) => {
                 val.push_str(&text);
             },
@@ -148,7 +148,6 @@ impl ComponentSpecificBehavior for Text {
 
     }
 
-
     fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
         match name {
             "value" =>      Some(&self.value),
@@ -160,7 +159,7 @@ impl ComponentSpecificBehavior for Text {
  
             _ => Option::None,
         }        
-    }    
+    }
 
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
         &self.essential_state_vars
@@ -189,8 +188,11 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Box<dyn ComponentLike> {
-        Box::new(Text {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, 
+        // attributes: HashMap<String, StateVarValue>
+    ) -> Box<dyn ComponentLike> {
+
+        let component = Box::new(Text {
             name,
             parent,
             children,
@@ -205,7 +207,10 @@ impl Text {
             disabled: StateVar::new(StateVarValueType::Boolean),
             fixed: StateVar::new(StateVarValueType::Boolean),
 
-        })
+        });
+
+
+        component
     }
 }
 

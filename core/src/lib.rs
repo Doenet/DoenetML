@@ -72,7 +72,7 @@ pub trait ComponentSpecificBehavior: Debug {
 
 
 fn set_state_var(
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
     name: StateVarName,
     val: StateVarValue)
 -> Result<(), String>    
@@ -139,7 +139,7 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     
     for (_, component) in components.iter() {
 
-        let mut dependencies_for_this_component = create_all_dependencies_for_component(&components, component);
+        let mut dependencies_for_this_component = create_all_dependencies_for_component(&components, component.as_ref());
         dependencies.append(&mut dependencies_for_this_component);
         
     }
@@ -156,7 +156,7 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
 pub fn create_all_dependencies_for_component(
     components: &HashMap<String, Box<dyn ComponentLike>>,
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
 ) -> Vec<Dependency>
 
 {
@@ -173,7 +173,7 @@ pub fn create_all_dependencies_for_component(
         
         for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-            let dependency =  create_dependency_from_instruction(&components, &component, state_var_name, dep_instruction, dep_name);
+            let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
 
             dependencies.push(dependency);
 
@@ -188,7 +188,7 @@ pub fn create_all_dependencies_for_component(
 
 fn create_dependency_from_instruction(
     components: &HashMap<String, Box<dyn ComponentLike>>,
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
     state_var_name: StateVarName,
     instruction: DependencyInstruction,
     instruction_name: InstructionName,
@@ -295,20 +295,20 @@ pub fn dependencies_for_component<'a>(
 
 
 /// Ensure a state variable is not stale and can be safely unwrapped.
-pub fn resolve_state_variable(core: &DoenetCore, component: &Box<dyn ComponentLike>, state_var_name: StateVarName) {
+pub fn resolve_state_variable(core: &DoenetCore, component: &dyn ComponentLike, state_var_name: StateVarName) {
 
     // debug_assert!() that none of this state_variable's dep instructions are blocked
 
     // log!("Resolving state variable {}:{}", component.name(), state_var_name);
 
-    let mut dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>> = HashMap::new();
+    let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
     let my_dependencies = dependencies_for_component(core, component.name(), state_var_name);
 
 
     for dep in my_dependencies {
 
-        let mut values_for_this_dep: Vec<(ComponentType, StateVarName, StateVarValue)> = Vec::new();
+        let mut values_for_this_dep: Vec<DependencyValue> = Vec::new();
 
         for depends_on in &dep.depends_on_objects {
 
@@ -317,17 +317,17 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Box<dyn ComponentLi
 
                     // Right now, the only thing you can get from a string is its faked 'value' state var
                     if dep.depends_on_state_vars.contains(&"value") {
-                        values_for_this_dep.push((
-                            "string",
-                            "value",
-                            StateVarValue::String(string.to_string())
-                    ));
+                        values_for_this_dep.push(DependencyValue {
+                            component_type: "string",
+                            state_var_name: "value",
+                            value: StateVarValue::String(string.to_string()),
+                        });
                
                     }
                 },
                 ObjectName::Component(component_name) => {
 
-                    let depends_on_component = &core.components.get(component_name).unwrap();
+                    let depends_on_component = core.components.get(component_name).unwrap().as_ref();
                     for &dep_state_var_name in &dep.depends_on_state_vars {
 
                         // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
@@ -338,11 +338,11 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Box<dyn ComponentLi
 
 
                         if let State::Resolved(state_var_value) = state_var_value {
-                            values_for_this_dep.push((
-                                core.components.get(component_name).unwrap().get_component_type(),
-                                dep_state_var_name,
-                                state_var_value
-                            ));
+                            values_for_this_dep.push(DependencyValue {
+                                component_type: core.components.get(component_name).unwrap().get_component_type(),
+                                state_var_name: dep_state_var_name,
+                                value: state_var_value,
+                            });
     
                         } else {
                             panic!("Tried to access stale state var {}:{} (component type {})", depends_on_component.name(), dep_state_var_name, depends_on_component.get_component_type());
@@ -372,7 +372,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Box<dyn ComponentLi
 
 pub fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
     state_var_name: StateVarName)
 {
 
@@ -390,7 +390,7 @@ pub fn mark_stale_state_var_and_dependencies(
                     // do nothing
                 },
                 ObjectName::Component(dep_comp_name) => {
-                    let dep_component = core.components.get(dep_comp_name).unwrap();
+                    let dep_component = core.components.get(dep_comp_name).unwrap().as_ref();
 
                     for &dep_state_var_name in &dependency.depends_on_state_vars {
 
@@ -404,7 +404,7 @@ pub fn mark_stale_state_var_and_dependencies(
 }
 
 pub fn handle_update_instruction(
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
     name: StateVarName,
     instruction: StateVarUpdateInstruction<StateVarValue>)
 {
@@ -470,7 +470,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
     // log!("Handling action {:#?}", action);
     let component = core.components.get(&action.component_name)
-        .expect(&format!("Can't handle action on {} which doesn't exist", action.component_name));
+        .expect(&format!("Can't handle action on {} which doesn't exist", action.component_name)).as_ref();
 
     let state_var_resolver = | state_var_name | {
         resolve_state_variable(core, component, state_var_name);
@@ -485,7 +485,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
         let requests = definition.request_dependencies_to_update_value(requested_value);
 
         for request in requests {
-            process_update_request(core, &component, name, request);
+            process_update_request(core, component, name, request);
 
         }
     }
@@ -495,7 +495,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
 pub fn process_update_request(
     core: &DoenetCore,
-    component: &Box<dyn ComponentLike>,
+    component: &dyn ComponentLike,
     state_var_name: StateVarName,
     update_request: UpdateRequest) 
 {
@@ -546,16 +546,16 @@ pub fn update_renderers(core: &DoenetCore) -> serde_json::Value {
 
 pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 
-    let root_node = core.components.get(&core.root_component_name).unwrap();
+    let root_node = core.components.get(&core.root_component_name).unwrap().as_ref();
     let mut json_obj: Vec<serde_json::Value> = vec![];
 
-    generate_render_tree_internal(core, &root_node, &mut json_obj);
+    generate_render_tree_internal(core, root_node, &mut json_obj);
 
     serde_json::json!(json_obj)
 }
 
 
-fn generate_render_tree_internal(core: &DoenetCore, component: &Box<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
+fn generate_render_tree_internal(core: &DoenetCore, component: &dyn ComponentLike, json_obj: &mut Vec<serde_json::Value>) {
 
     use serde_json::Value;
     use serde_json::json;
@@ -596,7 +596,7 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Box<dyn Componen
         children.iter().map(|child| match child {
             ComponentChild::Component(comp_name) => {
                 // recurse for children
-                let comp = core.components.get(comp_name).unwrap();
+                let comp = core.components.get(comp_name).unwrap().as_ref();
 
                 generate_render_tree_internal(core, comp, json_obj);
 
@@ -636,7 +636,7 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Box<dyn Componen
 
 pub fn package_subtree_as_json(
     components: &HashMap<String, Box<dyn ComponentLike>>,
-    component: &Box<dyn ComponentLike>) -> serde_json::Value {
+    component: &dyn ComponentLike) -> serde_json::Value {
 
     use serde_json::Value;
     use serde_json::json;
@@ -648,7 +648,7 @@ pub fn package_subtree_as_json(
 
         let child_json = match child {
             ComponentChild::Component(comp_child_name) => {
-                let comp_child = components.get(comp_child_name).unwrap();
+                let comp_child = components.get(comp_child_name).unwrap().as_ref();
                 package_subtree_as_json(components, comp_child)
             }
             ComponentChild::String(str) => Value::String(str.to_string()),
@@ -721,7 +721,7 @@ impl DoenetCore {
         for component in self.components.values() {
             json_components.insert(
                 component.name().to_string(),
-                package_subtree_as_json(&self.components, component)
+                package_subtree_as_json(&self.components, component.as_ref())
             );
         }
     

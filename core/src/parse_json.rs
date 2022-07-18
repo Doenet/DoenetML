@@ -30,6 +30,19 @@ pub struct Action {
     pub args: HashMap<String, StateVarValue>,
 }
 
+fn json_value_to_state_var_value(value: &Value) -> Option<StateVarValue> {
+    match value {
+        Value::Bool(v) => Some(StateVarValue::Boolean(*v)),
+        Value::String(v) => Some(StateVarValue::String(v.clone())),
+        Value::Number(v) => Some(if v.is_i64() {
+            StateVarValue::Integer(v.as_i64().unwrap())
+        } else {
+            StateVarValue::Number(v.as_f64().unwrap())
+        }),
+        _ => None,
+    }  
+}
+
 
 
 pub fn parse_action_from_json(json_action: serde_json::Value)
@@ -146,7 +159,7 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
         return Err("");
     };
 
-    // log!("Root json object {:#?}", root_json_obj);
+    log!("Root json object {:#?}", root_json_obj);
 
     let root_component_name = add_component_from_json(&mut components, root_json_obj, None, &mut component_type_counter)?;
 
@@ -186,15 +199,26 @@ fn add_component_from_json(
     );
 
     
+    let mut attributes: HashMap<String, StateVarValue> = HashMap::new();
+
     if let Value::Object(props_map) = props_value {
 
-        if let Some(name_value) = props_map.get("name") {
-            if let Value::String(name) = name_value {
-                component_name = name.to_string();
+        for (prop_name, prop_value) in props_map {
+            let prop_state_var_value = json_value_to_state_var_value(prop_value).unwrap();
+
+            if prop_name == "name" {
+                if let StateVarValue::String(name) = prop_state_var_value {
+                    component_name = name.to_string();
+                }
+
+
+            } else {
+                attributes.insert(prop_name.to_string(), prop_state_var_value);
             }
+
+
         }
 
-        // Address other props here
     }
 
 
@@ -297,6 +321,8 @@ fn add_component_from_json(
 
         _ => {return Err("Unrecognized component type")}
     };
+
+
 
 
     components.insert(component_name.clone(), component);

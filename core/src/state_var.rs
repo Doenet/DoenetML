@@ -25,7 +25,8 @@ pub enum State<T> {
 }
 
 
-
+/// A special endpoint on the dependency graph which is associated to a particular state var
+/// Usually, an action update sets this value
 pub struct EssentialStateVar {
     value: RefCell<ValueTypeProtector>,
 }

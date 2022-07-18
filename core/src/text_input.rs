@@ -25,6 +25,7 @@ pub struct TextInput {
     // State variables
     value: StateVar,
     hidden: StateVar,
+    hide: StateVar,
     expanded: StateVar,
     size: StateVar,
     immediate_value: StateVar,
@@ -79,6 +80,8 @@ lazy_static! {
                     "value", StateVarValue::String(desired_value)
                 )]
             },
+
+            determine_state_var_from_dependencies: |_| UseEssentialOrDefault,
 
             ..Default::default()
         }));
@@ -137,6 +140,8 @@ lazy_static! {
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
+        state_var_definitions.insert("hide", StateVarVariant::Boolean(Default::default()));
+
 
         return state_var_definitions
     };
@@ -156,6 +161,7 @@ impl ComponentSpecificBehavior for TextInput {
         match name {
             "value" =>          Some(&self.value),
             "hidden" =>         Some(&self.hidden),
+            "hide" =>           Some(&self.hide),
             "immediateValue" => Some(&self.immediate_value),
             "expanded" =>       Some(&self.expanded),
             "width" =>          Some(&self.width),
@@ -192,9 +198,9 @@ impl ComponentSpecificBehavior for TextInput {
 
             "updateValue" => {
 
-                let new_val = resolve_and_retrieve_state_var("immediateValue");
+                let new_val = resolve_and_retrieve_state_var("immediateValue").unwrap_string();
                 
-                let new_val = StateVarValue::String(new_val.inner_string().unwrap().to_uppercase());
+                let new_val = StateVarValue::String(new_val);
 
 
                 HashMap::from([("value", new_val)])
@@ -244,6 +250,7 @@ impl TextInput {
             
             value: StateVar::new(StateVarValueType::String),
             hidden: StateVar::new(StateVarValueType::Boolean),
+            hide: StateVar::new(StateVarValueType::Boolean),
             immediate_value: StateVar::new(StateVarValueType::String),
             size: StateVar::new(StateVarValueType::Number),
             width: StateVar::new(StateVarValueType::Number),

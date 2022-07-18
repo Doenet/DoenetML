@@ -43,14 +43,14 @@ fn value_return_dependency_instructions(
 }
 
 fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> StateVarUpdateInstruction<f64> {
 
 
     // log!("number dependency values: {:#?}", dependency_values);
 
     let first_obj = &dependency_values.get("value").unwrap()[0];
-    let value = &first_obj.2;
+    let value = &first_obj.value;
     
     if let StateVarValue::String(string_val) = value {
         let num_val = string_val.parse::<f64>().unwrap_or(0.0);

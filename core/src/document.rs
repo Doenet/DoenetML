@@ -61,7 +61,7 @@ lazy_static! {
             ..Default::default()
         }));
 
-        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+        state_var_definitions.insert("hidden", StateVarVariant::Boolean(Default::default()));
 
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
 

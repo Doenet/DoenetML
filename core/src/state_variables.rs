@@ -31,6 +31,13 @@ pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
 
 
+/// Passed into determine_state_vars_from_dependencies
+pub struct DependencyValue {
+    pub component_type: ComponentType,
+    pub state_var_name: StateVarName,
+    pub value: StateVarValue,
+}
+
 
 
 // // The only way to make this should be through the constructor
@@ -66,7 +73,7 @@ pub struct StateVarDefinition<T> {
     
     /// Determine the value and return that to core as an update instruction.
     pub determine_state_var_from_dependencies: fn(
-        HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+        HashMap<InstructionName, Vec<DependencyValue>>
     ) -> StateVarUpdateInstruction<T>,
 
     pub for_renderer: bool,
@@ -219,11 +226,14 @@ pub enum UpdateRequest {
 
 
 
-
+/// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]
 pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
-    StateVarVariant::Boolean(StateVarDefinition {
+    use StateVarUpdateInstruction::*;
 
+
+    StateVarVariant::Boolean(StateVarDefinition {
+        
         return_dependency_instructions: |_| {
             let parent_dep_instruct = ParentDependencyInstruction {
                 state_var: "hidden",
@@ -241,9 +251,14 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
         },
 
 
-        determine_state_var_from_dependencies: |_dependency_values| {
-            StateVarUpdateInstruction::SetValue(false)
+        determine_state_var_from_dependencies: |dependency_values| {
+
+            let parent_hidden = dependency_values.get("parent_hidden").unwrap()[0].value.unwrap_bool();
+            let my_hide = dependency_values.get("my_hide").unwrap()[0].value.unwrap_bool();
+
+            SetValue(parent_hidden || my_hide)
         },
+
 
         for_renderer: true,
         ..Default::default()
@@ -284,13 +299,34 @@ impl StateVarValue {
         }
     }
 
-    pub fn inner_string(self) -> Result<String, String> {
-        if let StateVarValue::String(str_val) = self {
-            Ok(str_val)
-        } else {
-            Err(format!("StateVarValue was {}, not String", self.value_type_name()))
+    pub fn unwrap_bool(&self) -> bool {
+        match self {
+            Self::Boolean(val) => *val,
+            _ => panic!(),
         }
     }
+
+    pub fn unwrap_string(&self) -> String {
+        match self {
+            Self::String(val) => val.to_string(),
+            _ => panic!(),
+        }
+    }
+
+    pub fn unwrap_number(&self) -> f64 {
+        match self {
+            Self::Number(val) => *val,
+            _ => panic!(),
+        }
+    }
+
+    pub fn unwrap_integer(&self) -> i64 {
+        match self {
+            Self::Integer(val) => *val,
+            _ => panic!(),
+        }
+    }
+
 }
 
 
@@ -329,7 +365,7 @@ impl StateVarVariant {
     }
     
     pub fn determine_state_var_from_dependencies(&self,
-        dependency_values: HashMap<InstructionName, Vec<(ComponentType, StateVarName, StateVarValue)>>
+        dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
     ) -> StateVarUpdateInstruction<StateVarValue> {
 
         use StateVarUpdateInstruction::*;
