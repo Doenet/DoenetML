@@ -326,13 +326,9 @@ impl ValueTypeProtector {
 
         }
 
-        Result::Ok(())
-
+        Ok(())
     }
 }
-
-
-
 
 
 

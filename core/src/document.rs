@@ -129,7 +129,7 @@ lazy_static! {
 
 impl ComponentSpecificBehavior for Document {
 
-    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant> {
+    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
         &MY_STATE_VAR_DEFINITIONS
     }
 

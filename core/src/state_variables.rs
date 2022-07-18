@@ -1,6 +1,6 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
 
 /// A macro to provide println! style syntax for console.log logging.
@@ -52,6 +52,7 @@ pub type ComponentType = &'static str;
 
 
 /// State variable functions core uses.
+/// The generics force component devs to be consistent with the type of a state variable.
 #[derive(Debug)]
 pub struct StateVarDefinition<T> {
 
@@ -95,7 +96,8 @@ impl<T> Default for StateVarDefinition<T>
         StateVarDefinition {
             state_vars_to_determine_dependencies: || vec![],
             return_dependency_instructions: |_| HashMap::new(),
-            determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(T::default()),
+            determine_state_var_from_dependencies:
+                |_| StateVarUpdateInstruction::SetValue(T::default()),
             for_renderer: false,
             default_value: T::default(),
             has_essential: false,
@@ -109,7 +111,7 @@ impl<T> Default for StateVarDefinition<T>
 }
 
 
-
+/// Since `StateVarDefinition` is generic, this enum is needed to store one in a HashMap.
 #[derive(Debug)]
 pub enum StateVarVariant {
     String(StateVarDefinition<String>),
@@ -122,7 +124,8 @@ pub enum StateVarVariant {
 
 
 
-
+/// This can contain the value of a state variable of any type,
+/// which is useful for function parameters.
 #[derive(Debug, Clone)]
 pub enum StateVarValue {
     String(String),
@@ -133,7 +136,7 @@ pub enum StateVarValue {
 
 
 
-
+/// This stores some of the state variables (or strings) that a state variable depends on.
 #[derive(Debug)]
 pub struct Dependency {
 
@@ -154,7 +157,7 @@ pub struct Dependency {
     pub variables_optional: bool,
 }
 
-/// An object refers to a component or a primitive string
+/// An object refers to either a component or a string child.
 #[derive(Debug, PartialEq)]
 pub enum ObjectName {
     Component(String),
@@ -162,29 +165,7 @@ pub enum ObjectName {
 }
 
 
-#[derive(Debug, Eq, Hash, PartialEq)]
-pub struct StateVarAddress {
-    pub component: String,
-    pub state_var: StateVarName,
-}
-
-impl StateVarAddress {
-    pub fn new(component: String, state_var: StateVarName) -> StateVarAddress {
-        StateVarAddress { component, state_var }
-    }
-}
-
-
-
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub struct DepInstructAddress {
-    pub component_name: String,
-    pub state_var_name: StateVarName,
-    pub instruction_name: InstructionName,
-}
-
-
-
+/// This tells core what dependencies to make.
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child(ChildDependencyInstruction),
@@ -222,7 +203,7 @@ pub enum StateVarUpdateInstruction<T> {
 }
 
 
-
+#[derive(Debug)]
 pub enum UpdateRequest {
     SetEssentialValue(StateVarName, StateVarValue),
 
@@ -241,11 +222,31 @@ pub enum UpdateRequest {
 
 #[allow(non_snake_case)]
 pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
-    StateVarVariant::Boolean(StateVarDefinition { 
-        for_renderer: true,
-        determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
-       ..Default::default()
+    StateVarVariant::Boolean(StateVarDefinition {
 
+        return_dependency_instructions: |_| {
+            let parent_dep_instruct = ParentDependencyInstruction {
+                state_var: "hidden",
+            };
+
+            let from_hide_instruct = StateVarDependencyInstruction {
+                component_name: None,
+                state_var: "hide",
+            };
+
+            HashMap::from([
+                ("parent_hidden", DependencyInstruction::Parent(parent_dep_instruct)),
+                ("my_hide", DependencyInstruction::StateVar(from_hide_instruct)),
+            ])
+        },
+
+
+        determine_state_var_from_dependencies: |_dependency_values| {
+            StateVarUpdateInstruction::SetValue(false)
+        },
+
+        for_renderer: true,
+        ..Default::default()
     })
 }
 
@@ -316,10 +317,14 @@ impl StateVarVariant {
          -> HashMap<InstructionName, DependencyInstruction> {
 
         match self {
-            StateVarVariant::String(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Boolean(def) =>    (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Number(def) =>  (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Integer(def) => (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::String(def) =>
+                (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Boolean(def) =>
+                (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Number(def) =>
+                (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::Integer(def) =>
+                (def.return_dependency_instructions)(prerequisite_state_values),
         }
     }
     
@@ -365,75 +370,70 @@ impl StateVarVariant {
         }
     }
 
-    pub fn request_dependencies_to_update_value(&self, desired_value: StateVarValue) -> Vec<UpdateRequest> {
+    pub fn request_dependencies_to_update_value(&self, desired_value: StateVarValue)
+        -> Vec<UpdateRequest> {
 
         match self {
             StateVarVariant::String(def) =>  {
                 match desired_value {
-                    StateVarValue::String(v) =>     (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to String"),
-                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to String"),
-                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to String"),
+                    StateVarValue::String(v) =>  (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to String"),
+                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to String"),
+                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to String"),
                 }
             },
             StateVarVariant::Integer(def) => {
                 match desired_value {
-                    StateVarValue::Integer(v) =>    (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>     panic!("Requested String state var update to Integer"),
-                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to Integer"),
-                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to Integer"),
+                    StateVarValue::Integer(v) => (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(_) =>  panic!("Requested String state var update to Integer"),
+                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to Integer"),
+                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to Integer"),
                 }
             },
             StateVarVariant::Number(def) =>  {
                 match desired_value {
-                    StateVarValue::Number(v) =>     (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>     panic!("Requested String state var update to Number"),
-                    StateVarValue::Boolean(_) =>    panic!("Requested Boolean state var update to Number"),
-                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to Number"),
+                    StateVarValue::Number(v) =>  (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(_) =>  panic!("Requested String state var update to Number"),
+                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to Number"),
+                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to Number"),
                 }
             },
             StateVarVariant::Boolean(def) => {
                 match desired_value {
-                    StateVarValue::Boolean(v) =>    (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>     panic!("Requested String state var update to Boolean"),
-                    StateVarValue::Number(_) =>     panic!("Requested Number state var update to Boolean"),
-                    StateVarValue::Integer(_) =>    panic!("Requested Integer state var update to Boolean"),
+                    StateVarValue::Boolean(v) => (def.request_dependencies_to_update_value)(v),
+                    StateVarValue::String(_) =>  panic!("Requested String state var update to Boolean"),
+                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to Boolean"),
+                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to Boolean"),
                 }
             }
         }       
     }
 
 
-
     pub fn for_renderer(&self) -> bool {
         match self {
-            StateVarVariant::String(def) =>     def.for_renderer,
-            StateVarVariant::Integer(def) =>    def.for_renderer,
-            StateVarVariant::Number(def) =>     def.for_renderer,
-            StateVarVariant::Boolean(def) =>       def.for_renderer,
+            StateVarVariant::String(def) =>  def.for_renderer,
+            StateVarVariant::Integer(def) => def.for_renderer,
+            StateVarVariant::Number(def) =>  def.for_renderer,
+            StateVarVariant::Boolean(def) => def.for_renderer,
         }
-
     }
 
     pub fn has_essential(&self) -> bool {
         match self {
-            StateVarVariant::String(def) =>     def.has_essential,
-            StateVarVariant::Integer(def) =>    def.has_essential,
-            StateVarVariant::Number(def) =>     def.has_essential,
-            StateVarVariant::Boolean(def) =>       def.has_essential,
+            StateVarVariant::String(def) =>  def.has_essential,
+            StateVarVariant::Integer(def) => def.has_essential,
+            StateVarVariant::Number(def) =>  def.has_essential,
+            StateVarVariant::Boolean(def) => def.has_essential,
         }
-
     }
-
 
     pub fn default_value(&self) -> StateVarValue {
         match self {
-            StateVarVariant::String(def) =>   StateVarValue::String( def.default_value.clone()),
-            StateVarVariant::Integer(def) =>  StateVarValue::Integer(def.default_value),
-            StateVarVariant::Number(def) =>   StateVarValue::Number( def.default_value),
-            StateVarVariant::Boolean(def) =>     StateVarValue::Boolean(def.default_value),
+            StateVarVariant::String(def) =>  StateVarValue::String( def.default_value.clone()),
+            StateVarVariant::Integer(def) => StateVarValue::Integer(def.default_value),
+            StateVarVariant::Number(def) =>  StateVarValue::Number( def.default_value),
+            StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.default_value),
         }
     }
-
-
 }

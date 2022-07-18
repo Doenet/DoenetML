@@ -106,8 +106,6 @@ fn value_determine_state_var_from_dependencies(
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
-        use StateVarUpdateInstruction::*;
-
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
@@ -124,35 +122,7 @@ lazy_static! {
             ..Default::default()
         }));
 
-
-
-
-        state_var_definitions.insert("hidden", StateVarVariant::Boolean(StateVarDefinition {
-            return_dependency_instructions: |_| {
-                let parent_dep_instruct = ParentDependencyInstruction {
-                    state_var: "hidden",
-                };
-
-                let from_hide_instruct = StateVarDependencyInstruction {
-                    component_name: None,
-                    state_var: "hide",
-                };
-
-                HashMap::from([
-                    ("parent_hidden", DependencyInstruction::Parent(parent_dep_instruct)),
-                    ("my_hide", DependencyInstruction::StateVar(from_hide_instruct)),
-                ])
-            },
-
-
-            determine_state_var_from_dependencies: |_dependency_values| {
-                SetValue(false)
-            },
-
-            for_renderer: true,
-            ..Default::default()
-        }));
-
+        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
         state_var_definitions.insert("hide", StateVarVariant::Boolean(StateVarDefinition {
             ..Default::default()
@@ -172,7 +142,7 @@ lazy_static! {
 
 impl ComponentSpecificBehavior for Text {
 
-    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant> {
+    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
 
         &MY_STATE_VAR_DEFINITIONS
 

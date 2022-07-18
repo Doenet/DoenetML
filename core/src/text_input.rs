@@ -147,7 +147,7 @@ lazy_static! {
 
 impl ComponentSpecificBehavior for TextInput {
 
-    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant> {
+    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
         &MY_STATE_VAR_DEFINITIONS        
     }
     

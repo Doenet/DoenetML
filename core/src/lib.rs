@@ -7,6 +7,10 @@ pub mod number;
 pub mod text_input;
 pub mod document;
 
+<<<<<<< HEAD
+=======
+use std::cell::RefCell;
+>>>>>>> 1836a8a (cleanup hidden definition and static map)
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -30,7 +34,7 @@ pub struct DoenetCore {
 pub trait ComponentSpecificBehavior: Debug {
 
     /// This function should never use self in the body.
-    fn state_variable_instructions(&self) -> &HashMap<StateVarName, StateVarVariant>;
+    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
@@ -56,7 +60,7 @@ pub trait ComponentSpecificBehavior: Debug {
     }
 
 
-    /// Lower case name.
+    /// Return the name (lower case).
     /// This function should never use self in the body.
     fn get_component_type(&self) -> &'static str;
 
@@ -145,7 +149,7 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     }
 
 
-    // Return Doenet Core structure
+    // Return the DoenetCore structure
     DoenetCore {
         components,
         dependencies,
