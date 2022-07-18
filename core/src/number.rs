@@ -1,6 +1,4 @@
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
 
 use core_derive::ComponentLike;
 
@@ -18,8 +16,8 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 #[derive(Debug, ComponentLike)]
 pub struct Number {
     pub name: String,
-    pub parent: RefCell<String>,
-    pub children: RefCell<Vec<ComponentChild>>,
+    pub parent: Option<String>,
+    pub children: Vec<ComponentChild>,
 
     // Note that this is not behind a RefCell, so we can't change the hashmap
     // once the component is created
@@ -132,11 +130,11 @@ impl ComponentSpecificBehavior for Number {
 
 
 impl Number {
-    pub fn create(name: String, parent: String, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Rc<dyn ComponentLike> {
-        Rc::new(Number {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Box<dyn ComponentLike> {
+        Box::new(Number {
             name,
-            parent: RefCell::new(parent),
-            children: RefCell::new(vec![]),
+            parent,
+            children,
 
             essential_state_vars,
             

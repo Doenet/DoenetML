@@ -1,9 +1,7 @@
 
 
-use crate::state_variables::*;
 
 use serde_json::Value;
-
 
 use crate::ComponentLike;
 use crate::ComponentChild;
@@ -16,13 +14,15 @@ use crate::number::Number;
 use crate::text_input::TextInput;
 
 use std::collections::HashMap;
-use std::rc::Rc;
 
+use crate::state_variables::*;
+
+use crate::log;
 
 
 #[derive(Debug)]
 pub struct Action {
-    // pub component: Rc<dyn ComponentLike>,
+    // pub component: Box<dyn ComponentLike>,
     pub component_name: String,
     pub action_name: String,
     // pub action_func: fn(HashMap<String, StateVarValue>)
@@ -35,7 +35,7 @@ pub struct Action {
 pub fn parse_action_from_json(json_action: serde_json::Value)
     -> Result<Action, String> {
 
-    // let component: Rc<dyn ComponentLike>;
+    // let component: Box<dyn ComponentLike>;
     let component_name: String;
     let action_name: String;
     // let action_func;
@@ -47,7 +47,7 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
         let component_name_obj = map.get("componentName").expect("no componentName for action");
         if let Value::String(component_name_str) = component_name_obj {
             component_name = component_name_str.to_string();
-            // component = Rc::clone(core.components.get(&component_name).unwrap());
+            // component = Box::clone(core.components.get(&component_name).unwrap());
         } else {
             return Err("componentName should be a string".to_string())
         }
@@ -104,18 +104,15 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(json_input: &serde_json::Value)
-    -> Result<(HashMap<String, Rc<dyn ComponentLike>>, String), &str>
+    -> Result<(HashMap<String, Box<dyn ComponentLike>>, String), &str>
 {
 
     // log!("Parse json input {:#?}", json_input);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
-    let mut components: HashMap<String, Rc<dyn ComponentLike>> = HashMap::new();
-    let mut root_component_name: Option<String> = None;
-
+    let mut components: HashMap<String, Box<dyn ComponentLike>> = HashMap::new();
 
     let trimmed_json_input = if let serde_json::Value::Array(json_array) = json_input {
-
 
         // Assuming that the outer tag is a <document>
 
@@ -129,7 +126,9 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
         }
 
         if trimmed_array.len() == 1 {
+
             trimmed_array[0]
+
         } else {
 
 
@@ -141,156 +140,170 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
     };
 
 
-
-    add_json_subtree_to_components(&mut components, trimmed_json_input, "", &mut component_type_counter, &mut root_component_name)?;
-
-    if let Some(actual_root_name) = root_component_name {
-
-        // Ok((components, actual_root_name))
-
-        Ok((components, actual_root_name))
-
+    let root_json_obj = if let Value::Object(map) = trimmed_json_input {
+        map
     } else {
-        Err( "json empty" )
-    }
+        return Err("");
+    };
+
+    // log!("Root json object {:#?}", root_json_obj);
+
+    let root_component_name = add_component_from_json(&mut components, root_json_obj, None, &mut component_type_counter)?;
+
+
+    Ok((components, root_component_name))
+
 }
 
 
-fn add_json_subtree_to_components(
-    components: &mut HashMap<String, Rc<dyn ComponentLike>>,
-    json_obj: &serde_json::Value,
-    parent_name: &str,
+
+fn add_component_from_json(
+    components: &mut HashMap<String, Box<dyn ComponentLike>>,
+    json_obj: &serde_json::Map<String, Value>,
+    parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
-    root_component_name: &mut Option<String>
-) -> Result<(), &'static str> {
 
-    match json_obj {
-        serde_json::Value::Array(value_vec) => {
-            // log!("array");
-            for value in value_vec.iter() {
-                add_json_subtree_to_components(components, value, parent_name, component_type_counter, root_component_name)?;
+
+    // Ok(component_name)
+) -> Result<String, &'static str> {
+
+
+    let component_type_value = json_obj.get("componentType").unwrap();
+
+    let component_type = if let Value::String(str) = component_type_value {
+        str
+    }  else {
+        return Err("componentType is not a string");
+    };
+
+
+    let count = *component_type_counter.get(component_type).unwrap_or(&0);
+    component_type_counter.insert(component_type.to_string(), count + 1);
+    let mut component_name =  format!("/_{}{}", component_type, count + 1);
+
+    let props_value = json_obj.get("props").expect(
+        &format!("No JSON 'props' field for this {} component", component_type_value)
+    );
+
+    
+    if let Value::Object(props_map) = props_value {
+
+        if let Some(name_value) = props_map.get("name") {
+            if let Value::String(name) = name_value {
+                component_name = name.to_string();
             }
-        },
-        
-        Value::String(string_value) => {
-            if let Some(parent) = components.get(parent_name) {
-                parent.add_as_child(ComponentChild::String(string_value.to_string()));
-            }
-        },
+        }
 
-        serde_json::Value::Object(map) => {
-            // log!("object");
-            let component_type_value = map.get("componentType").unwrap();
-
-            if let Value::String(component_type) = component_type_value {
-
-                let count = *component_type_counter.get(component_type).unwrap_or(&0);
-                component_type_counter.insert(component_type.to_string(), count + 1);
-                let mut component_name =  format!("/_{}{}", component_type, count + 1);
-
-                let props_value = map.get("props").expect(
-                    &format!("No JSON 'props' field for this {} component", component_type_value)
-                );
-                
-                if let Value::Object(props_map) = props_value {
-                    if let Some(name_value) = props_map.get("name") {
-                        if let Value::String(name) = name_value {
-                            component_name = name.to_string();
-                        }
-                    }
-
-                    // Address other props here
-                }
-
-
-                // Make sure to do this before you recurse to the next Value::Object
-                if root_component_name.is_none() {
-                    *root_component_name = Option::Some(component_name.clone());
-                }
-
-                // Before we create the component, we have to figure out which of its 
-                // state vars are essential state vars. Note that we're technically doing more
-                // work than we have to because we're doing all the work for each component,
-                // rather than each component type
-
-                let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type.as_str() {
-                    "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
-                    "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
-                    "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
-                    "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
-
-                    _ => {return Err("Unrecognized component type")}
-                };
-
-                let mut essential_state_vars = HashMap::new();
-                for (&state_var_name, state_var_def) in state_var_definitions {
-                    
-                    if state_var_def.has_essential() {
-                        essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
-                            
-                            // TODO: This is hacky. We should create the actual StateVars first
-                            match state_var_def {
-                                StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
-                                StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
-                                StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
-                                StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
-                            }
-                        ));
-                    }
-                }
-                
-                
-
-                let component = match component_type.as_str() {
-
-                    "text" => Text::create(
-                        component_name.clone(),
-                        parent_name.to_string(),
-                        essential_state_vars,
-                    ),
-                    "number" => Number::create(
-                        component_name.clone(),
-                        parent_name.to_string(),
-                        essential_state_vars,
-                    ),
-                    "textInput" => TextInput::create(
-                        component_name.clone(),
-                        parent_name.to_string(),
-                        essential_state_vars,
-                    ),
-                    "document" => Document::create(
-                        component_name.clone(),
-                        parent_name.to_string(),
-                        essential_state_vars,
-                    ),
-
-                    // Add components to this match here
- 
-                    _ => {return Err("Unrecognized component type")}
-                };
-
-                if let Some(parent) = components.get(parent_name) {
-                    parent.clone().add_as_child(
-                        ComponentChild::Component(Rc::clone(&component)));
-                }
-
-                let children_value = map.get("children").expect("No children JSON field");
-
-                components.insert(component_name.clone(), component);
-
-
-
-                add_json_subtree_to_components(components, children_value, &component_name, component_type_counter, root_component_name)?;
-
-            } else {
-                return Err("componentType is not a string");
-            }
-        },
-
-        _ => {
-            // log!("other");
-        },
+        // Address other props here
     }
-    Ok(())
+
+
+    // Before we create the component, we have to figure out which of its 
+    // state vars are essential state vars. Note that we're technically doing more
+    // work than we have to because we're doing all the work for each component,
+    // rather than each component type
+
+    let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type.as_str() {
+        "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
+        "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
+        "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
+        "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
+
+        _ => {return Err("Unrecognized component type")}
+    };
+
+    let mut essential_state_vars = HashMap::new();
+    for (&state_var_name, state_var_def) in state_var_definitions {
+        
+        if state_var_def.has_essential() {
+            essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
+                
+                // TODO: This is hacky. We should create the actual StateVars first
+                match state_var_def {
+                    StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
+                    StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
+                    StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
+                    StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
+                }
+            ));
+        }
+    }
+
+
+    // Recurse the children
+
+
+    let mut children: Vec<ComponentChild> = vec![];
+    let children_value = json_obj.get("children").expect("No children JSON field");
+
+    if let Value::Array(children_array) = children_value {
+
+        for child_value in children_array {
+
+            match child_value {
+                Value::String(child_string) => {
+                    children.push(ComponentChild::String(child_string.to_string()));
+
+                },
+
+                Value::Object(child_json_obj) => {
+                    let child_name = add_component_from_json(components, child_json_obj, Some(component_name.clone()), component_type_counter)?;
+
+                    children.push(ComponentChild::Component(child_name));
+                },
+
+                _ => {
+                    return Err("JSON array should have only objects and strings");
+                }
+            }
+
+        }
+    } else {
+        return Err("JSON children field should be an array")
+    }
+
+
+
+    // Create this component
+
+    let component = match component_type.as_str() {
+
+        "text" => Text::create(
+            component_name.clone(),
+            parent_name,
+            children,
+            essential_state_vars,
+        ),
+        "number" => Number::create(
+            component_name.clone(),
+            parent_name,
+            children,
+            essential_state_vars,
+        ),
+        "textInput" => TextInput::create(
+            component_name.clone(),
+            parent_name,
+            children,
+            essential_state_vars,
+        ),
+        "document" => Document::create(
+            component_name.clone(),
+            parent_name,
+            children,
+            essential_state_vars,
+        ),
+
+        // Add components to this match here
+
+        _ => {return Err("Unrecognized component type")}
+    };
+
+
+    components.insert(component_name.clone(), component);
+
+
+    Ok(component_name)
+
 }
+
 

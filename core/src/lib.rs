@@ -7,9 +7,7 @@ pub mod number;
 pub mod text_input;
 pub mod document;
 
-use std::{cell::RefCell};
 use std::collections::HashMap;
-use std::rc::Rc;
 use std::fmt::Debug;
 
 use state_variables::*;
@@ -21,7 +19,7 @@ use crate::parse_json::Action;
 
 #[derive(Debug)]
 pub struct DoenetCore {
-    pub components: HashMap<String, Rc<dyn ComponentLike>>,
+    pub components: HashMap<String, Box<dyn ComponentLike>>,
     pub dependencies: Vec<Dependency>,
     pub root_component_name: String,
 }
@@ -74,7 +72,7 @@ pub trait ComponentSpecificBehavior: Debug {
 
 
 fn set_state_var(
-    component: &Rc<dyn ComponentLike>,
+    component: &Box<dyn ComponentLike>,
     name: StateVarName,
     val: StateVarValue)
 -> Result<(), String>    
@@ -92,10 +90,10 @@ fn set_state_var(
 /// Struct that derive this must have the correct fields: name, parent, and child.
 pub trait ComponentLike: ComponentSpecificBehavior {
     fn name(&self) -> &str;
-    fn children(&self) -> &RefCell<Vec<ComponentChild>>;
-    fn parent(&self) -> &RefCell<String>;
-    fn parent_name(&self) -> Option<String>;
-    fn add_as_child(&self, child: ComponentChild);
+    fn children(&self) -> &Vec<ComponentChild>;
+    // fn parent(&self) -> &RefCell<String>;
+    fn parent(&self) -> &Option<String>;
+    // fn add_as_child(&self, child: ComponentChild);
 
 }
 
@@ -121,14 +119,16 @@ pub enum ObjectTraitName {
 
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum ComponentChild {
     String(String),
-    Component(Rc<dyn ComponentLike>),
+    Component(String),
 }
 
 
 pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
+
+    // log!("Received json {:#?}", json_deserialized);
 
     let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
         .expect("Error parsing json for components");
@@ -139,7 +139,7 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     
     for (_, component) in components.iter() {
 
-        let mut dependencies_for_this_component = create_all_dependencies_for_component(component);
+        let mut dependencies_for_this_component = create_all_dependencies_for_component(&components, component);
         dependencies.append(&mut dependencies_for_this_component);
         
     }
@@ -155,7 +155,8 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
 
 
 pub fn create_all_dependencies_for_component(
-    component: &Rc<dyn ComponentLike>,
+    components: &HashMap<String, Box<dyn ComponentLike>>,
+    component: &Box<dyn ComponentLike>,
 ) -> Vec<Dependency>
 
 {
@@ -172,7 +173,7 @@ pub fn create_all_dependencies_for_component(
         
         for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-            let dependency =  create_dependency_from_instruction(&component, state_var_name, dep_instruction, dep_name);
+            let dependency =  create_dependency_from_instruction(&components, &component, state_var_name, dep_instruction, dep_name);
 
             dependencies.push(dependency);
 
@@ -186,8 +187,8 @@ pub fn create_all_dependencies_for_component(
 
 
 fn create_dependency_from_instruction(
-
-    component: &Rc<dyn ComponentLike>,
+    components: &HashMap<String, Box<dyn ComponentLike>>,
+    component: &Box<dyn ComponentLike>,
     state_var_name: StateVarName,
     instruction: DependencyInstruction,
     instruction_name: InstructionName,
@@ -211,14 +212,16 @@ fn create_dependency_from_instruction(
         },
 
         DependencyInstruction::Child(child_instruction) => {
-            let all_children = component.children().borrow();
+            let all_children = component.children();
 
             let mut depends_on_children: Vec<ObjectName> = vec![];
             for child in all_children.iter() {
 
                 for desired_child_type in child_instruction.desired_children.iter() {
                     match child {
-                        ComponentChild::Component(child_component) => {
+                        ComponentChild::Component(child_component_name) => {
+                            let child_component = components.get(child_component_name).unwrap();
+
                             if child_component.get_trait_names().contains(desired_child_type) {
                                 // If not already in list, add it to the list
                                 if !depends_on_children.contains(&ObjectName::Component(child_component.name().to_owned())) {
@@ -247,7 +250,7 @@ fn create_dependency_from_instruction(
         DependencyInstruction::Parent(parent_instruction) => {
             // Parent doesn't exist yet
 
-            let parent_name = component.parent_name().expect(&format!(
+            let parent_name = component.parent().clone().expect(&format!(
                 "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",component.name(), state_var_name, instruction_name
             ));
 
@@ -292,7 +295,7 @@ pub fn dependencies_for_component<'a>(
 
 
 /// Ensure a state variable is not stale and can be safely unwrapped.
-pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLike>, state_var_name: StateVarName) {
+pub fn resolve_state_variable(core: &DoenetCore, component: &Box<dyn ComponentLike>, state_var_name: StateVarName) {
 
     // debug_assert!() that none of this state_variable's dep instructions are blocked
 
@@ -369,7 +372,7 @@ pub fn resolve_state_variable(core: &DoenetCore, component: &Rc<dyn ComponentLik
 
 pub fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
-    component: &Rc<dyn ComponentLike>,
+    component: &Box<dyn ComponentLike>,
     state_var_name: StateVarName)
 {
 
@@ -401,7 +404,7 @@ pub fn mark_stale_state_var_and_dependencies(
 }
 
 pub fn handle_update_instruction(
-    component: &Rc<dyn ComponentLike>,
+    component: &Box<dyn ComponentLike>,
     name: StateVarName,
     instruction: StateVarUpdateInstruction<StateVarValue>)
 {
@@ -492,7 +495,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
 pub fn process_update_request(
     core: &DoenetCore,
-    component: &Rc<dyn ComponentLike>,
+    component: &Box<dyn ComponentLike>,
     state_var_name: StateVarName,
     update_request: UpdateRequest) 
 {
@@ -552,7 +555,7 @@ pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 }
 
 
-fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
+fn generate_render_tree_internal(core: &DoenetCore, component: &Box<dyn ComponentLike>, json_obj: &mut Vec<serde_json::Value>) {
 
     use serde_json::Value;
     use serde_json::json;
@@ -589,10 +592,12 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
 
 
     let children_instructions = if component.should_render_children() {
-        let children = component.children().borrow();
+        let children = component.children();
         children.iter().map(|child| match child {
-            ComponentChild::Component(comp) => {
+            ComponentChild::Component(comp_name) => {
                 // recurse for children
+                let comp = core.components.get(comp_name).unwrap();
+
                 generate_render_tree_internal(core, comp, json_obj);
 
                 let mut child_actions = serde_json::Map::new();
@@ -629,34 +634,37 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &Rc<dyn Component
 
 
 
-pub fn package_subtree_as_json(component: &Rc<dyn ComponentLike>) -> serde_json::Value {
+pub fn package_subtree_as_json(
+    components: &HashMap<String, Box<dyn ComponentLike>>,
+    component: &Box<dyn ComponentLike>) -> serde_json::Value {
 
     use serde_json::Value;
     use serde_json::json;
 
     let mut children: Vec<Value> = vec![];
 
-    let children_normal_ref = &*component.children().borrow();
+    let children_normal_ref = &*component.children();
     for child in children_normal_ref {
 
         let child_json = match child {
-            ComponentChild::Component(comp_child) => package_subtree_as_json(comp_child),
+            ComponentChild::Component(comp_child_name) => {
+                let comp_child = components.get(comp_child_name).unwrap();
+                package_subtree_as_json(components, comp_child)
+            }
             ComponentChild::String(str) => Value::String(str.to_string()),
         };
         children.push(child_json);
     }
 
-
-    // let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
-
-    // my_json_props.insert("name".into(), json!(component.name()));
-    // my_json_props.insert("parent".into(), json!(*component.parent().borrow()));
-    // my_json_props.insert("children".into(), Value::Array(children));  
     
     let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
 
     my_json_props.insert("children".to_string(), Value::Array(children));
-    my_json_props.insert("parent".to_string(), Value::String(component.parent_name().unwrap_or_default()));
+    my_json_props.insert("parent".to_string(),
+        match component.parent() {
+            None => Value::Null,
+            Some(parent_name) => Value::String(parent_name.into()),
+    });
     my_json_props.insert("type".to_string(), Value::String(component.get_component_type().to_string()));
 
 
@@ -713,7 +721,7 @@ impl DoenetCore {
         for component in self.components.values() {
             json_components.insert(
                 component.name().to_string(),
-                package_subtree_as_json(component)
+                package_subtree_as_json(&self.components, component)
             );
         }
     

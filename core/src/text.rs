@@ -1,5 +1,3 @@
-use std::rc::Rc;
-use std::cell::RefCell;
 use std::collections::HashMap;
 
 
@@ -18,8 +16,8 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 #[derive(Debug, ComponentLike)]
 pub struct Text {
     pub name: String,
-    pub parent: RefCell<String>,
-    pub children: RefCell<Vec<ComponentChild>>,
+    pub parent: Option<String>,
+    pub children: Vec<ComponentChild>,
 
     // Note that this is not behind a RefCell, so we can't change the hashmap
     // once the component is created    
@@ -147,7 +145,7 @@ lazy_static! {
             },
 
 
-            determine_state_var_from_dependencies: |dependency_values| {
+            determine_state_var_from_dependencies: |_dependency_values| {
                 SetValue(false)
             },
 
@@ -221,11 +219,11 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: String, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Rc<dyn ComponentLike> {
-        Rc::new(Text {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Box<dyn ComponentLike> {
+        Box::new(Text {
             name,
-            parent: RefCell::new(parent),
-            children: RefCell::new(vec![]),
+            parent,
+            children,
 
             essential_state_vars,
 
@@ -250,35 +248,14 @@ impl Text {
 //     fn name(&self) -> &str {
 //         &self.name
 //     }
-//     fn children(&self) -> &RefCell<Vec<ComponentChild>> {
+//     fn children(&self) -> &Vec<ComponentChild> {
 //         // Is this really the best way to do this?
 //         &self.children
 //     }
-//     fn parent(&self) -> &RefCell<String> {
-//         // Is this really the best way to do this?
+
+//     fn parent(&self) -> &Option<String> {
 //         &self.parent
 //     }
-
-
-//     fn parent_name(&self) -> Option<String> {
-//         let parent_name = self.parent.borrow().to_string();
-//         if parent_name.is_empty() {
-//             Option::None
-//         } else {
-//             Option::Some(parent_name)
-//         }
-//     }
-
-//     fn add_as_child(&self, child: ComponentChild) {
-//         if let ComponentChild::Component(ref child_component) = child {
-//             let child_parent = child_component.parent();
-//             let mut child_parent_cell = child_parent.borrow_mut();
-//             *child_parent_cell = self.name.clone();
-//         }
-
-//         self.children.borrow_mut().push(child); 
-//     }
-
 // }
 
 

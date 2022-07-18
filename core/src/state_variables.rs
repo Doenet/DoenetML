@@ -1,6 +1,6 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{collections::HashMap};
 
-use crate::{ObjectTraitName, ComponentLike};
+use crate::{ObjectTraitName};
 
 
 /// A macro to provide println! style syntax for console.log logging.
@@ -31,10 +31,6 @@ pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
 
 
-#[derive(Debug, PartialEq)]
-pub struct UncreatedComponentName(pub String);
-
-
 
 
 // // The only way to make this should be through the constructor
@@ -42,7 +38,7 @@ pub struct UncreatedComponentName(pub String);
 // pub struct ComponentName(String);
 
 // impl ComponentName {
-//     pub fn new(name: &str, components: &HashMap<String, Rc<dyn ComponentLike>>) -> Result<Self, String> {
+//     pub fn new(name: &str, components: &HashMap<String, Box<dyn ComponentLike>>) -> Result<Self, String> {
         
 //         if components.contains_key(name) {
 //             Ok(ComponentName(name.to_string()))

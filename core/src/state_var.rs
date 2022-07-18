@@ -1,7 +1,7 @@
 
 use crate::state_variables::*;
 
-// Why we need RefCells: the Rc does not allow mutability in the thing it wraps.
+// Why we need RefCells: the Box does not allow mutability in the thing it wraps.
 // If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
 
 use std::{cell::RefCell, fmt};
