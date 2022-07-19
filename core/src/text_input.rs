@@ -171,11 +171,6 @@ impl ComponentSpecificBehavior for TextInput {
         &MY_ATTRIBUTE_DEFINITIONS
     }
     
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }
-
-
     fn action_names(&self) -> Vec<&'static str> {
         vec!["updateImmediateValue", "updateValue"]
     }
@@ -217,8 +212,6 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 
-
-    fn get_component_type(&self) -> &'static str { "textInput" }
 
     fn should_render_children(&self) -> bool { false }
 

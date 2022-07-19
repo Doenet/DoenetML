@@ -148,13 +148,6 @@ impl ComponentSpecificBehavior for Document {
         &MY_ATTRIBUTE_DEFINITIONS
     }
 
-    
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }    
-
-    fn get_component_type(&self) -> &'static str { "document" }
-
     fn should_render_children(&self) -> bool { true }
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {

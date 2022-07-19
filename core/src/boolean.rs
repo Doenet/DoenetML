@@ -64,13 +64,6 @@ impl ComponentSpecificBehavior for Boolean {
         &MY_ATTRIBUTE_DEFINITIONS
     }
 
-    
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }    
-
-    fn get_component_type(&self) -> &'static str { "boolean" }
-
     fn should_render_children(&self) -> bool { false }
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {

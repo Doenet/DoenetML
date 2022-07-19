@@ -101,12 +101,6 @@ impl ComponentSpecificBehavior for Number {
     fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
         &MY_ATTRIBUTE_DEFINITIONS
     }
-    
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }    
-
-    fn get_component_type(&self) -> &'static str { "number" }
 
     fn should_render_children(&self) -> bool { false }
 

@@ -28,6 +28,25 @@ pub struct DoenetCore {
 }
 
 
+/// This trait holds equivalent functions for every component, suitable for a derive macro.
+/// To derive this, a struct must 
+///     - have the fields: name, parent, child, and essential_state_vars
+///     - have fields of type StateVar
+pub trait ComponentLike: ComponentSpecificBehavior {
+
+    fn name(&self) -> &str;
+
+    fn children(&self) -> &Vec<ComponentChild>;
+
+    fn parent(&self) -> &Option<String>;
+
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
+
+    /// Return the name (lower case).
+    fn get_component_type(&self) -> &'static str;
+}
 
 /// This trait holds functions that are defined differently for every component.
 /// None of these functions should use the self parameter.
@@ -55,9 +74,6 @@ pub trait ComponentSpecificBehavior: Debug {
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
-
-
     // fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
     //     &phf_map! {}
     // }
@@ -73,12 +89,6 @@ pub trait ComponentSpecificBehavior: Debug {
 
         HashMap::new()
     }
-
-
-    /// Return the name (lower case).
-    /// This function should never use self in the body.
-    fn get_component_type(&self) -> &'static str;
-
 
     /// This function should never use self in the body.
     fn should_render_children(&self) -> bool;
@@ -190,21 +200,6 @@ fn set_state_var(
 
     state_var.set_value(val)
         
-}
-
-
-/// This trait holds functions equivalent for every component, suitable for a derive macro.
-/// To derive this, a struct must 
-///     - have the fields: name, parent, and child
-///     - have fields of type StateVar
-pub trait ComponentLike: ComponentSpecificBehavior {
-    fn name(&self) -> &str;
-    fn children(&self) -> &Vec<ComponentChild>;
-    // fn parent(&self) -> &RefCell<String>;
-    fn parent(&self) -> &Option<String>;
-    // fn add_as_child(&self, child: ComponentChild);
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
-
 }
 
 

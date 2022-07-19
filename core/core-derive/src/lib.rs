@@ -30,11 +30,10 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
                     .map(|f| &f.ident);
 
                 // Convert string names to camel case
-                let state_var_strings = state_var_fields.clone()
-                    .map(|x| -> Option<Ident> {match x {
-                        Some(i) => Some(Ident::new(&i.to_string().to_case(Case::Camel), Span::call_site())),
-                        None => None
-                    }});
+                let state_var_strings = state_var_fields.clone().map(|x| x.clone().map(ident_camel_case));
+
+                // Convert struct name to camel case
+                let component_string = ident_camel_case(name.clone());
 
                 quote! {
                     impl ComponentLike for #name {
@@ -51,11 +50,19 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
                             &self.parent
                         }
 
+                        fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+                            &self.essential_state_vars
+                        }
+
+                        fn get_component_type(&self) -> &'static str {
+                            stringify!(#component_string)
+                        }
+
                         fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
                             match name {
                                 #(
-                                    stringify!(#state_var_strings) => Some(&self.#state_var_fields)
-                                ),* ,
+                                    stringify!(#state_var_strings) => Some(&self.#state_var_fields),
+                                )*
                                 _ => None,
                             }
                         }
@@ -68,4 +75,8 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
         _ => panic!("only structs supported"),
     };
     output.into()
+}
+
+fn ident_camel_case(ident: Ident) -> Ident {
+    Ident::new(&ident.to_string().to_case(Case::Camel), Span::call_site())
 }
