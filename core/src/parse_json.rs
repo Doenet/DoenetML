@@ -3,15 +3,11 @@
 
 use serde_json::Value;
 
+use crate::COMPONENT_TYPES;
 use crate::ComponentLike;
 use crate::ComponentChild;
-use crate::document::Document;
-use crate::state_var::EssentialStateVar;
-use crate::state_var::StateVar;
+use crate::create_new_component_of_type;
 use crate::state_var::StateVarValueType;
-use crate::text::Text;
-use crate::number::Number;
-use crate::text_input::TextInput;
 
 use std::collections::HashMap;
 
@@ -117,7 +113,7 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(json_input: &serde_json::Value)
-    -> Result<(HashMap<String, Box<dyn ComponentLike>>, String), &str>
+    -> Result<(HashMap<String, Box<dyn ComponentLike>>, String), String>
 {
 
     // log!("Parse json input {:#?}", json_input);
@@ -145,7 +141,7 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
         } else {
 
 
-            return Err("Json object did not have one root");
+            return Err("Json object did not have one root".into());
         }
 
     } else {
@@ -156,7 +152,7 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
     let root_json_obj = if let Value::Object(map) = trimmed_json_input {
         map
     } else {
-        return Err("");
+        return Err("".into());
     };
 
     log!("Root json object {:#?}", root_json_obj);
@@ -173,21 +169,23 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
 fn add_component_from_json(
     components: &mut HashMap<String, Box<dyn ComponentLike>>,
     json_obj: &serde_json::Map<String, Value>,
-    parent_name: Option<String>,
+    parent_name: Option<&str>,
     component_type_counter: &mut HashMap<String, u32>,
 
 
     // Ok(component_name)
-) -> Result<String, &'static str> {
+) -> Result<String, String> {
 
 
     let component_type_value = json_obj.get("componentType").unwrap();
 
-    let component_type = if let Value::String(str) = component_type_value {
+    let component_type_string: &str = if let Value::String(str) = component_type_value {
         str
     }  else {
-        return Err("componentType is not a string");
+        return Err("componentType is not a string".into());
     };
+
+    let component_type: ComponentType = COMPONENT_TYPES.get(component_type_string).expect(&format!("Unrecognized component type {}", component_type_string));
 
 
     let count = *component_type_counter.get(component_type).unwrap_or(&0);
@@ -198,60 +196,102 @@ fn add_component_from_json(
         &format!("No JSON 'props' field for this {} component", component_type_value)
     );
 
-    
-    let mut attributes: HashMap<String, StateVarValue> = HashMap::new();
+
+
+    // let mut possible_attributes: HashMap<String, AttributeValue> = HashMap::new();
+
+    let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
 
     if let Value::Object(props_map) = props_value {
 
+
+        let attribute_definitions: &HashMap<AttributeName, AttributeDefinition> = match component_type {
+            "text" =>       &crate::text::MY_ATTRIBUTE_DEFINITIONS,
+            "number" =>     &crate::number::MY_ATTRIBUTE_DEFINITIONS,
+            "textInput" =>  &crate::text_input::MY_ATTRIBUTE_DEFINITIONS,
+            "document" =>   &crate::document::MY_ATTRIBUTE_DEFINITIONS,
+            "boolean" =>    &crate::boolean::MY_ATTRIBUTE_DEFINITIONS,
+
+            _ => {
+                return Err("Invalid component type".to_string());
+            }
+        };
+
+        // Create a hashmap from lowercase valid names to normalized valid names
+        let mut attr_lowercase_to_normalized: HashMap<String, AttributeName> = HashMap::new();
+        for attr_name in attribute_definitions.keys() {
+            attr_lowercase_to_normalized.insert(attr_name.to_lowercase(), attr_name);
+        }
+        let attr_lowercase_to_normalized = attr_lowercase_to_normalized;
+
+
+
+
         for (prop_name, prop_value) in props_map {
-            let prop_state_var_value = json_value_to_state_var_value(prop_value).unwrap();
 
             if prop_name == "name" {
-                if let StateVarValue::String(name) = prop_state_var_value {
+
+                // let prop_state_var_value = json_value_to_state_var_value(prop_value).unwrap();
+                if let Value::String(name) = prop_value {
                     component_name = name.to_string();
                 }
 
 
-            } else {
-                attributes.insert(prop_name.to_string(), prop_state_var_value);
+            } else if let Some(attribute_name) = attr_lowercase_to_normalized.get(&prop_name.to_lowercase()) {
+                // Ensure that prop is valid attribute
+
+                let attribute_def = attribute_definitions.get(attribute_name).unwrap();
+        
+                match attribute_def {
+                    AttributeDefinition::Component(attr_comp_type) => {
+
+                        // Make sure this is unique
+                        let attr_comp_name = format!("__attr__{}:{}", component_name, attribute_name);
+
+                        let attribute_component = create_new_component_of_type(attr_comp_type, &attr_comp_name, Some(&component_name), vec![], HashMap::new())?;
+
+                        attributes.insert(attribute_name, Attribute::Component(attr_comp_name.clone()));
+
+                        components.insert(attr_comp_name, attribute_component);
+
+
+                    },
+        
+                    AttributeDefinition::Primitive(attr_primitive_type) => {
+
+                        match attr_primitive_type {
+                            StateVarValueType::Boolean => {
+
+                                if let Value::Bool(bool_value) = prop_value {
+                                    attributes.insert(
+                                        attribute_name,
+                                        Attribute::Primitive(StateVarValue::Boolean(*bool_value))
+                                    );
+
+
+
+                                } else {
+                                    return Err("Attribute of recognized name has different type".into());
+                                }
+
+                            },
+
+                            _ => {
+                                log!("Primitive non-bool attribute definition does nothing right now");
+                            }
+                        }
+        
+                    }
+                }
+
+                
             }
 
 
         }
-
     }
 
 
-    // Before we create the component, we have to figure out which of its 
-    // state vars are essential state vars. Note that we're technically doing more
-    // work than we have to because we're doing all the work for each component,
-    // rather than each component type
-
-    let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type.as_str() {
-        "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
-        "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
-        "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
-        "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
-
-        _ => {return Err("Unrecognized component type")}
-    };
-
-    let mut essential_state_vars = HashMap::new();
-    for (&state_var_name, state_var_def) in state_var_definitions {
-        
-        if state_var_def.has_essential() {
-            essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
-                
-                // TODO: This is hacky. We should create the actual StateVars first
-                match state_var_def {
-                    StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
-                    StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
-                    StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
-                    StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
-                }
-            ));
-        }
-    }
 
 
     // Recurse the children
@@ -271,58 +311,27 @@ fn add_component_from_json(
                 },
 
                 Value::Object(child_json_obj) => {
-                    let child_name = add_component_from_json(components, child_json_obj, Some(component_name.clone()), component_type_counter)?;
+                    let child_name = add_component_from_json(components, child_json_obj, Some(&component_name), component_type_counter)?;
 
                     children.push(ComponentChild::Component(child_name));
                 },
 
                 _ => {
-                    return Err("JSON array should have only objects and strings");
+                    return Err("JSON array should have only objects and strings".into());
                 }
             }
 
         }
     } else {
-        return Err("JSON children field should be an array")
+        return Err("JSON children field should be an array".into())
     }
 
 
 
+
     // Create this component
-
-    let component = match component_type.as_str() {
-
-        "text" => Text::create(
-            component_name.clone(),
-            parent_name,
-            children,
-            essential_state_vars,
-        ),
-        "number" => Number::create(
-            component_name.clone(),
-            parent_name,
-            children,
-            essential_state_vars,
-        ),
-        "textInput" => TextInput::create(
-            component_name.clone(),
-            parent_name,
-            children,
-            essential_state_vars,
-        ),
-        "document" => Document::create(
-            component_name.clone(),
-            parent_name,
-            children,
-            essential_state_vars,
-        ),
-
-        // Add components to this match here
-
-        _ => {return Err("Unrecognized component type")}
-    };
-
-
+    
+    let component = create_new_component_of_type(component_type, &component_name, parent_name, children, attributes)?;
 
 
     components.insert(component_name.clone(), component);

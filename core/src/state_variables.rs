@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::ObjectTraitName;
+use crate::{ObjectTraitName, state_var::StateVarValueType};
 
 
 /// A macro to provide println! style syntax for console.log logging.
@@ -29,6 +29,7 @@ macro_rules! log {
 pub type StateVarName = &'static str;
 pub type InstructionName = &'static str;
 pub type ComponentType = &'static str;
+pub type AttributeName = &'static str;
 
 
 /// Passed into determine_state_vars_from_dependencies
@@ -37,24 +38,6 @@ pub struct DependencyValue {
     pub state_var_name: StateVarName,
     pub value: StateVarValue,
 }
-
-
-
-// // The only way to make this should be through the constructor
-// #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-// pub struct ComponentName(String);
-
-// impl ComponentName {
-//     pub fn new(name: &str, components: &HashMap<String, Box<dyn ComponentLike>>) -> Result<Self, String> {
-        
-//         if components.contains_key(name) {
-//             Ok(ComponentName(name.to_string()))
-//         } else {
-//             Err(format!("{} is not a component name", name))
-//         }
-
-//     }
-// }
 
 
 
@@ -118,6 +101,20 @@ impl<T> Default for StateVarDefinition<T>
 }
 
 
+
+pub enum AttributeDefinition {
+    Component(ComponentType),
+    Primitive(StateVarValueType),
+}
+
+#[derive(Debug)]
+pub enum Attribute {
+    Component(String),
+    Primitive(StateVarValue)
+}
+
+
+
 /// Since `StateVarDefinition` is generic, this enum is needed to store one in a HashMap.
 #[derive(Debug)]
 pub enum StateVarVariant {
@@ -140,6 +137,7 @@ pub enum StateVarValue {
     Integer(i64),
     Boolean(bool),
 }
+
 
 
 

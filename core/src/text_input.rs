@@ -150,10 +150,25 @@ lazy_static! {
 }
 
 
+lazy_static! {
+    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
+        let mut attribute_definitions = HashMap::new();
+
+        // attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
+
+        attribute_definitions
+    };
+}
+
+
 impl ComponentSpecificBehavior for TextInput {
 
     fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
         &MY_STATE_VAR_DEFINITIONS        
+    }
+
+    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+        &MY_ATTRIBUTE_DEFINITIONS
     }
     
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {

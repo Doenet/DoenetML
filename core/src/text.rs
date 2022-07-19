@@ -23,6 +23,8 @@ pub struct Text {
     // once the component is created    
     pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 
+    pub attributes: HashMap<AttributeName, Attribute>,
+
     // State variables
     value: StateVar,
     hidden: StateVar,
@@ -139,6 +141,16 @@ lazy_static! {
     };
 }
 
+lazy_static! {
+    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
+        let mut attribute_definitions = HashMap::new();
+
+        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
+
+        attribute_definitions
+    };
+}
+
 
 impl ComponentSpecificBehavior for Text {
 
@@ -147,6 +159,11 @@ impl ComponentSpecificBehavior for Text {
         &MY_STATE_VAR_DEFINITIONS
 
     }
+
+    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+        &MY_ATTRIBUTE_DEFINITIONS
+    }
+
 
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
         &self.essential_state_vars
@@ -175,7 +192,7 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, 
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>
         // attributes: HashMap<String, StateVarValue>
     ) -> Box<dyn ComponentLike> {
 
@@ -185,6 +202,7 @@ impl Text {
             children,
 
             essential_state_vars,
+            attributes,
 
             value: StateVar::new(StateVarValueType::String),
             text: StateVar::new(StateVarValueType::String),
@@ -196,12 +214,13 @@ impl Text {
 
         });
 
+        // for (attribute_name, attribute_value) in attributes {
+
+        // }
 
         component
     }
 }
-
-
 
 
 

@@ -6,14 +6,17 @@ pub mod text;
 pub mod number;
 pub mod text_input;
 pub mod document;
+pub mod boolean;
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
 use state_variables::*;
-use state_var::{StateVar, State, EssentialStateVar};
+use state_var::{StateVar, State, EssentialStateVar, StateVarValueType};
 
 use crate::parse_json::Action;
+
+use lazy_static::lazy_static;
 
 
 
@@ -28,10 +31,27 @@ pub struct DoenetCore {
 
 /// This trait holds functions that are defined differently for every component.
 /// None of these functions should use the self parameter.
+lazy_static! {
+
+    pub static ref COMPONENT_TYPES: HashSet<ComponentType> = HashSet::from([
+        "text",
+        "number",
+        "textInput",
+        "document",
+        "boolean",
+    ]);
+    
+}
+
+
+
+
 pub trait ComponentSpecificBehavior: Debug {
 
     /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
+
+    fn attribute_instructions(&self) -> &'static HashMap<&'static str, AttributeDefinition>;
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
@@ -68,6 +88,93 @@ pub trait ComponentSpecificBehavior: Debug {
 
 }
 
+
+
+pub fn create_new_component_of_type(component_type: ComponentType, name: &str, parent_name: Option<&str>, children: Vec<ComponentChild>, attributes: HashMap<AttributeName, Attribute>) -> Result<Box<dyn ComponentLike>, String> {
+
+    // Before we create the component, we have to figure out which of its 
+    // state vars are essential state vars. Note that we're technically doing more
+    // work than we have to because we're doing all the work for each component,
+    // rather than each component type
+
+    let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type {
+        "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
+        "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
+        "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
+        "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
+        "boolean" =>    &crate::boolean::MY_STATE_VAR_DEFINITIONS,
+
+        _ => {
+            return Err(format!("Unrecognized component type {}", component_type));
+        }
+    };
+
+    let mut essential_state_vars = HashMap::new();
+    for (&state_var_name, state_var_def) in state_var_definitions {
+        
+        if state_var_def.has_essential() {
+            essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
+                
+                // TODO: This is hacky. We should create the actual StateVars first
+                match state_var_def {
+                    StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
+                    StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
+                    StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
+                    StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
+                }
+            ));
+        }
+    }
+
+
+    let name = name.to_string();
+    let parent_name = if let Some(par_name) = parent_name {
+        Some(par_name.to_string())
+    } else {
+        None
+    };
+
+    match component_type {
+
+        "text" => Ok(text::Text::create(
+            name,
+            parent_name,
+            children,
+            essential_state_vars,
+            attributes
+        )),
+        "number" => Ok(number::Number::create(
+            name,
+            parent_name,
+            children,
+            essential_state_vars,
+        )),
+        "textInput" => Ok(text_input::TextInput::create(
+            name,
+            parent_name,
+            children,
+            essential_state_vars,
+        )),
+        "document" => Ok(document::Document::create(
+            name,
+            parent_name,
+            children,
+            essential_state_vars,
+        )),
+        "boolean" => Ok(boolean::Boolean::create(
+            name,
+            parent_name,
+            children,
+            essential_state_vars,
+        )),
+
+        // Add components to this match here
+
+        _ => {
+            return Err(format!("Unrecognized component type {}", component_type));
+        }
+    }
+}
 
 
 fn set_state_var(
@@ -120,8 +227,6 @@ pub enum ObjectTraitName {
 }
 
 
-
-
 #[derive(Debug)]
 pub enum ComponentChild {
     String(String),
@@ -136,7 +241,26 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
         .expect("Error parsing json for components");
 
-    let (components, root_component_name) = possible_components_tree;
+    let (mut components, root_component_name) = possible_components_tree;
+
+
+    // Create attribute components for all normal components
+
+    // let mut attribute_components = vec![];
+
+    // for (_, component) in components.iter() {
+    //     let new_attr_comps = create_all_attributes_for_component(component.as_ref());
+    //     attribute_components.extend(new_attr_comps);
+    // }   
+
+    // for (attr_comp_name, attr_comp) in attribute_components.into_iter() {
+    //     components.insert(attr_comp_name, attr_comp);
+    // }
+
+
+
+
+
 
     let mut dependencies: Vec<Dependency> = vec![];
     
@@ -147,6 +271,8 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
         
     }
 
+    log!("components {:#?}", components);
+
 
     // Return the DoenetCore structure
     DoenetCore {
@@ -155,6 +281,38 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
         root_component_name
     }
 }
+
+
+pub fn create_all_attributes_for_component(
+    // components: &HashMap<String, Box<dyn ComponentLike>>,
+    component: &dyn ComponentLike,
+) -> Vec<(String, Box<dyn ComponentLike>)> {
+
+    let mut attribute_components = vec![];
+
+    let attribute_definitions = component.attribute_instructions();
+
+    for (&attribute_name, definition) in attribute_definitions {
+
+        match definition {
+            AttributeDefinition::Component(component_type) => {
+                let name = format!("__attr__{}:{}", component.name(), attribute_name);
+                let new_component = create_new_component_of_type(component_type, &name, Some(component.name()), vec![], HashMap::new()).expect("");
+
+                attribute_components.push((name, new_component));
+            },
+
+            AttributeDefinition::Primitive(_) => {
+                log!("Primitive attribute does nothing right now");
+            }
+        }
+        
+    }
+
+    attribute_components
+}
+
+
 
 
 pub fn create_all_dependencies_for_component(
@@ -173,7 +331,7 @@ pub fn create_all_dependencies_for_component(
 
         // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
         let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
-        
+
         for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
             let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
@@ -732,4 +890,3 @@ impl DoenetCore {
         serde_json::Value::Object(json_components)
     }
 }
-
