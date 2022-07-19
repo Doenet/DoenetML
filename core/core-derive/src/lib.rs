@@ -1,7 +1,10 @@
+extern crate proc_macro2;
 
 use proc_macro::TokenStream;
+use proc_macro2::Span;
 use quote::quote;
-use syn::{self, FieldsNamed};
+use syn::{self, FieldsNamed, Ident};
+use convert_case::{Case, Casing};
 
 #[proc_macro_derive(ComponentLike)]
 pub fn component_like_derive(input: TokenStream) -> TokenStream {
@@ -14,7 +17,7 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
         syn::Data::Struct(s) => match &s.fields {
             syn::Fields::Named(FieldsNamed { named, .. }) => {
 
-                // get names of fields of type StateVar struct
+                // Get names of fields of type StateVar struct
                 let state_var_fields = named
                     .iter()
                     .filter(|f| match &f.ty {
@@ -25,6 +28,13 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
                         _ => false,
                     })
                     .map(|f| &f.ident);
+
+                // Convert string names to camel case
+                let state_var_strings = state_var_fields.clone()
+                    .map(|x| -> Option<Ident> {match x {
+                        Some(i) => Some(Ident::new(&i.to_string().to_case(Case::Camel), Span::call_site())),
+                        None => None
+                    }});
 
                 quote! {
                     impl ComponentLike for #name {
@@ -44,7 +54,7 @@ pub fn component_like_derive(input: TokenStream) -> TokenStream {
                         fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
                             match name {
                                 #(
-                                    stringify!(#state_var_fields) => Some(&self.#state_var_fields)
+                                    stringify!(#state_var_strings) => Some(&self.#state_var_fields)
                                 ),* ,
                                 _ => None,
                             }
