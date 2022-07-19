@@ -15,13 +15,15 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 #[derive(Debug, ComponentLike)]
 pub struct Document {
-    pub name: String,
-    pub parent: Option<String>,
-    pub children: Vec<ComponentChild>,
+    name: String,
+    parent: Option<String>,
+    children: Vec<ComponentChild>,
 
     // Note that this is not behind a RefCell, so we can't change the hashmap
     // once the component is created
-    pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+
+    attributes: HashMap<AttributeName, Attribute>,
 
     // State variables
     submit_label: StateVar,
@@ -131,7 +133,7 @@ lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
 
-        // attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
+        attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
 
         attribute_definitions
     };
@@ -148,6 +150,10 @@ impl ComponentSpecificBehavior for Document {
         &MY_ATTRIBUTE_DEFINITIONS
     }
 
+    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
+        &self.attributes
+    }
+
     fn should_render_children(&self) -> bool { true }
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
@@ -162,13 +168,14 @@ impl ComponentSpecificBehavior for Document {
 
 
 impl Document {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
         Box::new(Document {
             name,
             parent,
             children,
 
             essential_state_vars,
+            attributes,
             
             submit_label: StateVar::new(StateVarValueType::String),
             submit_label_no_correctness: StateVar::new(StateVarValueType::String),

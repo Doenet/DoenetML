@@ -7,7 +7,6 @@ use crate::state_variables::*;
 use std::{cell::RefCell, fmt};
 
 
-
 pub struct StateVar {
     // This field should remain private
 
@@ -16,6 +15,17 @@ pub struct StateVar {
 
     state_ref: RefCell<ValueTypeProtector>,
 }
+
+
+// impl Default for StateVar {
+
+//     fn default() -> Self {
+//         StateVar {
+//             state_ref: RefCell::new(),
+//         }
+//     }
+// }
+
 
 
 #[derive(Debug)]

@@ -288,14 +288,14 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 
 impl StateVarValue {
-    fn value_type_name(&self) -> &'static str {
-        match self {
-            Self::String(_) => "String",
-            Self::Boolean(_) => "Boolean",
-            Self::Integer(_) => "Integer",
-            Self::Number(_) => "Number",
-        }
-    }
+    // fn value_type_name(&self) -> &'static str {
+    //     match self {
+    //         Self::String(_) => "String",
+    //         Self::Boolean(_) => "Boolean",
+    //         Self::Integer(_) => "Integer",
+    //         Self::Number(_) => "Number",
+    //     }
+    // }
 
     pub fn unwrap_bool(&self) -> bool {
         match self {

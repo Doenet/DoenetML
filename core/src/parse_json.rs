@@ -198,7 +198,7 @@ fn add_component_from_json(
 
 
 
-    // let mut possible_attributes: HashMap<String, AttributeValue> = HashMap::new();
+    // Attributes
 
     let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
 

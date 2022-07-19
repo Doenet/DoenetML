@@ -48,8 +48,6 @@ pub trait ComponentLike: ComponentSpecificBehavior {
     fn get_component_type(&self) -> &'static str;
 }
 
-/// This trait holds functions that are defined differently for every component.
-/// None of these functions should use the self parameter.
 lazy_static! {
 
     pub static ref COMPONENT_TYPES: HashSet<ComponentType> = HashSet::from([
@@ -64,13 +62,17 @@ lazy_static! {
 
 
 
-
+/// This trait holds functions that are defined differently for every component.
+/// None of these functions should use the self parameter.
 pub trait ComponentSpecificBehavior: Debug {
 
     /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
 
     fn attribute_instructions(&self) -> &'static HashMap<&'static str, AttributeDefinition>;
+
+    fn attributes(&self) -> &HashMap<AttributeName, Attribute>;
+
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
@@ -158,24 +160,28 @@ pub fn create_new_component_of_type(component_type: ComponentType, name: &str, p
             parent_name,
             children,
             essential_state_vars,
+            attributes
         )),
         "textInput" => Ok(text_input::TextInput::create(
             name,
             parent_name,
             children,
             essential_state_vars,
+            attributes
         )),
         "document" => Ok(document::Document::create(
             name,
             parent_name,
             children,
             essential_state_vars,
+            attributes
         )),
         "boolean" => Ok(boolean::Boolean::create(
             name,
             parent_name,
             children,
             essential_state_vars,
+            attributes
         )),
 
         // Add components to this match here
@@ -236,23 +242,7 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
         .expect("Error parsing json for components");
 
-    let (mut components, root_component_name) = possible_components_tree;
-
-
-    // Create attribute components for all normal components
-
-    // let mut attribute_components = vec![];
-
-    // for (_, component) in components.iter() {
-    //     let new_attr_comps = create_all_attributes_for_component(component.as_ref());
-    //     attribute_components.extend(new_attr_comps);
-    // }   
-
-    // for (attr_comp_name, attr_comp) in attribute_components.into_iter() {
-    //     components.insert(attr_comp_name, attr_comp);
-    // }
-
-
+    let (components, root_component_name) = possible_components_tree;
 
 
 
@@ -277,35 +267,6 @@ pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
     }
 }
 
-
-pub fn create_all_attributes_for_component(
-    // components: &HashMap<String, Box<dyn ComponentLike>>,
-    component: &dyn ComponentLike,
-) -> Vec<(String, Box<dyn ComponentLike>)> {
-
-    let mut attribute_components = vec![];
-
-    let attribute_definitions = component.attribute_instructions();
-
-    for (&attribute_name, definition) in attribute_definitions {
-
-        match definition {
-            AttributeDefinition::Component(component_type) => {
-                let name = format!("__attr__{}:{}", component.name(), attribute_name);
-                let new_component = create_new_component_of_type(component_type, &name, Some(component.name()), vec![], HashMap::new()).expect("");
-
-                attribute_components.push((name, new_component));
-            },
-
-            AttributeDefinition::Primitive(_) => {
-                log!("Primitive attribute does nothing right now");
-            }
-        }
-        
-    }
-
-    attribute_components
-}
 
 
 
@@ -795,7 +756,10 @@ pub fn package_subtree_as_json(
     component: &dyn ComponentLike) -> serde_json::Value {
 
     use serde_json::Value;
+    use serde_json::Map;
     use serde_json::json;
+
+    // Children
 
     let mut children: Vec<Value> = vec![];
 
@@ -811,6 +775,15 @@ pub fn package_subtree_as_json(
         };
         children.push(child_json);
     }
+
+
+    // Attributes
+
+    let mut attributes: Map<String, Value> = Map::new();
+
+    // for attribute in component.att
+
+
 
     
     let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();

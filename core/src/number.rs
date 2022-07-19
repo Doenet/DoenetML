@@ -15,13 +15,15 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 #[derive(Debug, ComponentLike)]
 pub struct Number {
-    pub name: String,
-    pub parent: Option<String>,
-    pub children: Vec<ComponentChild>,
+    name: String,
+    parent: Option<String>,
+    children: Vec<ComponentChild>,
 
     // Note that this is not behind a RefCell, so we can't change the hashmap
     // once the component is created
-    pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+
+    attributes: HashMap<AttributeName, Attribute>,
 
     // State variables
     value: StateVar,
@@ -85,7 +87,7 @@ lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
 
-        // attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
+        attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
 
         attribute_definitions
     };
@@ -100,6 +102,10 @@ impl ComponentSpecificBehavior for Number {
 
     fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
         &MY_ATTRIBUTE_DEFINITIONS
+    }
+
+    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
+        &self.attributes
     }
 
     fn should_render_children(&self) -> bool { false }
@@ -130,13 +136,14 @@ impl ComponentSpecificBehavior for Number {
 
 
 impl Number {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
         Box::new(Number {
             name,
             parent,
             children,
 
             essential_state_vars,
+            attributes,
             
             value: StateVar::new(StateVarValueType::Number),
             hidden: StateVar::new(StateVarValueType::Boolean),

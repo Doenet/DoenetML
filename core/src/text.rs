@@ -13,17 +13,19 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 
 
+
+
 #[derive(Debug, ComponentLike)]
 pub struct Text {
-    pub name: String,
-    pub parent: Option<String>,
-    pub children: Vec<ComponentChild>,
+    name: String,
+    parent: Option<String>,
+    children: Vec<ComponentChild>,
 
     // Note that this is not behind a RefCell, so we can't change the hashmap
     // once the component is created    
-    pub essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 
-    pub attributes: HashMap<AttributeName, Attribute>,
+    attributes: HashMap<AttributeName, Attribute>,
 
     // State variables
     value: StateVar,
@@ -162,6 +164,10 @@ impl ComponentSpecificBehavior for Text {
 
     fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
         &MY_ATTRIBUTE_DEFINITIONS
+    }
+
+    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
+        &self.attributes
     }
 
     fn should_render_children(&self) -> bool { false }
