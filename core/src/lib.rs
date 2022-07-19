@@ -48,19 +48,6 @@ pub trait ComponentLike: ComponentSpecificBehavior {
     fn get_component_type(&self) -> &'static str;
 }
 
-lazy_static! {
-
-    pub static ref COMPONENT_TYPES: HashSet<ComponentType> = HashSet::from([
-        "text",
-        "number",
-        "textInput",
-        "document",
-        "boolean",
-    ]);
-    
-}
-
-
 
 /// This trait holds functions that are defined differently for every component.
 /// None of these functions should use the self parameter.
@@ -101,6 +88,17 @@ pub trait ComponentSpecificBehavior: Debug {
 }
 
 
+lazy_static! {
+
+    pub static ref COMPONENT_TYPES: HashSet<ComponentType> = HashSet::from([
+        "text",
+        "number",
+        "textInput",
+        "document",
+        "boolean",
+    ]);
+    
+}
 
 pub fn create_new_component_of_type(component_type: ComponentType, name: &str, parent_name: Option<&str>, children: Vec<ComponentChild>, attributes: HashMap<AttributeName, Attribute>) -> Result<Box<dyn ComponentLike>, String> {
 
@@ -761,19 +759,26 @@ pub fn package_subtree_as_json(
 
     // Children
 
-    let mut children: Vec<Value> = vec![];
+    let mut children: Map<String, Value> = Map::new();
 
-    let children_normal_ref = &*component.children();
-    for child in children_normal_ref {
+    for (child_num, child) in component.children().iter().enumerate() {
 
-        let child_json = match child {
+        let label;
+        let child_json;
+        match child {
             ComponentChild::Component(comp_child_name) => {
                 let comp_child = components.get(comp_child_name).unwrap().as_ref();
-                package_subtree_as_json(components, comp_child)
+                child_json = package_subtree_as_json(components, comp_child);
+                label = format!("{} {}", child_num, comp_child_name);
             }
-            ComponentChild::String(str) => Value::String(str.to_string()),
+            ComponentChild::String(str) => {
+                child_json = Value::String(str.to_string());
+                label = format!("{}", child_num);
+            }
         };
-        children.push(child_json);
+
+
+        children.insert(label, child_json);
     }
 
 
@@ -781,14 +786,32 @@ pub fn package_subtree_as_json(
 
     let mut attributes: Map<String, Value> = Map::new();
 
-    // for attribute in component.att
+    for (attribute_name, attribute) in component.attributes() {
+
+        let attribute_json = match attribute {
+            Attribute::Component(component_name) => {
+                Value::String(component_name.to_string())
+            },
+            Attribute::Primitive(state_var_value) => {
+                match state_var_value {
+                    StateVarValue::String(v) => json!(v),
+                    StateVarValue::Number(v) => json!(v),
+                    StateVarValue::Integer(v) => json!(v),
+                    StateVarValue::Boolean(v) => json!(v),
+                }
+            }
+        };
+
+        attributes.insert(attribute_name.to_string(), attribute_json);
+    }
 
 
 
     
     let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
 
-    my_json_props.insert("children".to_string(), Value::Array(children));
+    my_json_props.insert("children".to_string(), json!(children));
+    my_json_props.insert("attributes".to_string(), json!(attributes));
     my_json_props.insert("parent".to_string(),
         match component.parent() {
             None => Value::Null,
