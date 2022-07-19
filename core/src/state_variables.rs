@@ -176,6 +176,7 @@ pub enum DependencyInstruction {
     Child(ChildDependencyInstruction),
     StateVar(StateVarDependencyInstruction),
     Parent(ParentDependencyInstruction),
+    Attribute(AttributeDependencyInstruction),
 }
 
 #[derive(Clone, Debug)]
@@ -197,6 +198,11 @@ pub struct ParentDependencyInstruction {
     // pub parent_of_component: Option<String>,
 
     pub state_var: StateVarName,
+}
+
+#[derive(Debug, Clone)]
+pub struct AttributeDependencyInstruction {
+    pub attribute_name: AttributeName,
 }
 
 
@@ -237,14 +243,13 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
                 state_var: "hidden",
             };
 
-            let from_hide_instruct = StateVarDependencyInstruction {
-                component_name: None,
-                state_var: "hide",
+            let from_hide_instruct = AttributeDependencyInstruction {
+                attribute_name: "hide"
             };
 
             HashMap::from([
                 ("parent_hidden", DependencyInstruction::Parent(parent_dep_instruct)),
-                ("my_hide", DependencyInstruction::StateVar(from_hide_instruct)),
+                ("my_hide", DependencyInstruction::Attribute(from_hide_instruct)),
             ])
         },
 
@@ -252,9 +257,15 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
         determine_state_var_from_dependencies: |dependency_values| {
 
             let parent_hidden = dependency_values.get("parent_hidden").unwrap()[0].value.unwrap_bool();
-            let my_hide = dependency_values.get("my_hide").unwrap()[0].value.unwrap_bool();
+            let my_hide = dependency_values.get("my_hide").unwrap();
 
-            SetValue(parent_hidden || my_hide)
+            let hide = if my_hide.is_empty() {
+                false
+            } else {
+                my_hide[0].value.unwrap_bool()
+            };
+
+            SetValue(parent_hidden || hide)
         },
 
 

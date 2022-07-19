@@ -1,6 +1,6 @@
 <document>
 
-<textInput />
+<textInput/>
 <text hide>hello <number>6</number></text>
 
 

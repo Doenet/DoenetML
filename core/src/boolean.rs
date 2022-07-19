@@ -26,7 +26,8 @@ pub struct Boolean {
     attributes: HashMap<AttributeName, Attribute>,
 
     // State variables
-    // value: StateVar,
+    value: StateVar,
+
     hidden: StateVar,
 }
 
@@ -34,9 +35,17 @@ pub struct Boolean {
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+        use StateVarUpdateInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
         
-        // state_var_definitions.insert("value", StateVarVariant::Number(Default::default()));
+        state_var_definitions.insert("value", StateVarVariant::Boolean(StateVarDefinition {
+            
+            // For now, bool is always true!!!
+
+            determine_state_var_from_dependencies: |_| SetValue(true),
+            ..Default::default()
+        }));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
@@ -49,7 +58,7 @@ lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
 
-        attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
+        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
 
         attribute_definitions
     };
@@ -109,7 +118,7 @@ impl Boolean {
             essential_state_vars,
             attributes,
             
-            // value: StateVar::new(StateVarValueType::Number),
+            value: StateVar::new(StateVarValueType::Boolean),
             hidden: StateVar::new(StateVarValueType::Boolean),
         })
     }

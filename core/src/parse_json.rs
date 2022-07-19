@@ -285,6 +285,8 @@ fn add_component_from_json(
                 }
 
                 
+            } else {
+                return Err(format!("{} does not have the attribute {}", component_name, prop_name));
             }
 
 

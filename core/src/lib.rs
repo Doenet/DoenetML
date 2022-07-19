@@ -313,6 +313,8 @@ fn create_dependency_from_instruction(
     let depends_on_objects: Vec<ObjectName>;
     let depends_on_state_vars: Vec<StateVarName>;
 
+    log!("Creating dependency {}:{}:{}", component.name(), state_var_name, instruction_name);
+
 
     match &instruction {
 
@@ -372,6 +374,45 @@ fn create_dependency_from_instruction(
             depends_on_objects = vec![ObjectName::Component(parent_name)];
             depends_on_state_vars = vec![parent_instruction.state_var];
         },
+
+
+        DependencyInstruction::Attribute(attribute_instruction) => {
+
+            log!("attribute instruction {:#?}", attribute_instruction);
+            log!("component attributes {:#?}", component.attributes());
+
+            if let Some(attribute) = component.attributes().get(attribute_instruction.attribute_name) {
+                match attribute {
+                    Attribute::Component(attr_comp_name) => {
+                        depends_on_objects = vec![ObjectName::Component(attr_comp_name.to_string())];
+
+                        // hard code this for now
+                        depends_on_state_vars = vec!["value"];
+                    },
+
+                    Attribute::Primitive(attr_primitive_value) => {
+                        depends_on_objects = vec![ObjectName::String(
+
+                            // for now, convert it to a string
+                            match attr_primitive_value {
+                                StateVarValue::String(v) => v.to_string(),
+                                StateVarValue::Boolean(v) => v.to_string(),
+                                StateVarValue::Number(v) => v.to_string(),
+                                StateVarValue::Integer(v) => v.to_string(),
+                            }
+                        )];
+
+                        depends_on_state_vars = vec![];
+                    }
+                }
+
+            } else {
+                // Attribute doesn't exist
+                depends_on_objects = vec![];
+                depends_on_state_vars = vec![];
+            }
+
+        }
     };
 
 

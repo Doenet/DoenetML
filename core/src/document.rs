@@ -133,7 +133,7 @@ lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
 
-        attribute_definitions.insert("hide", AttributeDefinition::Component("bool"));
+        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
 
         attribute_definitions
     };

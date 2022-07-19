@@ -34,7 +34,7 @@ pub struct Text {
     fixed: StateVar,
     // text is same as value state var, but this one gets sent to rendere
     text: StateVar,
-    hide: StateVar,
+    // hide: StateVar,
 
 }
 
@@ -128,9 +128,9 @@ lazy_static! {
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
-        state_var_definitions.insert("hide", StateVarVariant::Boolean(StateVarDefinition {
-            ..Default::default()
-        }));
+        // state_var_definitions.insert("hide", StateVarVariant::Boolean(StateVarDefinition {
+        //     ..Default::default()
+        // }));
 
 
 
@@ -207,7 +207,7 @@ impl Text {
             text: StateVar::new(StateVarValueType::String),
 
             hidden: StateVar::new(StateVarValueType::Boolean),
-            hide: StateVar::new(StateVarValueType::Boolean),
+            // hide: StateVar::new(StateVarValueType::Boolean),
             disabled: StateVar::new(StateVarValueType::Boolean),
             fixed: StateVar::new(StateVarValueType::Boolean),
 
