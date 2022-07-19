@@ -31,6 +31,7 @@ core/target
 core/Cargo.lock
 
 core/core-derive/Cargo.lock
+core/core-derive/target
 
 rust-doenet-core-wasm/target
 rust-doenet-core-wasm/pkg

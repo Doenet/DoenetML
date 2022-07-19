@@ -156,21 +156,6 @@ impl ComponentSpecificBehavior for TextInput {
         &MY_STATE_VAR_DEFINITIONS        
     }
     
-
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
-        match name {
-            "value" =>          Some(&self.value),
-            "hidden" =>         Some(&self.hidden),
-            "hide" =>           Some(&self.hide),
-            "immediateValue" => Some(&self.immediate_value),
-            "expanded" =>       Some(&self.expanded),
-            "width" =>          Some(&self.width),
-            "size" =>           Some(&self.size),
- 
-            _ => None,
-        }        
-    }
-
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
         &self.essential_state_vars
     }

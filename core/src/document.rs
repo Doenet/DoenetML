@@ -132,26 +132,6 @@ impl ComponentSpecificBehavior for Document {
     fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
         &MY_STATE_VAR_DEFINITIONS
     }
-
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
-        match name {
-            "submitLabel" => Some(&self.submit_label),
-            "submitLabelNoCorrectness" => Some(&self.submit_label_no_correctness),
-            "hidden" => Some(&self.hidden),
-            "disabled" => Some(&self.disabled),
-            "fixed" => Some(&self.fixed),
-            // "titleChildName" => Some(&self.title_child_name),
-            "title" => Some(&self.title),
-            "level" => Some(&self.level),
-            "justSubmitted" => Some(&self.just_submitted),
-            "showCorrectness" => Some(&self.show_correctness),
-            "creditAchieved" => Some(&self.credit_achieved),
-            "createSubmitAllButton" => Some(&self.create_submit_all_button),
-            "suppressAnswerSubmitButtons" => Some(&self.suppress_answer_submit_buttons),
- 
-            _ => None,
-        }        
-    }
     
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
         &self.essential_state_vars

@@ -148,19 +148,6 @@ impl ComponentSpecificBehavior for Text {
 
     }
 
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar> {
-        match name {
-            "value" =>      Some(&self.value),
-            "hidden" =>     Some(&self.hidden),
-            "disabled" =>   Some(&self.disabled),
-            "fixed" =>      Some(&self.fixed),
-            "text" =>       Some(&self.text),
-            "hide" =>       Some(&self.hide),
- 
-            _ => Option::None,
-        }        
-    }
-
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
         &self.essential_state_vars
     }

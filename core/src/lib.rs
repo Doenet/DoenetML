@@ -26,15 +26,14 @@ pub struct DoenetCore {
 
 
 
-
+/// This trait holds functions that are defined differently for every component.
+/// None of these functions should use the self parameter.
 pub trait ComponentSpecificBehavior: Debug {
 
     /// This function should never use self in the body.
     fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
-
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
 
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
 
@@ -87,13 +86,17 @@ fn set_state_var(
 }
 
 
-/// Struct that derive this must have the correct fields: name, parent, and child.
+/// This trait holds functions equivalent for every component, suitable for a derive macro.
+/// To derive this, a struct must 
+///     - have the fields: name, parent, and child
+///     - have fields of type StateVar
 pub trait ComponentLike: ComponentSpecificBehavior {
     fn name(&self) -> &str;
     fn children(&self) -> &Vec<ComponentChild>;
     // fn parent(&self) -> &RefCell<String>;
     fn parent(&self) -> &Option<String>;
     // fn add_as_child(&self, child: ComponentChild);
+    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
 
 }
 

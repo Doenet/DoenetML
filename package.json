@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
-    "compile-wasm": "wasm-pack build --target web --dev rust-doenet-core-wasm/"
+    "compile-wasm": "wasm-pack build --target web --dev rust-doenet-core-wasm/",
+    "compile-wasm-nightly": "bash -c 'export RUSTFLAGS=\"-Z macro-backtrace\"; rustup run nightly wasm-pack build --target web --dev rust-doenet-core-wasm/'"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
