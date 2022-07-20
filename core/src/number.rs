@@ -25,6 +25,8 @@ pub struct Number {
 
     attributes: HashMap<AttributeName, Attribute>,
 
+    copy_target: Option<String>,
+
     // State variables
     value: StateVar,
     hidden: StateVar,
@@ -116,7 +118,9 @@ impl ComponentSpecificBehavior for Number {
 
     fn action_names(&self) -> Vec<&'static str> { vec![] }
 
-
+    fn get_copy_target_if_exists(&self) -> &Option<String> {
+        &self.copy_target
+    }
 }
 
 
@@ -136,7 +140,9 @@ impl ComponentSpecificBehavior for Number {
 
 
 impl Number {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
+
+    ) -> Box<dyn ComponentLike> {
         Box::new(Number {
             name,
             parent,
@@ -144,6 +150,7 @@ impl Number {
 
             essential_state_vars,
             attributes,
+            copy_target,
             
             value: StateVar::new(StateVarValueType::Number),
             hidden: StateVar::new(StateVarValueType::Boolean),

@@ -25,9 +25,11 @@ pub struct Boolean {
 
     attributes: HashMap<AttributeName, Attribute>,
 
+    copy_target: Option<String>,
+
     // State variables
     value: StateVar,
-
+    text: StateVar,
     hidden: StateVar,
 }
 
@@ -40,14 +42,49 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
         
         state_var_definitions.insert("value", StateVarVariant::Boolean(StateVarDefinition {
-            
-            // For now, bool is always true!!!
+        
 
-            determine_state_var_from_dependencies: |_| SetValue(true),
+            return_dependency_instructions: |_| {
+                let child_instruct = DependencyInstruction::Child(ChildDependencyInstruction {
+                    desired_children: vec![ObjectTraitName::TextLike],
+                    desired_state_vars: vec!["value"],
+                });
+
+                HashMap::from([("textlike_children", child_instruct)])
+            },
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                let textlike_children = dependency_values.get("textlike_children").unwrap();
+
+                let mut concatted_text = String::from("");
+                for textlike_child in textlike_children {
+                    let child_value = &textlike_child.value;
+
+                    if let StateVarValue::String(text_value) = child_value {
+                        concatted_text.push_str(text_value);
+                    } else {
+                        panic!("Asked for textlike children, but gave a value that was not a string");
+                    }
+                }
+
+                let trimmed_text = concatted_text.trim().to_lowercase();
+                
+                if trimmed_text == "true" {
+                    SetValue(true)
+                } else {
+                    SetValue(false)
+                }
+
+
+            },
+            for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+
+        state_var_definitions.insert("text", TEXT_DEFAULT_DEFINITION());
+
 
         return state_var_definitions
     };
@@ -88,6 +125,9 @@ impl ComponentSpecificBehavior for Boolean {
 
     fn action_names(&self) -> Vec<&'static str> { vec![] }
 
+    fn get_copy_target_if_exists(&self) -> &Option<String> {
+        &self.copy_target
+    }
 
 }
 
@@ -109,7 +149,9 @@ impl ComponentSpecificBehavior for Boolean {
 
 impl Boolean {
 
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
+    
+    ) -> Box<dyn ComponentLike> {
         Box::new(Boolean {
             name,
             parent,
@@ -117,8 +159,10 @@ impl Boolean {
 
             essential_state_vars,
             attributes,
+            copy_target,
             
             value: StateVar::new(StateVarValueType::Boolean),
+            text: StateVar::new(StateVarValueType::String),
             hidden: StateVar::new(StateVarValueType::Boolean),
         })
     }

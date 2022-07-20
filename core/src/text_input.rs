@@ -24,6 +24,8 @@ pub struct TextInput {
 
     attributes: HashMap<AttributeName, Attribute>,
 
+    copy_target: Option<String>,
+
 
     // State variables
     value: StateVar,
@@ -226,6 +228,10 @@ impl ComponentSpecificBehavior for TextInput {
         vec![ObjectTraitName::TextLike]
     }
 
+    fn get_copy_target_if_exists(&self) -> &Option<String> {
+        &self.copy_target
+    }
+
 }
 
 
@@ -240,7 +246,7 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 impl TextInput {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,) -> Box<dyn ComponentLike> {
         Box::new(TextInput {
             name,
             parent,
@@ -248,6 +254,8 @@ impl TextInput {
 
             essential_state_vars,
             attributes,
+
+            copy_target,
             
             value: StateVar::new(StateVarValueType::String),
             hidden: StateVar::new(StateVarValueType::Boolean),

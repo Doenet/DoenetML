@@ -25,6 +25,8 @@ pub struct Document {
 
     attributes: HashMap<AttributeName, Attribute>,
 
+    copy_target: Option<String>,
+
     // State variables
     submit_label: StateVar,
     submit_label_no_correctness: StateVar,
@@ -163,12 +165,19 @@ impl ComponentSpecificBehavior for Document {
     fn action_names(&self) -> Vec<&'static str> { vec![] }
 
 
+    fn get_copy_target_if_exists(&self) -> &Option<String> {
+        &self.copy_target
+    }
+
+
 }
 
 
 
 impl Document {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>) -> Box<dyn ComponentLike> {
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
+    
+    ) -> Box<dyn ComponentLike> {
         Box::new(Document {
             name,
             parent,
@@ -176,6 +185,7 @@ impl Document {
 
             essential_state_vars,
             attributes,
+            copy_target,
             
             submit_label: StateVar::new(StateVarValueType::String),
             submit_label_no_correctness: StateVar::new(StateVarValueType::String),

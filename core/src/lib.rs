@@ -60,6 +60,8 @@ pub trait ComponentSpecificBehavior: Debug {
 
     fn attributes(&self) -> &HashMap<AttributeName, Attribute>;
 
+    fn get_copy_target_if_exists(&self) -> &Option<String>;
+
 
     // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
 
@@ -100,7 +102,7 @@ lazy_static! {
     
 }
 
-pub fn create_new_component_of_type(component_type: ComponentType, name: &str, parent_name: Option<&str>, children: Vec<ComponentChild>, attributes: HashMap<AttributeName, Attribute>) -> Result<Box<dyn ComponentLike>, String> {
+pub fn create_new_component_of_type(component_type: ComponentType, name: &str, parent_name: Option<&str>, children: Vec<ComponentChild>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>) -> Result<Box<dyn ComponentLike>, String> {
 
     // Before we create the component, we have to figure out which of its 
     // state vars are essential state vars. Note that we're technically doing more
@@ -151,35 +153,40 @@ pub fn create_new_component_of_type(component_type: ComponentType, name: &str, p
             parent_name,
             children,
             essential_state_vars,
-            attributes
+            attributes,
+            copy_target,
         )),
         "number" => Ok(number::Number::create(
             name,
             parent_name,
             children,
             essential_state_vars,
-            attributes
+            attributes,
+            copy_target,
         )),
         "textInput" => Ok(text_input::TextInput::create(
             name,
             parent_name,
             children,
             essential_state_vars,
-            attributes
+            attributes,
+            copy_target,
         )),
         "document" => Ok(document::Document::create(
             name,
             parent_name,
             children,
             essential_state_vars,
-            attributes
+            attributes,
+            copy_target,
         )),
         "boolean" => Ok(boolean::Boolean::create(
             name,
             parent_name,
             children,
             essential_state_vars,
-            attributes
+            attributes,
+            copy_target,
         )),
 
         // Add components to this match here

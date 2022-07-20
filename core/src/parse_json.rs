@@ -192,6 +192,10 @@ fn add_component_from_json(
     component_type_counter.insert(component_type.to_string(), count + 1);
     let mut component_name =  format!("/_{}{}", component_type, count + 1);
 
+
+    let mut copy_target: Option<String> = None;
+
+
     let props_value = json_obj.get("props").expect(
         &format!("No JSON 'props' field for this {} component", component_type_value)
     );
@@ -229,11 +233,21 @@ fn add_component_from_json(
 
         for (prop_name, prop_value) in props_map {
 
-            if prop_name == "name" {
+            if prop_name.to_lowercase() == "name".to_lowercase() {
 
                 // let prop_state_var_value = json_value_to_state_var_value(prop_value).unwrap();
                 if let Value::String(name) = prop_value {
                     component_name = name.to_string();
+                }
+
+
+            } else if prop_name.to_lowercase() == "copyTarget".to_lowercase() {
+
+                if let Value::String(copy_target_value) = prop_value {
+                    copy_target = Some(copy_target_value.to_string());
+
+                } else {
+                    return Err("copyTarget must be a string".to_string());
                 }
 
 
@@ -245,15 +259,23 @@ fn add_component_from_json(
                 match attribute_def {
                     AttributeDefinition::Component(attr_comp_type) => {
 
-                        // Make sure this is unique
-                        let attr_comp_name = format!("__attr__{}:{}", component_name, attribute_name);
+                        //String child
+                        let string_child = ComponentChild::String(match prop_value {
+                            Value::Bool(v) => v.to_string(),
+                            Value::String(v) => v.to_string(),
+                            _ => {
+                                return Err("Prop value should only be string and bool".to_string());
+                            }
+                        });
 
-                        let attribute_component = create_new_component_of_type(attr_comp_type, &attr_comp_name, Some(&component_name), vec![], HashMap::new())?;
+                        // Make sure this is unique
+                        let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
+
+                        let attribute_component = create_new_component_of_type(attr_comp_type, &attr_comp_name, Some(&component_name), vec![string_child], HashMap::new(), None)?;
 
                         attributes.insert(attribute_name, Attribute::Component(attr_comp_name.clone()));
 
                         components.insert(attr_comp_name, attribute_component);
-
 
                     },
         
@@ -267,8 +289,6 @@ fn add_component_from_json(
                                         attribute_name,
                                         Attribute::Primitive(StateVarValue::Boolean(*bool_value))
                                     );
-
-
 
                                 } else {
                                     return Err("Attribute of recognized name has different type".into());
@@ -333,7 +353,7 @@ fn add_component_from_json(
 
     // Create this component
     
-    let component = create_new_component_of_type(component_type, &component_name, parent_name, children, attributes)?;
+    let component = create_new_component_of_type(component_type, &component_name, parent_name, children, attributes, copy_target)?;
 
 
     components.insert(component_name.clone(), component);

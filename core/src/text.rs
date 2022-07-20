@@ -27,6 +27,8 @@ pub struct Text {
 
     attributes: HashMap<AttributeName, Attribute>,
 
+    copy_target: Option<String>,
+
     // State variables
     value: StateVar,
     hidden: StateVar,
@@ -36,30 +38,6 @@ pub struct Text {
     text: StateVar,
     // hide: StateVar,
 
-}
-
-
-fn text_return_dependency_instructions(
-    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
-) -> HashMap<InstructionName, DependencyInstruction> {
-
-    let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
-        component_name: None, //myself
-        state_var: "value",
-    });
-
-    HashMap::from([("text_value_of_value", instruction)])
-}
-
-fn text_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> StateVarUpdateInstruction<String> {
-
-    let value_state_var = dependency_values.get("text_value_of_value").expect("no value given").get(0).expect("no first element");
-    StateVarUpdateInstruction::SetValue(match &value_state_var.value {
-        StateVarValue::String(str_val_of_value_sv) => str_val_of_value_sv.to_string(),
-        _ => panic!()
-    })
 }
 
 
@@ -119,12 +97,7 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("text", StateVarVariant::String(StateVarDefinition {
-            return_dependency_instructions: text_return_dependency_instructions,
-            determine_state_var_from_dependencies: text_determine_state_var_from_dependencies,
-            for_renderer: true,
-            ..Default::default()
-        }));
+        state_var_definitions.insert("text", TEXT_DEFAULT_DEFINITION());
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
@@ -179,6 +152,12 @@ impl ComponentSpecificBehavior for Text {
     fn action_names(&self) -> Vec<&'static str> { vec![] }
 
 
+
+    fn get_copy_target_if_exists(&self) -> &Option<String> {
+        &self.copy_target
+    }
+
+
 }
 
 
@@ -191,7 +170,7 @@ impl ComponentSpecificBehavior for Text {
 
 
 impl Text {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>
+    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
         // attributes: HashMap<String, StateVarValue>
     ) -> Box<dyn ComponentLike> {
 
@@ -202,6 +181,8 @@ impl Text {
 
             essential_state_vars,
             attributes,
+
+            copy_target,
 
             value: StateVar::new(StateVarValueType::String),
             text: StateVar::new(StateVarValueType::String),

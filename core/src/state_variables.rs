@@ -47,7 +47,7 @@ pub struct DependencyValue {
 pub struct StateVarDefinition<T> {
 
     /// Some state variable's dependencies change based on other variables.
-    pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
+    // pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
 
     /// Reutrn the instructions that core can use to make Dependency structs.
     pub return_dependency_instructions: fn(
@@ -84,7 +84,7 @@ impl<T> Default for StateVarDefinition<T>
 {
     fn default() -> Self {
         StateVarDefinition {
-            state_vars_to_determine_dependencies: || vec![],
+            // state_vars_to_determine_dependencies: || vec![],
             return_dependency_instructions: |_| HashMap::new(),
             determine_state_var_from_dependencies:
                 |_| StateVarUpdateInstruction::SetValue(T::default()),
@@ -225,6 +225,8 @@ pub enum UpdateRequest {
 
 
 
+// from_dep()
+// has_exactly_one_element()
 
 
 
@@ -273,6 +275,44 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
         ..Default::default()
     })
 }
+
+
+/// Text (string) value of value sv
+#[allow(non_snake_case)]
+pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
+    use StateVarUpdateInstruction::*;
+
+    StateVarVariant::String(StateVarDefinition {
+        for_renderer: true,
+
+        return_dependency_instructions: |_| {
+            let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                component_name: None, //myself
+                state_var: "value",
+            });
+        
+            HashMap::from([("value_of_value", instruction)])
+        },
+
+        determine_state_var_from_dependencies: |dependency_values| {
+            let value_of_value = dependency_values.get("value_of_value").unwrap();
+
+            assert_eq!(value_of_value.len(), 1);
+
+            let value = &value_of_value[0].value;
+
+            match value {
+                StateVarValue::String(v) => SetValue(v.to_string()),
+                StateVarValue::Boolean(v) => SetValue(v.to_string()),
+                StateVarValue::Integer(v) => SetValue(v.to_string()),
+                StateVarValue::Number(v) => SetValue(v.to_string()),
+            }
+        },
+
+        ..Default::default()
+    })
+}
+
 
 
 #[allow(non_snake_case)]
@@ -347,15 +387,15 @@ impl StateVarValue {
 
 impl StateVarVariant {
 
-    pub fn state_vars_to_determine_dependencies(&self) -> Vec<StateVarName> {
+    // pub fn state_vars_to_determine_dependencies(&self) -> Vec<StateVarName> {
 
-        match self {
-            StateVarVariant::String(def) => (def.state_vars_to_determine_dependencies)(),
-            StateVarVariant::Boolean(def) => (def.state_vars_to_determine_dependencies)(),
-            StateVarVariant::Number(def) => (def.state_vars_to_determine_dependencies)(),
-            StateVarVariant::Integer(def) => (def.state_vars_to_determine_dependencies)(),
-        }
-    }
+    //     match self {
+    //         StateVarVariant::String(def) => (def.state_vars_to_determine_dependencies)(),
+    //         StateVarVariant::Boolean(def) => (def.state_vars_to_determine_dependencies)(),
+    //         StateVarVariant::Number(def) => (def.state_vars_to_determine_dependencies)(),
+    //         StateVarVariant::Integer(def) => (def.state_vars_to_determine_dependencies)(),
+    //     }
+    // }
 
     pub fn return_dependency_instructions(&self,
         prerequisite_state_values: HashMap<StateVarName, StateVarValue>)
