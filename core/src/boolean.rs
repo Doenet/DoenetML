@@ -54,17 +54,13 @@ lazy_static! {
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
-                let textlike_children = dependency_values.get("textlike_children").unwrap();
+
+                let textlike_children = dependency_values.dep_value("textlike_children")
+                    .are_strings_if_non_empty();
 
                 let mut concatted_text = String::from("");
                 for textlike_child in textlike_children {
-                    let child_value = &textlike_child.value;
-
-                    if let StateVarValue::String(text_value) = child_value {
-                        concatted_text.push_str(text_value);
-                    } else {
-                        panic!("Asked for textlike children, but gave a value that was not a string");
-                    }
+                    concatted_text.push_str(&textlike_child);
                 }
 
                 let trimmed_text = concatted_text.trim().to_lowercase();

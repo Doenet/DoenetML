@@ -41,58 +41,47 @@ pub struct Text {
 }
 
 
-fn value_return_dependency_instructions(
-    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
-) -> HashMap<InstructionName, DependencyInstruction> {
-
-    let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-        desired_children: vec![ObjectTraitName::TextLike],
-        desired_state_vars: vec!["value"],
-    });
-
-    HashMap::from([("value_state_vars_of_my_children", instruction)])
-}
-
-fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> StateVarUpdateInstruction<String> {
-
-    // log!("text dep vals: {:#?}", dependency_values);
-
-    let mut val = String::new();
-
-    let textlike_children_values = dependency_values.get("value_state_vars_of_my_children").unwrap();
-
-    for dependency_value in textlike_children_values {
-        match &dependency_value.value {
-            StateVarValue::String(text) => {
-                val.push_str(&text);
-            },
-            StateVarValue::Number(num) => {
-                val.push_str(&num.to_string());
-            },
-            StateVarValue::Integer(integer) => {
-                val.push_str(&integer.to_string());
-            },
-            StateVarValue::Boolean(bool_val) => {
-                val.push_str(&bool_val.to_string());
-            },
-
-
-        }
-    }
-
-    StateVarUpdateInstruction::SetValue(val)
-}
-
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+        use StateVarUpdateInstruction::*;
+        use DependencyInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
 
+
+
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
-            return_dependency_instructions: value_return_dependency_instructions,
-            determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
+
+            shadow_variable: true,
+
+            return_dependency_instructions: |_| {
+                let instruction = Child(ChildDependencyInstruction {                    
+                    desired_children: vec![ObjectTraitName::TextLike],
+                    desired_state_vars: vec!["value"],
+                });
+            
+                HashMap::from([("children_value_svs", instruction)])
+            },
+
+            determine_state_var_from_dependencies: |dependency_values| {
+
+                let textlike_children_values = dependency_values.get("children_value_svs").unwrap();
+            
+                let mut val = String::new();
+                for textlike_value_sv in textlike_children_values {
+                    
+                    val.push_str(& match &textlike_value_sv.value {
+                        StateVarValue::String(v) => v.to_string(),
+                        StateVarValue::Boolean(v) => v.to_string(),
+                        StateVarValue::Integer(v) => v.to_string(),
+                        StateVarValue::Number(v) => v.to_string(),
+                    });
+                }
+            
+                SetValue(val)
+            },
+
             ..Default::default()
         }));
 
@@ -121,6 +110,9 @@ lazy_static! {
         let mut attribute_definitions = HashMap::new();
 
         attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
+
+        attribute_definitions.insert("disabled", AttributeDefinition::Component("boolean"));
+
 
         attribute_definitions
     };

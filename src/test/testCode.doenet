@@ -1,16 +1,8 @@
 <document>
 
-<textInput/>
+<text hide name="myText">hi</text>
 
-<text>One</text>
-<text hide>Two</text>
-<text hide="  faLSe ">Three</text>
-
-<number hide=" true">4</number>
-
-<boolean>true</boolean>
-<boolean name="boolWithTextInside"><text>true</text></boolean>
-
+<text copyTarget="myText" />
 
 </document>
 

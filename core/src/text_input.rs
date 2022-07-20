@@ -59,26 +59,6 @@ lazy_static! {
 
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
 
-            // return_dependency_instructions: |_| {
-            //     let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
-            //         component_name: None, //myself
-            //         state_var: "immediateValue",
-            //     });
-            
-            //     HashMap::from([("my_immediateValue_sv", instruction)])
-            // },
-
-            // determine_state_var_from_dependencies: |dependency_values| {
-
-            //     let immediate_value_state_var = dependency_values.get("my_immediateValue_sv")
-            //         .expect("no immediateValue var given")
-            //         .get(0).expect("no first element");
-
-            //     SetValue(match &immediate_value_state_var.2 {
-            //         StateVarValue::String(val) => val.to_string(),
-            //         _ => panic!()
-            //     })
-            // },
             has_essential: true,
             request_dependencies_to_update_value: |desired_value| {
                 vec![UpdateRequest::SetEssentialValue(

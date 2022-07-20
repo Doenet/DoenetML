@@ -13,6 +13,7 @@ use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
 
 
 
+
 #[derive(Debug, ComponentLike)]
 pub struct Number {
     name: String,
@@ -33,47 +34,35 @@ pub struct Number {
 }
 
 
-fn value_return_dependency_instructions(
-    _prerequisite_state_values: HashMap<StateVarName, StateVarValue>
-) -> HashMap<InstructionName, DependencyInstruction> {
-
-    let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
-        desired_children: vec![ObjectTraitName::NumberLike],
-        desired_state_vars: vec!["value"],
-    });
-
-    HashMap::from([("value", instruction)])
-
-}
-
-fn value_determine_state_var_from_dependencies(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> StateVarUpdateInstruction<f64> {
-
-
-    // log!("number dependency values: {:#?}", dependency_values);
-
-    let first_obj = &dependency_values.get("value").unwrap()[0];
-    let value = &first_obj.value;
-    
-    if let StateVarValue::String(string_val) = value {
-        let num_val = string_val.parse::<f64>().unwrap_or(0.0);
-        StateVarUpdateInstruction::SetValue(num_val)
-    } else {
-        panic!();
-    }
-
-}
-
-
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
+        use StateVarUpdateInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
         
         state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
-            return_dependency_instructions: value_return_dependency_instructions,
-            determine_state_var_from_dependencies: value_determine_state_var_from_dependencies,
             for_renderer: true,
+
+            return_dependency_instructions: |_| {
+                let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
+                    desired_children: vec![ObjectTraitName::NumberLike],
+                    desired_state_vars: vec!["value"],
+                });
+            
+                HashMap::from([("children", instruction)]) 
+            },
+
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                let value = dependency_values.dep_value("children")
+                    .has_exactly_one_element()
+                    .is_string();
+            
+                let num_val = value.parse::<f64>().unwrap_or(0.0);
+
+                SetValue(num_val)
+            },
+
             ..Default::default()
         }));
 

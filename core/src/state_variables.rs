@@ -65,6 +65,8 @@ pub struct StateVarDefinition<T> {
 
     pub has_essential: bool,
 
+    pub shadow_variable: bool,
+
 
     // arg is desired value
     pub request_dependencies_to_update_value: fn(T) -> Vec<UpdateRequest>,
@@ -91,6 +93,7 @@ impl<T> Default for StateVarDefinition<T>
             for_renderer: false,
             default_value: T::default(),
             has_essential: false,
+            shadow_variable: false,
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -225,8 +228,140 @@ pub enum UpdateRequest {
 
 
 
-// from_dep()
-// has_exactly_one_element()
+// struct DependencyValueTyped<T> {
+//     pub component_type: ComponentType,
+//     pub state_var_name: StateVarName,
+//     pub value: T,
+// }
+
+
+pub trait DepValueHashMap {
+    fn dep_value(&self, instruction_name: InstructionName) -> (&[DependencyValue], InstructionName);
+}
+
+impl DepValueHashMap for HashMap<InstructionName, Vec<DependencyValue>> {
+
+    fn dep_value(&self, instruction_name: InstructionName) -> (&[DependencyValue], InstructionName) {
+        if let Some(values) = self.get(instruction_name) {
+            (values, instruction_name)
+        } else {
+            panic!("Dependency value '{}' does not exist", instruction_name);
+        }
+    }
+}
+
+
+pub trait DepValueVec {
+    fn has_zero_or_one_elements(&self) -> (Option<&DependencyValue>, InstructionName);
+    fn has_exactly_one_element(&self) -> (&DependencyValue, InstructionName);
+    fn are_strings_if_non_empty(&self) -> Vec<String>;
+
+}
+
+
+
+impl DepValueVec for (&[DependencyValue], InstructionName) {
+
+    fn has_zero_or_one_elements(&self) -> (Option<&DependencyValue>, InstructionName) {
+        let (dep_values, name) = self;
+
+        if dep_values.is_empty() {
+            (None, name)
+        } else if dep_values.len() == 1 {
+            (Some(&dep_values[0]), name)
+        } else {
+            panic!("Expected dependency value {} to have zero or one elements", name);
+        }
+    }
+
+    fn has_exactly_one_element(&self) -> (&DependencyValue, InstructionName) {
+        let (dep_values, name) = self;
+
+        if dep_values.len() == 1 {
+            (&dep_values[0], name)
+        } else {
+            panic!("Expected dependency value {} to have exactly one element", name)
+        }
+    }
+
+    fn are_strings_if_non_empty(&self) -> Vec<String> {
+        let (dep_values, name) = *self;
+
+        let mut string_values = vec![];
+        for dep_value in dep_values {
+            string_values.push(
+            match &dep_value.value {
+                StateVarValue::String(v) => v.to_string(),
+                _ => panic!("Not all elements in {} were strings", name)
+            })
+        }
+
+        string_values
+
+    }
+}
+
+pub trait DepValueSingle {
+    fn is_bool(&self) -> bool;
+    fn is_string(&self) -> String;
+    fn value(&self) -> StateVarValue;
+}
+
+impl DepValueSingle for (&DependencyValue, InstructionName) {
+    fn is_bool(&self) -> bool {
+        match self.0.value {
+            StateVarValue::Boolean(v) => v,
+            _ => panic!("Dependency value {} {} is not a bool", self.1, self.0.state_var_name)
+        }
+    }
+
+    fn is_string(&self) -> String {
+        match &self.0.value {
+            StateVarValue::Boolean(v) => v.to_string(),
+            _ => panic!("Dependency value {} {} is not a string", self.1, self.0.state_var_name)
+        } 
+    }
+
+    fn value(&self) -> StateVarValue {
+        self.0.value.clone()
+    }
+}
+
+
+
+pub trait DepValueOption {
+    fn is_bool_if_exists(&self) -> Option<bool>;
+    fn value(&self) -> Option<StateVarValue>;
+}
+
+impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
+
+    fn is_bool_if_exists(&self) -> Option<bool> {
+        let (dep_value_opt, name) = self;
+
+        if let Some(dep_value) = dep_value_opt {
+            match dep_value.value {
+                StateVarValue::Boolean(v) => Some(v),
+                _ => panic!("Dependency value from {} {} is a type other than a bool", name, dep_value.state_var_name)
+            }
+
+        } else {
+            None
+        }
+
+    }
+
+    fn value(&self) -> Option<StateVarValue> {
+        match self.0 {
+            Some(dep_value) => Some(dep_value.value.clone()),
+            None => None,
+        }
+    }
+
+}
+
+
+
 
 
 
@@ -258,16 +393,15 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
 
         determine_state_var_from_dependencies: |dependency_values| {
 
-            let parent_hidden = dependency_values.get("parent_hidden").unwrap()[0].value.unwrap_bool();
-            let my_hide = dependency_values.get("my_hide").unwrap();
+            let parent_hidden = dependency_values.dep_value("parent_hidden")
+                .has_exactly_one_element()
+                .is_bool();
 
-            let hide = if my_hide.is_empty() {
-                false
-            } else {
-                my_hide[0].value.unwrap_bool()
-            };
+            let my_hide = dependency_values.dep_value("my_hide")
+                .has_zero_or_one_elements()
+                .is_bool_if_exists();
 
-            SetValue(parent_hidden || hide)
+            SetValue(parent_hidden || my_hide.unwrap_or(false))
         },
 
 
@@ -295,13 +429,11 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
         },
 
         determine_state_var_from_dependencies: |dependency_values| {
-            let value_of_value = dependency_values.get("value_of_value").unwrap();
 
-            assert_eq!(value_of_value.len(), 1);
+            let value = dependency_values.dep_value("value_of_value")
+                .has_exactly_one_element().value();
 
-            let value = &value_of_value[0].value;
-
-            match value {
+            match &value {
                 StateVarValue::String(v) => SetValue(v.to_string()),
                 StateVarValue::Boolean(v) => SetValue(v.to_string()),
                 StateVarValue::Integer(v) => SetValue(v.to_string()),
@@ -314,12 +446,30 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
 }
 
 
-
 #[allow(non_snake_case)]
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
+    use StateVarUpdateInstruction::*;
+    use DependencyInstruction::*;
+
     StateVarVariant::Boolean(StateVarDefinition {     
         for_renderer: true,
-        determine_state_var_from_dependencies: |_| StateVarUpdateInstruction::SetValue(false),
+        return_dependency_instructions: |_| {
+
+            let disabled_attribute = Attribute(AttributeDependencyInstruction {
+                attribute_name: "disabled",
+            });
+
+            HashMap::from([("disabled_attribute", disabled_attribute)])
+        },
+
+        determine_state_var_from_dependencies: |dependency_values| {
+
+            let disabled = dependency_values.dep_value("disabled_attribute")
+                .has_zero_or_one_elements().is_bool_if_exists();
+
+            SetValue(disabled.unwrap_or(false))
+        },
+
         ..Default::default()
     })
 }
@@ -519,6 +669,15 @@ impl StateVarVariant {
             StateVarVariant::Integer(def) => StateVarValue::Integer(def.default_value),
             StateVarVariant::Number(def) =>  StateVarValue::Number( def.default_value),
             StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.default_value),
+        }
+    }
+
+    pub fn shadow_variable(&self) -> bool {
+        match self {
+            StateVarVariant::String(def) =>  def.shadow_variable,
+            StateVarVariant::Integer(def) => def.shadow_variable,
+            StateVarVariant::Number(def) =>  def.shadow_variable,
+            StateVarVariant::Boolean(def) => def.shadow_variable,
         }
     }
 }

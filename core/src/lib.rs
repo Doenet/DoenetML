@@ -290,16 +290,36 @@ pub fn create_all_dependencies_for_component(
 
     for (&state_var_name, state_var_def) in my_definitions {
 
-        // Eventually, call state_vars_to_determine_dependencies() and go calculate those values
         let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
 
-        for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-            let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
+        if component.get_copy_target_if_exists().is_some() && state_var_def.shadow_variable() {
+            // Component is a copy and this state var is flagged to shadow target sv
 
-            dependencies.push(dependency);
+            let copy_target = component.get_copy_target_if_exists().as_ref().unwrap();
 
+            let dependency = Dependency {
+                name: "hi".into(),
+                component: component.name().to_string(),
+                state_var: state_var_name,
+                depends_on_objects: vec![ObjectName::Component(copy_target.to_string())],
+                depends_on_state_vars: vec![state_var_name],
+                variables_optional: false,
+            };
+
+
+        } else {
+
+            for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
+
+                let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
+    
+                dependencies.push(dependency);
+    
+            }
+    
         }
+
 
     }
 
@@ -454,80 +474,115 @@ pub fn dependencies_for_component<'a>(
 
 
 
-
-
-
 /// Ensure a state variable is not stale and can be safely unwrapped.
 pub fn resolve_state_variable(core: &DoenetCore, component: &dyn ComponentLike, state_var_name: StateVarName) {
 
-    // debug_assert!() that none of this state_variable's dep instructions are blocked
-
     // log!("Resolving state variable {}:{}", component.name(), state_var_name);
 
-    let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
-
-    let my_dependencies = dependencies_for_component(core, component.name(), state_var_name);
+    let state_var_def = component.state_variable_instructions().get(state_var_name).unwrap();
 
 
-    for dep in my_dependencies {
+    if component.get_copy_target_if_exists().is_some() && state_var_def.shadow_variable() {
+        // This state variable should copy the target's sv value
 
-        let mut values_for_this_dep: Vec<DependencyValue> = Vec::new();
+        let copy_target = component.get_copy_target_if_exists().as_ref().unwrap();
 
-        for depends_on in &dep.depends_on_objects {
+        let target_component = core.components.get(copy_target).expect(
+            &format!("Component '{}' doesn't exist, but '{}' tries to copy from it", copy_target, component.name())
+        ).as_ref();
 
-            match depends_on {
-                ObjectName::String(string) => {
+        // Resolved the target sv
+        resolve_state_variable(core, target_component, state_var_name);
 
-                    // Right now, the only thing you can get from a string is its faked 'value' state var
-                    if dep.depends_on_state_vars.contains(&"value") {
-                        values_for_this_dep.push(DependencyValue {
-                            component_type: "string",
-                            state_var_name: "value",
-                            value: StateVarValue::String(string.to_string()),
-                        });
-               
-                    }
-                },
-                ObjectName::Component(component_name) => {
+        let state_var = target_component.get_state_var(state_var_name).unwrap();
+        let state_var_value = state_var.get_state();
 
-                    let depends_on_component = core.components.get(component_name).unwrap().as_ref();
-                    for &dep_state_var_name in &dep.depends_on_state_vars {
+        if let State::Resolved(state_var_value) = state_var_value {
 
-                        // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
+            let update_instruction = StateVarUpdateInstruction::SetValue(state_var_value);
+            handle_update_instruction(component, state_var_name, update_instruction);
 
-                        resolve_state_variable(core, depends_on_component, dep_state_var_name);
-                        let state_var = depends_on_component.get_state_var(dep_state_var_name).unwrap();
-                        let state_var_value = state_var.get_state();
+        } else {
+            panic!("Tried to access stale state var {}:{} (component type {})",
+                target_component.name(), state_var_name, target_component.get_component_type()
+            );
+        }
+        
 
 
-                        if let State::Resolved(state_var_value) = state_var_value {
-                            values_for_this_dep.push(DependencyValue {
-                                component_type: core.components.get(component_name).unwrap().get_component_type(),
-                                state_var_name: dep_state_var_name,
-                                value: state_var_value,
-                            });
+    } else {
+
+
+
+
+        let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
+
+        let my_dependencies = dependencies_for_component(core, component.name(), state_var_name);
     
-                        } else {
-                            panic!("Tried to access stale state var {}:{} (component type {})", depends_on_component.name(), dep_state_var_name, depends_on_component.get_component_type());
+    
+        for dep in my_dependencies {
+    
+            let mut values_for_this_dep: Vec<DependencyValue> = Vec::new();
+    
+            for depends_on in &dep.depends_on_objects {
+    
+                match depends_on {
+                    ObjectName::String(string) => {
+    
+                        // Right now, the only thing you can get from a string is its faked 'value' state var
+                        if dep.depends_on_state_vars.contains(&"value") {
+                            values_for_this_dep.push(DependencyValue {
+                                component_type: "string",
+                                state_var_name: "value",
+                                value: StateVarValue::String(string.to_string()),
+                            });
+                   
                         }
-
+                    },
+                    ObjectName::Component(component_name) => {
+    
+                        let depends_on_component = core.components.get(component_name).unwrap().as_ref();
+                        for &dep_state_var_name in &dep.depends_on_state_vars {
+    
+                            // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
+    
+                            resolve_state_variable(core, depends_on_component, dep_state_var_name);
+                            let state_var = depends_on_component.get_state_var(dep_state_var_name).unwrap();
+                            let state_var_value = state_var.get_state();
+    
+    
+                            if let State::Resolved(state_var_value) = state_var_value {
+                                values_for_this_dep.push(DependencyValue {
+                                    component_type: core.components.get(component_name).unwrap().get_component_type(),
+                                    state_var_name: dep_state_var_name,
+                                    value: state_var_value,
+                                });
+        
+                            } else {
+                                panic!("Tried to access stale state var {}:{} (component type {})", depends_on_component.name(), dep_state_var_name, depends_on_component.get_component_type());
+                            }
+    
+                        }
                     }
                 }
             }
+    
+            // log!("dep name {}", dep.name);
+            dependency_values.insert(dep.name, values_for_this_dep);
         }
-
-        // log!("dep name {}", dep.name);
-        dependency_values.insert(dep.name, values_for_this_dep);
+    
+        let definition = component.state_variable_instructions().get(state_var_name).unwrap();
+    
+        let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
+        
+        handle_update_instruction(component, state_var_name, update_instruction);
+    
+        // log!("{}:{} resolved", component.name(), state_var_name);
+        // log!("{:?}", component);
     }
 
-    let definition = component.state_variable_instructions().get(state_var_name).unwrap();
 
-    let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
-    
-    handle_update_instruction(component, state_var_name, update_instruction);
 
-    // log!("{}:{} resolved", component.name(), state_var_name);
-    // log!("{:?}", component);
     
 }
 
@@ -867,6 +922,13 @@ pub fn package_subtree_as_json(
     });
     my_json_props.insert("type".to_string(), Value::String(component.get_component_type().to_string()));
 
+    my_json_props.insert("copyTarget".to_string(),
+        if let Some(copy_target_name) = component.get_copy_target_if_exists() {
+            Value::String(copy_target_name.to_string())
+        } else {
+            Value::Null
+        }
+    );
 
     for &state_var_name in component.state_variable_instructions().keys() {
         let state_var = component.get_state_var(state_var_name).unwrap();
