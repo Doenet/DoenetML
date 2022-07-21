@@ -110,7 +110,7 @@ pub enum AttributeDefinition {
     Primitive(StateVarValueType),
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Attribute {
     Component(String),
     Primitive(StateVarValue)

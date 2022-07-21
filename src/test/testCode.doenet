@@ -1,8 +1,15 @@
 <document>
 
-<text hide name="myText">hi</text>
+<!-- <textInput name="myInput"/> -->
 
-<text copyTarget="myText" />
+<!-- <textInput copyTarget="myInput" /> -->
+
+
+
+<text name='c'>hi</text>
+
+
+<text copyTarget='c' />
+
 
 </document>
-

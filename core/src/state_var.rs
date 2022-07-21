@@ -39,9 +39,10 @@ pub enum State<T> {
 /// Usually, an action update sets this value
 pub struct EssentialStateVar {
     value: RefCell<ValueTypeProtector>,
+
+    pub shadowing_component_name: RefCell<Option<String>>,
+    pub shadowed_by_component_names: RefCell<Vec<String>>,
 }
-
-
 
 // This enum should remain private
 enum ValueTypeProtector {
@@ -167,7 +168,10 @@ impl EssentialStateVar {
                     ValueTypeProtector::Integer(_) => ValueTypeProtector::Integer(None),
                     ValueTypeProtector::Number(_) => ValueTypeProtector::Number(None),
                 }
-            )
+            ),
+
+            shadowing_component_name: RefCell::new(None),
+            shadowed_by_component_names: RefCell::new(vec![]),
         }
     }
 
@@ -218,7 +222,8 @@ impl fmt::Debug for StateVar {
 // Boilerplate to display EssentialStateVar better
 impl fmt::Debug for EssentialStateVar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_value()))
+        f.write_str(&format!("{:?}, shadowing {:?}, shadowed by {:?}",
+            &self.get_value(), self.shadowing_component_name, self.shadowed_by_component_names))
     }
 }
 

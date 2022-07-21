@@ -37,7 +37,12 @@ pub struct Text {
     // text is same as value state var, but this one gets sent to rendere
     text: StateVar,
     // hide: StateVar,
+}
 
+
+pub struct TextInstanceData {
+    value: EssentialStateVar,
+    
 }
 
 
@@ -104,6 +109,8 @@ lazy_static! {
         return state_var_definitions
     };
 }
+
+
 
 lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
