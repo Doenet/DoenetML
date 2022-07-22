@@ -58,12 +58,6 @@ enum ValueTypeProtector {
 
 
 
-pub enum StateVarValueType {
-    String,
-    Boolean,
-    Integer,
-    Number,
-}
 
 
 impl StateVar {

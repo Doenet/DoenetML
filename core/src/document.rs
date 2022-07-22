@@ -4,12 +4,14 @@ use core_derive::ComponentLike;
 
 use lazy_static::lazy_static;
 
+use crate::prelude::*;
 use crate::state_variables::*;
+use crate::component_prelude::*;
 
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
-use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
+use crate::state_var::{StateVar, EssentialStateVar};
 
 
 
@@ -42,6 +44,90 @@ pub struct Document {
     create_submit_all_button: StateVar,
     suppress_answer_submit_buttons: StateVar,
 
+}
+
+
+
+#[derive(Debug)]
+struct MyStateVars {
+    submit_label: StateVar,
+    submit_label_no_correctness: StateVar,
+    hidden: StateVar,
+    disabled: StateVar,
+    fixed: StateVar,
+    // title_child_name: StateVar,
+    title: StateVar,
+    level: StateVar,
+    just_submitted: StateVar,
+    show_correctness: StateVar,
+    credit_achieved: StateVar,
+    create_submit_all_button: StateVar,
+    suppress_answer_submit_buttons: StateVar,
+
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+
+}
+
+impl ComponentStateVars for MyStateVars {
+    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
+        match state_var_name {
+            "submitLabel" => Ok(&self.submit_label),
+            "submitLabelNoCorrectness" => Ok(&self.submit_label_no_correctness),
+            "hidden" => Ok(&self.hidden),
+            "disabled" => Ok(&self.disabled),
+            "fixed" => Ok(&self.fixed),
+            "title" => Ok(&self.title),
+            "level" => Ok(&self.level),
+            "justSubmitted" => Ok(&self.just_submitted),
+            "showCorrectness" => Ok(&self.show_correctness),
+            "creditAchieved" => Ok(&self.credit_achieved),
+            "createSubmitAllButton" => Ok(&self.create_submit_all_button),
+            "suppressAnswerSubmitButtons" => Ok(&self.suppress_answer_submit_buttons),
+
+            _ => Err(format!("Document does not have state var {}", state_var_name))
+        }
+    }
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
+    }
+}
+
+
+
+
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+    disabled: Option<Attribute>,
+}
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => {
+                self.hide = Some(attribute);
+            },
+            "disabled" => {
+                self.disabled = Some(attribute);
+            },
+
+            _ => {
+                return Err("Invalid attribute name".to_string())
+            }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            "disabled" => &self.disabled,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
 }
 
 
@@ -167,6 +253,56 @@ impl ComponentSpecificBehavior for Document {
 
     fn get_copy_target_if_exists(&self) -> &Option<String> {
         &self.copy_target
+    }
+
+
+}
+
+
+#[derive(Clone)]
+pub struct MyComponentDefinition;
+
+impl ComponentDefinition for MyComponentDefinition {
+    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+        &MY_ATTRIBUTE_DEFINITIONS
+    }
+
+    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
+        &MY_STATE_VAR_DEFINITIONS
+    }
+
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![]
+    }
+
+    fn should_render_children(&self) -> bool {
+        true
+    }
+
+
+
+    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
+        Box::new(MyAttributeData { ..Default::default() })
+    }
+
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+        Box::new(MyStateVars {
+            submit_label: StateVar::new(StateVarValueType::String),
+            submit_label_no_correctness: StateVar::new(StateVarValueType::String),
+            hidden: StateVar::new(StateVarValueType::Boolean),
+            disabled: StateVar::new(StateVarValueType::Boolean),
+            fixed: StateVar::new(StateVarValueType::Boolean),
+            // title_child_name: StateVar::new(StateVarValueType::),
+            title: StateVar::new(StateVarValueType::String),
+            level: StateVar::new(StateVarValueType::Number),
+            just_submitted: StateVar::new(StateVarValueType::Boolean),
+            show_correctness: StateVar::new(StateVarValueType::Boolean),
+            credit_achieved: StateVar::new(StateVarValueType::Number),
+            create_submit_all_button: StateVar::new(StateVarValueType::Boolean),
+            suppress_answer_submit_buttons: StateVar::new(StateVarValueType::Boolean), 
+
+            essential_state_vars: HashMap::new(),
+        })
     }
 
 

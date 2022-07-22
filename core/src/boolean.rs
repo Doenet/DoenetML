@@ -4,12 +4,14 @@ use core_derive::ComponentLike;
 
 use lazy_static::lazy_static;
 
+use crate::prelude::*;
 use crate::state_variables::*;
+use crate::component_prelude::*;
 
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
-use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
+use crate::state_var::{StateVar, EssentialStateVar};
 
 
 
@@ -31,6 +33,65 @@ pub struct Boolean {
     value: StateVar,
     text: StateVar,
     hidden: StateVar,
+}
+
+
+
+#[derive(Debug)]
+struct MyStateVars {
+    value: StateVar,
+    hidden: StateVar,
+    text: StateVar,
+    // hide: StateVar,
+
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+
+}
+
+impl ComponentStateVars for MyStateVars {
+    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
+        match state_var_name {
+            "value" => Ok(&self.value),
+            "hidden" => Ok(&self.hidden),
+            "text" => Ok(&self.text),
+
+            _ => Err(format!("Boolean does not have state var {}", state_var_name))
+        }
+    }
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
+    }
+}
+
+
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+}
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => {
+                self.hide = Some(attribute);
+            },
+
+            _ => {
+                return Err("Invalid attribute name".to_string())
+            }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
 }
 
 
@@ -139,7 +200,49 @@ impl ComponentSpecificBehavior for Boolean {
 //     fn add_one(&self) -> f64 {
 //         *self.value.borrow() + 1.0
 //     }
+
 // }
+
+
+#[derive(Clone)]
+pub struct MyComponentDefinition;
+
+impl ComponentDefinition for MyComponentDefinition {
+    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+        &MY_ATTRIBUTE_DEFINITIONS
+    }
+
+    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
+        &MY_STATE_VAR_DEFINITIONS
+    }
+
+
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![ObjectTraitName::TextLike]
+    }
+
+
+
+    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
+        Box::new(MyAttributeData { ..Default::default() })
+    }
+
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+        Box::new(MyStateVars {
+            value: StateVar::new(StateVarValueType::Boolean),
+            text: StateVar::new(StateVarValueType::String),
+            hidden: StateVar::new(StateVarValueType::Boolean),
+
+            essential_state_vars: HashMap::new()
+        })
+    }
+
+    fn should_render_children(&self) -> bool {
+        false
+    }
+
+}
+
 
 
 

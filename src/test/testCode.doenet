@@ -1,15 +1,7 @@
 <document>
 
-<!-- <textInput name="myInput"/> -->
+<text name='hi'>hi <text name='there'>there <text>once again</text></text></text>
 
-<!-- <textInput copyTarget="myInput" /> -->
-
-
-
-<text name='c'>hi</text>
-
-
-<text copyTarget='c' />
-
+<text copyTarget='hi' />
 
 </document>

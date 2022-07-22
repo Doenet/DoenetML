@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 
-use crate::{ObjectTraitName, state_var::StateVarValueType};
+use crate::prelude::*;
+
+use crate::{ObjectTraitName};
 
 
 /// A macro to provide println! style syntax for console.log logging.
@@ -24,12 +26,15 @@ macro_rules! log {
 
 
 
+pub enum StateVarValueType {
+    String,
+    Boolean,
+    Integer,
+    Number,
+}
 
 
-pub type StateVarName = &'static str;
-pub type InstructionName = &'static str;
-pub type ComponentType = &'static str;
-pub type AttributeName = &'static str;
+
 
 
 /// Passed into determine_state_vars_from_dependencies
@@ -105,17 +110,6 @@ impl<T> Default for StateVarDefinition<T>
 
 
 
-pub enum AttributeDefinition {
-    Component(ComponentType),
-    Primitive(StateVarValueType),
-}
-
-#[derive(Debug, Clone)]
-pub enum Attribute {
-    Component(String),
-    Primitive(StateVarValue)
-}
-
 
 
 /// Since `StateVarDefinition` is generic, this enum is needed to store one in a HashMap.
@@ -144,26 +138,6 @@ pub enum StateVarValue {
 
 
 
-/// This stores some of the state variables (or strings) that a state variable depends on.
-#[derive(Debug)]
-pub struct Dependency {
-
-    pub component: String,
-    pub state_var: StateVarName,
-
-    pub name: InstructionName,
-
-
-    // We will use outer product of entries (except for the strings, which don't have state vars)
-    pub depends_on_objects: Vec<ObjectName>,
-    pub depends_on_state_vars: Vec<StateVarName>,
-
-    // TODO: Do we really need this field? It would be easier if we didn't
-    // pub instruction: DependencyInstruction,
-
-
-    pub variables_optional: bool,
-}
 
 /// An object refers to either a component or a string child.
 #[derive(Debug, PartialEq)]
@@ -681,3 +655,9 @@ impl StateVarVariant {
         }
     }
 }
+
+
+
+
+
+

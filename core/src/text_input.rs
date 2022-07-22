@@ -4,12 +4,15 @@ use core_derive::ComponentLike;
 
 use lazy_static::lazy_static;
 
+
+use crate::prelude::*;
+use crate::component_prelude::*;
 use crate::state_variables::*;
 
 use crate::{ObjectTraitName, ComponentLike,
 ComponentSpecificBehavior, ComponentChild};
 
-use crate::state_var::{StateVar, StateVarValueType, EssentialStateVar};
+use crate::state_var::{StateVar, EssentialStateVar};
 
 
 #[derive(Debug, ComponentLike)]

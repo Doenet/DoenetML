@@ -3,11 +3,16 @@
 
 use serde_json::Value;
 
-use crate::COMPONENT_TYPES;
-use crate::ComponentLike;
+use crate::Action;
+use crate::component_prelude::Attribute;
+use crate::component_prelude::AttributeDefinition;
+use crate::prelude::*;
+
+
+use crate::AttributeData;
+use crate::ComponentDefinition;
 use crate::ComponentChild;
-use crate::create_new_component_of_type;
-use crate::state_var::StateVarValueType;
+use crate::ComponentNode;
 
 use std::collections::HashMap;
 
@@ -16,15 +21,7 @@ use crate::state_variables::*;
 use crate::log;
 
 
-#[derive(Debug)]
-pub struct Action {
-    // pub component: Box<dyn ComponentLike>,
-    pub component_name: String,
-    pub action_name: String,
-    // pub action_func: fn(HashMap<String, StateVarValue>)
-        // -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>,
-    pub args: HashMap<String, StateVarValue>,
-}
+
 
 fn json_value_to_state_var_value(value: &Value) -> Option<StateVarValue> {
     match value {
@@ -39,6 +36,22 @@ fn json_value_to_state_var_value(value: &Value) -> Option<StateVarValue> {
     }  
 }
 
+
+fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn ComponentDefinition>, ComponentType),String> {
+    let component_def_and_type = match component_type {
+        "text" =>       (Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>, "text"),
+        // "number" =>     &crate::number::MyComponentDefinition,
+        // "textInput" =>  &crate::text_input::MyComponentDefinition,
+        "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
+        "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
+
+        _ => {
+            return Err(format!("Invalid component type {}", component_type));
+        } 
+    };
+
+    Ok(component_def_and_type)
+}
 
 
 pub fn parse_action_from_json(json_action: serde_json::Value)
@@ -113,13 +126,13 @@ pub fn parse_action_from_json(json_action: serde_json::Value)
 /// Returns an option of (components hashmap, root component name)
 /// If the option is empty, the json was empty
 pub fn create_components_tree_from_json(json_input: &serde_json::Value)
-    -> Result<(HashMap<String, Box<dyn ComponentLike>>, String), String>
+    -> Result<(HashMap<String, ComponentNode>, String), String>
 {
 
     // log!("Parse json input {:#?}", json_input);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
-    let mut components: HashMap<String, Box<dyn ComponentLike>> = HashMap::new();
+    let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
 
     let trimmed_json_input = if let serde_json::Value::Array(json_array) = json_input {
 
@@ -157,19 +170,19 @@ pub fn create_components_tree_from_json(json_input: &serde_json::Value)
 
     log!("Root json object {:#?}", root_json_obj);
 
-    let root_component_name = add_component_from_json(&mut components, root_json_obj, None, &mut component_type_counter)?;
+    let root_component_name = add_component_from_json(&mut component_nodes, root_json_obj, None, &mut component_type_counter)?;
 
 
-    Ok((components, root_component_name))
+    Ok((component_nodes, root_component_name))
 
 }
 
 
 
 fn add_component_from_json(
-    components: &mut HashMap<String, Box<dyn ComponentLike>>,
+    component_nodes: &mut HashMap<String, ComponentNode>,
     json_obj: &serde_json::Map<String, Value>,
-    parent_name: Option<&str>,
+    parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
 
 
@@ -179,13 +192,14 @@ fn add_component_from_json(
 
     let component_type_value = json_obj.get("componentType").unwrap();
 
-    let component_type_string: &str = if let Value::String(str) = component_type_value {
+    let component_type_str: &str = if let Value::String(str) = component_type_value {
         str
     }  else {
         return Err("componentType is not a string".into());
     };
 
-    let component_type: ComponentType = COMPONENT_TYPES.get(component_type_string).expect(&format!("Unrecognized component type {}", component_type_string));
+    // let component_type: ComponentType = COMPONENT_TYPES.get(component_type_string).expect(&format!("Unrecognized component type {}", component_type_string));
+    let (component_definition, component_type) = get_component_definition_for_type(component_type_str)?;
 
 
     let count = *component_type_counter.get(component_type).unwrap_or(&0);
@@ -201,25 +215,58 @@ fn add_component_from_json(
     );
 
 
+    // let component_definition = match component_type {
+    //     "text" =>       &crate::text::MyComponentDefinition,
+    //     // "number" =>     &crate::number::MyComponentDefinition,
+    //     // "textInput" =>  &crate::text_input::MyComponentDefinition,
+    //     // "document" =>   &crate::document::MyComponentDefinition,
+    //     // "boolean" =>    &crate::boolean::MyComponentDefinition,
+
+    //     _ => {
+    //         return Err("Invalid component type".to_string());
+    //     } 
+    // };
+
 
     // Attributes
 
-    let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
+    let attribute_definitions = component_definition.attribute_definitions();
+
+    // let attribute_definitions: &HashMap<AttributeName, AttributeDefinition> = match component_type {
+    //     "text" =>       &crate::text::MY_ATTRIBUTE_DEFINITIONS,
+    //     "number" =>     &crate::number::MY_ATTRIBUTE_DEFINITIONS,
+    //     "textInput" =>  &crate::text_input::MY_ATTRIBUTE_DEFINITIONS,
+    //     "document" =>   &crate::document::MY_ATTRIBUTE_DEFINITIONS,
+    //     "boolean" =>    &crate::boolean::MY_ATTRIBUTE_DEFINITIONS,
+
+    //     _ => {
+    //         return Err("Invalid component type".to_string());
+    //     }
+    // };
+
+    let mut attributes: Box<dyn AttributeData> = component_definition.empty_attribute_data();
+
+
+    // let attributes: Box<dyn AttributeData> = match component_type {
+    //     "text" =>       crate::text::,
+    //     // "number" =>     &crate::number::empty_attribute_data(),
+    //     // "textInput" =>  &crate::text_input::empty_attribute_data(),
+    //     // "document" =>   &crate::document::empty_attribute_data(),
+    //     // "boolean" =>    &crate::boolean::empty_attribute_data(),
+
+    //     _ => {
+    //         return Err("Invalid component type".to_string());
+    //     }
+    // };
+
+
+    // let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
+
 
     if let Value::Object(props_map) = props_value {
 
 
-        let attribute_definitions: &HashMap<AttributeName, AttributeDefinition> = match component_type {
-            "text" =>       &crate::text::MY_ATTRIBUTE_DEFINITIONS,
-            "number" =>     &crate::number::MY_ATTRIBUTE_DEFINITIONS,
-            "textInput" =>  &crate::text_input::MY_ATTRIBUTE_DEFINITIONS,
-            "document" =>   &crate::document::MY_ATTRIBUTE_DEFINITIONS,
-            "boolean" =>    &crate::boolean::MY_ATTRIBUTE_DEFINITIONS,
 
-            _ => {
-                return Err("Invalid component type".to_string());
-            }
-        };
 
         // Create a hashmap from lowercase valid names to normalized valid names
         let mut attr_lowercase_to_normalized: HashMap<String, AttributeName> = HashMap::new();
@@ -271,11 +318,31 @@ fn add_component_from_json(
                         // Make sure this is unique
                         let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
 
-                        let attribute_component = create_new_component_of_type(attr_comp_type, &attr_comp_name, Some(&component_name), vec![string_child], HashMap::new(), None)?;
 
-                        attributes.insert(attribute_name, Attribute::Component(attr_comp_name.clone()));
 
-                        components.insert(attr_comp_name, attribute_component);
+                        let (attr_component_definition, _) = get_component_definition_for_type(attr_comp_type)?;
+
+                        let attribute_component_node = ComponentNode {
+                            name: attr_comp_name.clone(),
+                            parent: Some(component_name.clone()),
+                            children: vec![string_child],
+                    
+                            component_type: attr_comp_type,
+                            attributes: attr_component_definition.empty_attribute_data(),
+                    
+                            copy_target: None,
+                            is_shadow_for: None,
+
+                            definition: attr_component_definition,
+                        };
+
+                        // let attribute_component = create_new_component_of_type(attr_comp_type, &attr_comp_name, Some(&component_name), vec![string_child], HashMap::new(), None)?;
+
+            
+                        attributes.add_attribute(attribute_name, Attribute::Component(attr_comp_name.clone())).unwrap();
+
+
+                        component_nodes.insert(attr_comp_name, attribute_component_node);
 
                     },
         
@@ -285,10 +352,10 @@ fn add_component_from_json(
                             StateVarValueType::Boolean => {
 
                                 if let Value::Bool(bool_value) = prop_value {
-                                    attributes.insert(
+                                    attributes.add_attribute(
                                         attribute_name,
                                         Attribute::Primitive(StateVarValue::Boolean(*bool_value))
-                                    );
+                                    ).unwrap();
 
                                 } else {
                                     return Err("Attribute of recognized name has different type".into());
@@ -333,7 +400,7 @@ fn add_component_from_json(
                 },
 
                 Value::Object(child_json_obj) => {
-                    let child_name = add_component_from_json(components, child_json_obj, Some(&component_name), component_type_counter)?;
+                    let child_name = add_component_from_json(component_nodes, child_json_obj, Some(component_name.clone()), component_type_counter)?;
 
                     children.push(ComponentChild::Component(child_name));
                 },
@@ -352,11 +419,26 @@ fn add_component_from_json(
 
 
     // Create this component
+
+    let component_node = ComponentNode {
+        name: component_name.clone(),
+        parent: parent_name,
+        children,
+
+        component_type,
+        attributes,
+
+        copy_target,
+        is_shadow_for: None,
+
+        definition: component_definition,
+    };
+
     
-    let component = create_new_component_of_type(component_type, &component_name, parent_name, children, attributes, copy_target)?;
+    // let component = create_new_component_of_type(component_type, &component_name, parent_name, children, attributes, copy_target)?;
 
 
-    components.insert(component_name.clone(), component);
+    component_nodes.insert(component_name.clone(), component_node);
 
 
     Ok(component_name)
