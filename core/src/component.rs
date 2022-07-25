@@ -124,6 +124,74 @@ pub enum ComponentChild {
 
 
 
+
+
+
+
+
+// trait StateVariableDefinition<T> 
+// where T:Default
+// {
+
+//     /// Some state variable's dependencies change based on other variables.
+//     // pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
+
+//     /// Return the instructions that core can use to make Dependency structs.
+//     fn return_dependency_instructions() -> HashMap<InstructionName, DependencyInstruction>;
+    
+//     /// Determine the value and return that to core as an update instruction.
+//     fn determine_state_var_from_dependencies(dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+//     ) -> StateVarUpdateInstruction<T>;
+
+//     fn for_renderer() -> bool {
+//         false
+//     }
+
+//     fn default_value() -> T {
+//         T::default()
+//     }
+
+//     fn has_essential() -> bool {
+//         false
+//     }
+
+//     fn shadow_variable() -> bool {
+//         false
+//     }
+
+//     // arg is desired value
+//     fn request_dependencies_to_update_value(desired_value: T) -> Vec<UpdateRequest>;
+// }
+
+
+
+// struct Value(StateVar);
+// impl StateVariableDefinition<String> for Value {
+
+//     fn return_dependency_instructions() -> HashMap<InstructionName, DependencyInstruction> {
+//         HashMap::new()
+//     }
+
+//     fn determine_state_var_from_dependencies(_dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+//         ) -> StateVarUpdateInstruction<String> {
+//         StateVarUpdateInstruction::SetValue("hi there".to_string())
+//     }
+
+//     fn request_dependencies_to_update_value(_desired_value: String) -> Vec<UpdateRequest> {
+//         vec![]
+//     }
+// }
+
+
+
+
+
+
+
+
+
+
+
 // Boiler plate to allow cloning of trait objects
 
 

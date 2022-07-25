@@ -1,22 +1,21 @@
 use std::collections::HashMap;
 
-use core_derive::ComponentLike;
-
 use lazy_static::lazy_static;
 
 use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName, ComponentLike,
-ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName, ComponentChild};
 
 use crate::state_var::{StateVar, EssentialStateVar};
 
+use crate::log;
 
 
 
-#[derive(Debug, ComponentLike)]
+
+#[derive(Debug)]
 pub struct Number {
     name: String,
     parent: Option<String>,
@@ -35,10 +34,80 @@ pub struct Number {
     hidden: StateVar,
 }
 
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+    disabled: Option<Attribute>,
+}
+
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => {
+                self.hide = Some(attribute);
+            },
+            "disabled" => {
+                self.disabled = Some(attribute);
+            },
+
+            _ => {
+                return Err("Invalid attribute name".to_string())
+            }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            "disabled" => &self.disabled,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
+}
+
+
+
+
+#[derive(Debug)]
+struct MyStateVars {
+    value: StateVar,
+    hidden: StateVar,
+    disabled: StateVar,
+    text: StateVar,
+
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+
+}
+
+
+impl ComponentStateVars for MyStateVars {
+    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
+        match state_var_name {
+            "value" => Ok(&self.value),
+            "hidden" => Ok(&self.hidden),
+            "disabled" => Ok(&self.disabled),
+            "text" => Ok(&self.text),
+
+            _ => Err(format!("Number does not have state var {}", state_var_name))
+        }
+    }
+
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
+    }
+}
+
+
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
         use StateVarUpdateInstruction::*;
+        use StateVarVariant::*;
 
         let mut state_var_definitions = HashMap::new();
         
@@ -56,6 +125,8 @@ lazy_static! {
 
 
             determine_state_var_from_dependencies: |dependency_values| {
+                log!("number dependency value {:#?}", dependency_values);
+
                 let value = dependency_values.dep_value("children")
                     .has_exactly_one_element()
                     .is_string();
@@ -63,6 +134,30 @@ lazy_static! {
                 let num_val = value.parse::<f64>().unwrap_or(0.0);
 
                 SetValue(num_val)
+            },
+
+            ..Default::default()
+        }));
+
+        state_var_definitions.insert("text", StateVarVariant::String(StateVarDefinition {
+            for_renderer: true,
+
+            return_dependency_instructions: |_| {
+                let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                    component_name: None,
+                    state_var: "value",
+                });
+            
+                HashMap::from([("value_sv", instruction)]) 
+            },
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                let value = dependency_values.dep_value("value_sv")
+                    .has_exactly_one_element()
+                    .is_number();
+
+                SetValue(value.to_string())
+
             },
 
             ..Default::default()
@@ -82,69 +177,48 @@ lazy_static! {
 
         attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
 
+        attribute_definitions.insert("disabled", AttributeDefinition::Component("boolean"));
+
+
         attribute_definitions
     };
 }
 
 
-impl ComponentSpecificBehavior for Number {
 
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+#[derive(Clone)]
+pub struct MyComponentDefinition;
 
-    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+impl ComponentDefinition for MyComponentDefinition {
+    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
         &MY_ATTRIBUTE_DEFINITIONS
     }
 
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
-        &self.attributes
+    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
+        &MY_STATE_VAR_DEFINITIONS
     }
 
-    fn should_render_children(&self) -> bool { false }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::NumberLike, ObjectTraitName::TextLike]
+    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
+        Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn action_names(&self) -> Vec<&'static str> { vec![] }
-
-    fn get_copy_target_if_exists(&self) -> &Option<String> {
-        &self.copy_target
-    }
-}
-
-
-
-// impl TextLikeComponent for Number {
-//     fn text_value(&self) -> String {
-//         let val = *self.value.borrow();
-//         val.to_string()
-//     }
-// }
-// impl NumberLikeComponent for Number {
-//     fn add_one(&self) -> f64 {
-//         *self.value.borrow() + 1.0
-//     }
-// }
-
-
-
-impl Number {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
-
-    ) -> Box<dyn ComponentLike> {
-        Box::new(Number {
-            name,
-            parent,
-            children,
-
-            essential_state_vars,
-            attributes,
-            copy_target,
-            
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+        Box::new(MyStateVars {
             value: StateVar::new(StateVarValueType::Number),
             hidden: StateVar::new(StateVarValueType::Boolean),
+            disabled: StateVar::new(StateVarValueType::Boolean),
+            text: StateVar::new(StateVarValueType::String),
+
+            essential_state_vars: HashMap::new(),
+
         })
+    }
+
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![ObjectTraitName::TextLike, ObjectTraitName::NumberLike]
+    }
+
+    fn should_render_children(&self) -> bool {
+        false
     }
 }

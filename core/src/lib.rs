@@ -49,179 +49,6 @@ pub struct Dependency {
 
 
 
-
-
-/// This trait holds equivalent functions for every component, suitable for a derive macro.
-/// To derive this, a struct must 
-///     - have the fields: name, parent, child, and essential_state_vars
-///     - have fields of type StateVar
-pub trait ComponentLike: ComponentSpecificBehavior {
-
-    fn name(&self) -> &str;
-
-    fn children(&self) -> &Vec<ComponentChild>;
-
-    fn parent(&self) -> &Option<String>;
-
-    fn get_state_var(&self, name: StateVarName) -> Option<&StateVar>;
-
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
-
-    /// Return the name (lower case).
-    fn get_component_type(&self) -> &'static str;
-}
-
-
-/// This trait holds functions that are defined differently for every component.
-/// None of these functions should use the self parameter.
-pub trait ComponentSpecificBehavior: Debug {
-
-    /// This function should never use self in the body.
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
-
-    fn attribute_instructions(&self) -> &'static HashMap<&'static str, AttributeDefinition>;
-
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute>;
-
-    fn get_copy_target_if_exists(&self) -> &Option<String>;
-
-
-    // fn get_state_var_access(&self, name: StateVarName) -> Option<StateVarAccess>;
-
-    // fn actions(&self) -> &phf::Map<&'static str, fn(HashMap<String, StateVarValue>) -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>> {
-    //     &phf_map! {}
-    // }
-
-    fn action_names(&self) -> Vec<&'static str>;
-
-
-    fn on_action<'a>(
-        &'a self, _action_name: &str, _args: HashMap<String, StateVarValue>,
-        _resolve_and_retrieve_state_var: &'a dyn Fn(StateVarName) -> StateVarValue
-    ) -> HashMap<StateVarName, StateVarValue>
-    {
-
-        HashMap::new()
-    }
-
-    /// This function should never use self in the body.
-    fn should_render_children(&self) -> bool;
-    
-    /// This function should never use self in the body.
-    fn get_trait_names(&self) -> Vec<ObjectTraitName>;
-
-}
-
-
-// lazy_static! {
-
-//     pub static ref COMPONENT_TYPES: HashSet<ComponentType> = HashSet::from([
-//         "text",
-//         "number",
-//         "textInput",
-//         "document",
-//         "boolean",
-//     ]);
-    
-// }
-
-pub fn create_new_component_of_type(component_type: ComponentType, name: &str, parent_name: Option<&str>, children: Vec<ComponentChild>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>) -> Result<Box<dyn ComponentLike>, String> {
-
-    // Before we create the component, we have to figure out which of its 
-    // state vars are essential state vars. Note that we're technically doing more
-    // work than we have to because we're doing all the work for each component,
-    // rather than each component type
-
-    let state_var_definitions: &HashMap<StateVarName, StateVarVariant> = match component_type {
-        "text" =>       &crate::text::MY_STATE_VAR_DEFINITIONS,
-        "number" =>     &crate::number::MY_STATE_VAR_DEFINITIONS,
-        "textInput" =>  &crate::text_input::MY_STATE_VAR_DEFINITIONS,
-        "document" =>   &crate::document::MY_STATE_VAR_DEFINITIONS,
-        "boolean" =>    &crate::boolean::MY_STATE_VAR_DEFINITIONS,
-
-        _ => {
-            return Err(format!("Unrecognized component type {}", component_type));
-        }
-    };
-
-    let mut essential_state_vars = HashMap::new();
-    for (&state_var_name, state_var_def) in state_var_definitions {
-        
-        if state_var_def.has_essential() {
-            essential_state_vars.insert(state_var_name, EssentialStateVar::derive_from(
-                
-                // TODO: This is hacky. We should create the actual StateVars first
-                match state_var_def {
-                    StateVarVariant::String(_) => StateVar::new(StateVarValueType::String),
-                    StateVarVariant::Integer(_) => StateVar::new(StateVarValueType::Integer),
-                    StateVarVariant::Number(_) => StateVar::new(StateVarValueType::Number),
-                    StateVarVariant::Boolean(_) => StateVar::new(StateVarValueType::Boolean),
-                }
-            ));
-        }
-    }
-
-
-    let name = name.to_string();
-    let parent_name = if let Some(par_name) = parent_name {
-        Some(par_name.to_string())
-    } else {
-        None
-    };
-
-    match component_type {
-
-        "text" => Ok(text::Text::create(
-            name,
-            parent_name,
-            children,
-            essential_state_vars,
-            attributes,
-            copy_target,
-            None,
-        )),
-        "number" => Ok(number::Number::create(
-            name,
-            parent_name,
-            children,
-            essential_state_vars,
-            attributes,
-            copy_target,
-        )),
-        "textInput" => Ok(text_input::TextInput::create(
-            name,
-            parent_name,
-            children,
-            essential_state_vars,
-            attributes,
-            copy_target,
-        )),
-        "document" => Ok(document::Document::create(
-            name,
-            parent_name,
-            children,
-            essential_state_vars,
-            attributes,
-            copy_target,
-        )),
-        "boolean" => Ok(boolean::Boolean::create(
-            name,
-            parent_name,
-            children,
-            essential_state_vars,
-            attributes,
-            copy_target,
-        )),
-
-        // Add components to this match here
-
-        _ => {
-            return Err(format!("Unrecognized component type {}", component_type));
-        }
-    }
-}
-
-
 fn set_state_var(
     component: &ComponentNode,
     component_state_vars: &dyn ComponentStateVars,
@@ -920,7 +747,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
         let requests = definition.request_dependencies_to_update_value(requested_value);
 
         for request in requests {
-            process_update_request(core, component, component_state, name, request);
+            process_update_request(core, component, component_state, name, &request);
 
         }
     }
@@ -933,7 +760,7 @@ pub fn process_update_request(
     component: &ComponentNode,
     component_state: &ComponentState,
     state_var_name: StateVarName,
-    update_request: UpdateRequest) 
+    update_request: &UpdateRequest) 
 {
 
     // log!("Processing update request for {}:{}", component.name(), state_var_name);
@@ -941,12 +768,25 @@ pub fn process_update_request(
     match update_request {
         UpdateRequest::SetEssentialValue(their_name, requested_value) => {
 
-            panic!();
+            match component_state {
+                ComponentState::Shadowing(target_name) => {
+                    let target_comp = core.component_nodes.get(target_name).unwrap();
+                    let target_state = core.component_states.get(target_name).unwrap();
+    
+                    process_update_request(core, target_comp, target_state, state_var_name, update_request);
+    
+                },
+                ComponentState::State(state_vars) => {
+                    let essential_var = state_vars.get_essential_state_vars().get(their_name).unwrap();
+                    essential_var.set_value(requested_value.clone()).expect(
+                        &format!("Failed to set essential value for {}:{}", component.name, their_name)
+                    );
+        
+                }
+            }
 
-            // let essential_var = component.get_essential_state_vars().get(their_name).unwrap();
-            // essential_var.set_value(requested_value).expect(
-            //     &format!("Failed to set essential value for {}:{}", component.name(), their_name)
-            // );
+
+
         },
 
         UpdateRequest::SetStateVarDependingOnMe(their_name, requested_value) => {
@@ -956,10 +796,10 @@ pub fn process_update_request(
 
             let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
 
-            let their_update_requests = state_var_definition.request_dependencies_to_update_value(requested_value);
+            let their_update_requests = state_var_definition.request_dependencies_to_update_value(requested_value.clone());
 
             for their_update_request in their_update_requests {
-                process_update_request(core, component, component_state, their_name, their_update_request);
+                process_update_request(core, component, component_state, their_name, &their_update_request);
             }
 
         }
@@ -967,82 +807,6 @@ pub fn process_update_request(
 
     mark_stale_state_var_and_dependencies(core, component, component_state, state_var_name);
 
-}
-
-
-fn copy_target_into_component(components: &HashMap<String, Box<dyn ComponentLike>>, component: &dyn ComponentLike) {
-
-    let target_name = component.get_copy_target_if_exists().as_ref()
-        .expect("Can't fill in copy component on component without copyTarget");
-
-    let target_component = components.get(target_name).expect("Copy target doesn't exist");
-}
-
-
-
-/// Note: this function destroys the component instance and creates another one !!! 
-fn replace_component_with_added_child(components: &mut HashMap<String, Box<dyn ComponentLike>>, component_name: &str, child_name: &str) {
-
-    log!("Trying to add {} to {}", child_name, component_name);
-
-    let component = components.get(component_name).unwrap().as_ref();
-
-
-    let child = components.get(child_name).unwrap();
-    let child_obj = ComponentChild::Component(child.name().to_string());
-
-    debug_assert!( !component.children().contains(&child_obj));
-
-    let mut new_children: Vec<ComponentChild> = component.children().clone();
-    new_children.push(child_obj);
-
-
-    // The only difference is the new child
-    let component_with_child = create_new_component_of_type(
-        component.get_component_type(),
-        component.name(),
-        match component.parent() {
-            Some(p) => Some(&p),
-            None => None,
-        },
-        new_children,
-        component.attributes().clone(),
-        component.get_copy_target_if_exists().clone()
-    ).unwrap();
-
-    
-    components.remove(component_name);
-    components.insert(component_with_child.name().to_string(), component_with_child);
-
-}
-
-
-
-
-fn copy_children_names_recursive(
-    component_nodes: &HashMap<String, ComponentNode>,
-    component: &ComponentNode) -> Vec<ComponentChild>
-{
-    let mut children = vec![];
-    copy_children_names_recursive_internal(component_nodes, component, &mut children);
-
-    children
-}
-
-
-fn copy_children_names_recursive_internal(
-    component_nodes: &HashMap<String, ComponentNode>,
-    component: &ComponentNode,
-    children_names: &mut Vec<ComponentChild>)
-{
-    for child in &component.children {
-        children_names.push(child.clone());
-
-        if let ComponentChild::Component(comp_name) = child {
-            let child_comp = component_nodes.get(comp_name).unwrap();
-            copy_children_names_recursive_internal(component_nodes, child_comp, children_names);
-        }
-    }
 }
 
 
@@ -1108,6 +872,13 @@ fn copy_subtree(
 // }
 
 
+fn get_target_state_vars<'a>(core: &'a DoenetCore, target_name: &str) -> &'a dyn ComponentStateVars {
+    let target_state = core.component_states.get(target_name).unwrap();
+    match target_state {
+        ComponentState::State(state_vars) => state_vars.as_ref(),
+        ComponentState::Shadowing(next_target_name) => get_target_state_vars(core, next_target_name)
+    }
+}
 
 
 
@@ -1136,10 +907,13 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &ComponentNode, j
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
-    let comp_state_vars = if let ComponentState::State(svs) = component_state {
-        svs
-    } else {
-        panic!();
+    let comp_state_vars = match component_state {
+        ComponentState::State(svs) => {
+            svs.as_ref()
+        },
+        ComponentState::Shadowing(target_name) => {
+            get_target_state_vars(core, target_name)
+        }
     };
 
     use serde_json::Value;

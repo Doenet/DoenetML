@@ -36,8 +36,8 @@ fn json_value_to_state_var_value(value: &Value) -> Option<StateVarValue> {
 fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn ComponentDefinition>, ComponentType),String> {
     let component_def_and_type = match component_type {
         "text" =>       (Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>, "text"),
-        // "number" =>     &crate::number::MyComponentDefinition,
-        // "textInput" =>  &crate::text_input::MyComponentDefinition,
+        "number" =>     (Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>, "number"),
+        "textInput" =>  (Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>, "textInput"),
         "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
         "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
 

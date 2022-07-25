@@ -1,5 +1,11 @@
 <document>
 
+
+<textInput />
+
+
+<number>43</number>
+
 <text name='hi'>hi <text name='there'>there <text>once again</text></text></text>
 
 <text copyTarget='hi' />

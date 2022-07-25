@@ -8,14 +8,13 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName, ComponentLike,
-ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName, ComponentChild};
 
 use crate::state_var::{StateVar, EssentialStateVar};
 
 
 
-#[derive(Debug, ComponentLike)]
+#[derive(Debug)]
 pub struct Document {
     name: String,
     parent: Option<String>,
@@ -228,37 +227,6 @@ lazy_static! {
 }
 
 
-impl ComponentSpecificBehavior for Document {
-
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
-
-    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
-
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
-        &self.attributes
-    }
-
-    fn should_render_children(&self) -> bool { true }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![]
-    }
-
-    fn action_names(&self) -> Vec<&'static str> { vec![] }
-
-
-    fn get_copy_target_if_exists(&self) -> &Option<String> {
-        &self.copy_target
-    }
-
-
-}
-
-
 #[derive(Clone)]
 pub struct MyComponentDefinition;
 
@@ -306,36 +274,4 @@ impl ComponentDefinition for MyComponentDefinition {
     }
 
 
-}
-
-
-
-impl Document {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
-    
-    ) -> Box<dyn ComponentLike> {
-        Box::new(Document {
-            name,
-            parent,
-            children,
-
-            essential_state_vars,
-            attributes,
-            copy_target,
-            
-            submit_label: StateVar::new(StateVarValueType::String),
-            submit_label_no_correctness: StateVar::new(StateVarValueType::String),
-            hidden: StateVar::new(StateVarValueType::Boolean),
-            disabled: StateVar::new(StateVarValueType::Boolean),
-            fixed: StateVar::new(StateVarValueType::Boolean),
-            // title_child_name: StateVar::new(StateVarValueType::),
-            title: StateVar::new(StateVarValueType::String),
-            level: StateVar::new(StateVarValueType::Number),
-            just_submitted: StateVar::new(StateVarValueType::Boolean),
-            show_correctness: StateVar::new(StateVarValueType::Boolean),
-            credit_achieved: StateVar::new(StateVarValueType::Number),
-            create_submit_all_button: StateVar::new(StateVarValueType::Boolean),
-            suppress_answer_submit_buttons: StateVar::new(StateVarValueType::Boolean),
-        })
-    }
 }

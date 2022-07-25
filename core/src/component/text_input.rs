@@ -1,7 +1,5 @@
 use std::collections::HashMap;
 
-use core_derive::ComponentLike;
-
 use lazy_static::lazy_static;
 
 
@@ -9,35 +7,82 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::{ObjectTraitName, ComponentLike,
-ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName};
 
 use crate::state_var::{StateVar, EssentialStateVar};
 
 
-#[derive(Debug, ComponentLike)]
-pub struct TextInput {
-    name: String,
-    parent: Option<String>,
-    children: Vec<ComponentChild>,
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
 
-    // Note that this is not behind a RefCell, so we can't change the hashmap
-    // once the component is created
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+    // These types could be more specific
+    hide: Option<Attribute>,
+    disabled: Option<Attribute>,
+}
 
-    attributes: HashMap<AttributeName, Attribute>,
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => {
+                self.hide = Some(attribute);
+            },
+            "disabled" => {
+                self.disabled = Some(attribute);
+            },
 
-    copy_target: Option<String>,
+            _ => {
+                return Err("Invalid attribute name".to_string())
+            }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            "disabled" => &self.disabled,
+            _ => panic!("Invalid attribute name {} for textInput", name)
+        }
+    }
+}
 
 
-    // State variables
+
+#[derive(Debug)]
+struct MyStateVars {
     value: StateVar,
     hidden: StateVar,
-    hide: StateVar,
     expanded: StateVar,
     size: StateVar,
     immediate_value: StateVar,
     width: StateVar,
+    disabled: StateVar,
+
+    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
+}
+
+
+
+
+impl ComponentStateVars for MyStateVars {
+    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
+        match state_var_name {
+            "value" => Ok(&self.value),
+            "hidden" => Ok(&self.hidden),
+            "expanded" => Ok(&self.expanded),
+            "size" => Ok(&self.size),
+            "immediateValue" => Ok(&self.immediate_value),
+            "width" => Ok(&self.width),
+            "disabled" => Ok(&self.disabled),
+
+            _ => Err(format!("TextInput does not have state var {}", state_var_name))
+        }
+    }
+
+
+    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
+        &self.essential_state_vars
+    }
 }
 
 
@@ -127,8 +172,9 @@ lazy_static! {
 
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+        state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
 
-        state_var_definitions.insert("hide", StateVarVariant::Boolean(Default::default()));
+        // state_var_definitions.insert("hide", StateVarVariant::Boolean(Default::default()));
 
 
         return state_var_definitions
@@ -149,20 +195,53 @@ lazy_static! {
 }
 
 
-impl ComponentSpecificBehavior for TextInput {
+#[derive(Clone)]
+pub struct MyComponentDefinition;
 
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS        
-    }
-
-    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
+impl ComponentDefinition for MyComponentDefinition {
+    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
         &MY_ATTRIBUTE_DEFINITIONS
     }
 
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
-        &self.attributes
+    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
+        &MY_STATE_VAR_DEFINITIONS
     }
-    
+
+    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
+        Box::new(MyAttributeData { ..Default::default() })
+    }
+
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+
+        let essential_state_vars = HashMap::from([
+            ("value", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
+            ("immediateValue", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
+        ]);
+
+        Box::new(MyStateVars {
+            
+            value: StateVar::new(StateVarValueType::String),
+            hidden: StateVar::new(StateVarValueType::Boolean),
+            immediate_value: StateVar::new(StateVarValueType::String),
+            size: StateVar::new(StateVarValueType::Number),
+            width: StateVar::new(StateVarValueType::Number),
+            expanded: StateVar::new(StateVarValueType::Boolean),
+            disabled: StateVar::new(StateVarValueType::Boolean),
+
+            essential_state_vars,
+
+        })
+    }
+
+    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
+        vec![ObjectTraitName::TextLike]
+    }
+
+    fn should_render_children(&self) -> bool {
+        false
+    }
+
+
     fn action_names(&self) -> Vec<&'static str> {
         vec!["updateImmediateValue", "updateValue"]
     }
@@ -196,58 +275,10 @@ impl ComponentSpecificBehavior for TextInput {
 
 
 
-            _ => panic!("Unknown action '{}' called on {}", action_name, self.name())
+            _ => panic!("Unknown action '{}' called on textInput", action_name)
 
         }
 
     }
 
-
-
-
-    fn should_render_children(&self) -> bool { false }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike]
-    }
-
-    fn get_copy_target_if_exists(&self) -> &Option<String> {
-        &self.copy_target
-    }
-
-}
-
-
-
-// impl TextLikeComponent for TextInput {
-//     fn text_value(&self) -> String {
-//         let val = *self.value.borrow();
-//         val.to_string()
-//     }
-// }
-
-
-
-impl TextInput {
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,) -> Box<dyn ComponentLike> {
-        Box::new(TextInput {
-            name,
-            parent,
-            children,
-
-            essential_state_vars,
-            attributes,
-
-            copy_target,
-            
-            value: StateVar::new(StateVarValueType::String),
-            hidden: StateVar::new(StateVarValueType::Boolean),
-            hide: StateVar::new(StateVarValueType::Boolean),
-            immediate_value: StateVar::new(StateVarValueType::String),
-            size: StateVar::new(StateVarValueType::Number),
-            width: StateVar::new(StateVarValueType::Number),
-            expanded: StateVar::new(StateVarValueType::Boolean),
-
-        })
-    }
 }

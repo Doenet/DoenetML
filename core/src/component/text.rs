@@ -1,41 +1,16 @@
 use std::collections::HashMap;
 
 
-use core_derive::ComponentLike;
-
 
 use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::{ComponentLike, ComponentChild, ComponentSpecificBehavior, ObjectTraitName};
+use crate::{ObjectTraitName};
 
 use lazy_static::lazy_static;
 
 use crate::state_var::{StateVar, EssentialStateVar};
-
-
-
-
-
-#[derive(Debug, ComponentLike)]
-pub struct Text {
-    name: String,
-    parent: Option<String>,
-    children: Vec<ComponentChild>,
-
-    // Note that this is not behind a RefCell, so we can't change the hashmap
-    // once the component is created    
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
-
-    attributes: HashMap<AttributeName, Attribute>,
-
-    copy_target: Option<String>,
-
-    // State variables
-
-    // state_vars: ComponentStateVars<MyStateVars>,
-}
 
 
 
@@ -191,48 +166,6 @@ lazy_static! {
 }
 
 
-impl ComponentSpecificBehavior for Text {
-
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-
-        &MY_STATE_VAR_DEFINITIONS
-
-    }
-
-    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
-
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
-        &self.attributes
-    }
-
-    fn should_render_children(&self) -> bool { false }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike]
-    }
-
-    fn action_names(&self) -> Vec<&'static str> { vec![] }
-
-
-
-    fn get_copy_target_if_exists(&self) -> &Option<String> {
-        &self.copy_target
-    }
-
-
-}
-
-
-
-// impl TextLikeComponent for Text {
-//     fn text_value(&self) -> String {
-//         // self.value.borrow().clone()
-//     }
-// }
-
-
 #[derive(Clone)]
 pub struct MyComponentDefinition;
 
@@ -274,68 +207,4 @@ impl ComponentDefinition for MyComponentDefinition {
 
 
 }
-
-
-
-
-
-impl Text {
-
-
-
-
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>, is_shadowing_component: Option<String>,
-        // attributes: HashMap<String, StateVarValue>
-
-    ) -> Box<dyn ComponentLike> {
-
-        // let state_vars = MyStateVars {
-        //     value: StateVar::new(StateVarValueType::String),
-        //     text: StateVar::new(StateVarValueType::String),
-
-        //     hidden: StateVar::new(StateVarValueType::Boolean),
-        //     // hide: StateVar::new(StateVarValueType::Boolean),
-        //     disabled: StateVar::new(StateVarValueType::Boolean),
-        //     fixed: StateVar::new(StateVarValueType::Boolean),
-        // };
-
-        let component = Box::new(Text {
-            name,
-            parent,
-            children,
-
-            essential_state_vars,
-            attributes,
-
-            copy_target,
-
-            // state_vars: ComponentStateVars::StateVars(state_vars),
-
-        });
-
-        // for (attribute_name, attribute_value) in attributes {
-
-        // }
-
-        component
-    }
-}
-
-
-
-// impl ComponentLike for Text {
-
-//     fn name(&self) -> &str {
-//         &self.name
-//     }
-//     fn children(&self) -> &Vec<ComponentChild> {
-//         // Is this really the best way to do this?
-//         &self.children
-//     }
-
-//     fn parent(&self) -> &Option<String> {
-//         &self.parent
-//     }
-// }
-
 

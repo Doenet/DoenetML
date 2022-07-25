@@ -8,14 +8,13 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName, ComponentLike,
-ComponentSpecificBehavior, ComponentChild};
+use crate::{ObjectTraitName, ComponentChild};
 
 use crate::state_var::{StateVar, EssentialStateVar};
 
 
 
-#[derive(Debug, ComponentLike)]
+#[derive(Debug)]
 pub struct Boolean {
     name: String,
     parent: Option<String>,
@@ -159,35 +158,6 @@ lazy_static! {
 }
 
 
-impl ComponentSpecificBehavior for Boolean {
-
-    fn state_variable_instructions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
-
-    fn attribute_instructions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
-
-    fn attributes(&self) -> &HashMap<AttributeName, Attribute> {
-        &self.attributes
-    }
-
-
-    fn should_render_children(&self) -> bool { false }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::NumberLike, ObjectTraitName::TextLike]
-    }
-
-    fn action_names(&self) -> Vec<&'static str> { vec![] }
-
-    fn get_copy_target_if_exists(&self) -> &Option<String> {
-        &self.copy_target
-    }
-
-}
-
 
 
 // impl TextLikeComponent for Number {
@@ -241,28 +211,4 @@ impl ComponentDefinition for MyComponentDefinition {
         false
     }
 
-}
-
-
-
-
-impl Boolean {
-
-    pub fn create(name: String, parent: Option<String>, children: Vec<ComponentChild>, essential_state_vars: HashMap<StateVarName, EssentialStateVar>, attributes: HashMap<AttributeName, Attribute>, copy_target: Option<String>,
-    
-    ) -> Box<dyn ComponentLike> {
-        Box::new(Boolean {
-            name,
-            parent,
-            children,
-
-            essential_state_vars,
-            attributes,
-            copy_target,
-            
-            value: StateVar::new(StateVarValueType::Boolean),
-            text: StateVar::new(StateVarValueType::String),
-            hidden: StateVar::new(StateVarValueType::Boolean),
-        })
-    }
 }

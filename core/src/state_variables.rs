@@ -38,6 +38,7 @@ pub enum StateVarValueType {
 
 
 /// Passed into determine_state_vars_from_dependencies
+#[derive(Debug)]
 pub struct DependencyValue {
     pub component_type: ComponentType,
     pub state_var_name: StateVarName,
@@ -191,7 +192,7 @@ pub enum StateVarUpdateInstruction<T> {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UpdateRequest {
     SetEssentialValue(StateVarName, StateVarValue),
 
@@ -278,6 +279,7 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
 pub trait DepValueSingle {
     fn is_bool(&self) -> bool;
     fn is_string(&self) -> String;
+    fn is_number(&self) -> f64;
     fn value(&self) -> StateVarValue;
 }
 
@@ -291,9 +293,16 @@ impl DepValueSingle for (&DependencyValue, InstructionName) {
 
     fn is_string(&self) -> String {
         match &self.0.value {
-            StateVarValue::Boolean(v) => v.to_string(),
+            StateVarValue::String(v) => v.to_string(),
             _ => panic!("Dependency value {} {} is not a string", self.1, self.0.state_var_name)
         } 
+    }
+
+    fn is_number(&self) -> f64 {
+        match self.0.value {
+            StateVarValue::Number(v) => v,
+            _ => panic!("Dependency value {} {} is not a number", self.1, self.0.state_var_name)
+        }
     }
 
     fn value(&self) -> StateVarValue {

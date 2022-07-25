@@ -1,6 +1,4 @@
 
-use core::{self, state_var::StateVar};
-use std::cell::RefCell;
 
 #[test]
 fn it_works() {
@@ -20,28 +18,6 @@ fn it_works() {
     let program = serde_json::from_str(data).unwrap();
     let dc = core::create_doenet_core(program);
 
-    // assert_eq!(dc.components.len(), 1);
+    assert_eq!(dc.component_nodes.len(), 1);
 
-}
-
-#[test]
-fn state_var_depends_on_another_state_var_of_same_component() {
-
-    use crate::core::ComponentLike;
-    use core_derive::ComponentLike;
-
-    // #[derive(Debug, ComponentLike)]
-    // struct TestComponent {
-    //     pub name: String,
-    //     pub parent: RefCell<String>,
-    //     pub children: RefCell<Vec<ComponentChild>>,
-    
-    //     // State variables
-    //     value: StateVar<String>,
-    //     hidden: StateVar<bool>,
-    //     disabled: StateVar<bool>,
-    //     fixed: StateVar<bool>,
-    //     // text is same as value state var, but this one gets sent to rendere
-    //     text: StateVar<String>, 
-    // }
 }
