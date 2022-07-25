@@ -14,7 +14,7 @@ use crate::prelude::*;
 use crate::component::*;
 
 use state_variables::*;
-use state_var::{StateVar, State, EssentialStateVar};
+use state_var::{State};
 
 
 #[derive(Debug)]
@@ -80,117 +80,42 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     log!("Component nodes {:#?}", component_nodes);
 
+    
 
-    // let mut new_components_from_copies = HashMap::new();
+    // Fill in copyTargets
 
-    // Component name, new child name
-    let mut components_to_add: Vec<ComponentNode> = vec![];
+    // Key: Component name
+    // Value: target name
+    let copy_target_info: HashMap<String, String> = component_nodes.iter()
+        .filter_map(| (_, comp)| {
+            if let Some(ref target_name) = comp.copy_target {
 
-    // Names already exist in hashmap, but will replace it with these structs
-    let mut component_states_structs_to_change: Vec<ComponentNode> = vec![];
+                Some((comp.name.clone(), target_name.clone()))
 
-    for (component_name, component) in &component_nodes {
-
-        if let Some(ref target_name) = component.copy_target {
-            let target_component = component_nodes.get(target_name).unwrap();
-
-            debug_assert_eq!(component.component_type, target_component.component_type);
-
-            // Copy the target into the component
-
-            // ...
-
-
-            let mut children_copy = vec![];
-
-            // Shadow copy the children
-            for child in &target_component.children {
-                match child {
-                    ComponentChild::Component(child_comp_name) => {
-                        let child_comp = component_nodes.get(child_comp_name).unwrap();
-                        copy_subtree(&component_nodes, child_comp, &mut children_copy);
-                    },
-                    ComponentChild::String(str_child) => {
-
-                    },
-                }
+            } else {
+                None
             }
+        }).collect();
 
 
-            // First, we mark that they are shadowing the original names
-            // We will change the copies' names next so they're not actually shadowing themselves
-            for shadow_component in children_copy.iter_mut() {
+    // This will keep track of which component we have filled out
+    let mut filled_out: HashMap<String, bool> = copy_target_info.keys().map(|comp_name| {
+        (comp_name.to_string(), false)
+    }).collect();
 
-                let is_shadow_field = &mut shadow_component.is_shadow_for;
-                *is_shadow_field = Some(shadow_component.name.clone());
-            }
-
-
-            // Transform the names so that they don't collide with existing names
-            // If it used to refer to the target, we want it to refer to the copier
-            let name_transform = |name: &String| {
-                if name == target_name {
-                    component_name.to_string()
-                } else {
-                    format!("__cp:{}({})", name, component_name)
-                }
-            };
-
-            for shadow_component in children_copy.iter_mut() {
-
-                // Transform the names of components, including parent_name and children fields
-
-                let name = &mut shadow_component.name;
-                *name = name_transform(name);
-
-                let parent_name = shadow_component.parent.as_mut().unwrap();
-                *parent_name = name_transform(parent_name);
-
-                let child_names = &mut shadow_component.children;
-                for child_name in child_names {
-                    if let ComponentChild::Component(name) = child_name {
-                        *name = name_transform(name);
-                    }
-                }
-            }
-
-
-            log!("Copied components, {:#?}", children_copy);
-
-            components_to_add.extend(children_copy);
-
-
-        }
-    }
 
 
     let mut component_nodes = component_nodes;
-    add_component_nodes_using_parent_field(&mut component_nodes, components_to_add);
+
+    for (component_name, target_name) in copy_target_info.iter() {
+        fill_out_copy_target(&mut component_nodes, &mut filled_out, &copy_target_info, component_name, target_name);
+    }
+
     let component_nodes = component_nodes;
 
 
-//    let mut new_components_from_copies = HashMap::new();
-//     }
 
-//     let mut components = components;
-
-//     for (new_comp_name, new_comp) in new_components_from_copies {
-
-//         assert!( !components.contains_key(&new_comp_name));
-//         components.insert(new_comp_name, new_comp);
-//     }
-
-
-//     for (component_name, child_name) in components_to_add_child {
-//         replace_component_with_added_child(&mut components, &component_name, &child_name);
-//     }
-
-
-
-//     let components = components;
-
-
-
+    // Create node states
 
     let mut component_states: HashMap<String, ComponentState> = HashMap::new();
 
@@ -229,6 +154,134 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         root_component_name
     }
 }
+
+fn fill_out_copy_target(
+    component_nodes: &mut HashMap<String, ComponentNode>,
+    filled_out: &mut HashMap<String, bool>,
+    copy_target_info: &HashMap<String, String>,
+    component_name: &str,
+    target_name: &str
+) {
+
+    // If this component has already been filled out, don't do it again
+    if filled_out.get(component_name).unwrap() == &true {
+        return;
+    }
+
+
+    if let Some(target_filled_out) = filled_out.get(target_name) {
+        if target_filled_out == &false {
+
+            // If this copy has a target that itself has an unfilled target,
+            // fill out the target's target first
+            let target_target_name = copy_target_info.get(target_name).unwrap();
+            fill_out_copy_target(component_nodes, filled_out, copy_target_info, target_name, &target_target_name);
+        }
+    }
+
+    // Now that we know that everything this component copies has been filled out,
+    // fill out this component and flag it as filled out
+
+    copy_target_from_filled_out_component(component_nodes, component_name, target_name);
+    let component_filled_out = filled_out.get_mut(component_name).unwrap();
+    *component_filled_out = true;
+
+}
+
+
+
+
+
+fn copy_target_from_filled_out_component(
+    component_nodes: &mut HashMap<String, ComponentNode>,
+    component_name: &str,
+    target_name: &str,
+) {
+
+    let component = component_nodes.get(component_name).unwrap();
+    let target_component = component_nodes.get(target_name).unwrap();
+
+    debug_assert_eq!(component.component_type, target_component.component_type);
+
+
+    let mut target_direct_children: Vec<ComponentChild> = vec![];
+    let mut new_named_components: Vec<ComponentNode> = vec![];
+
+    // Shadow copy the children
+    for child in &target_component.children {
+        target_direct_children.push(child.clone());
+
+        match child {
+            ComponentChild::Component(child_comp_name) => {
+                let child_comp = component_nodes.get(child_comp_name).unwrap();
+                copy_subtree(&component_nodes, child_comp, &mut new_named_components);
+            },
+
+            ComponentChild::String(_) => {
+            },
+        }
+    }
+
+
+    // First, we mark that they are shadowing the original names
+    // We will change the copies' names next so they're not actually shadowing themselves
+    for shadow_component in new_named_components.iter_mut() {
+
+        let is_shadow_field = &mut shadow_component.is_shadow_for;
+        *is_shadow_field = Some(shadow_component.name.clone());
+    }
+
+
+    // Transform the names so that they don't collide with existing names
+    // If it used to refer to the target, we want it to refer to the copier
+    let name_transform = |name: &String| {
+        if name == target_name {
+            component.name.to_string()
+        } else {
+            format!("__cp:{}({})", name, component.name)
+        }
+    };
+
+    for shadow_component in new_named_components.iter_mut() {
+
+        // Transform the names of components, including parent_name and children fields
+
+        let name = &mut shadow_component.name;
+        *name = name_transform(name);
+
+        let parent_name = shadow_component.parent.as_mut().unwrap();
+        *parent_name = name_transform(parent_name);
+
+        let child_names = &mut shadow_component.children;
+        for child_name in child_names {
+            if let ComponentChild::Component(name) = child_name {
+                *name = name_transform(name);
+            }
+        }
+    }
+
+
+    // //We've also got to change the name of the components in the direct children
+    for child in target_direct_children.iter_mut() {
+        if let ComponentChild::Component(comp_name) = child {
+            *comp_name = name_transform(comp_name);
+        }
+    }
+
+    // log!("Copied components, {:#?}", new_named_components);
+
+    let component = component_nodes.get_mut(component_name).unwrap();
+
+    let mut new_children = target_direct_children;
+    new_children.extend(component.children.clone());
+    component.children = new_children;
+
+
+    // Then add the components to the hashmap. This won't touch the the copyTargets' children field
+    // because we've already added them above.
+    add_component_nodes_using_parent_field(component_nodes, new_named_components);
+}
+
 
 
 fn add_component_nodes_using_parent_field(component_nodes: &mut HashMap<String, ComponentNode>, new_components: Vec<ComponentNode>) {
@@ -300,6 +353,22 @@ pub fn create_all_dependencies_for_component(
 
     dependencies
 
+}
+
+/// Recursively searches the target (and the target's target if it has one), and finds
+/// the nearest attribute to the original node, if any exist
+fn fetch_attribute_on_target_if_exists<'a>(components: &'a HashMap<String, ComponentNode>, target_name: &str, attribute_name: AttributeName) -> Option<&'a Attribute> {
+
+    let target = components.get(target_name).unwrap();
+    if let Some(attribute) = target.attributes.get(attribute_name) {
+        Some(attribute)
+
+    } else if let Some(ref next_target_name) = target.copy_target {
+        fetch_attribute_on_target_if_exists(components, next_target_name, attribute_name)
+
+    } else {
+        None
+    }
 }
 
 
@@ -382,7 +451,21 @@ fn create_dependency_from_instruction(
             log!("attribute instruction {:#?}", attribute_instruction);
             // log!("component attributes {:#?}", component.attributes());
 
-            if let Some(attribute) = component.attributes.get(attribute_instruction.attribute_name) {
+            let attribute_name = attribute_instruction.attribute_name;
+
+            let possible_attribute: Option<&Attribute> = 
+            if let Some(attribute) = component.attributes.get(attribute_name) {
+                Some(attribute)
+
+            } else if let Some(ref target_name) = component.copy_target {
+                fetch_attribute_on_target_if_exists(components, target_name, attribute_name)
+
+            } else {
+                None
+            };
+
+
+            if let Some(attribute) = possible_attribute {
                 match attribute {
                     Attribute::Component(attr_comp_name) => {
                         depends_on_objects = vec![ObjectName::Component(attr_comp_name.to_string())];
@@ -726,12 +809,6 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
 
     let component_state = core.component_states.get(&action.component_name).unwrap();
-
-    let component_state_vars = if let ComponentState::State(svs) = component_state {
-        svs
-    } else {
-        panic!("Assuming comp state is not shadowing for now");
-    };
 
     let state_var_resolver = | state_var_name | {
         resolve_state_variable(core, component, state_var_name)

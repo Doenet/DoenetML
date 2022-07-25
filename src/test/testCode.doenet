@@ -1,13 +1,16 @@
 <document>
 
+<!-- <text hide name='hi'>hi <text name='there'>there</text></text>
 
-<textInput />
+<text hide='false' copyTarget='hi'> new children</text> -->
 
 
-<number>43</number>
 
-<text name='hi'>hi <text name='there'>there <text>once again</text></text></text>
+<text name='one'>one</text>
 
-<text copyTarget='hi' />
+<text hide name='two' copyTarget="one">two</text>
+
+<text hide='false' name='three' copyTarget="two">three</text>
+
 
 </document>

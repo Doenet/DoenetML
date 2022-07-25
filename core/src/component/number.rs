@@ -6,33 +6,12 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName, ComponentChild};
+use crate::{ObjectTraitName};
 
 use crate::state_var::{StateVar, EssentialStateVar};
 
 use crate::log;
 
-
-
-
-#[derive(Debug)]
-pub struct Number {
-    name: String,
-    parent: Option<String>,
-    children: Vec<ComponentChild>,
-
-    // Note that this is not behind a RefCell, so we can't change the hashmap
-    // once the component is created
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
-
-    attributes: HashMap<AttributeName, Attribute>,
-
-    copy_target: Option<String>,
-
-    // State variables
-    value: StateVar,
-    hidden: StateVar,
-}
 
 #[derive(Debug, Default, Clone)]
 struct MyAttributeData {
@@ -107,7 +86,6 @@ impl ComponentStateVars for MyStateVars {
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
         use StateVarUpdateInstruction::*;
-        use StateVarVariant::*;
 
         let mut state_var_definitions = HashMap::new();
         

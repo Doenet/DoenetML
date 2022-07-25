@@ -1,38 +1,14 @@
 use std::collections::HashMap;
 
-use core_derive::ComponentLike;
-
 use lazy_static::lazy_static;
 
 use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName, ComponentChild};
+use crate::{ObjectTraitName};
 
 use crate::state_var::{StateVar, EssentialStateVar};
-
-
-
-#[derive(Debug)]
-pub struct Boolean {
-    name: String,
-    parent: Option<String>,
-    children: Vec<ComponentChild>,
-
-    // Note that this is not behind a RefCell, so we can't change the hashmap
-    // once the component is created
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
-
-    attributes: HashMap<AttributeName, Attribute>,
-
-    copy_target: Option<String>,
-
-    // State variables
-    value: StateVar,
-    text: StateVar,
-    hidden: StateVar,
-}
 
 
 
