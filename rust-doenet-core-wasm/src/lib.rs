@@ -6,7 +6,7 @@ use wasm_bindgen::prelude::*;
 
 use core::DoenetCore;
 
-use serde_json::*;
+use serde_json::to_string;
 
 
 

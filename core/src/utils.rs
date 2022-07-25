@@ -10,66 +10,53 @@ use crate::state_var::State;
 pub fn package_subtree_as_json(
     components: &HashMap<String, ComponentNode>,
     component_states: &HashMap<String, ComponentState>,
-    component: &ComponentNode) -> serde_json::Value {
+    component: &ComponentNode
+) -> serde_json::Value {
 
     use serde_json::Value;
     use serde_json::Map;
     use serde_json::json;
 
-    // Children
+    let children: Map<String, Value> = component.children.iter()
+        .enumerate()
+        .map(|(child_num, child)| 
+             match child {
+                 ComponentChild::Component(comp_child_name) => {
+                     let comp_child = components.get(comp_child_name).unwrap();
+                     (format!("{} {}", child_num, comp_child_name),
+                     package_subtree_as_json(components, component_states, comp_child))
+                 },
+                 ComponentChild::String(str) => {
+                     (format!("{}", child_num), Value::String(str.to_string()))
+                 }
+             }
+        )
+        .collect();
 
-    let mut children: Map<String, Value> = Map::new();
-
-    for (child_num, child) in component.children.iter().enumerate() {
-
-        let label;
-        let child_json;
-        match child {
-            ComponentChild::Component(comp_child_name) => {
-                let comp_child = components.get(comp_child_name).unwrap();
-                child_json = package_subtree_as_json(components, component_states, comp_child);
-                label = format!("{} {}", child_num, comp_child_name);
-            }
-            ComponentChild::String(str) => {
-                child_json = Value::String(str.to_string());
-                label = format!("{}", child_num);
-            }
-        };
-
-
-        children.insert(label, child_json);
-    }
-
-
-    // Attributes
-
-    let mut attributes: Map<String, Value> = Map::new();
-
-    let all_attribute_names = component.definition.attribute_definitions().keys();
-
-    for attribute_name in all_attribute_names {
-
-        let attribute_opt = component.attributes.get(&attribute_name);
-        
-        if let Some(attribute) = attribute_opt {
-            let attribute_json = match attribute {
-                Attribute::Component(component_name) => {
-                    Value::String(component_name.to_string())
-                },
-                Attribute::Primitive(state_var_value) => {
-                    match state_var_value {
-                        StateVarValue::String(v) => json!(v),
-                        StateVarValue::Number(v) => json!(v),
-                        StateVarValue::Integer(v) => json!(v),
-                        StateVarValue::Boolean(v) => json!(v),
-                    }
+    let attributes: Map<String, Value> = component.definition.attribute_definitions().keys()
+        .into_iter()
+        .filter_map(|attribute_name|
+            match component.attributes.get(&attribute_name) {
+                Some(attribute) => {
+                    let attribute_json = match attribute {
+                        Attribute::Component(component_name) => {
+                            Value::String(component_name.to_string())
+                        },
+                        Attribute::Primitive(state_var_value) => {
+                            match state_var_value {
+                                StateVarValue::String(v) => json!(v),
+                                StateVarValue::Number(v) => json!(v),
+                                StateVarValue::Integer(v) => json!(v),
+                                StateVarValue::Boolean(v) => json!(v),
+                            }
+                        }
+                    };
+                    Some((attribute_name.to_string(), attribute_json))
                 }
-            };
-    
-            attributes.insert(attribute_name.to_string(), attribute_json);
-        }
-    }
-
+                None => None,
+            }
+        )
+        .collect();
 
 
     
@@ -77,20 +64,15 @@ pub fn package_subtree_as_json(
 
     my_json_props.insert("children".to_string(), json!(children));
     my_json_props.insert("attributes".to_string(), json!(attributes));
-    my_json_props.insert("parent".to_string(),
-        match component.parent {
-            None => Value::Null,
-            Some(ref parent_name) => Value::String(parent_name.into()),
+    my_json_props.insert("parent".to_string(), match component.parent {
+        Some(ref parent_name) => Value::String(parent_name.into()),
+        None => Value::Null,
     });
     my_json_props.insert("type".to_string(), Value::String(component.component_type.to_string()));
-
-    my_json_props.insert("copyTarget".to_string(),
-        if let Some(ref copy_target_name) = component.copy_target {
-            Value::String(copy_target_name.to_string())
-        } else {
-            Value::Null
-        }
-    );
+    my_json_props.insert("copyTarget".to_string(), match &component.copy_target {
+        Some(copy_target_name) => Value::String(copy_target_name.to_string()),
+        None => Value::Null,
+    });
 
     let component_state = component_states.get(&component.name).unwrap();
 
@@ -100,7 +82,6 @@ pub fn package_subtree_as_json(
         },
 
         ComponentState::State(state_vars) => {
-
 
             for &state_var_name in component.definition.state_var_definitions().keys() {
 
@@ -159,9 +140,5 @@ pub fn package_subtree_as_json(
         }
     }
 
-
-
-
     Value::Object(my_json_props)
-
 }
