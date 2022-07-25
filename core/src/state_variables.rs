@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
 
 /// A macro to provide println! style syntax for console.log logging.

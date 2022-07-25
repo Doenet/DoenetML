@@ -1,24 +1,17 @@
-
 pub mod prelude;
 
 pub mod state_variables;
-pub mod component_prelude;
+pub mod component;
 
 pub mod state_var;
 pub mod parse_json;
 pub mod utils;
 
-pub mod text;
-pub mod number;
-pub mod text_input;
-pub mod document;
-pub mod boolean;
-
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::fmt::Debug;
 
 use crate::prelude::*;
-use crate::component_prelude::*;
+use crate::component::*;
 
 use state_variables::*;
 use state_var::{StateVar, State, EssentialStateVar};

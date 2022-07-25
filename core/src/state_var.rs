@@ -1,9 +1,4 @@
-
 use crate::state_variables::*;
-
-// Why we need RefCells: the Box does not allow mutability in the thing it wraps.
-// If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
-
 use std::{cell::RefCell, fmt};
 
 
@@ -12,6 +7,9 @@ pub struct StateVar {
 
     // For state var, the ValueType protector's option means whether or not the value
     // is stale. Some(T) -> Resolved(T), and None -> Stale
+
+    // Why we need RefCells: the Box does not allow mutability in the thing it wraps.
+    // If it any point we might want to mutate a field, its value should be wrapped in a RefCell.
 
     state_ref: RefCell<ValueTypeProtector>,
 }

@@ -1,11 +1,7 @@
-
-
-
 use serde_json::Value;
 
 use crate::Action;
-use crate::component_prelude::Attribute;
-use crate::component_prelude::AttributeDefinition;
+use crate::component::{Attribute, AttributeDefinition};
 use crate::prelude::*;
 
 
