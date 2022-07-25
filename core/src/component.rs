@@ -3,6 +3,7 @@ pub mod number;
 pub mod text_input;
 pub mod document;
 pub mod boolean;
+pub mod p;
 
 use crate::prelude::*;
 use crate::state_var::{StateVar, EssentialStateVar};

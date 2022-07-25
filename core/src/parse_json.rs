@@ -73,6 +73,8 @@ fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn Co
         "textInput" =>  (Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>, "textInput"),
         "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
         "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
+        "p" =>    (Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>, "p"),
+
 
         _ => {
             return Err(format!("Invalid component type {}", component_type));

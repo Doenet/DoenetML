@@ -1,16 +1,7 @@
 <document>
 
-<!-- <text hide name='hi'>hi <text name='there'>there</text></text>
+<p><textInput name='hi'/></p>
 
-<text hide='false' copyTarget='hi'> new children</text> -->
-
-
-
-<text name='one'>one</text>
-
-<text hide name='two' copyTarget="one">two</text>
-
-<text hide='false' name='three' copyTarget="two">three</text>
-
+<p copyTarget='/_p1'></p>
 
 </document>
