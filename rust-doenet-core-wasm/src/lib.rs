@@ -52,11 +52,7 @@ impl PublicDoenetCore {
                 
         // log!("core recieved the string: {}", program);
 
-        let json_deserialized: serde_json::Value = serde_json::from_str(program).unwrap();
-
-        // log!("rust json: {:#?}", json_deserialized);
-
-        let core = core::create_doenet_core(json_deserialized);
+        let core = core::create_doenet_core(program);
 
         logJson("Components on core creation", to_string(&core.json_components()).unwrap());
         log!("Dependencies on core creation\n{:#?}", core.dependencies);
@@ -69,22 +65,17 @@ impl PublicDoenetCore {
 
     pub fn update_renderers(&self) -> String {
 
-        let json_obj = core::update_renderers(&self.0);
-
         // log!("Components\n{:#?}", &self.0.components);
-
-        serde_json::to_string(&json_obj).unwrap()
-
+        core::update_renderers(&self.0)
     }
 
 
 
     pub fn handle_action(&self, action: &str) {
-        let json_action: serde_json::Value = serde_json::from_str(&action).unwrap();
 
-        core::handle_action_from_json(&self.0, json_action);
+        log!("core recieved the string: {}", action);
 
-        // log!("{}", serde_json::to_string_pretty(&self.0.json_components()).unwrap());
+        core::handle_action_from_json(&self.0, action);
 
         logJson(
             "Updated component tree",

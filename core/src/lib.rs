@@ -71,11 +71,9 @@ fn set_state_var(
 
 
 
-pub fn create_doenet_core(json_deserialized: serde_json::Value) -> DoenetCore {
+pub fn create_doenet_core(program: &str) -> DoenetCore {
 
-    // log!("Received json {:#?}", json_deserialized);
-
-    let possible_components_tree = parse_json::create_components_tree_from_json(&json_deserialized)
+    let possible_components_tree = parse_json::create_components_tree_from_json(program)
         .expect("Error parsing json for components");
 
     let (component_nodes, root_component_name) = possible_components_tree;
@@ -711,9 +709,9 @@ pub struct Action {
 }
 
 
-pub fn handle_action_from_json(core: &DoenetCore, action_obj: serde_json::Value) {
+pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     
-    let action = parse_json::parse_action_from_json(action_obj)
+    let action = parse_json::parse_action_from_json(action)
         .expect("Error parsing json action");
 
     handle_action(core, action);
@@ -886,9 +884,9 @@ fn get_target_state_vars<'a>(core: &'a DoenetCore, target_name: &str) -> &'a dyn
 
 
 
-pub fn update_renderers(core: &DoenetCore) -> serde_json::Value {
+pub fn update_renderers(core: &DoenetCore) -> String {
     let json_obj = generate_render_tree(core);
-    json_obj
+    serde_json::to_string(&json_obj).unwrap()
 }
 
 
