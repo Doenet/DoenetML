@@ -14,9 +14,10 @@ use crate::prelude::*;
 use crate::component::*;
 
 use state_variables::*;
-use state_var::{State};
+use state_var::State;
 
 
+/// This stores the components and dependency graph.
 #[derive(Debug)]
 pub struct DoenetCore {
     pub component_nodes: HashMap<String, ComponentNode>,
@@ -46,27 +47,6 @@ pub struct Dependency {
 
     pub variables_optional: bool,
 }
-
-
-
-fn set_state_var(
-    component: &ComponentNode,
-    component_state_vars: &dyn ComponentStateVars,
-    name: StateVarName,
-    val: StateVarValue)
--> Result<(), String>
-{
-    let state_var = component_state_vars.get(name).expect(
-        &format!("Component {} of type {} does not have state var {}",
-        component.name, component.component_type, name)
-    );
-
-    state_var.set_value(val)
-        
-}
-
-
-
 
 
 
@@ -150,7 +130,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     DoenetCore {
         component_nodes,
         component_states,
-        dependencies: dependencies,
+        dependencies,
         root_component_name
     }
 }
@@ -322,7 +302,7 @@ fn add_component_nodes_using_parent_field(component_nodes: &mut HashMap<String, 
 
 
 
-pub fn create_all_dependencies_for_component(
+fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
 ) -> Vec<Dependency>
@@ -517,7 +497,7 @@ fn create_dependency_from_instruction(
 
 
 
-pub fn dependencies_for_component<'a>(
+fn dependencies_for_component<'a>(
     core: &'a DoenetCore,
     component_name: &str,
     state_var_name: StateVarName) -> Vec<&'a Dependency>
@@ -529,7 +509,7 @@ pub fn dependencies_for_component<'a>(
 
 
 
-pub fn resolve_unshadowing_state_variable(
+fn resolve_unshadowing_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
     state_vars: &dyn ComponentStateVars,
@@ -595,7 +575,7 @@ pub fn resolve_unshadowing_state_variable(
 
 
 /// Ensure a state variable is not stale and can be safely unwrapped.
-pub fn resolve_state_variable(
+fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
     state_var_name: StateVarName) -> StateVarValue {
@@ -668,7 +648,7 @@ pub fn resolve_state_variable(
 
 
 
-pub fn mark_stale_state_var_and_dependencies(
+fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
     component_state: &ComponentState,
@@ -712,7 +692,7 @@ pub fn mark_stale_state_var_and_dependencies(
 
 
 /// Sets the state var and returns the new value
-pub fn handle_update_instruction<'a>(
+fn handle_update_instruction<'a>(
     component: &'a ComponentNode,
     component_state_vars: &dyn ComponentStateVars,
     name: StateVarName,
@@ -779,11 +759,26 @@ pub fn handle_update_instruction<'a>(
 }
 
 
+fn set_state_var(
+    component: &ComponentNode,
+    component_state_vars: &dyn ComponentStateVars,
+    name: StateVarName,
+    val: StateVarValue)
+-> Result<(), String> {
+    let state_var = component_state_vars.get(name).expect(
+        &format!("Component {} of type {} does not have state var {}",
+        component.name, component.component_type, name)
+    );
+
+    state_var.set_value(val)
+}
+
+
+
 
 
 #[derive(Debug)]
 pub struct Action {
-    // pub component: Box<dyn ComponentLike>,
     pub component_name: String,
     pub action_name: String,
     // pub action_func: fn(HashMap<String, StateVarValue>)
@@ -801,8 +796,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 }
 
 
-// This should be private eventually
-pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
+fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
     // log!("Handling action {:#?}", action);
     let component = core.component_nodes.get(&action.component_name)
@@ -830,7 +824,7 @@ pub fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 }
 
 
-pub fn process_update_request(
+fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
     component_state: &ComponentState,
@@ -974,7 +968,7 @@ pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 
     generate_render_tree_internal(core, root_node, &mut json_obj);
 
-    serde_json::json!(json_obj)
+    serde_json::Value::Array(json_obj)
 }
 
 
@@ -1066,21 +1060,17 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &ComponentNode, j
 
 }
 
+/// List components and children in a JSON array
+pub fn json_components(core: &DoenetCore) -> serde_json::Value {
 
+    let json_components: serde_json::Map<String, serde_json::Value> = core.component_nodes
+        .values()
+        .map(|component| (component.name.to_string(),
+                utils::package_subtree_as_json(
+                    &core.component_nodes,
+                    &&core.component_states,
+                    component)))
+        .collect();
 
-impl DoenetCore {
-    pub fn json_components(&self) -> serde_json::Value {
-
-        let mut json_components = serde_json::Map::new();
-    
-        for component in self.component_nodes.values() {
-            json_components.insert(
-                component.name.to_string(),
-                utils::package_subtree_as_json(&self.component_nodes, &&self.component_states, component)
-            );
-        }
-    
-    
-        serde_json::Value::Object(json_components)
-    }
+    serde_json::Value::Object(json_components)
 }

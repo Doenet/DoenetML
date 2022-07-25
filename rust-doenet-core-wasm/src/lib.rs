@@ -54,7 +54,7 @@ impl PublicDoenetCore {
 
         let core = core::create_doenet_core(program);
 
-        logJson("Components on core creation", to_string(&core.json_components()).unwrap());
+        logJson("Components on core creation", to_string(&core::json_components(&core)).unwrap());
         log!("Dependencies on core creation\n{:#?}", core.dependencies);
     
         PublicDoenetCore(core)
@@ -79,7 +79,7 @@ impl PublicDoenetCore {
 
         logJson(
             "Updated component tree",
-            serde_json::to_string(&self.0.json_components()).unwrap()
+            serde_json::to_string(&core::json_components(&self.0)).unwrap()
         );
     }
 
