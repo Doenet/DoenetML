@@ -108,11 +108,17 @@ impl Debug for dyn ComponentDefinition {
 }
 
 
+
+
+pub type ComponentChild = ObjectName;
+
+/// An object refers to either a component or a string child.
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
-pub enum ComponentChild {
-    String(String),
+pub enum ObjectName {
     Component(String),
+    String(String),
 }
+
 
 
 

@@ -139,15 +139,6 @@ pub enum StateVarValue {
 
 
 
-
-/// An object refers to either a component or a string child.
-#[derive(Debug, PartialEq)]
-pub enum ObjectName {
-    Component(String),
-    String(String),
-}
-
-
 /// This tells core what dependencies to make.
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
