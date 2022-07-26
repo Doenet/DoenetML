@@ -147,20 +147,28 @@ fn create_all_dependencies_for_component(
 
 }
 
+/// Get the specified if it exists on this component, or on the component it copies
 /// Recursively searches the target (and the target's target if it has one), and finds
 /// the nearest attribute to the original node, if any exist
-fn fetch_attribute_on_target_if_exists<'a>(components: &'a HashMap<String, ComponentNode>, target_name: &str, attribute_name: AttributeName) -> Option<&'a Attribute> {
+fn get_attribute_including_copy<'a>(
+    components: &'a HashMap<String, ComponentNode>,
+    component: &'a ComponentNode,
+    attribute_name: AttributeName
+)-> Option<&'a Attribute> {
 
-    let target = components.get(target_name).unwrap();
-    if let Some(attribute) = target.attributes.get(attribute_name) {
+    // let target = components.get(target_name).unwrap();
+    if let Some(attribute) = component.attributes.get(attribute_name) {
         Some(attribute)
 
-    } else if let Some(ref next_target_name) = target.copy_target {
-        fetch_attribute_on_target_if_exists(components, next_target_name, attribute_name)
+    } else if let Some(ref target_name) = component.copy_target {
+
+        let target = components.get(target_name).unwrap();
+        get_attribute_including_copy(components, target, attribute_name)
 
     } else {
         None
     }
+
 }
 
 
@@ -245,16 +253,7 @@ fn create_dependency_from_instruction(
 
             let attribute_name = attribute_instruction.attribute_name;
 
-            let possible_attribute: Option<&Attribute> = 
-            if let Some(attribute) = component.attributes.get(attribute_name) {
-                Some(attribute)
-
-            } else if let Some(ref target_name) = component.copy_target {
-                fetch_attribute_on_target_if_exists(components, target_name, attribute_name)
-
-            } else {
-                None
-            };
+            let possible_attribute: Option<&Attribute> = get_attribute_including_copy(components, component, attribute_name);
 
 
             if let Some(attribute) = possible_attribute {
