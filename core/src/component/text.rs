@@ -98,8 +98,6 @@ lazy_static! {
 
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
 
-            shadow_variable: true,
-
             return_dependency_instructions: |_| {
                 let instruction = Child(ChildDependencyInstruction {                    
                     desired_children: vec![ObjectTraitName::TextLike],

@@ -48,7 +48,7 @@ pub struct DependencyValue {
 
 
 /// State variable functions core uses.
-/// The generics force component devs to be consistent with the type of a state variable.
+/// The generics force component code to be consistent with the type of a state variable.
 #[derive(Debug)]
 pub struct StateVarDefinition<T> {
 
@@ -70,9 +70,6 @@ pub struct StateVarDefinition<T> {
     pub default_value: T,
 
     pub has_essential: bool,
-
-    pub shadow_variable: bool,
-
 
     // arg is desired value
     pub request_dependencies_to_update_value: fn(T) -> Vec<UpdateRequest>,
@@ -99,7 +96,6 @@ impl<T> Default for StateVarDefinition<T>
             for_renderer: false,
             default_value: T::default(),
             has_essential: false,
-            shadow_variable: false,
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -643,15 +639,6 @@ impl StateVarVariant {
             StateVarVariant::Integer(def) => StateVarValue::Integer(def.default_value),
             StateVarVariant::Number(def) =>  StateVarValue::Number( def.default_value),
             StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.default_value),
-        }
-    }
-
-    pub fn shadow_variable(&self) -> bool {
-        match self {
-            StateVarVariant::String(def) =>  def.shadow_variable,
-            StateVarVariant::Integer(def) => def.shadow_variable,
-            StateVarVariant::Number(def) =>  def.shadow_variable,
-            StateVarVariant::Boolean(def) => def.shadow_variable,
         }
     }
 }

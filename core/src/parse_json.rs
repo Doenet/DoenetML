@@ -192,7 +192,6 @@ fn add_component_from_json(
                         attributes: attr_component_definition.empty_attribute_data(),
                 
                         copy_target: None,
-                        is_shadow_for: None,
 
                         definition: attr_component_definition,
                     };
@@ -267,7 +266,6 @@ fn add_component_from_json(
         attributes,
 
         copy_target,
-        is_shadow_for: None,
 
         definition: component_definition,
     };

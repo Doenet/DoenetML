@@ -110,22 +110,8 @@ pub fn package_subtree_as_json(
             None => Value::Null,
         };
 
-        // let essen_shadowing = match &essential_state_var.shadowing_component_name {
-        //     Some(comp_name) => Value::String(comp_name.to_string()),
-        //     None => Value::Null,
-        // };
-
-        // let essen_shadowing = json!(essential_state_var.shadowing_component_name);
-
-        // let essen_shadowed_by = json!(essential_state_var.shadowed_by_component_names);
-
         my_json_props.insert(format!("essen: {}", esv_name),
         json!(essen_value)
-        // json! ({
-        //     "value": essen_value,
-        //     "shadowing": essen_shadowing,
-        //     "shadowed by": essen_shadowed_by,
-        // })
 
         );
 

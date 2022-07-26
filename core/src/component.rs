@@ -34,13 +34,10 @@ pub struct ComponentNode {
     pub children: Vec<ComponentChild>,
     pub component_type: ComponentType,
 
-    // Technically, a shadowing node should not have attributes
-
     pub attributes: Box<dyn AttributeData>, //assuming the AttributeData type matches with the component_type
 
     // Flags
     pub copy_target: Option<String>,
-    pub is_shadow_for: Option<String>,
 
     pub definition: Box<dyn ComponentDefinition>,
 }
@@ -152,10 +149,6 @@ pub enum ObjectName {
 //     }
 
 //     fn has_essential() -> bool {
-//         false
-//     }
-
-//     fn shadow_variable() -> bool {
 //         false
 //     }
 
