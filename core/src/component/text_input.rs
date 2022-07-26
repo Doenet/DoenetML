@@ -211,12 +211,17 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
 
-        let essential_state_vars = HashMap::from([
-            ("value", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
-            ("immediateValue", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
-        ]);
+        let essential_state_vars = if use_essential_data {
+            HashMap::from([
+                ("value", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
+                ("immediateValue", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
+            ])
+
+        } else {
+            HashMap::new()
+        };
 
         Box::new(MyStateVars {
             

@@ -180,14 +180,21 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
+
+        let essential_state_vars = if use_essential_data {
+            HashMap::new()
+        } else {
+            HashMap::new()
+        };
+
         Box::new(MyStateVars {
             value: StateVar::new(StateVarValueType::Number),
             hidden: StateVar::new(StateVarValueType::Boolean),
             disabled: StateVar::new(StateVarValueType::Boolean),
             text: StateVar::new(StateVarValueType::String),
 
-            essential_state_vars: HashMap::new(),
+            essential_state_vars,
 
         })
     }

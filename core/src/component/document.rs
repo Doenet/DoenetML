@@ -219,7 +219,15 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
+    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
+      
+        let essential_state_vars = if use_essential_data {
+            HashMap::new()
+        } else {
+            HashMap::new()
+        };
+
+
         Box::new(MyStateVars {
             submit_label: StateVar::new(StateVarValueType::String),
             submit_label_no_correctness: StateVar::new(StateVarValueType::String),
@@ -235,7 +243,7 @@ impl ComponentDefinition for MyComponentDefinition {
             create_submit_all_button: StateVar::new(StateVarValueType::Boolean),
             suppress_answer_submit_buttons: StateVar::new(StateVarValueType::Boolean), 
 
-            essential_state_vars: HashMap::new(),
+            essential_state_vars,
         })
     }
 

@@ -23,7 +23,7 @@ use state_var::State;
 pub struct DoenetCore {
     pub component_nodes: HashMap<String, ComponentNode>,
     pub component_states: HashMap<String, Box<dyn ComponentStateVars>>,
-    pub dependencies: Vec<Dependency>,
+    pub dependencies: HashMap<String, HashMap<StateVarName, Vec<Dependency>>>,
     pub root_component_name: String,
 
     /// We send components to the renderer that do not exist: the inherited children of a copy.
@@ -76,16 +76,24 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // Fill in component states and dependencies for every component.
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
-    let mut dependencies: Vec<Dependency> = vec![];
+
+    // let mut dependencies: Vec<Dependency> = vec![];
+    let mut dependencies:
+        HashMap<String,
+            HashMap<StateVarName, Vec<Dependency>>> = HashMap::new();
     
     for (component_name, component_node) in component_nodes.iter() {
 
-        let mut dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node);
-        dependencies.append(&mut dependencies_for_this_component);
+        let dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node);
 
-        // All state variables begin as stale.
-        component_states.insert(component_name.clone(), 
-            component_node.definition.new_stale_component_state_vars()
+        dependencies.insert(component_name.to_string(), dependencies_for_this_component);
+
+
+
+        component_states.insert(component_name.clone(),
+
+            // Only give this component essential data if it is not copying anything
+            component_node.definition.new_stale_component_state_vars(component_node.copy_target.is_none())
         );
 
     }
@@ -125,35 +133,52 @@ fn add_alias_for_children(
 fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
-) -> Vec<Dependency> {
+) -> HashMap<StateVarName, Vec<Dependency>>
+
+{
 
     log!("Creating depencies for {:?}", component.name);
+    let mut dependencies: HashMap<StateVarName, Vec<Dependency>> = HashMap::new();
 
-    // let my_definitions = component.definition.state_var_definitions();
-    // for (&state_var_name, state_var_def) in my_definitions {
 
-    //     let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
-    //     for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
+    let my_definitions = component.definition.state_var_definitions();
+    for (&state_var_name, state_var_def) in my_definitions {
 
-    //         let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
+        let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
+        for (dep_name, ref dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-    //         dependencies.push(dependency);
+            let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
+
+            dependencies.entry(state_var_name).or_insert(vec![]).push(dependency);
+
+
+        }
+    }
+
+    dependencies
+
+
+    // component.definition.state_var_definitions()
+    //     .iter()
+    //     .flat_map(|(&sv_name, sv_def)|
+    //         sv_def.return_dependency_instructions(HashMap::new())
+    //             .iter()
+    //             .map(|(dep_name, dep_instruction)|
+    //                 create_dependency_from_instruction(&components, component, sv_name, dep_instruction, dep_name)
+    //             )
+    //             .collect::<Vec<_>>()
+    //     )
+    //     .collect()
+
+
     //     }
+
+
+
+
     // }
 
     // dependencies
-
-    component.definition.state_var_definitions()
-        .iter()
-        .flat_map(|(&sv_name, sv_def)|
-            sv_def.return_dependency_instructions(HashMap::new())
-                .iter()
-                .map(|(dep_name, dep_instruction)|
-                    create_dependency_from_instruction(&components, component, sv_name, dep_instruction, dep_name)
-                )
-                .collect::<Vec<_>>()
-        )
-        .collect()
 
 }
 
@@ -326,8 +351,10 @@ fn resolve_state_variable(
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
-    
-    let my_dependencies = dependencies_for_component(core, &component.name, state_var_name);
+    // log!("Resolving {}:{}", component.name, state_var_name);
+
+    let empty_vec = vec![];
+    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap_or(&empty_vec);
 
     for dep in my_dependencies {
 
@@ -383,34 +410,23 @@ fn resolve_state_variable(
 }
 
 
-fn dependencies_for_component<'a>(
-    core: &'a DoenetCore,
-    component_name: &str,
-    state_var_name: StateVarName) -> Vec<&'a Dependency>
-{
-    core.dependencies.iter().filter(
-        |dep| dep.component == component_name && dep.state_var == state_var_name
-    ).collect()
-}
-
-
 
 
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
-    component_state: &dyn ComponentStateVars,
     state_var_name: StateVarName)
 {
 
     // log!("Marking stale {}:{}", component.name(), state_var_name);
 
-    let comp_state_vars = component_state;
+    let component_state = core.component_states.get(&component.name).unwrap();
 
-    let state_var = comp_state_vars.get(state_var_name).unwrap();
+    let state_var = component_state.get(state_var_name).unwrap();
     state_var.mark_stale();
 
-    let my_dependencies = dependencies_for_component(core, &component.name, state_var_name);
+    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap();
+    
     for dependency in my_dependencies {
 
         for depends_on in &dependency.depends_on_objects {
@@ -423,9 +439,7 @@ fn mark_stale_state_var_and_dependencies(
 
                     for &dep_state_var_name in &dependency.depends_on_state_vars {
 
-                        let dep_comp_state = core.component_states.get(dep_comp_name).unwrap();
-
-                        mark_stale_state_var_and_dependencies(core, dep_component, dep_comp_state.as_ref(), dep_state_var_name);
+                        mark_stale_state_var_and_dependencies(core, dep_component, dep_state_var_name);
                     }
                 }
             }
@@ -472,7 +486,7 @@ fn handle_update_instruction<'a>(
                 );
             }
 
-            let essential_state_var = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, name);
+            let (essential_state_var, _) = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, name);
 
             let possible_essential_val = essential_state_var.get_value();
             let new_state_var_value = if let Some(actual_val) = possible_essential_val {
@@ -519,13 +533,14 @@ fn set_state_var(
     state_var.set_value(val)
 }
 
-
+/// Get the essential state var that this component owns or copies from
+/// Also returns the name of the owning component
 fn get_essential_var_considering_copy<'a>(
-    components: &HashMap<String, ComponentNode>,
+    components: &'a HashMap<String, ComponentNode>,
     component_states: &'a HashMap<String, Box<dyn ComponentStateVars>>,
-    component: &ComponentNode,
+    component: &'a ComponentNode,
     essential_var_name: &str,
-) -> &'a EssentialStateVar {
+) -> (&'a EssentialStateVar, &'a str) {
 
     // If this is a copyTarget component, use the target's essen var
     if let Some(ref target_name) = component.copy_target {
@@ -535,7 +550,10 @@ fn get_essential_var_considering_copy<'a>(
 
     } else {
         let component_state = component_states.get(&component.name).unwrap();
-        component_state.get_essential_state_vars().get(essential_var_name).unwrap()
+
+        let essential_var = component_state.get_essential_state_vars().get(essential_var_name).unwrap();
+
+        (essential_var, &component.name)
     }
 }
 
@@ -564,8 +582,6 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     let component = core.component_nodes.get(component_name)
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
 
-    let component_state = core.component_states.get(component_name).unwrap();
-
     let state_var_resolver = | state_var_name | {
         resolve_state_variable(core, component, state_var_name)
     };
@@ -578,7 +594,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         let requests = definition.request_dependencies_to_update_value(requested_value);
 
         for request in requests {
-            process_update_request(core, component, component_state.as_ref(), name, &request);
+            process_update_request(core, component, name, &request);
 
         }
     }
@@ -589,22 +605,27 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    component_state: &dyn ComponentStateVars,
     state_var_name: StateVarName,
     update_request: &UpdateRequest) 
 {
 
     // log!("Processing update request for {}:{}", component.name(), state_var_name);
 
+    let component_to_mark_stale: &ComponentNode;
+
     match update_request {
         UpdateRequest::SetEssentialValue(their_name, requested_value) => {
 
-            let essential_var = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, their_name);
+            let (essential_var, owning_comp_name) = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, their_name);
 
             essential_var.set_value(requested_value.clone()).expect(
                 &format!("Failed to set essential value for {}:{}", component.name, their_name)
             );
 
+            let owning_component = core.component_nodes.get(owning_comp_name).unwrap();
+
+
+            component_to_mark_stale = owning_component;
         },
 
         UpdateRequest::SetStateVarDependingOnMe(their_name, requested_value) => {
@@ -617,13 +638,15 @@ fn process_update_request(
             let their_update_requests = state_var_definition.request_dependencies_to_update_value(requested_value.clone());
 
             for their_update_request in their_update_requests {
-                process_update_request(core, component, component_state, their_name, &their_update_request);
+                process_update_request(core, component, their_name, &their_update_request);
             }
 
+            component_to_mark_stale = component;
         }
     }
 
-    mark_stale_state_var_and_dependencies(core, component, component_state, state_var_name);
+    mark_stale_state_var_and_dependencies(core, component_to_mark_stale, state_var_name);
+
 
 }
 
