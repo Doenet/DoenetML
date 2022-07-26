@@ -13,6 +13,7 @@ use std::fmt::Debug;
 use crate::prelude::*;
 use crate::component::*;
 
+use state_var::EssentialStateVar;
 use state_variables::*;
 use state_var::State;
 
@@ -380,7 +381,7 @@ fn resolve_state_variable(
     let definition = component.definition.state_var_definitions().get(state_var_name).unwrap();
 
     let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
-    let new_value = handle_update_instruction(component, state_vars.as_ref(), state_var_name, update_instruction);
+    let new_value = handle_update_instruction(core, component, state_vars.as_ref(), state_var_name, update_instruction);
 
     return new_value;
 
@@ -428,6 +429,7 @@ fn mark_stale_state_var_and_dependencies(
 
 /// Sets the state var and returns the new value
 fn handle_update_instruction<'a>(
+    core: &DoenetCore,
     component: &'a ComponentNode,
     component_state_vars: &dyn ComponentStateVars,
     name: StateVarName,
@@ -463,7 +465,9 @@ fn handle_update_instruction<'a>(
                 );
             }
 
-            let possible_essential_val = component_state_vars.get_essential_state_vars().get(name).unwrap().get_value();
+            let essential_state_var = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, name);
+
+            let possible_essential_val = essential_state_var.get_value();
             let new_state_var_value = if let Some(actual_val) = possible_essential_val {
                 actual_val
             } else {
@@ -506,6 +510,26 @@ fn set_state_var(
     );
 
     state_var.set_value(val)
+}
+
+
+fn get_essential_var_considering_copy<'a>(
+    components: &HashMap<String, ComponentNode>,
+    component_states: &'a HashMap<String, Box<dyn ComponentStateVars>>,
+    component: &ComponentNode,
+    essential_var_name: &str,
+) -> &'a EssentialStateVar {
+
+    // If this is a copyTarget component, use the target's essen var
+    if let Some(ref target_name) = component.copy_target {
+        let target = components.get(target_name).unwrap();
+
+        get_essential_var_considering_copy(components, component_states, target, essential_var_name)
+
+    } else {
+        let component_state = component_states.get(&component.name).unwrap();
+        component_state.get_essential_state_vars().get(essential_var_name).unwrap()
+    }
 }
 
 
@@ -576,7 +600,8 @@ fn process_update_request(
     match update_request {
         UpdateRequest::SetEssentialValue(their_name, requested_value) => {
 
-            let essential_var = component_state.get_essential_state_vars().get(their_name).unwrap();
+            let essential_var = get_essential_var_considering_copy(&core.component_nodes, &core.component_states, component, their_name);
+
             essential_var.set_value(requested_value.clone()).expect(
                 &format!("Failed to set essential value for {}:{}", component.name, their_name)
             );
@@ -640,6 +665,10 @@ fn get_children_including_copy_recursive(
     };
     children_vec
 }
+
+
+
+
 
 pub fn update_renderers(core: &DoenetCore) -> String {
     let json_obj = generate_render_tree(core);

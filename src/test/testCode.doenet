@@ -1,7 +1,8 @@
 <document>
 
-<text name='t1'>hello <text name='t2'>world</text></text>
+<textInput name='hi' />
 
-<text copyTarget='t1'> appendage </text>
+<textInput copyTarget='hi' />
+
 
 </document>
