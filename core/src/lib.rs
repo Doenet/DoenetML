@@ -25,11 +25,16 @@ pub struct DoenetCore {
     pub component_states: HashMap<String, Box<dyn ComponentStateVars>>,
     pub dependencies: Vec<Dependency>,
     pub root_component_name: String,
+
+    /// We send components to the renderer that do not exist: the inherited children of a copy.
+    /// The renderer needs to recognize these as a different component so we alias its name.
+    /// This maps the renderer's to the actual name.
     pub aliases: HashMap<String, String>,
 }
 
 
 /// This stores some of the state variables (or strings) that a state variable depends on.
+/// Note that a Dependency struct contains multiple edges of the dependency tree.
 #[derive(Debug)]
 pub struct Dependency {
 
@@ -55,24 +60,22 @@ pub struct Dependency {
 
 pub fn create_doenet_core(program: &str) -> DoenetCore {
 
-    let possible_components_tree = parse_json::create_components_tree_from_json(program)
+    // Create component nodes.
+    let (component_nodes, root_component_name) = parse_json::create_components_tree_from_json(program)
         .expect(&format!("Error parsing json for components: {}", program));
 
-    let (component_nodes, root_component_name) = possible_components_tree;
+    log!("Component nodes from JSON {:#?}", component_nodes);
 
-    log!("Component nodes {:#?}", component_nodes);
 
-    // Add name aliases for the children of a copy
+    // For every copy, add aliases for children it would inherit from its copy target.
     let mut aliases: HashMap<String, String> = HashMap::new();
     let copies = component_nodes.iter().filter(|(_, c)| c.copy_target.is_some());
     for (_name, copy) in copies {
         add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
 
-    // Create node states
-
+    // Fill in component states and dependencies for every component.
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
-
     let mut dependencies: Vec<Dependency> = vec![];
     
     for (component_name, component_node) in component_nodes.iter() {
@@ -80,6 +83,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         let mut dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node);
         dependencies.append(&mut dependencies_for_this_component);
 
+        // All state variables begin as stale.
         component_states.insert(component_name.clone(), 
             component_node.definition.new_stale_component_state_vars()
         );
@@ -90,7 +94,6 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     // log!("component nodes {:#?}", component_nodes);
     // log!("component states {:#?}", component_states);
 
-    // Return the DoenetCore structure
     DoenetCore {
         component_nodes,
         component_states,
@@ -98,6 +101,11 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         root_component_name,
         aliases,
     }
+}
+
+
+fn name_child_of_copy(child: &str, copy: &str) -> String {
+    format!("__cp:{}({})", child, copy)
 }
 
 fn add_alias_for_children(
@@ -117,33 +125,35 @@ fn add_alias_for_children(
 fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
-) -> Vec<Dependency>
-
-{
+) -> Vec<Dependency> {
 
     log!("Creating depencies for {:?}", component.name);
-    let mut dependencies: Vec<Dependency> = vec![];
 
-    let my_definitions = component.definition.state_var_definitions();
+    // let my_definitions = component.definition.state_var_definitions();
+    // for (&state_var_name, state_var_def) in my_definitions {
 
-    for (&state_var_name, state_var_def) in my_definitions {
+    //     let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
+    //     for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-        let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
+    //         let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
 
+    //         dependencies.push(dependency);
+    //     }
+    // }
 
-        for (dep_name, dep_instruction) in dependency_instructions_hashmap.into_iter() {
+    // dependencies
 
-            let dependency =  create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name);
-
-            dependencies.push(dependency);
-
-        }
-
-
-
-    }
-
-    dependencies
+    component.definition.state_var_definitions()
+        .iter()
+        .flat_map(|(&sv_name, sv_def)|
+            sv_def.return_dependency_instructions(HashMap::new())
+                .iter()
+                .map(|(dep_name, dep_instruction)|
+                    create_dependency_from_instruction(&components, component, sv_name, dep_instruction, dep_name)
+                )
+                .collect::<Vec<_>>()
+        )
+        .collect()
 
 }
 
@@ -168,7 +178,6 @@ fn get_attribute_including_copy<'a>(
     } else {
         None
     }
-
 }
 
 
@@ -176,7 +185,7 @@ fn create_dependency_from_instruction(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
     state_var_name: StateVarName,
-    instruction: DependencyInstruction,
+    instruction: &DependencyInstruction,
     instruction_name: InstructionName,
 
 ) -> Dependency {
@@ -307,19 +316,6 @@ fn create_dependency_from_instruction(
 
 
 
-
-fn dependencies_for_component<'a>(
-    core: &'a DoenetCore,
-    component_name: &str,
-    state_var_name: StateVarName) -> Vec<&'a Dependency>
-{
-    core.dependencies.iter().filter(
-        |dep| dep.component == component_name && dep.state_var == state_var_name
-    ).collect()
-}
-
-
-
 fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
@@ -387,6 +383,19 @@ fn resolve_state_variable(
 }
 
 
+fn dependencies_for_component<'a>(
+    core: &'a DoenetCore,
+    component_name: &str,
+    state_var_name: StateVarName) -> Vec<&'a Dependency>
+{
+    core.dependencies.iter().filter(
+        |dep| dep.component == component_name && dep.state_var == state_var_name
+    ).collect()
+}
+
+
+
+
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
@@ -432,9 +441,8 @@ fn handle_update_instruction<'a>(
     component: &'a ComponentNode,
     component_state_vars: &dyn ComponentStateVars,
     name: StateVarName,
-    instruction: StateVarUpdateInstruction<StateVarValue>) -> StateVarValue
-
-{
+    instruction: StateVarUpdateInstruction<StateVarValue>
+) -> StateVarValue {
 
     log!("Updating {}:{}", component.name, name);
 
@@ -539,8 +547,6 @@ fn get_essential_var_considering_copy<'a>(
 pub struct Action {
     pub component_name: String,
     pub action_name: String,
-    // pub action_func: fn(HashMap<String, StateVarValue>)
-        // -> HashMap<StateVarName, StateVarUpdateInstruction<StateVarValue>>,
     pub args: HashMap<String, StateVarValue>,
 }
 
@@ -548,17 +554,11 @@ pub struct Action {
 pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     
     let action = parse_json::parse_action_from_json(action)
-        .expect("Error parsing json action");
-
-    handle_action(core, action);
-}
-
-
-fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
+        .expect(&format!("Error parsing json action: {}", action));
 
     // log!("Handling action {:#?}", action);
 
-    // apply alias
+    // Apply alias to get the original component name
     let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
 
     let component = core.component_nodes.get(component_name)
@@ -627,45 +627,6 @@ fn process_update_request(
 
 }
 
-/// This includes the copy target's children. The flag is false when it is
-/// a copy target's child.
-fn get_children_including_copy(
-    components: &HashMap<String, ComponentNode>,
-    component: &ComponentNode
-) -> Vec<(ComponentChild, bool)> {
-    let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
-    if let Some(ref target) = component.copy_target {
-        let target_comp = components.get(target).unwrap();
-        children_vec = get_children_including_copy_recursive(components, target_comp)
-            .iter()
-            .map(|c| (c.clone(), false))
-            .collect();
-    }
-    children_vec.extend(
-        component.children
-            .iter()
-            .map(|c| (c.clone(), true))
-        );
-    children_vec
-}
-
-
-fn get_children_including_copy_recursive(
-    components: &HashMap<String, ComponentNode>,
-    component: &ComponentNode
-) -> Vec<ComponentChild> {
-    let mut children_vec: Vec<ComponentChild>;
-    if let Some(ref target) = component.copy_target {
-        let target_comp = components.get(target).unwrap();
-        children_vec = get_children_including_copy_recursive(components, target_comp);
-        children_vec.extend(component.children.clone());
-    } else {
-        children_vec = component.children.clone();
-    };
-    children_vec
-}
-
-
 
 
 
@@ -683,10 +644,6 @@ fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     generate_render_tree_internal(core, root_node, &mut json_obj, None);
 
     serde_json::Value::Array(json_obj)
-}
-
-fn name_child_of_copy(child: &str, copy: &str) -> String {
-    format!("__cp:{}({})", child, copy)
 }
 
 fn generate_render_tree_internal(
@@ -783,6 +740,30 @@ fn generate_render_tree_internal(
     }));
 
 }
+
+/// This includes the copy target's children. The flag is false when it is
+/// a copy target's child.
+fn get_children_including_copy(
+    components: &HashMap<String, ComponentNode>,
+    component: &ComponentNode
+) -> Vec<(ComponentChild, bool)> {
+    let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
+    if let Some(ref target) = component.copy_target {
+        let target_comp = components.get(target).unwrap();
+        children_vec = get_children_including_copy(components, target_comp)
+            .iter()
+            .map(|(c, _)| (c.clone(), false))
+            .collect();
+    }
+    children_vec.extend(
+        component.children
+            .iter()
+            .map(|c| (c.clone(), true))
+        );
+    children_vec
+}
+
+
 
 /// List components and children in a JSON array
 pub fn json_components(core: &DoenetCore) -> serde_json::Value {
