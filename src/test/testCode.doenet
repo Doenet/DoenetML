@@ -1,7 +1,7 @@
 <document>
 
-<p><textInput name='hi'/></p>
+<text name='t1'>hello <text name='t2'>world</text></text>
 
-<p copyTarget='/_p1'></p>
+<text copyTarget='t1'> appendage </text>
 
 </document>

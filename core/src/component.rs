@@ -57,13 +57,6 @@ pub trait AttributeData: Debug + CloneAttributeData {
 }
 
 
-
-#[derive(Debug)]
-pub enum ComponentState {
-    State(Box<dyn ComponentStateVars>),
-    Shadowing(String),
-}
-
 pub trait ComponentStateVars: Debug {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
     fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
@@ -115,7 +108,7 @@ impl Debug for dyn ComponentDefinition {
 }
 
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum ComponentChild {
     String(String),
     Component(String),

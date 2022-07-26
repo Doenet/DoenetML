@@ -21,9 +21,10 @@ use state_var::State;
 #[derive(Debug)]
 pub struct DoenetCore {
     pub component_nodes: HashMap<String, ComponentNode>,
-    pub component_states: HashMap<String, ComponentState>,
+    pub component_states: HashMap<String, Box<dyn ComponentStateVars>>,
     pub dependencies: Vec<Dependency>,
     pub root_component_name: String,
+    pub aliases: HashMap<String, String>,
 }
 
 
@@ -54,71 +55,33 @@ pub struct Dependency {
 pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     let possible_components_tree = parse_json::create_components_tree_from_json(program)
-        .expect("Error parsing json for components");
+        .expect(&format!("Error parsing json for components: {}", program));
 
     let (component_nodes, root_component_name) = possible_components_tree;
 
     log!("Component nodes {:#?}", component_nodes);
 
-    
-
-    // Fill in copyTargets
-
-    // Key: Component name
-    // Value: target name
-    let copy_target_info: HashMap<String, String> = component_nodes.iter()
-        .filter_map(| (_, comp)| {
-            if let Some(ref target_name) = comp.copy_target {
-
-                Some((comp.name.clone(), target_name.clone()))
-
-            } else {
-                None
-            }
-        }).collect();
-
-
-    // This will keep track of which component we have filled out
-    let mut filled_out: HashMap<String, bool> = copy_target_info.keys().map(|comp_name| {
-        (comp_name.to_string(), false)
-    }).collect();
-
-
-
-    let mut component_nodes = component_nodes;
-
-    for (component_name, target_name) in copy_target_info.iter() {
-        fill_out_copy_target(&mut component_nodes, &mut filled_out, &copy_target_info, component_name, target_name);
+    // Add name aliases for the children of a copy
+    let mut aliases: HashMap<String, String> = HashMap::new();
+    let copies = component_nodes.iter().filter(|(_, c)| c.copy_target.is_some());
+    for (_name, copy) in copies {
+        add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
-
-    let component_nodes = component_nodes;
-
-
 
     // Create node states
 
-    let mut component_states: HashMap<String, ComponentState> = HashMap::new();
+    let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
 
     let mut dependencies: Vec<Dependency> = vec![];
     
     for (component_name, component_node) in component_nodes.iter() {
 
-        if let Some(ref shadow_target_name) = component_node.is_shadow_for {
-            
-            debug_assert!( component_nodes.contains_key(shadow_target_name));
+        let mut dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node);
+        dependencies.append(&mut dependencies_for_this_component);
 
-            component_states.insert(component_name.clone(),
-                ComponentState::Shadowing(shadow_target_name.clone())
-            );
-
-        } else {
-            let mut dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node);
-            dependencies.append(&mut dependencies_for_this_component);
-
-            component_states.insert(component_name.clone(), ComponentState::State(
-                component_node.definition.new_stale_component_state_vars()
-            ));
-        }
+        component_states.insert(component_name.clone(), 
+            component_node.definition.new_stale_component_state_vars()
+        );
 
     }
 
@@ -131,175 +94,23 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         component_nodes,
         component_states,
         dependencies,
-        root_component_name
+        root_component_name,
+        aliases,
     }
 }
 
-fn fill_out_copy_target(
-    component_nodes: &mut HashMap<String, ComponentNode>,
-    filled_out: &mut HashMap<String, bool>,
-    copy_target_info: &HashMap<String, String>,
-    component_name: &str,
-    target_name: &str
+fn add_alias_for_children(
+    aliases: &mut HashMap<String, String>,
+    component: &ComponentNode,
+    component_nodes: &HashMap<String, ComponentNode>,
+    copy: &String,
 ) {
-
-    // If this component has already been filled out, don't do it again
-    if filled_out.get(component_name).unwrap() == &true {
-        return;
-    }
-
-
-    if let Some(target_filled_out) = filled_out.get(target_name) {
-        if target_filled_out == &false {
-
-            // If this copy has a target that itself has an unfilled target,
-            // fill out the target's target first
-            let target_target_name = copy_target_info.get(target_name).unwrap();
-            fill_out_copy_target(component_nodes, filled_out, copy_target_info, target_name, &target_target_name);
+    for (child, _) in get_children_including_copy(component_nodes, component).iter() {
+        if let ComponentChild::Component(child_comp) = child {
+            aliases.insert(name_child_of_copy(child_comp, copy), child_comp.to_string());
         }
-    }
-
-    // Now that we know that everything this component copies has been filled out,
-    // fill out this component and flag it as filled out
-
-    copy_target_from_filled_out_component(component_nodes, component_name, target_name);
-    let component_filled_out = filled_out.get_mut(component_name).unwrap();
-    *component_filled_out = true;
-
-}
-
-
-
-
-
-fn copy_target_from_filled_out_component(
-    component_nodes: &mut HashMap<String, ComponentNode>,
-    component_name: &str,
-    target_name: &str,
-) {
-
-    let component = component_nodes.get(component_name).unwrap();
-    let target_component = component_nodes.get(target_name).unwrap();
-
-    debug_assert_eq!(component.component_type, target_component.component_type);
-
-
-    let mut target_direct_children: Vec<ComponentChild> = vec![];
-    let mut new_named_components: Vec<ComponentNode> = vec![];
-
-    // Shadow copy the children
-    for child in &target_component.children {
-        target_direct_children.push(child.clone());
-
-        match child {
-            ComponentChild::Component(child_comp_name) => {
-                let child_comp = component_nodes.get(child_comp_name).unwrap();
-                copy_subtree(&component_nodes, child_comp, &mut new_named_components);
-            },
-
-            ComponentChild::String(_) => {
-            },
-        }
-    }
-
-
-    // First, we mark that they are shadowing the original names
-    // We will change the copies' names next so they're not actually shadowing themselves
-    for shadow_component in new_named_components.iter_mut() {
-
-        let is_shadow_field = &mut shadow_component.is_shadow_for;
-        *is_shadow_field = Some(shadow_component.name.clone());
-    }
-
-
-    // Transform the names so that they don't collide with existing names
-    // If it used to refer to the target, we want it to refer to the copier
-    let name_transform = |name: &String| {
-        if name == target_name {
-            component.name.to_string()
-        } else {
-            format!("__cp:{}({})", name, component.name)
-        }
-    };
-
-    for shadow_component in new_named_components.iter_mut() {
-
-        // Transform the names of components, including parent_name and children fields
-
-        let name = &mut shadow_component.name;
-        *name = name_transform(name);
-
-        let parent_name = shadow_component.parent.as_mut().unwrap();
-        *parent_name = name_transform(parent_name);
-
-        let child_names = &mut shadow_component.children;
-        for child_name in child_names {
-            if let ComponentChild::Component(name) = child_name {
-                *name = name_transform(name);
-            }
-        }
-    }
-
-
-    // //We've also got to change the name of the components in the direct children
-    for child in target_direct_children.iter_mut() {
-        if let ComponentChild::Component(comp_name) = child {
-            *comp_name = name_transform(comp_name);
-        }
-    }
-
-    // log!("Copied components, {:#?}", new_named_components);
-
-    let component = component_nodes.get_mut(component_name).unwrap();
-
-    let mut new_children = target_direct_children;
-    new_children.extend(component.children.clone());
-    component.children = new_children;
-
-
-    // Then add the components to the hashmap. This won't touch the the copyTargets' children field
-    // because we've already added them above.
-    add_component_nodes_using_parent_field(component_nodes, new_named_components);
-}
-
-
-
-fn add_component_nodes_using_parent_field(component_nodes: &mut HashMap<String, ComponentNode>, new_components: Vec<ComponentNode>) {
-
-    let new_component_names: Vec<String> = new_components.iter().map(|new_comp| new_comp.name.clone()).collect();
-
-    for comp in new_components.into_iter() {
-        
-        if component_nodes.contains_key(&comp.name) {
-            panic!("New component {} already exists", comp.name);
-        }
-
-        component_nodes.insert(comp.name.clone(), comp);
-    }
-
-
-    // After we've added all the new components, hook them to their parents
-    for name in new_component_names {
-
-        // Cloning because we can't have a reference here, due to mutable reference later
-        let component = component_nodes.get(&name).unwrap().clone();
-
-        let parent_name = component.parent.as_ref().expect(&format!("New component {} has no parent", name));
-
-        let parent = component_nodes.get_mut(parent_name).expect(
-            &format!("Parent component {} doesn't exist for {}", parent_name, component.name)
-        );
-
-        // Update parent's children
-        if !parent.children.contains(&ComponentChild::Component(name.to_string())) {
-            parent.children.push(ComponentChild::Component(name.to_string()));
-        }
-
     }
 }
-
-
-
 
 
 fn create_all_dependencies_for_component(
@@ -382,7 +193,7 @@ fn create_dependency_from_instruction(
         DependencyInstruction::Child(child_instruction) => {
 
             let mut depends_on_children: Vec<ObjectName> = vec![];
-            for child in component.children.iter() {
+            for (child, _) in get_children_including_copy(components, component).iter() {
 
                 for desired_child_type in child_instruction.desired_children.iter() {
                     match child {
@@ -509,12 +320,14 @@ fn dependencies_for_component<'a>(
 
 
 
-fn resolve_unshadowing_state_variable(
+fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_vars: &dyn ComponentStateVars,
-    state_var_name: StateVarName) -> StateVarValue {
+    state_var_name: StateVarName
+) -> StateVarValue {
         
+    let state_vars = core.component_states.get(&component.name).unwrap();
+
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
     
@@ -567,101 +380,23 @@ fn resolve_unshadowing_state_variable(
     let definition = component.definition.state_var_definitions().get(state_var_name).unwrap();
 
     let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
-    let new_value = handle_update_instruction(component, state_vars, state_var_name, update_instruction);
+    let new_value = handle_update_instruction(component, state_vars.as_ref(), state_var_name, update_instruction);
 
     return new_value;
 
 }
 
 
-/// Ensure a state variable is not stale and can be safely unwrapped.
-fn resolve_state_variable(
-    core: &DoenetCore,
-    component: &ComponentNode,
-    state_var_name: StateVarName) -> StateVarValue {
-
-    // log!("Resolving state variable {}:{}", component.name(), state_var_name);
-
-    let component_state = core.component_states.get(&component.name).unwrap();
-
-    match component_state {
-        ComponentState::Shadowing(target_name) => {
-            let target_comp = core.component_nodes.get(target_name).unwrap();
-            resolve_state_variable(core, target_comp, state_var_name)
-        },
-
-        ComponentState::State(state_vars) => {
-            resolve_unshadowing_state_variable(core, component, state_vars.as_ref(), state_var_name)
-    }
-}
-
-
-
-    // if component.get_copy_target_if_exists().is_some() && state_var_def.shadow_variable() {
-    //     // This state variable should copy the target's sv value
-
-    //     let copy_target = component.get_copy_target_if_exists().as_ref().unwrap();
-
-    //     let target_component = core.components.get(copy_target).expect(
-    //         &format!("Component '{}' doesn't exist, but '{}' tries to copy from it", copy_target, component.name())
-    //     ).as_ref();
-
-    //     // Resolved the target sv
-    //     resolve_state_variable(core, target_component, state_var_name);
-
-    //     let state_var = target_component.get_state_var(state_var_name).unwrap();
-    //     let state_var_value = state_var.get_state();
-
-    //     if let State::Resolved(state_var_value) = state_var_value {
-
-    //         let update_instruction = StateVarUpdateInstruction::SetValue(state_var_value);
-    //         handle_update_instruction(component, state_var_name, update_instruction);
-
-    //     } else {
-    //         panic!("Tried to access stale state var {}:{} (component type {})",
-    //             target_component.name(), state_var_name, target_component.get_component_type()
-    //         );
-    //     }
-        
-
-
-    // } else {
-
-
-
-
-    
-        // log!("{}:{} resolved", component.name(), state_var_name);
-        // log!("{:?}", component);
-
-
-
-
-
-
-    // }
-
-
-
-    
-}
-
-
-
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
-    component_state: &ComponentState,
+    component_state: &dyn ComponentStateVars,
     state_var_name: StateVarName)
 {
 
     // log!("Marking stale {}:{}", component.name(), state_var_name);
 
-    let comp_state_vars = if let ComponentState::State(svs) = component_state {
-        svs
-    } else {
-        panic!("assuming not shadowing");
-    };
+    let comp_state_vars = component_state;
 
     let state_var = comp_state_vars.get(state_var_name).unwrap();
     state_var.mark_stale();
@@ -681,7 +416,7 @@ fn mark_stale_state_var_and_dependencies(
 
                         let dep_comp_state = core.component_states.get(dep_comp_name).unwrap();
 
-                        mark_stale_state_var_and_dependencies(core, dep_component, dep_comp_state, dep_state_var_name);
+                        mark_stale_state_var_and_dependencies(core, dep_component, dep_comp_state.as_ref(), dep_state_var_name);
                     }
                 }
             }
@@ -799,10 +534,14 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 
     // log!("Handling action {:#?}", action);
-    let component = core.component_nodes.get(&action.component_name)
+
+    // apply alias
+    let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
+
+    let component = core.component_nodes.get(component_name)
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
 
-    let component_state = core.component_states.get(&action.component_name).unwrap();
+    let component_state = core.component_states.get(component_name).unwrap();
 
     let state_var_resolver = | state_var_name | {
         resolve_state_variable(core, component, state_var_name)
@@ -816,7 +555,7 @@ fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
         let requests = definition.request_dependencies_to_update_value(requested_value);
 
         for request in requests {
-            process_update_request(core, component, component_state, name, &request);
+            process_update_request(core, component, component_state.as_ref(), name, &request);
 
         }
     }
@@ -827,7 +566,7 @@ fn handle_action<'a>(core: &'a DoenetCore, action: Action) {
 fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    component_state: &ComponentState,
+    component_state: &dyn ComponentStateVars,
     state_var_name: StateVarName,
     update_request: &UpdateRequest) 
 {
@@ -837,24 +576,10 @@ fn process_update_request(
     match update_request {
         UpdateRequest::SetEssentialValue(their_name, requested_value) => {
 
-            match component_state {
-                ComponentState::Shadowing(target_name) => {
-                    let target_comp = core.component_nodes.get(target_name).unwrap();
-                    let target_state = core.component_states.get(target_name).unwrap();
-    
-                    process_update_request(core, target_comp, target_state, state_var_name, update_request);
-    
-                },
-                ComponentState::State(state_vars) => {
-                    let essential_var = state_vars.get_essential_state_vars().get(their_name).unwrap();
-                    essential_var.set_value(requested_value.clone()).expect(
-                        &format!("Failed to set essential value for {}:{}", component.name, their_name)
-                    );
-        
-                }
-            }
-
-
+            let essential_var = component_state.get_essential_state_vars().get(their_name).unwrap();
+            essential_var.set_value(requested_value.clone()).expect(
+                &format!("Failed to set essential value for {}:{}", component.name, their_name)
+            );
 
         },
 
@@ -878,82 +603,43 @@ fn process_update_request(
 
 }
 
-
-
-/// Does not copy attributes
-/// Duplicates the name of the children with no modification
-fn copy_subtree(
-    component_nodes: &HashMap<String, ComponentNode>,
-    component: &ComponentNode,
-    // new_parent_name: String,
-    new_named_components: &mut Vec<ComponentNode>)
-{
-
-    
-    let mut children: Vec<ComponentChild> = vec![];
-
-    for child in &component.children {
-
-        match child {
-
-            ComponentChild::String(string_child) => {
-                children.push(ComponentChild::String(string_child.to_string()));
-            },
-
-            ComponentChild::Component(child_comp_name) => {
-
-                children.push(ComponentChild::Component(child_comp_name.to_string()));
-
-                let child_component = component_nodes.get(child_comp_name).unwrap();
-                copy_subtree(component_nodes, child_component, new_named_components);
-
-            }
-        }
+/// This includes the copy target's children. The flag is false when it is
+/// a copy target's child.
+fn get_children_including_copy(
+    components: &HashMap<String, ComponentNode>,
+    component: &ComponentNode
+) -> Vec<(ComponentChild, bool)> {
+    let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
+    if let Some(ref target) = component.copy_target {
+        let target_comp = components.get(target).unwrap();
+        children_vec = get_children_including_copy_recursive(components, target_comp)
+            .iter()
+            .map(|c| (c.clone(), false))
+            .collect();
     }
+    children_vec.extend(
+        component.children
+            .iter()
+            .map(|c| (c.clone(), true))
+        );
+    children_vec
+}
 
-    let component_copy = ComponentNode {
-        // parent: Some(new_parent_name),
-        attributes: component.definition.empty_attribute_data(),
-        .. component.clone()
+
+fn get_children_including_copy_recursive(
+    components: &HashMap<String, ComponentNode>,
+    component: &ComponentNode
+) -> Vec<ComponentChild> {
+    let mut children_vec: Vec<ComponentChild>;
+    if let Some(ref target) = component.copy_target {
+        let target_comp = components.get(target).unwrap();
+        children_vec = get_children_including_copy_recursive(components, target_comp);
+        children_vec.extend(component.children.clone());
+    } else {
+        children_vec = component.children.clone();
     };
-
-    new_named_components.push(component_copy);    
-
+    children_vec
 }
-
-
-// fn shadow_essentials_of_copy_target(components: &HashMap<String, Box<dyn ComponentLike>>, component: &dyn ComponentLike) {
-
-//     let target_name = component.get_f_if_exists().as_ref()
-//         .expect("Can't fill in copy component on component without copyTarget");
-
-//     let target_component = components.get(target_name).expect("Copy target doesn't exist");
-
-//     // For now, just using the 'value' essential state var as the thing to shadow
-
-//     let target_essential = target_component.get_essential_state_vars().get("value").unwrap();
-//     let my_essential = component.get_essential_state_vars().get("value").unwrap();
-
-//     // Mark my essential as shadowing target essential
-//     *my_essential.shadowing_component_name.borrow_mut() = Some(target_name.to_string());
-//     target_essential.shadowed_by_component_names.borrow_mut().push(component.name().to_string());
-    
-// }
-
-
-fn get_target_state_vars<'a>(core: &'a DoenetCore, target_name: &str) -> &'a dyn ComponentStateVars {
-    let target_state = core.component_states.get(target_name).unwrap();
-    match target_state {
-        ComponentState::State(state_vars) => state_vars.as_ref(),
-        ComponentState::Shadowing(next_target_name) => get_target_state_vars(core, next_target_name)
-    }
-}
-
-
-
-
-
-
 
 pub fn update_renderers(core: &DoenetCore) -> String {
     let json_obj = generate_render_tree(core);
@@ -961,39 +647,39 @@ pub fn update_renderers(core: &DoenetCore) -> String {
 }
 
 
-pub fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
+fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 
     let root_node = core.component_nodes.get(&core.root_component_name).unwrap();
     let mut json_obj: Vec<serde_json::Value> = vec![];
 
-    generate_render_tree_internal(core, root_node, &mut json_obj);
+    generate_render_tree_internal(core, root_node, &mut json_obj, None);
 
     serde_json::Value::Array(json_obj)
 }
 
+fn name_child_of_copy(child: &str, copy: &str) -> String {
+    format!("__cp:{}({})", child, copy)
+}
 
-fn generate_render_tree_internal(core: &DoenetCore, component: &ComponentNode, json_obj: &mut Vec<serde_json::Value>) {
+fn generate_render_tree_internal(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    json_obj: &mut Vec<serde_json::Value>,
+    came_from_copy: Option<&String>,
+) {
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
-    let comp_state_vars = match component_state {
-        ComponentState::State(svs) => {
-            svs.as_ref()
-        },
-        ComponentState::Shadowing(target_name) => {
-            get_target_state_vars(core, target_name)
-        }
-    };
+    let comp_state_vars = component_state.as_ref();
 
-    use serde_json::Value;
     use serde_json::json;
 
     let state_vars = component.definition.state_var_definitions();
 
     let renderered_state_vars = state_vars.into_iter().filter(|kv| match kv.1 {
         StateVarVariant::Integer(sv) => sv.for_renderer,
-        StateVarVariant::Number(sv) => sv.for_renderer,
-        StateVarVariant::String(sv) => sv.for_renderer,
+        StateVarVariant::Number(sv) =>  sv.for_renderer,
+        StateVarVariant::String(sv) =>  sv.for_renderer,
         StateVarVariant::Boolean(sv) => sv.for_renderer,
     });
 
@@ -1002,59 +688,69 @@ fn generate_render_tree_internal(core: &DoenetCore, component: &ComponentNode, j
 
         resolve_state_variable(core, component, name);
 
-        let state_var_value = comp_state_vars.get(name).unwrap().copy_value_if_resolved();
-
-        let state_var_value = state_var_value.unwrap();
-
-        // log!("components right now {:#?}", core.components);
-        // log!("{:#?}", state_var_value);
+        let state_var_value = comp_state_vars.get(name).unwrap()
+            .copy_value_if_resolved().unwrap();
 
         state_values.insert(name.to_string(), match state_var_value {
             StateVarValue::Integer(v) => json!(v),
             StateVarValue::Number(v) =>  json!(v),
             StateVarValue::String(v) =>  json!(v),
-            StateVarValue::Boolean(v) =>    json!(v),
+            StateVarValue::Boolean(v) => json!(v),
         });
-
     }
 
-
-    let children_instructions = if component.definition.should_render_children() {
-
-        component.children.iter().map(|child| match child {
-            ComponentChild::Component(comp_name) => {
-                // recurse for children
-                let comp = core.component_nodes.get(comp_name).unwrap();
-
-                generate_render_tree_internal(core, comp, json_obj);
-
-                let mut child_actions = serde_json::Map::new();
-
-                for action_name in comp.definition.action_names() {
-                    child_actions.insert(action_name.to_string(), json!({
-                        "actionName": action_name,
-                        "componentName": comp.name,
-                    }));
-                }
-
-                json!({
-                    "actions": child_actions,
-                    "componentName": comp.name,
-                    "componentType": comp.component_type,
-                    "effectiveName": comp.name,
-                    "rendererType": comp.component_type,
-                })},
-            ComponentChild::String(string) => {
-                json!(string)
-            },
-        }).collect()
-    } else {
-        vec![]
+    let name_to_render = match &came_from_copy {
+        Some(copy_name) => name_child_of_copy(&component.name, &copy_name),
+        None => component.name.clone(),
     };
 
+    log!("component children {:#?}", component.children);
+
+    let mut children_instructions = Vec::new();
+    if component.definition.should_render_children() {
+        for (child, actual_child) in get_children_including_copy(&core.component_nodes, component).iter() {
+            match child {
+                ComponentChild::Component(comp_name) => {
+                    // recurse for children
+                    let comp = core.component_nodes.get(comp_name).unwrap();
+                    
+                    let child_came_from_copy =
+                        came_from_copy.or(
+                            if *actual_child {
+                                None
+                            } else {
+                                Some(&component.name)
+                            });
+
+                    generate_render_tree_internal(core, comp, json_obj, child_came_from_copy); 
+
+                    let mut child_actions = serde_json::Map::new();
+
+                    for action_name in comp.definition.action_names() {
+                        child_actions.insert(action_name.to_string(), json!({
+                            "actionName": action_name,
+                            "componentName": comp.name,
+                        }));
+                    }
+
+                    children_instructions.push(json!({
+                        "actions": child_actions,
+                        "componentName": comp.name,
+                        "componentType": comp.component_type,
+                        "effectiveName": comp.name,
+                        "rendererType": comp.component_type,
+                    }));
+                },
+                ComponentChild::String(string) => {
+                    children_instructions.push(json!(string));
+                },
+            }
+        }
+    }
+
     json_obj.push(json!({
-        "componentName": component.name,
-        "stateValues": Value::Object(state_values),
+        "componentName": name_to_render,
+        "stateValues": serde_json::Value::Object(state_values),
         "childrenInstructions": json!(children_instructions),
     }));
 

@@ -32,6 +32,8 @@ async function createCore(args) {
   
   const render_tree_string = doenetCore.update_renderers();
   const render_tree = JSON.parse(render_tree_string);
+  console.log("Render tree");
+  console.log(render_tree);
 
   // console.log("Render tree from rust", render_tree);
 

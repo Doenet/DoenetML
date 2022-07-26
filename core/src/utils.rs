@@ -9,7 +9,7 @@ use crate::state_var::State;
 
 pub fn package_subtree_as_json(
     components: &HashMap<String, ComponentNode>,
-    component_states: &HashMap<String, ComponentState>,
+    component_states: &HashMap<String, Box<dyn ComponentStateVars>>,
     component: &ComponentNode
 ) -> serde_json::Value {
 
@@ -76,68 +76,59 @@ pub fn package_subtree_as_json(
 
     let component_state = component_states.get(&component.name).unwrap();
 
-    match component_state {
-        ComponentState::Shadowing(target_name) => {
-            my_json_props.insert("shadowing".to_string(), json!(target_name));
-        },
+    for &state_var_name in component.definition.state_var_definitions().keys() {
 
-        ComponentState::State(state_vars) => {
+        let state_var = component_state.get(state_var_name).unwrap();
 
-            for &state_var_name in component.definition.state_var_definitions().keys() {
+        my_json_props.insert(
 
-                let state_var = state_vars.get(state_var_name).unwrap();
-        
-                my_json_props.insert(
-        
-                    format!("sv: {}", state_var_name),
-        
-                    match state_var.get_state() {
-                        State::Resolved(value) => match value {
-                            StateVarValue::String(v) => json!(v),
-                            StateVarValue::Number(v) => json!(v),
-                            StateVarValue::Integer(v) => json!(v),
-                            StateVarValue::Boolean(v) => json!(v),
-                        },
-                        State::Stale => Value::Null,
-                    }
-                );
-        
+            format!("sv: {}", state_var_name),
+
+            match state_var.get_state() {
+                State::Resolved(value) => match value {
+                    StateVarValue::String(v) => json!(v),
+                    StateVarValue::Number(v) => json!(v),
+                    StateVarValue::Integer(v) => json!(v),
+                    StateVarValue::Boolean(v) => json!(v),
+                },
+                State::Stale => Value::Null,
             }
+        );
+
+    }
 
 
-            for (esv_name, essential_state_var) in state_vars.get_essential_state_vars() {
+    for (esv_name, essential_state_var) in component_state.get_essential_state_vars() {
 
-                let essen_value = match essential_state_var.get_value() {
-                    Some(value) => match value {
-                        StateVarValue::String(v) => json!(v),
-                        StateVarValue::Number(v) => json!(v),
-                        StateVarValue::Integer(v) => json!(v),
-                        StateVarValue::Boolean(v) => json!(v),
-                    },
-                    None => Value::Null,
-                };
-                
-                // let essen_shadowing = match &essential_state_var.shadowing_component_name {
-                //     Some(comp_name) => Value::String(comp_name.to_string()),
-                //     None => Value::Null,
-                // };
-        
-                // let essen_shadowing = json!(essential_state_var.shadowing_component_name);
-        
-                // let essen_shadowed_by = json!(essential_state_var.shadowed_by_component_names);
-        
-                my_json_props.insert(format!("essen: {}", esv_name),
-                    json!(essen_value)
-                    // json! ({
-                    //     "value": essen_value,
-                    //     "shadowing": essen_shadowing,
-                    //     "shadowed by": essen_shadowed_by,
-                    // })
-        
-                );
-        
-            }
-        }
+        let essen_value = match essential_state_var.get_value() {
+            Some(value) => match value {
+                StateVarValue::String(v) => json!(v),
+                StateVarValue::Number(v) => json!(v),
+                StateVarValue::Integer(v) => json!(v),
+                StateVarValue::Boolean(v) => json!(v),
+            },
+            None => Value::Null,
+        };
+
+        // let essen_shadowing = match &essential_state_var.shadowing_component_name {
+        //     Some(comp_name) => Value::String(comp_name.to_string()),
+        //     None => Value::Null,
+        // };
+
+        // let essen_shadowing = json!(essential_state_var.shadowing_component_name);
+
+        // let essen_shadowed_by = json!(essential_state_var.shadowed_by_component_names);
+
+        my_json_props.insert(format!("essen: {}", esv_name),
+        json!(essen_value)
+        // json! ({
+        //     "value": essen_value,
+        //     "shadowing": essen_shadowing,
+        //     "shadowed by": essen_shadowed_by,
+        // })
+
+        );
+
     }
 
     Value::Object(my_json_props)

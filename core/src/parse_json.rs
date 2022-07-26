@@ -111,8 +111,12 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 pub fn create_components_tree_from_json(program: &str)
     -> Result<(HashMap<String, ComponentNode>, String), String> {
 
-    let component_tree: Vec<ComponentTree> = serde_json::from_str(program).map_err(|e| e.to_string())?;
-    let component_tree = component_tree.first().ok_or("Empty JSON")?;
+    let component_tree: Vec<ComponentOrString> = serde_json::from_str(program).map_err(|e| e.to_string())?;
+    let component_tree = component_tree.iter()
+        .find_map(|v| match v {
+            ComponentOrString::Component(tree) => Some(tree),
+            _ => None,
+        }).ok_or("No component trees")?;
 
     log!("Root json object {:#?}", component_tree);
 
