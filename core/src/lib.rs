@@ -9,6 +9,7 @@ pub mod utils;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::iter::empty;
 
 use crate::prelude::*;
 use crate::component::*;
@@ -425,7 +426,8 @@ fn mark_stale_state_var_and_dependencies(
     let state_var = component_state.get(state_var_name).unwrap();
     state_var.mark_stale();
 
-    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap();
+    let empty_vec = vec![];
+    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap_or(&empty_vec);
     
     for dependency in my_dependencies {
 
