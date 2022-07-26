@@ -8,13 +8,15 @@ onmessage = function (e) {
   console.log('received message', e);
 
   if(e.data.messageType === "createCore") {
+
     createCore(e.data.args)
 
   } else if (e.data.messageType == 'requestAction') {
 
     // Assuming doenetCore has already been initialized
     // console.log(e.data.args);
-    doenetCore.handle_action(JSON.stringify(e.data.args));
+    handleAction(e.data.args);
+
   }
 }
 
@@ -150,21 +152,46 @@ async function createCore(args) {
 }
 
 
-
-  // console.log("JS deserialized JSON\n", render_tree_json);
-  
-  // let action = {
-  //     componentName: "myInput",
-  //     actionName: "updateValue",
-  //     args: {
-  //         "value": "hi there",
-  //     },
-  // };
-  
-  // doenetCore.handle_action(JSON.stringify(action));
+function handleAction(args) {
 
 
+  doenetCore.handle_action(JSON.stringify(args));
 
-  export function logJson(label, json_string) {
-    console.log(label, JSON.parse(json_string));
+  // Right now this returns every component
+  const render_tree_string = doenetCore.update_renderers();
+  const render_tree = JSON.parse(render_tree_string);
+  console.log("Render tree");
+  console.log(render_tree);
+
+
+  let rendererStates = [];
+  for (let key in render_tree) {
+    let componentRenderState = render_tree[key];
+
+    if(componentRenderState.componentName === "/_document1") {
+      // We don't know how to represent null SVs in Rust yet
+      componentRenderState.childrenInstructions.push("\n\n ");
+      componentRenderState.stateValues.titleChildName = null;
+
+    }
+    rendererStates.push(componentRenderState);
   }
+
+  let updateRendererMessage = {
+    messageType: "updateRenderers",
+    args: {
+      updateInstructions: [
+        {
+          instructionType: "updateRendererStates",
+          rendererStatesToUpdate: rendererStates,
+        }]
+    }
+  };
+
+  postMessage(updateRendererMessage);
+}
+
+
+export function logJson(label, json_string) {
+  console.log(label, JSON.parse(json_string));
+}
