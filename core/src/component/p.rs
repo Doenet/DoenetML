@@ -6,11 +6,11 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
 use lazy_static::lazy_static;
 
-use crate::state_var::{StateVar, EssentialStateVar};
+use crate::state_var::StateVar;
 
 
 
@@ -59,8 +59,6 @@ struct MyStateVars {
     text: StateVar,
     // hide: StateVar,
 
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
-
 }
 
 
@@ -77,9 +75,6 @@ impl ComponentStateVars for MyStateVars {
     }
 
 
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }
 }
 
 
@@ -177,13 +172,7 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
-
-        let essential_state_vars = if use_essential_data {
-            HashMap::new()
-        } else {
-            HashMap::new()
-        };
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
 
         Box::new(MyStateVars {
             value: StateVar::new(StateVarValueType::String),
@@ -192,8 +181,6 @@ impl ComponentDefinition for MyComponentDefinition {
             hidden: StateVar::new(StateVarValueType::Boolean),
             // hide: StateVar::new(StateVarValueType::Boolean),
             disabled: StateVar::new(StateVarValueType::Boolean),
-
-            essential_state_vars,
 
         })
     }

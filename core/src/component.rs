@@ -6,7 +6,7 @@ pub mod boolean;
 pub mod p;
 
 use crate::prelude::*;
-use crate::state_var::{StateVar, EssentialStateVar};
+use crate::state_var::StateVar;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
 
 use std::collections::HashMap;
@@ -56,7 +56,6 @@ pub trait AttributeData: Debug + CloneAttributeData {
 
 pub trait ComponentStateVars: Debug {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar>;
 }
 
 
@@ -75,7 +74,7 @@ pub trait ComponentDefinition: CloneComponentDefinition {
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
 
     fn empty_attribute_data(&self) -> Box<dyn AttributeData>;
-    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars>;
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars>;
 
     fn on_action<'a>(
         &'a self, _action_name: &str, _args: HashMap<String, StateVarValue>,

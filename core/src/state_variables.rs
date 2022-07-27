@@ -38,6 +38,7 @@ pub enum StateVarValueType {
 
 
 /// Passed into determine_state_vars_from_dependencies
+/// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
 #[derive(Debug)]
 pub struct DependencyValue {
     pub component_type: ComponentType,
@@ -89,7 +90,6 @@ impl<T> Default for StateVarDefinition<T>
 {
     fn default() -> Self {
         StateVarDefinition {
-            // state_vars_to_determine_dependencies: || vec![],
             return_dependency_instructions: |_| HashMap::new(),
             determine_state_var_from_dependencies:
                 |_| StateVarUpdateInstruction::SetValue(T::default()),
@@ -104,9 +104,6 @@ impl<T> Default for StateVarDefinition<T>
         }
     }
 }
-
-
-
 
 
 /// Since `StateVarDefinition` is generic, this enum is needed to store one in a HashMap.
@@ -142,6 +139,7 @@ pub enum DependencyInstruction {
     StateVar(StateVarDependencyInstruction),
     Parent(ParentDependencyInstruction),
     Attribute(AttributeDependencyInstruction),
+    Essential(EssentialDependencyInstruction),
 }
 
 #[derive(Clone, Debug)]
@@ -170,11 +168,13 @@ pub struct AttributeDependencyInstruction {
     pub attribute_name: AttributeName,
 }
 
+#[derive(Debug, Clone)]
+pub struct EssentialDependencyInstruction;
+
 
 #[derive(Debug)]
 pub enum StateVarUpdateInstruction<T> {
     SetValue(T),
-    UseEssentialOrDefault,
     NoChange,
 }
 
@@ -332,10 +332,56 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
 
 
 
+// Default essential depenency instructions
 
-
-
-
+#[allow(non_snake_case)]
+pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
+    _: HashMap<StateVarName, StateVarValue>
+) -> HashMap<InstructionName, DependencyInstruction> {
+    HashMap::from([
+        ("essential", DependencyInstruction::Essential(EssentialDependencyInstruction))
+    ])
+}
+#[allow(non_snake_case)]
+pub fn STRING_DETERMINE_FROM_ESSENTIAL(
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+) -> StateVarUpdateInstruction<String> {
+    StateVarUpdateInstruction::SetValue(
+        match &dependency_values.get("essential").unwrap().first().unwrap().value {
+            StateVarValue::String(v) => v.to_string(),
+            _ => panic!()
+        })
+}
+#[allow(non_snake_case)]
+pub fn BOOLEAN_DETERMINE_FROM_ESSENTIAL(
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+) -> StateVarUpdateInstruction<bool> {
+    StateVarUpdateInstruction::SetValue(
+        match &dependency_values.get("essential").unwrap().first().unwrap().value {
+            StateVarValue::Boolean(v) => *v,
+            _ => panic!()
+        })
+}
+#[allow(non_snake_case)]
+pub fn NUMBER_DETERMINE_FROM_ESSENTIAL(
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+) -> StateVarUpdateInstruction<f64> {
+    StateVarUpdateInstruction::SetValue(
+        match &dependency_values.get("essential").unwrap().first().unwrap().value {
+            StateVarValue::Number(v) => *v,
+            _ => panic!()
+        })
+}
+#[allow(non_snake_case)]
+pub fn INTEGER_DETERMINE_FROM_ESSENTIAL(
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+) -> StateVarUpdateInstruction<i64> {
+    StateVarUpdateInstruction::SetValue(
+        match &dependency_values.get("essential").unwrap().first().unwrap().value {
+            StateVarValue::Integer(v) => *v,
+            _ => panic!()
+        })
+}
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]
@@ -544,7 +590,6 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {                    
                     NoChange => NoChange,
-                    UseEssentialOrDefault => UseEssentialOrDefault,
                     SetValue(val) => SetValue(StateVarValue::String(val)),
                 }
             },
@@ -552,7 +597,6 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     NoChange => NoChange,
-                    UseEssentialOrDefault => UseEssentialOrDefault,
                     SetValue(val) => SetValue(StateVarValue::Integer(val)),
                 }
             },
@@ -560,7 +604,6 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     NoChange => NoChange,
-                    UseEssentialOrDefault => UseEssentialOrDefault,
                     SetValue(val) => SetValue(StateVarValue::Number(val)),
                 }
             },
@@ -568,7 +611,6 @@ impl StateVarVariant {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values);
                 match instruction {
                     NoChange => NoChange,
-                    UseEssentialOrDefault => UseEssentialOrDefault,
                     SetValue(val) => SetValue(StateVarValue::Boolean(val)),
                 }
             }                     

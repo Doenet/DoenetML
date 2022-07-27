@@ -7,9 +7,9 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
-use crate::state_var::{StateVar, EssentialStateVar};
+use crate::state_var::StateVar;
 
 
 #[derive(Debug, Default, Clone)]
@@ -58,7 +58,6 @@ struct MyStateVars {
     width: StateVar,
     disabled: StateVar,
 
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 }
 
 
@@ -80,9 +79,6 @@ impl ComponentStateVars for MyStateVars {
     }
 
 
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }
 }
 
 
@@ -114,8 +110,8 @@ lazy_static! {
                 )]
             },
 
-            determine_state_var_from_dependencies: |_| UseEssentialOrDefault,
-
+            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
             ..Default::default()
         }));
 
@@ -155,18 +151,19 @@ lazy_static! {
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             has_essential: true,
             for_renderer: true,
-            determine_state_var_from_dependencies: |_| UseEssentialOrDefault,
 
-            request_dependencies_to_update_value: |my_desired_value| {
+            request_dependencies_to_update_value: |desired_value| {
                 vec![
                     UpdateRequest::SetEssentialValue(
 
                         // Should the update request really use a StateVarValue?
-                        "immediateValue", StateVarValue::String(my_desired_value)
+                        "immediateValue", StateVarValue::String(desired_value)
                     )
                 ]
             },
 
+            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
             ..Default::default()
         }));
 
@@ -211,17 +208,7 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
-
-        let essential_state_vars = if use_essential_data {
-            HashMap::from([
-                ("value", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
-                ("immediateValue", EssentialStateVar::derive_from(StateVar::new(StateVarValueType::String))),
-            ])
-
-        } else {
-            HashMap::new()
-        };
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
 
         Box::new(MyStateVars {
             
@@ -232,8 +219,6 @@ impl ComponentDefinition for MyComponentDefinition {
             width: StateVar::new(StateVarValueType::Number),
             expanded: StateVar::new(StateVarValueType::Boolean),
             disabled: StateVar::new(StateVarValueType::Boolean),
-
-            essential_state_vars,
 
         })
     }

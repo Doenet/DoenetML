@@ -39,6 +39,23 @@ pub struct EssentialStateVar {
     value: RefCell<ValueTypeProtector>,
 }
 
+impl EssentialStateVar {
+     pub fn new(value: StateVarValue) -> Self {
+        EssentialStateVar {
+            value: RefCell::new(
+
+                match value {
+                    StateVarValue::Boolean(v) => ValueTypeProtector::Boolean(Some(v)),
+                    StateVarValue::Integer(v) => ValueTypeProtector::Integer(Some(v)),
+                    StateVarValue::Number(v) => ValueTypeProtector::Number(Some(v)),
+                    StateVarValue::String(v) => ValueTypeProtector::String(Some(v)),
+                }
+            )
+        }
+    }
+
+}
+
 // This enum should remain private
 enum ValueTypeProtector {
     String(Option<String>),

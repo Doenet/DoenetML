@@ -6,9 +6,9 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::{ObjectTraitName};
+use crate::ObjectTraitName;
 
-use crate::state_var::{StateVar, EssentialStateVar};
+use crate::state_var::StateVar;
 
 
 
@@ -28,8 +28,6 @@ struct MyStateVars {
     credit_achieved: StateVar,
     create_submit_all_button: StateVar,
     suppress_answer_submit_buttons: StateVar,
-
-    essential_state_vars: HashMap<StateVarName, EssentialStateVar>,
 
 }
 
@@ -53,9 +51,6 @@ impl ComponentStateVars for MyStateVars {
         }
     }
 
-    fn get_essential_state_vars(&self) -> &HashMap<StateVarName, EssentialStateVar> {
-        &self.essential_state_vars
-    }
 }
 
 
@@ -219,14 +214,7 @@ impl ComponentDefinition for MyComponentDefinition {
         Box::new(MyAttributeData { ..Default::default() })
     }
 
-    fn new_stale_component_state_vars(&self, use_essential_data: bool) -> Box<dyn ComponentStateVars> {
-      
-        let essential_state_vars = if use_essential_data {
-            HashMap::new()
-        } else {
-            HashMap::new()
-        };
-
+    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
 
         Box::new(MyStateVars {
             submit_label: StateVar::new(StateVarValueType::String),
@@ -243,7 +231,6 @@ impl ComponentDefinition for MyComponentDefinition {
             create_submit_all_button: StateVar::new(StateVarValueType::Boolean),
             suppress_answer_submit_buttons: StateVar::new(StateVarValueType::Boolean), 
 
-            essential_state_vars,
         })
     }
 

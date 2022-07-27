@@ -98,24 +98,5 @@ pub fn package_subtree_as_json(
     }
 
 
-    for (esv_name, essential_state_var) in component_state.get_essential_state_vars() {
-
-        let essen_value = match essential_state_var.get_value() {
-            Some(value) => match value {
-                StateVarValue::String(v) => json!(v),
-                StateVarValue::Number(v) => json!(v),
-                StateVarValue::Integer(v) => json!(v),
-                StateVarValue::Boolean(v) => json!(v),
-            },
-            None => Value::Null,
-        };
-
-        my_json_props.insert(format!("essen: {}", esv_name),
-        json!(essen_value)
-
-        );
-
-    }
-
     Value::Object(my_json_props)
 }
