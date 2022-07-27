@@ -103,7 +103,6 @@ lazy_static! {
 
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
 
-            has_essential: true,
             request_dependencies_to_update_value: |desired_value| {
                 vec![UpdateRequest::SetEssentialValue(
                     "value", StateVarValue::String(desired_value)
@@ -149,7 +148,6 @@ lazy_static! {
 
 
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
-            has_essential: true,
             for_renderer: true,
 
             request_dependencies_to_update_value: |desired_value| {

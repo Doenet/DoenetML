@@ -147,10 +147,6 @@ pub enum ObjectName {
 //         T::default()
 //     }
 
-//     fn has_essential() -> bool {
-//         false
-//     }
-
 //     // arg is desired value
 //     fn request_dependencies_to_update_value(desired_value: T) -> Vec<UpdateRequest>;
 // }

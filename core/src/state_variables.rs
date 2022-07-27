@@ -70,8 +70,6 @@ pub struct StateVarDefinition<T> {
 
     pub default_value: T,
 
-    pub has_essential: bool,
-
     // arg is desired value
     pub request_dependencies_to_update_value: fn(T) -> Vec<UpdateRequest>,
 }
@@ -95,7 +93,6 @@ impl<T> Default for StateVarDefinition<T>
                 |_| StateVarUpdateInstruction::SetValue(T::default()),
             for_renderer: false,
             default_value: T::default(),
-            has_essential: false,
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -663,15 +660,6 @@ impl StateVarVariant {
             StateVarVariant::Integer(def) => def.for_renderer,
             StateVarVariant::Number(def) =>  def.for_renderer,
             StateVarVariant::Boolean(def) => def.for_renderer,
-        }
-    }
-
-    pub fn has_essential(&self) -> bool {
-        match self {
-            StateVarVariant::String(def) =>  def.has_essential,
-            StateVarVariant::Integer(def) => def.has_essential,
-            StateVarVariant::Number(def) =>  def.has_essential,
-            StateVarVariant::Boolean(def) => def.has_essential,
         }
     }
 
