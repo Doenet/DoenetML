@@ -54,8 +54,8 @@ impl PublicDoenetCore {
 
         let core = core::create_doenet_core(program);
 
-        logJson("Components on core creation", to_string(&core::json_components(&core)).unwrap());
-        log!("Dependencies on core creation\n{:#?}", core.dependencies);
+        logJson("Components on core creation\n", to_string(&core::json_components(&core)).unwrap());
+        logJson("Dependencies on core creation\n", to_string(&core::utils::json_dependencies(&core.dependencies)).unwrap());
     
         PublicDoenetCore(core)
     }
@@ -78,7 +78,7 @@ impl PublicDoenetCore {
         core::handle_action_from_json(&self.0, action);
 
         logJson(
-            "Updated component tree",
+            "Updated component tree\n",
             serde_json::to_string(&core::json_components(&self.0)).unwrap()
         );
     }

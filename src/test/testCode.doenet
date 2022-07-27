@@ -1,8 +1,0 @@
-<document>
-
-<textInput name='hi' />
-
-<textInput copyTarget='hi' />
-
-
-</document>

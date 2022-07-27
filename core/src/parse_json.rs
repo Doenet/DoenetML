@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::Action;
-use crate::component::{Attribute, AttributeDefinition};
+use crate::component::{Attribute, AttributeDefinition, CopyTarget};
 use crate::prelude::*;
 
 use crate::AttributeData;
@@ -29,6 +29,7 @@ struct ComponentTree {
 struct Props {
     name: Option<String>,
     copy_target: Option<String>,
+    prop: Option<String>,
     #[serde(flatten)]
     attributes: HashMap<String, AttributeValue>,
 }
@@ -66,23 +67,38 @@ enum ArgValue {
 }
 
 
-fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn ComponentDefinition>, ComponentType),String> {
-    let component_def_and_type = match component_type {
-        "text" =>       (Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>, "text"),
-        "number" =>     (Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>, "number"),
-        "textInput" =>  (Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>, "textInput"),
-        "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
-        "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
-        "p" =>    (Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>, "p"),
 
+fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
 
-        _ => {
-            return Err(format!("Invalid component type {}", component_type));
-        } 
-    };
-
-    Ok(component_def_and_type)
+    HashMap::from([
+        ("text", Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("number", Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("textInput", Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("document", Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("boolean",  Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("p", Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+    ])
 }
+
+
+
+// fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn ComponentDefinition>, ComponentType),String> {
+//     let component_def_and_type = match component_type {
+//         "text" =>       (Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>, "text"),
+//         "number" =>     (Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>, "number"),
+//         "textInput" =>  (Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>, "textInput"),
+//         "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
+//         "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
+//         "p" =>    (Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>, "p"),
+
+
+//         _ => {
+//             return Err(format!("Invalid component type {}", component_type));
+//         } 
+//     };
+
+//     Ok(component_def_and_type)
+// }
 
 
 pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
@@ -111,6 +127,20 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 pub fn create_components_tree_from_json(program: &str)
     -> Result<(HashMap<String, ComponentNode>, String), String> {
 
+
+    let component_definitions = generate_component_definitions();
+
+    let mut all_state_var_names = HashMap::new();
+    for (_, def) in component_definitions.iter() {
+
+        for &name in def.state_var_definitions().keys() {
+            all_state_var_names.insert(name.to_string(), name);
+        }
+
+    }
+
+    // log!("All state var names {:#?}", all_state_var_names);
+
     let component_tree: Vec<ComponentOrString> = serde_json::from_str(program).map_err(|e| e.to_string())?;
     let component_tree = component_tree.iter()
         .find_map(|v| match v {
@@ -118,7 +148,7 @@ pub fn create_components_tree_from_json(program: &str)
             _ => None,
         }).ok_or("No component trees")?;
 
-    log!("Root json object {:#?}", component_tree);
+    // log!("Root json object {:#?}", component_tree);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
@@ -127,7 +157,10 @@ pub fn create_components_tree_from_json(program: &str)
         &mut component_nodes,
         &component_tree,
         None,
-        &mut component_type_counter)?;
+        &mut component_type_counter,
+        &component_definitions,
+        &all_state_var_names,
+    )?;
 
     Ok((component_nodes, root_component_name))
 }
@@ -138,10 +171,16 @@ fn add_component_from_json(
     component_tree: &ComponentTree,
     parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
+    component_definitions: &HashMap<ComponentType, Box<dyn ComponentDefinition>>,
+    all_state_var_names: &HashMap<String, StateVarName>,
+
 ) -> Result<String, String> {
 
     let component_type: &str = &component_tree.component_type;
-    let (component_definition, component_type) = get_component_definition_for_type(component_type)?;
+
+    let (&component_type, component_definition) = component_definitions.get_key_value(component_type).ok_or(
+        format!("{} is not a valid component type", component_type)
+    )?;
 
     let count = *component_type_counter.get(component_type).unwrap_or(&0);
     component_type_counter.insert(component_type.to_string(), count + 1);
@@ -151,7 +190,22 @@ fn add_component_from_json(
         None => format!("/_{}{}", component_type, count + 1),
     };
 
-    let copy_target: Option<String> = component_tree.props.copy_target.clone();
+    let copy_target: Option<CopyTarget>;
+    if let Some(ref target_name) = component_tree.props.copy_target {
+        if let Some(ref target_state_var) = component_tree.props.prop {
+
+            let state_var_name = all_state_var_names.get(target_state_var).ok_or(
+                format!("{} is not a valid state var name", target_state_var))?;
+
+            copy_target = Some(CopyTarget::StateVar(target_name.clone(), state_var_name));
+
+        } else {
+            copy_target = Some(CopyTarget::Component(target_name.clone()));
+        }
+    } else {
+        copy_target = None;
+    }
+
 
     let attribute_definitions = component_definition.attribute_definitions();
 
@@ -181,7 +235,9 @@ fn add_component_from_json(
                     // Make sure this is unique
                     let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
 
-                    let (attr_component_definition, _) = get_component_definition_for_type(attr_comp_type)?;
+                    let attr_component_definition = component_definitions.get(attr_comp_type).ok_or(
+                        format!("{} is not a valid component type", attr_comp_type)
+                    )?;
 
                     let attribute_component_node = ComponentNode {
                         name: attr_comp_name.clone(),
@@ -193,7 +249,7 @@ fn add_component_from_json(
                 
                         copy_target: None,
 
-                        definition: attr_component_definition,
+                        definition: attr_component_definition.clone(),
                     };
 
                     attributes.add_attribute(attribute_name, Attribute::Component(attr_comp_name.clone()))?;
@@ -249,7 +305,11 @@ fn add_component_from_json(
                     component_nodes,
                     &child_tree,
                     Some(component_name.clone()),
-                    component_type_counter)?;
+                    component_type_counter,
+                    component_definitions,
+                    all_state_var_names,
+
+                )?;
 
                 children.push(ComponentChild::Component(child_name));
             },
@@ -267,7 +327,7 @@ fn add_component_from_json(
 
         copy_target,
 
-        definition: component_definition,
+        definition: component_definition.clone(),
     };
 
     component_nodes.insert(component_name.clone(), component_node);

@@ -5,6 +5,8 @@ pub mod document;
 pub mod boolean;
 pub mod p;
 
+use serde::Serialize;
+
 use crate::prelude::*;
 use crate::state_var::StateVar;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
@@ -37,7 +39,7 @@ pub struct ComponentNode {
     pub attributes: Box<dyn AttributeData>, //assuming the AttributeData type matches with the component_type
 
     // Flags
-    pub copy_target: Option<String>,
+    pub copy_target: Option<CopyTarget>,
 
     pub definition: Box<dyn ComponentDefinition>,
 }
@@ -56,6 +58,12 @@ pub trait AttributeData: Debug + CloneAttributeData {
 
 pub trait ComponentStateVars: Debug {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
+}
+
+#[derive(Debug, Clone)]
+pub enum CopyTarget {
+    Component(String),
+    StateVar(String, StateVarName),
 }
 
 
@@ -109,7 +117,7 @@ impl Debug for dyn ComponentDefinition {
 pub type ComponentChild = ObjectName;
 
 /// An object refers to either a component or a string child.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum ObjectName {
     Component(String),
     String(String),

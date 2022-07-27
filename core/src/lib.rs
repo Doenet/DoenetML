@@ -9,7 +9,6 @@ pub mod utils;
 
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::iter::empty;
 
 use crate::prelude::*;
 use crate::component::*;
@@ -40,7 +39,7 @@ pub struct DoenetCore {
 
 
 /// A collection of edges on the dependency tree
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub enum Dependency {
     StateVar(StateVarDependency),
     Essential(EssentialDependency),
@@ -50,7 +49,7 @@ pub enum Dependency {
 
 /// This stores some of the state variables (or strings) that a state variable depends on.
 /// Note that a Dependency struct contains multiple edges of the dependency tree.
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct StateVarDependency {
 
     pub name: InstructionName,
@@ -69,7 +68,7 @@ pub struct StateVarDependency {
 
 
 /// This stores the name of an essential datum that a state variable depends on.
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct EssentialDependency {
    
     pub name: InstructionName,
@@ -84,7 +83,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     let (component_nodes, root_component_name) = parse_json::create_components_tree_from_json(program)
         .expect(&format!("Error parsing json for components: {}", program));
 
-    log!("Component nodes from JSON {:#?}", component_nodes);
+    // log!("Component nodes from JSON {:#?}", component_nodes);
 
 
     // For every copy, add aliases for children it would inherit from its copy target.
@@ -161,7 +160,7 @@ fn create_all_dependencies_for_component(
 
 {
 
-    log!("Creating depencies for {:?}", component.name);
+    // log!("Creating depencies for {:?}", component.name);
     let mut dependencies: HashMap<StateVarName, Vec<Dependency>> = HashMap::new();
 
 
@@ -209,7 +208,7 @@ fn get_attribute_including_copy<'a>(
     if let Some(attribute) = component.attributes.get(attribute_name) {
         Some(attribute)
 
-    } else if let Some(ref target_name) = component.copy_target {
+    } else if let Some(CopyTarget::Component(ref target_name)) = component.copy_target {
 
         let target = components.get(target_name).unwrap();
         get_attribute_including_copy(components, target, attribute_name)
@@ -230,7 +229,7 @@ fn create_dependency_from_instruction(
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> Dependency {
 
-    log!("Creating dependency {}:{}:{}", component.name, state_var_name, instruction_name);
+    // log!("Creating dependency {}:{}:{}", component.name, state_var_name, instruction_name);
 
 
     if let DependencyInstruction::Essential(_) = instruction {
@@ -391,8 +390,8 @@ fn get_name_of_original(
     component: &ComponentNode,
 ) -> String {
     match &component.copy_target {
-        Some(target) => get_name_of_original(components, components.get(target).unwrap()),
-        None => component.name.clone(),
+        Some(CopyTarget::Component(target)) => get_name_of_original(components, components.get(target).unwrap()),
+        _ => component.name.clone(),
     }
 }
     
@@ -576,7 +575,7 @@ fn handle_update_instruction<'a>(
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
-    log!("Updating state var {}:{}", component.name, name);
+    // log!("Updating state var {}:{}", component.name, name);
 
 
     let updated_value: StateVarValue;
@@ -829,13 +828,15 @@ fn get_children_including_copy(
     component: &ComponentNode
 ) -> Vec<(ComponentChild, bool)> {
     let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
-    if let Some(ref target) = component.copy_target {
+    if let Some(CopyTarget::Component(ref target)) = component.copy_target {
+
         let target_comp = components.get(target).unwrap();
         children_vec = get_children_including_copy(components, target_comp)
             .iter()
             .map(|(c, _)| (c.clone(), false))
             .collect();
     }
+
     children_vec.extend(
         component.children
             .iter()

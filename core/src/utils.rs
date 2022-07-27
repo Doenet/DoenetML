@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 
+use crate::prelude::*;
 use crate::component::*;
 use crate::state_variables::StateVarValue;
 use crate::state_var::State;
+use crate::Dependency;
 
 
 
@@ -70,7 +72,10 @@ pub fn package_subtree_as_json(
     });
     my_json_props.insert("type".to_string(), Value::String(component.component_type.to_string()));
     my_json_props.insert("copyTarget".to_string(), match &component.copy_target {
-        Some(copy_target_name) => Value::String(copy_target_name.to_string()),
+        Some(CopyTarget::Component(copy_target_name)) => Value::String(copy_target_name.to_string()),
+        Some(CopyTarget::StateVar(target_name, target_state_var)) => Value::String(
+            format!("{} {}", target_name, target_state_var)
+        ),
         None => Value::Null,
     });
 
@@ -99,4 +104,56 @@ pub fn package_subtree_as_json(
 
 
     Value::Object(my_json_props)
+}
+
+
+
+
+pub fn json_dependencies(
+    dependencies: &HashMap<String, HashMap<StateVarName, Vec<Dependency>>>
+) -> serde_json::Value {
+
+    use serde_json::Value;
+    use serde_json::json;
+
+    let mut output: HashMap<String, HashMap<StateVarName, HashMap<String, Value>>> = HashMap::new();
+
+    for (comp_name, comp_deps) in dependencies {
+        for (state_var_name, state_var_deps) in comp_deps {
+
+            for instruction in state_var_deps {
+
+                let display_name = match instruction {
+                    Dependency::Essential(ref essen_dep) => format!("{} (essential)", essen_dep.name),
+                    Dependency::StateVar(ref sv_dep) => format!("{} (state var)", sv_dep.name),
+                };
+
+
+                let value = match instruction {
+                    Dependency::Essential(ref essen_dep) => {
+                        json!({
+                            "depends_on_essential": essen_dep.depends_on_essential,
+                        })
+                    },
+                    Dependency::StateVar(ref sv_dep) => {
+                        json!({
+                            "depends on objects": format!("{:?}", sv_dep.depends_on_objects),
+                            "depends on state_vars": format!("{:?}", sv_dep.depends_on_state_vars),
+                            "variables optional": sv_dep.variables_optional,
+                        })
+                    },
+                };
+
+                output
+                    .entry(comp_name.clone()).or_insert(HashMap::new())
+                    .entry(state_var_name.clone()).or_insert(HashMap::new())
+                    .entry(display_name)
+                    .or_insert(value);
+                
+
+            }
+        }
+    }
+
+    serde_json::json!(output)
 }
