@@ -77,7 +77,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // Create component nodes.
     let (component_nodes, root_component_name) = parse_json::create_components_tree_from_json(program)
-        .expect(&format!("Error parsing json for components: {}", program));
+        .expect(&format!("Error parsing json for components"));
 
 
     // For every component copy, add aliases for children it inherits from its target.
@@ -91,8 +91,18 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     }
 
 
+    // Parse macros and generate components from them
+
+    let mut component_nodes = component_nodes;
+
+    replace_macros_with_copies(&mut component_nodes);
+
+    let component_nodes = component_nodes;
+
+
     // Fill in HashMaps: component_states and dependencies for every component
     // and supply essential_data required by any `EssentialDependency`.
+    
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
     let mut dependencies:
         HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
@@ -119,6 +129,8 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     // log!("component nodes {:#?}", component_nodes);
     // log!("component states {:#?}", component_states);
     // log!("dependencies {:#?}", dependencies);
+
+    
 
     DoenetCore {
         component_nodes,
@@ -147,6 +159,142 @@ fn add_alias_for_children(
         }
     }
 }
+
+
+fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
+
+    use regex::Regex;
+    use std::iter::repeat;
+
+    // One (later, we will implement or 2) $ follwed by either
+    // - a word (starting with a letter), capturing word as third group, or
+    // - an identifier in parentheses, capturing identifier as fourth group,
+    //   where the closing parenthesis could be replaced by an open brace,
+    //   capturing the open brace or closing parens as fifth group
+
+    let macro_regex = Regex::new(r"(\$)(([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_:./\-]+)\s*(\)|[{]))").unwrap();
+
+    // Keyed by the component name and by the original position of the child we are replacing
+    let mut replacement_children: HashMap<String, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
+
+    let mut components_to_add: Vec<ComponentNode> = vec![];
+    
+
+    // This iterator gives info for every string child
+    // (original index of child, string value, component)
+    let all_string_children = components.iter()
+        .flat_map(| (_, comp) |
+            comp.children.iter()
+                .enumerate()
+                .filter_map(| (id, child) | {
+                    match child {
+                        ObjectName::String(string_val) => Some((id, string_val)),
+                        _ => None,
+                    }
+                })
+                .zip(repeat(comp))
+                .map(|((id, val), comp)| (id, val, comp))
+            );
+
+
+    for (child_id, string_val, component) in all_string_children {
+        let mut new_children = vec![];
+        let mut previous_end = 0;
+
+        for capture in macro_regex.captures_iter(string_val) {
+
+            log!("capture {:#?}", capture);
+
+            let start = capture.get(0).unwrap().start();
+            let end = capture.get(0).unwrap().end();
+
+            if start == 0 || string_val.chars().nth(start-1).unwrap_or_default() != '$' {
+
+                // Append the regular string from last endpoint up until start of macro
+                let before = &string_val[previous_end..start];
+                if !before.trim().is_empty() {
+                    new_children.push(ComponentChild::String(before.to_string()));
+                }
+
+
+                let macro_comp_match = capture.get(2).unwrap();
+                let target_name = macro_comp_match.as_str();
+
+                let target = components.get(target_name).expect(
+                    &format!("Macro for {}, but this component does not exist", target_name)
+                );
+
+                let copy_name = format!("__macro:{}({})", target_name, component.name);
+
+                let macro_copy = ComponentNode {
+                    name: copy_name,
+                    parent: Some(component.name.clone()),
+                    children: vec![],
+
+                    copy_target: Some(CopyTarget::Component(target.name.clone())),
+                    attributes: target.definition.empty_attribute_data(),
+
+                    .. target.clone()
+                };
+
+            
+                new_children.push(ComponentChild::Component(macro_copy.name.clone()));
+                components_to_add.push(macro_copy);
+
+
+                previous_end = end;
+
+            }
+
+        }
+
+        if previous_end != 0 {
+
+            // There was at least one macro
+
+            let last = &string_val[previous_end..];
+            if !last.trim().is_empty() {
+                new_children.push(ComponentChild::String(last.to_string()));
+            }
+
+
+            replacement_children.entry(component.name.clone()).or_insert(HashMap::new())
+                .entry(child_id).or_insert(new_children);
+
+        }
+    }
+
+
+
+    for new_component in components_to_add {
+
+        debug_assert!( !components.contains_key(&new_component.name));
+        components.insert(new_component.name.clone(), new_component);
+    }
+
+
+    // log!("Replacement children {:#?}", replacement_children);
+
+    for (component_name, new_children_hashmap) in replacement_children {
+        
+        let component = components.get_mut(&component_name).unwrap();
+
+        for (original_child_id, new_children) in new_children_hashmap {
+
+            // Remove the original element, and add the new children (in order) in its place
+            component.children.splice(
+                original_child_id..original_child_id + 1,
+                new_children
+            );
+
+        }
+    }
+
+
+}
+
+
+
 
 
 /// Helper function to detect if the given state var is shadowing a different component's state var
@@ -838,7 +986,7 @@ fn process_update_request(
 
                 panic!("Haven't implemented update requests for shadowing state var");
             } else {
-                
+
                 let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
 
                 their_update_requests = state_var_definition

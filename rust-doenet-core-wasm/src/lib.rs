@@ -49,6 +49,8 @@ impl PublicDoenetCore {
     pub fn new(program: &str) -> PublicDoenetCore {
 
         utils::set_panic_hook();
+
+        web_sys::console::time_with_label("DoenetCore creation");
                 
         // log!("core recieved the string: {}", program);
 
@@ -56,6 +58,8 @@ impl PublicDoenetCore {
 
         logJson("Components on core creation\n", to_string(&core::json_components(&core)).unwrap());
         logJson("Dependencies on core creation\n", to_string(&core::utils::json_dependencies(&core.dependencies)).unwrap());
+
+        web_sys::console::time_end_with_label("DoenetCore creation");
     
         PublicDoenetCore(core)
     }
