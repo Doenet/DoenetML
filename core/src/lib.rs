@@ -53,16 +53,9 @@ pub enum Dependency {
 #[derive(Debug)]
 pub struct StateVarDependency {
 
-    pub name: InstructionName,
-
-
     // We will use outer product of entries (except for the strings, which don't have state vars)
     pub depends_on_objects: Vec<ObjectName>,
     pub depends_on_state_vars: Vec<StateVarName>,
-
-    // TODO: Do we really need this field? It would be easier if we didn't
-    // pub instruction: DependencyInstruction,
-
 
     pub variables_optional: bool,
 }
@@ -71,9 +64,6 @@ pub struct StateVarDependency {
 /// This stores the name of an essential datum that a state variable depends on.
 #[derive(Debug)]
 pub struct EssentialDependency {
-   
-    pub name: InstructionName,
-
     pub depends_on_essential: String,
 }
 
@@ -89,40 +79,40 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     let (component_nodes, root_component_name) = parse_json::create_components_tree_from_json(program)
         .expect(&format!("Error parsing json for components: {}", program));
 
-    // log!("Component nodes from JSON {:#?}", component_nodes);
 
-
-    // For every copy, add aliases for children it would inherit from its copy target.
+    // For every component copy, add aliases for children it inherits from its target.
     let mut aliases: HashMap<String, String> = HashMap::new();
-    let copies = component_nodes.iter().filter(|(_, c)| c.copy_target.is_some());
+    let copies = component_nodes.iter().filter(|(_, c)| match c.copy_target {
+        Some(CopyTarget::Component(_)) => true,
+        _ => false,
+    });
     for (_name, copy) in copies {
         add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
 
 
-
-    // Fill in component states and dependencies for every component.
+    // Fill in HashMaps: component_states and dependencies for every component
+    // and supply essential_data required by any `EssentialDependency`.
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
-
-    let mut essential_data: HashMap<String, EssentialStateVar> = HashMap::new();
-
-    // let mut dependencies: Vec<Dependency> = vec![];
     let mut dependencies:
         HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
-    
+    let mut essential_data: HashMap<String, EssentialStateVar> = HashMap::new();
+
     for (component_name, component_node) in component_nodes.iter() {
 
-        let dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node, &mut essential_data);
+        let dependencies_for_this_component = create_all_dependencies_for_component(
+            &component_nodes,
+            component_node,
+            &mut essential_data
+        );
 
         dependencies.insert(component_name.to_string(), dependencies_for_this_component);
 
 
-        component_states.insert(component_name.clone(),
-
-            // Only give this component essential data if it is not copying anything
+        component_states.insert(
+            component_name.clone(),
             component_node.definition.new_stale_component_state_vars()
         );
-
     }
 
 
@@ -160,13 +150,12 @@ fn add_alias_for_children(
 
 
 /// Helper function to detect if the given state var is shadowing a different component's state var
-fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName) -> Option<(String, StateVarName)> {
-    
-    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
+fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
+    -> Option<(String, StateVarName)> {
 
+    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
         if component.definition.primary_input_state_var() == Some(state_var) {
             Some((target_comp.to_string(), target_state_var))
-
         } else {
             None
         }
@@ -204,9 +193,7 @@ fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<String, EssentialStateVar>,
-) -> HashMap<StateVarName, HashMap<InstructionName, Dependency>>
-
-{
+) -> HashMap<StateVarName, HashMap<InstructionName, Dependency>> {
 
     // log!("Creating depencies for {:?}", component.name);
     let mut dependencies: HashMap<StateVarName, HashMap<InstructionName, Dependency>> = HashMap::new();
@@ -293,15 +280,13 @@ fn create_dependency_from_instruction(
         let variant = component.definition.state_var_definitions().get(state_var_name).unwrap();
 
         // A copy uses the same essential data, so `insert` would be called twice
-        // for the same key, but it doesn't matter.
+        // with the same key, but that's ok.
         essential_data.insert(
             depends_on_essential.clone(),
             EssentialStateVar::new(variant.default_value()),
         );
 
         Dependency::Essential( EssentialDependency {
-            name: instruction_name,
-
             depends_on_essential,
         })
 
@@ -361,7 +346,6 @@ fn create_dependency_from_instruction(
 
             },
             DependencyInstruction::Parent(parent_instruction) => {
-                // Parent doesn't exist yet
 
                 let parent_name = component.parent.clone().expect(&format!(
                     "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",
@@ -419,7 +403,6 @@ fn create_dependency_from_instruction(
         };
 
         Dependency::StateVar( StateVarDependency {
-            name: instruction_name,
             variables_optional: false,
 
             depends_on_objects,
@@ -479,6 +462,21 @@ fn get_state_variables_depending_on_me(
 
 }
 
+/// Iterate through each dependency as a tuple.
+/// TODO: find if this is slower
+fn _dependencies_iter(core: &DoenetCore)
+    -> impl Iterator<Item=(&String, StateVarName, InstructionName, &Dependency)> {
+
+    core.dependencies.iter()
+        .flat_map(|(c_name, h1)| h1.iter()
+            .flat_map(|(sv_name, h2)| h2.iter()
+                .map(|(i_name, dep)|
+                    (c_name, *sv_name, *i_name, dep)
+                ).collect::<Vec<(&String, &str, &str, &Dependency)>>()
+            ).collect::<Vec<(&String, &str, &str, &Dependency)>>()
+        )
+}
+
 
 fn generate_update_instruction_including_shadowing(
     component: &ComponentNode,
@@ -488,12 +486,12 @@ fn generate_update_instruction_including_shadowing(
 ) -> StateVarUpdateInstruction<StateVarValue> {
 
 
-    if let Some(_) = state_var_is_shadowing(component, state_var) {
+    if state_var_is_shadowing(component, state_var).is_some() {
 
         // Assuming that target state var is same type as this state var
         let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)
             .has_exactly_one_element().value();
-            
+
         StateVarUpdateInstruction::SetValue(target_value)
 
 

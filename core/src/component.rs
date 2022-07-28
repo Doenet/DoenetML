@@ -58,6 +58,29 @@ pub trait ComponentStateVars: Debug {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
 }
 
+/// How a CopyTarget affects its component
+///
+/// Component:
+/// - This only works if the target component is the same type.
+/// - In a `ChildUpdateInstruction`, the target's children are included before 
+///   including its own. So without its own children, many of component'struct
+///   state variables become exactly the same as the target's.
+/// - For the renderer, these 'inherited' children are copied but need
+///   a different name supplied by core's `aliases` HashMap. When the renderer 
+///   sends an action that involves an alias, it is redirected
+///   to the target's existing child.
+/// - An `EssentialDependencyInstruction` will point to the target's
+///   essential variables. The compnent does not have essential data for itself.
+/// - Attributes are inherited from the target but are overridden when specified.
+///
+/// StateVar:
+/// - Three `StateVariableDefinition` functions are overridden for the component's
+///   'primary input' state variable (usually called 'value'):
+///   - `return_dependency_instructions`
+///   - `determine_state_var_from_dependencies`
+///   - `request_dependencies_to_update_value`
+///   These overrides cause the primary variable to depend on and copy the target.
+/// - If the component type has no primary input, a StateVar CopyTarget will not work.
 #[derive(Debug, Clone)]
 pub enum CopyTarget {
     Component(String),
@@ -98,9 +121,8 @@ pub trait ComponentDefinition: CloneComponentDefinition {
     }
 
 
-    /// The primary input is like a state variable, except it gets overridden if 
+    /// The primary input is a state variable, except it gets overridden if 
     /// the component is being copied from another state var
-    /// If the component type has no primary input, then it cannot be copied from a state var
     fn primary_input_state_var(&self) -> Option<StateVarName> {
         None
     }
