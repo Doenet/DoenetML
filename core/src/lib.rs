@@ -102,7 +102,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // Fill in HashMaps: component_states and dependencies for every component
     // and supply essential_data required by any `EssentialDependency`.
-    
+
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
     let mut dependencies:
         HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
@@ -172,12 +172,18 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     //   where the closing parenthesis could be replaced by an open brace,
     //   capturing the open brace or closing parens as fifth group
 
-    let macro_regex = Regex::new(r"(\$)(([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_:./\-]+)\s*(\)|[{]))").unwrap();
+    let macro_regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
+        (\$)
+        (([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_:./-]+)\s*(\)|\{))"
+    ).unwrap();
 
     // Keyed by the component name and by the original position of the child we are replacing
     let mut replacement_children: HashMap<String, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
+
+    // Keyed on the target component names
+    let mut macro_copy_counter: HashMap<&str, u32> = HashMap::new();
     
 
     // This iterator gives info for every string child
@@ -216,15 +222,27 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                     new_children.push(ComponentChild::String(before.to_string()));
                 }
 
+                let macro_comp_match = capture.get(3).unwrap_or_else(
+                    || capture.get(4).unwrap()
+                );
 
-                let macro_comp_match = capture.get(2).unwrap();
+                if let Some(ending_delim) = capture.get(5) {
+                    if ending_delim.as_str() == "{" {
+                        panic!("Haven't implemented macros with curly braces");
+                    }
+                }
+
                 let target_name = macro_comp_match.as_str();
 
                 let target = components.get(target_name).expect(
                     &format!("Macro for {}, but this component does not exist", target_name)
                 );
 
-                let copy_name = format!("__macro:{}({})", target_name, component.name);
+
+                let copy_num = macro_copy_counter.entry(target_name).or_insert(0);
+                *copy_num += 1;
+
+                let copy_name = format!("__mcr:{}({})_{}", target_name, component.name, copy_num);
 
                 let macro_copy = ComponentNode {
                     name: copy_name,
