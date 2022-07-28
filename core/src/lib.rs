@@ -78,6 +78,11 @@ pub struct EssentialDependency {
 }
 
 
+
+const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
+
+
+
 pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // Create component nodes.
@@ -93,6 +98,8 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     for (_name, copy) in copies {
         add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
+
+
 
     // Fill in component states and dependencies for every component.
     let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
@@ -152,6 +159,47 @@ fn add_alias_for_children(
 }
 
 
+/// Helper function to detect if the given state var is shadowing a different component's state var
+fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName) -> Option<(String, StateVarName)> {
+    
+    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
+
+        if component.definition.primary_input_state_var() == Some(state_var) {
+            Some((target_comp.to_string(), target_state_var))
+
+        } else {
+            None
+        }
+    } else {
+        None
+    }
+}
+
+
+
+fn return_dependency_instruction_including_shadowing(
+    component: &ComponentNode,
+    state_var: StateVarName,
+) -> HashMap<InstructionName, DependencyInstruction> {
+
+    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
+
+        HashMap::from([
+            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                component_name: Some(target_comp), //.clone(),
+                state_var: target_state_var
+            }))
+        ])
+
+    } else {
+        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+
+        state_var_def.return_dependency_instructions(HashMap::new())
+    }
+
+}
+
+
 fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
@@ -165,46 +213,20 @@ fn create_all_dependencies_for_component(
 
 
     let my_definitions = component.definition.state_var_definitions();
-    for (&state_var_name, state_var_def) in my_definitions {
+    for (&state_var_name, _) in my_definitions {
 
+        // All the state vars have keys on the dependency hashmap
         dependencies.entry(state_var_name).or_insert(HashMap::new());
 
-        let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
-        for (dep_name, ref dep_instruction) in dependency_instructions_hashmap.into_iter() {
+        let dependency_instructions = return_dependency_instruction_including_shadowing(component, state_var_name);
 
 
-            let dependency;
-            if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
-                if let Some(primary_input) = component.definition.primary_input_state_var() {
+        for (dep_name, ref dep_instruction) in dependency_instructions.into_iter() {
 
-                    if state_var_name == primary_input {
-
-                        // Instead add a dependency to the state var we're shadowing
-                        // We won't the definition of this state var at all
-                        // We'll just set its value to the value of whatever it is pointing to
-                        dependency = Dependency::StateVar(StateVarDependency {
-                            name: dep_name,
-                            depends_on_objects: vec![ObjectName::Component(target_comp.clone())],
-                            depends_on_state_vars: vec![target_state_var],
-                            variables_optional: false,
-                        });
-                    } else {
-
-                        dependency = create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name, essential_data);
-
-                    }
-
-                } else {
-                    panic!("Can't have component shadow a state var if it doesn't have a primary prop");
-                }
-
-
-            } else {
-
-                dependency = create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name, essential_data);
-
-
-            }
+            let dependency = create_dependency_from_instruction(
+                &components, component, state_var_name,
+                dep_instruction, dep_name, essential_data
+            );
 
             dependencies.entry(state_var_name).or_insert(HashMap::new()).entry(dep_name).or_insert(dependency);
         }
@@ -458,6 +480,35 @@ fn get_state_variables_depending_on_me(
 }
 
 
+fn generate_update_instruction_including_shadowing(
+    component: &ComponentNode,
+    state_var: StateVarName,
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+
+) -> StateVarUpdateInstruction<StateVarValue> {
+
+
+    if let Some(_) = state_var_is_shadowing(component, state_var) {
+
+        // Assuming that target state var is same type as this state var
+        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)
+            .has_exactly_one_element().value();
+            
+        StateVarUpdateInstruction::SetValue(target_value)
+
+
+    } else {
+        // Otherwise, this state var is not shadowing, so proceed normally
+        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+
+        state_var_def.determine_state_var_from_dependencies(dependency_values)
+    }
+
+
+
+}
+
+
     
 
 fn resolve_state_variable(
@@ -477,35 +528,35 @@ fn resolve_state_variable(
     }
 
 
-    if let Some(CopyTarget::StateVar(ref target_name, target_state_var_name)) = component.copy_target {
+    // if let Some(CopyTarget::StateVar(ref target_name, target_state_var_name)) = component.copy_target {
 
-        if let Some(primary_state_var) = component.definition.primary_input_state_var() {
+    //     if let Some(primary_state_var) = component.definition.primary_input_state_var() {
 
-            if state_var_name == primary_state_var {
+    //         if state_var_name == primary_state_var {
 
-                log!("{}:{} shadows {}:{}", component.name, state_var_name, target_name, target_state_var_name);
+    //             log!("{}:{} shadows {}:{}", component.name, state_var_name, target_name, target_state_var_name);
 
-                let target = core.component_nodes.get(target_name).unwrap();
-                let value = resolve_state_variable(core, target, target_state_var_name);
+    //             let target = core.component_nodes.get(target_name).unwrap();
+    //             let value = resolve_state_variable(core, target, target_state_var_name);
         
-                let component_state = core.component_states.get(&component.name).unwrap().as_ref();
+    //             let component_state = core.component_states.get(&component.name).unwrap().as_ref();
         
-                set_state_var(component, component_state, state_var_name, value.clone()).expect(
-                    &format!("Incompatible types. Tried to set {}:{} from {}:{}",
-                    component.name, state_var_name, target_name, target_state_var_name)
-                );
+    //             set_state_var(component, component_state, state_var_name, value.clone()).expect(
+    //                 &format!("Incompatible types. Tried to set {}:{} from {}:{}",
+    //                 component.name, state_var_name, target_name, target_state_var_name)
+    //             );
 
-                return value;
-            }
+    //             return value;
+    //         }
 
-        } else {
-            panic!("{}:{} can't be copied into {} which doesn't have a primary input state var",
-                target_name, target_state_var_name, component.name,
-            );
-        }
+    //     } else {
+    //         panic!("{}:{} can't be copied into {} which doesn't have a primary input state var",
+    //             target_name, target_state_var_name, component.name,
+    //         );
+    //     }
 
    
-    }
+    // }
 
 
 
@@ -572,9 +623,14 @@ fn resolve_state_variable(
         dependency_values.insert(dep_name, values_for_this_dep);
     }
 
-    let definition = component.definition.state_var_definitions().get(state_var_name).unwrap();
 
-    let update_instruction = definition.determine_state_var_from_dependencies(dependency_values);
+    let update_instruction = generate_update_instruction_including_shadowing(
+        component,
+        state_var_name,
+        dependency_values
+    );
+
+
     let new_value = handle_update_instruction(component, state_vars.as_ref(), state_var_name, update_instruction);
 
     return new_value;
@@ -778,14 +834,13 @@ fn process_update_request(
 
             log!("desired value {:?}", requested_value);
 
-
             let their_update_requests: Vec<UpdateRequest>;
 
-            if let Some(CopyTarget::StateVar(ref _target_comp, _target_state_var)) = component.copy_target {
-                // their_update_requests = vec![UpdateRequest]
+            if let Some((_target_comp, _target_state_var)) = state_var_is_shadowing(component, state_var_name) {
 
                 panic!("Haven't implemented update requests for shadowing state var");
             } else {
+                
                 let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
 
                 their_update_requests = state_var_definition
