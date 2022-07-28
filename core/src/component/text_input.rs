@@ -106,11 +106,7 @@ lazy_static! {
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
 
-            request_dependencies_to_update_value: |desired_value| {
-                vec![UpdateRequest::SetEssentialValue(
-                    "value", StateVarValue::String(desired_value)
-                )]
-            },
+            request_dependencies_to_update_value: STRING_REQUEST_ESSENTIAL_TO_UPDATE,
 
             ..Default::default()
         }));
@@ -153,15 +149,7 @@ lazy_static! {
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
 
-            request_dependencies_to_update_value: |desired_value| {
-                vec![
-                    UpdateRequest::SetEssentialValue(
-
-                        // Should the update request really use a StateVarValue?
-                        "immediateValue", StateVarValue::String(desired_value)
-                    )
-                ]
-            },
+            request_dependencies_to_update_value: STRING_REQUEST_ESSENTIAL_TO_UPDATE,
 
             ..Default::default()
         }));
@@ -239,8 +227,8 @@ impl ComponentDefinition for MyComponentDefinition {
         &self,
         action_name: &str,
         args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &dyn Fn(StateVarName) -> StateVarValue) -> HashMap<StateVarName, StateVarValue>
-    {
+        resolve_and_retrieve_state_var: &dyn Fn(StateVarName) -> StateVarValue
+    ) -> HashMap<StateVarName, StateVarValue> {
 
         match action_name {
             "updateImmediateValue" => {
@@ -249,7 +237,6 @@ impl ComponentDefinition for MyComponentDefinition {
 
                 HashMap::from([("immediateValue", new_val.clone())])
             },
-
 
             "updateValue" => {
 
@@ -262,12 +249,8 @@ impl ComponentDefinition for MyComponentDefinition {
 
             }
 
-
-
             _ => panic!("Unknown action '{}' called on textInput", action_name)
-
         }
-
     }
 
 

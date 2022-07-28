@@ -42,6 +42,7 @@ pub enum StateVarValueType {
 /// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
 #[derive(Debug)]
 pub struct DependencyValue {
+    /// For now, `component_type: "essential_data"` is used with essential data dependencies
     pub component_type: ComponentType,
     pub state_var_name: StateVarName,
     pub value: StateVarValue,
@@ -71,8 +72,9 @@ pub struct StateVarDefinition<T> {
 
     pub default_value: T,
 
-    // arg is desired value
-    pub request_dependencies_to_update_value: fn(T) -> Vec<UpdateRequest>,
+    /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
+    /// values for the dependencies that would make this state variable return that value.
+    pub request_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
 }
 
 
@@ -97,7 +99,7 @@ impl<T> Default for StateVarDefinition<T>
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
-                vec![]
+                HashMap::new()
             },
         }
     }
@@ -174,15 +176,6 @@ pub struct EssentialDependencyInstruction;
 pub enum StateVarUpdateInstruction<T> {
     SetValue(T),
     NoChange,
-}
-
-
-#[derive(Debug, Clone)]
-pub enum UpdateRequest {
-    SetEssentialValue(StateVarName, StateVarValue),
-
-    // rename this
-    SetStateVarDependingOnMe(StateVarName, StateVarValue),
 }
 
 
@@ -348,6 +341,7 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
 
 
 // Default essential depenency instructions
+// This boilerplate is needed because of the StateVarValue enum (?)
 
 #[allow(non_snake_case)]
 pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
@@ -396,6 +390,63 @@ pub fn INTEGER_DETERMINE_FROM_ESSENTIAL(
             StateVarValue::Integer(v) => *v,
             _ => panic!()
         })
+}
+
+#[allow(non_snake_case)]
+pub fn STRING_REQUEST_ESSENTIAL_TO_UPDATE(
+    desired_value: String,
+) -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("essential", vec![
+            DependencyValue {
+                component_type: "essential_data",
+                state_var_name: "",
+                value: StateVarValue::String(desired_value),
+            }
+        ])
+    ])
+}
+#[allow(non_snake_case)]
+pub fn BOOLEAN_REQUEST_ESSENTIAL_TO_UPDATE(
+    desired_value: bool,
+) -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("essential", vec![
+            DependencyValue {
+                component_type: "essential_data",
+                state_var_name: "",
+                value: StateVarValue::Boolean(desired_value),
+            }
+        ])
+    ])
+}
+#[allow(non_snake_case)]
+pub fn NUMBER_REQUEST_ESSENTIAL_TO_UPDATE(
+    desired_value: f64,
+) -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("essential", vec![
+            DependencyValue {
+                component_type: "essential_data",
+                state_var_name: "",
+                value: StateVarValue::Number(desired_value),
+            }
+        ])
+    ])
+}
+#[allow(non_snake_case)]
+pub fn INTEGER_REQUEST_ESSENTIAL_TO_UPDATE(
+    desired_value: i64,
+) -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("essential", vec![
+            DependencyValue {
+                component_type: "essential_data",
+                state_var_name: "",
+                value: StateVarValue::Integer(desired_value),
+            }
+        ])
+    ])
 }
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
@@ -633,7 +684,7 @@ impl StateVarVariant {
     }
 
     pub fn request_dependencies_to_update_value(&self, desired_value: StateVarValue)
-        -> Vec<UpdateRequest> {
+        -> HashMap<InstructionName, Vec<DependencyValue>> {
 
         match self {
             StateVarVariant::String(def) =>  {

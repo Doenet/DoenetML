@@ -99,18 +99,19 @@ pub trait ComponentDefinition: CloneComponentDefinition {
     fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition>;
     fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
 
-    // Do we really need this?
+    //TODO: Do we really need this?
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
 
     fn empty_attribute_data(&self) -> Box<dyn AttributeData>;
     fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars>;
 
+    /// Process an action and return the state variables to change.
     fn on_action<'a>(
-        &'a self, _action_name: &str, _args: HashMap<String, StateVarValue>,
+        &'a self,
+        _action_name: &str,
+        _args: HashMap<String, StateVarValue>,
         _resolve_and_retrieve_state_var: &'a dyn Fn(StateVarName) -> StateVarValue
-    ) -> HashMap<StateVarName, StateVarValue>
-    {
-
+    ) -> HashMap<StateVarName, StateVarValue> {
         HashMap::new()
     }
 

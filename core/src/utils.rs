@@ -64,14 +64,14 @@ pub fn package_subtree_as_json(
     
     let mut my_json_props: serde_json::Map<String, Value> = serde_json::Map::new();
 
-    my_json_props.insert("children".to_string(), json!(children));
-    my_json_props.insert("attributes".to_string(), json!(attributes));
-    my_json_props.insert("parent".to_string(), match component.parent {
+    my_json_props.insert("children".to_owned(), json!(children));
+    my_json_props.insert("attributes".to_owned(), json!(attributes));
+    my_json_props.insert("parent".to_owned(), match component.parent {
         Some(ref parent_name) => Value::String(parent_name.into()),
         None => Value::Null,
     });
-    my_json_props.insert("type".to_string(), Value::String(component.component_type.to_string()));
-    my_json_props.insert("copyTarget".to_string(), match &component.copy_target {
+    my_json_props.insert("type".to_owned(), Value::String(component.component_type.to_string()));
+    my_json_props.insert("copyTarget".to_owned(), match &component.copy_target {
         Some(CopyTarget::Component(copy_target_name)) => Value::String(copy_target_name.to_string()),
         Some(CopyTarget::StateVar(target_name, target_state_var)) => Value::String(
             format!("{} {}", target_name, target_state_var)

@@ -290,50 +290,6 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
         }
     }
 
-
-}
-
-
-
-
-
-/// Helper function to detect if the given state var is shadowing a different component's state var
-fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
-    -> Option<(String, StateVarName)> {
-
-    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
-        if component.definition.primary_input_state_var() == Some(state_var) {
-            Some((target_comp.to_string(), target_state_var))
-        } else {
-            None
-        }
-    } else {
-        None
-    }
-}
-
-
-
-fn return_dependency_instruction_including_shadowing(
-    component: &ComponentNode,
-    state_var: StateVarName,
-) -> HashMap<InstructionName, DependencyInstruction> {
-
-    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
-
-        HashMap::from([
-            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar(StateVarDependencyInstruction {
-                component_name: Some(target_comp), //.clone(),
-                state_var: target_state_var
-            }))
-        ])
-
-    } else {
-        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
-
-        state_var_def.return_dependency_instructions(HashMap::new())
-    }
-
 }
 
 
@@ -626,35 +582,6 @@ fn _dependencies_iter(core: &DoenetCore)
 }
 
 
-fn generate_update_instruction_including_shadowing(
-    component: &ComponentNode,
-    state_var: StateVarName,
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-
-) -> StateVarUpdateInstruction<StateVarValue> {
-
-
-    if state_var_is_shadowing(component, state_var).is_some() {
-
-        // Assuming that target state var is same type as this state var
-        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)
-            .has_exactly_one_element().value();
-
-        StateVarUpdateInstruction::SetValue(target_value)
-
-
-    } else {
-        // Otherwise, this state var is not shadowing, so proceed normally
-        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
-
-        state_var_def.determine_state_var_from_dependencies(dependency_values)
-    }
-
-
-
-}
-
-
     
 
 fn resolve_state_variable(
@@ -672,39 +599,6 @@ fn resolve_state_variable(
     if let State::Resolved(current_value) = current_state.get_state() {
         return current_value;
     }
-
-
-    // if let Some(CopyTarget::StateVar(ref target_name, target_state_var_name)) = component.copy_target {
-
-    //     if let Some(primary_state_var) = component.definition.primary_input_state_var() {
-
-    //         if state_var_name == primary_state_var {
-
-    //             log!("{}:{} shadows {}:{}", component.name, state_var_name, target_name, target_state_var_name);
-
-    //             let target = core.component_nodes.get(target_name).unwrap();
-    //             let value = resolve_state_variable(core, target, target_state_var_name);
-        
-    //             let component_state = core.component_states.get(&component.name).unwrap().as_ref();
-        
-    //             set_state_var(component, component_state, state_var_name, value.clone()).expect(
-    //                 &format!("Incompatible types. Tried to set {}:{} from {}:{}",
-    //                 component.name, state_var_name, target_name, target_state_var_name)
-    //             );
-
-    //             return value;
-    //         }
-
-    //     } else {
-    //         panic!("{}:{} can't be copied into {} which doesn't have a primary input state var",
-    //             target_name, target_state_var_name, component.name,
-    //         );
-    //     }
-
-   
-    // }
-
-
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
@@ -760,7 +654,7 @@ fn resolve_state_variable(
                     value: value.get_value().unwrap(),
 
                     // We don't really need these fields in this case (?)
-                    component_type: "",
+                    component_type: "essential_data",
                     state_var_name: "",
                 })
             }
@@ -918,6 +812,52 @@ pub struct Action {
 }
 
 
+/// Internal struct used to track changes
+#[derive(Debug, Clone)]
+enum UpdateRequest {
+    SetEssentialValue(String, StateVarValue),
+    SetStateVar(String, StateVarName, StateVarValue),
+}
+
+
+/// Among other things, this produces info about the component name based on
+/// the dependency instruction.
+fn convert_dependency_values_to_update_request(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    state_var: StateVarName,
+    requests: HashMap<InstructionName, Vec<DependencyValue>>
+) -> Vec<UpdateRequest> {
+
+    let instruction_names = core.dependencies
+        .get(&component.name).unwrap()
+        .get(state_var).unwrap();
+
+    requests.iter()
+        .flat_map(|(instruction_name, values)|
+            values.iter()
+                .map(|value|
+                    match instruction_names.get(instruction_name).unwrap() {
+                        Dependency::Essential(dep) => {
+                            UpdateRequest::SetEssentialValue(
+                                dep.depends_on_essential.clone(),
+                                value.value.clone(),
+                            )
+                        },
+                        Dependency::StateVar(_) => {
+                            UpdateRequest::SetStateVar(
+                                component.name.clone(),
+                                value.state_var_name.clone(),
+                                value.value.clone(),
+                            )
+                        },
+                    }
+                )
+                .collect::<Vec<UpdateRequest>>()
+        )
+        .collect()
+}
+
 pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     
     let action = parse_json::parse_action_from_json(action)
@@ -937,17 +877,11 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 
     let state_vars_to_update = component.definition.on_action(&action.action_name, action.args, &state_var_resolver);
 
-    for (name, requested_value) in state_vars_to_update {
+    for (state_var_name, requested_value) in state_vars_to_update {
 
-        let definition = component.definition.state_var_definitions().get(name).unwrap();
-        let requests = definition.request_dependencies_to_update_value(requested_value);
-
-        for request in requests {
-            process_update_request(core, component, name, &request);
-
-        }
+        let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_name, requested_value);
+        process_update_request(core, component, state_var_name, &request);
     }
-
 }
 
 
@@ -955,20 +889,19 @@ fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
     state_var_name: StateVarName,
-    update_request: &UpdateRequest) 
-{
+    update_request: &UpdateRequest
+) {
 
     // log!("Processing update request for {}:{}", component.name(), state_var_name);
 
     match update_request {
-        UpdateRequest::SetEssentialValue(essen_name, requested_value) => {
+        UpdateRequest::SetEssentialValue(key, requested_value) => {
 
-            let key = get_key_to_essential_data(&core.component_nodes, component, &essen_name);
-            let essential_var = core.essential_data.get(&key)
+            let essential_var = core.essential_data.get(key)
                 .expect(&format!("'{}' is not in essential data {:#?}", key, core.essential_data));
 
             essential_var.set_value(requested_value.clone()).expect(
-                &format!("Failed to set essential value for {}:{}", component.name, essen_name)
+                &format!("Failed to set essential value for {}, {}", component.name, key)
             );
 
             log!("Updated essential data {:#?}", core.essential_data);
@@ -976,26 +909,23 @@ fn process_update_request(
             mark_stale_essential_datum_and_dependencies(core, &key);
         },
 
-        UpdateRequest::SetStateVarDependingOnMe(their_name, requested_value) => {
+        UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_name, requested_value) => {
 
             log!("desired value {:?}", requested_value);
 
-            let their_update_requests: Vec<UpdateRequest>;
+            let dep_comp = core.component_nodes.get(dep_comp_name).unwrap();
 
-            if let Some((_target_comp, _target_state_var)) = state_var_is_shadowing(component, state_var_name) {
+            let dep_update_requests = request_dependencies_to_update_value_including_shadow(
+                core,
+                dep_comp,
+                dep_state_var_name,
+                requested_value.clone(),
+            );
 
-                panic!("Haven't implemented update requests for shadowing state var");
-            } else {
+            log!("dep_update_requests {:#?}", dep_update_requests);
 
-                let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
-
-                their_update_requests = state_var_definition
-                    .request_dependencies_to_update_value(requested_value.clone());
-            }
-
-
-            for their_update_request in their_update_requests {
-                process_update_request(core, component, their_name, &their_update_request);
+            for dep_update_request in dep_update_requests {
+                process_update_request(core, dep_comp, dep_state_var_name, &dep_update_request);
             }
 
             mark_stale_state_var_and_dependencies(core, component, state_var_name);
@@ -1114,6 +1044,28 @@ fn generate_render_tree_internal(
 
 }
 
+
+
+/// List components and children in a JSON array
+pub fn json_components(core: &DoenetCore) -> serde_json::Value {
+
+    let json_components: serde_json::Map<String, serde_json::Value> = core.component_nodes
+        .values()
+        .map(|component| (component.name.to_string(),
+                utils::package_subtree_as_json(
+                    &core.component_nodes,
+                    &&core.component_states,
+                    component)))
+        .collect();
+
+    serde_json::Value::Object(json_components)
+}
+
+
+
+
+////////////// Wrappers allowing CopyTarget to override functions //////////////
+
 /// This includes the copy target's children. The flag is false when it is
 /// a copy target's child.
 fn get_children_including_copy(
@@ -1139,18 +1091,83 @@ fn get_children_including_copy(
 }
 
 
+fn return_dependency_instruction_including_shadowing(
+    component: &ComponentNode,
+    state_var: StateVarName,
+) -> HashMap<InstructionName, DependencyInstruction> {
 
-/// List components and children in a JSON array
-pub fn json_components(core: &DoenetCore) -> serde_json::Value {
+    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
 
-    let json_components: serde_json::Map<String, serde_json::Value> = core.component_nodes
-        .values()
-        .map(|component| (component.name.to_string(),
-                utils::package_subtree_as_json(
-                    &core.component_nodes,
-                    &&core.component_states,
-                    component)))
-        .collect();
+        HashMap::from([
+            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                component_name: Some(target_comp), //.clone(),
+                state_var: target_state_var
+            }))
+        ])
 
-    serde_json::Value::Object(json_components)
+    } else {
+        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+
+        state_var_def.return_dependency_instructions(HashMap::new())
+    }
+}
+
+
+fn generate_update_instruction_including_shadowing(
+    component: &ComponentNode,
+    state_var: StateVarName,
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+
+) -> StateVarUpdateInstruction<StateVarValue> {
+
+    if state_var_is_shadowing(component, state_var).is_some() {
+
+        // Assuming that target state var is same type as this state var
+        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)
+            .has_exactly_one_element().value();
+
+        StateVarUpdateInstruction::SetValue(target_value)
+
+    } else {
+        // Otherwise, this state var is not shadowing, so proceed normally
+        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+
+        state_var_def.determine_state_var_from_dependencies(dependency_values)
+    }
+}
+
+
+
+fn request_dependencies_to_update_value_including_shadow(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    state_var: StateVarName,
+    new_value: StateVarValue,
+) -> Vec<UpdateRequest> {
+    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
+
+        vec![UpdateRequest::SetStateVar(target_comp, target_state_var, new_value)]
+
+    } else {
+        let requests = component.definition.state_var_definitions().get(state_var).unwrap()
+            .request_dependencies_to_update_value(new_value);
+
+        convert_dependency_values_to_update_request(core, component, state_var, requests)
+    }
+}
+
+/// Detect if a state var is shadowing because of a CopyTarget
+/// and has a primary input state variable, which is needed.
+fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
+    -> Option<(String, StateVarName)> {
+
+    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
+        if component.definition.primary_input_state_var() == Some(state_var) {
+            Some((target_comp.to_string(), target_state_var))
+        } else {
+            None
+        }
+    } else {
+        None
+    }
 }
