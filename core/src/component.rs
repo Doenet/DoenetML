@@ -5,8 +5,6 @@ pub mod document;
 pub mod boolean;
 pub mod p;
 
-use serde::Serialize;
-
 use crate::prelude::*;
 use crate::state_var::StateVar;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
@@ -97,6 +95,14 @@ pub trait ComponentDefinition: CloneComponentDefinition {
 
     fn action_names(&self) -> Vec<&'static str> {
         vec![]
+    }
+
+
+    /// The primary input is like a state variable, except it gets overridden if 
+    /// the component is being copied from another state var
+    /// If the component type has no primary input, then it cannot be copied from a state var
+    fn primary_input_state_var(&self) -> Option<StateVarName> {
+        None
     }
 
 }

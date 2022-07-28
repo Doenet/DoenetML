@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::Display;
 
 use crate::prelude::*;
 
@@ -194,6 +195,20 @@ pub enum UpdateRequest {
 // }
 
 
+
+pub struct InstructionAddress {
+    component: String,
+    state_var: StateVarName,
+    instruction: InstructionName,
+}
+
+impl Display for InstructionAddress {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}:{}", self.component, self.state_var, self.instruction)
+    }
+}
+
+
 pub trait DepValueHashMap {
     fn dep_value(&self, instruction_name: InstructionName) -> (&[DependencyValue], InstructionName);
 }
@@ -271,21 +286,24 @@ impl DepValueSingle for (&DependencyValue, InstructionName) {
     fn is_bool(&self) -> bool {
         match self.0.value {
             StateVarValue::Boolean(v) => v,
-            _ => panic!("Dependency value {} {} is not a bool", self.1, self.0.state_var_name)
+            _ => {
+                // log!("{:#?}", self.0);
+                panic!("Dependency {} {} is not a bool", self.1, self.0.state_var_name)
+            }
         }
     }
 
     fn is_string(&self) -> String {
         match &self.0.value {
             StateVarValue::String(v) => v.to_string(),
-            _ => panic!("Dependency value {} {} is not a string", self.1, self.0.state_var_name)
+            _ => panic!("Dependency {} {} is not a string", self.1, self.0.state_var_name)
         } 
     }
 
     fn is_number(&self) -> f64 {
         match self.0.value {
             StateVarValue::Number(v) => v,
-            _ => panic!("Dependency value {} {} is not a number", self.1, self.0.state_var_name)
+            _ => panic!("Dependency {} {} is not a number", self.1, self.0.state_var_name)
         }
     }
 
@@ -309,7 +327,7 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
         if let Some(dep_value) = dep_value_opt {
             match dep_value.value {
                 StateVarValue::Boolean(v) => Some(v),
-                _ => panic!("Dependency value from {} {} is a type other than a bool", name, dep_value.state_var_name)
+                _ => panic!("Dependency from {} {} is a type other than a bool", name, dep_value.state_var_name)
             }
 
         } else {

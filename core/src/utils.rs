@@ -110,7 +110,7 @@ pub fn package_subtree_as_json(
 
 
 pub fn json_dependencies(
-    dependencies: &HashMap<String, HashMap<StateVarName, Vec<Dependency>>>
+    dependencies: &HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>
 ) -> serde_json::Value {
 
     use serde_json::Value;
@@ -121,11 +121,11 @@ pub fn json_dependencies(
     for (comp_name, comp_deps) in dependencies {
         for (state_var_name, state_var_deps) in comp_deps {
 
-            for instruction in state_var_deps {
+            for (instruct_name, instruction) in state_var_deps {
 
                 let display_name = match instruction {
-                    Dependency::Essential(ref essen_dep) => format!("{} (essential)", essen_dep.name),
-                    Dependency::StateVar(ref sv_dep) => format!("{} (state var)", sv_dep.name),
+                    Dependency::Essential(_) => format!("{} (essential)", instruct_name),
+                    Dependency::StateVar(_) => format!("{} (state var)", instruct_name),
                 };
 
 
@@ -136,9 +136,16 @@ pub fn json_dependencies(
                         })
                     },
                     Dependency::StateVar(ref sv_dep) => {
+                        let depends_on_objects: Vec<String> = sv_dep.depends_on_objects.iter().map(
+                            |depends_on_obj| match depends_on_obj {
+                                ObjectName::Component(comp_name) => comp_name.to_string(),
+                                ObjectName::String(str) => format!("{} (str)", str),
+                            }
+                        ).collect();
+
                         json!({
-                            "depends on objects": format!("{:?}", sv_dep.depends_on_objects),
-                            "depends on state_vars": format!("{:?}", sv_dep.depends_on_state_vars),
+                            "depends on objects": depends_on_objects,
+                            "depends on state_vars": sv_dep.depends_on_state_vars,
                             "variables optional": sv_dep.variables_optional,
                         })
                     },

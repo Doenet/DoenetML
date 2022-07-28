@@ -18,11 +18,11 @@ use serde_json::to_string;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 // A macro to provide println! style syntax for console.log logging.
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
+// macro_rules! log {
+//     ( $( $t:tt )* ) => {
+//         web_sys::console::log_1(&format!( $( $t )* ).into());
+//     }
+// }
 
 // Raw module means that this relative path is based on the wasm file's location
 #[wasm_bindgen(raw_module = "/src/Core/CoreWorker.js")]
@@ -73,7 +73,7 @@ impl PublicDoenetCore {
 
     pub fn handle_action(&self, action: &str) {
 
-        log!("core recieved the string: {}", action);
+        // log!("core recieved the string: {}", action);
 
         core::handle_action_from_json(&self.0, action);
 

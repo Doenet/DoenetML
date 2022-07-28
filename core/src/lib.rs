@@ -25,7 +25,7 @@ pub struct DoenetCore {
     pub root_component_name: String,
 
     /// Stores every dependency, indexed by the name of the component and the state variable.
-    pub dependencies: HashMap<String, HashMap<StateVarName, Vec<Dependency>>>,
+    pub dependencies: HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>,
 
     /// States that the user can change and which state variables may depend on
     /// (ex: the contents of input dialogues)
@@ -38,8 +38,9 @@ pub struct DoenetCore {
 }
 
 
+
 /// A collection of edges on the dependency tree
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug)]
 pub enum Dependency {
     StateVar(StateVarDependency),
     Essential(EssentialDependency),
@@ -49,7 +50,7 @@ pub enum Dependency {
 
 /// This stores some of the state variables (or strings) that a state variable depends on.
 /// Note that a Dependency struct contains multiple edges of the dependency tree.
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug)]
 pub struct StateVarDependency {
 
     pub name: InstructionName,
@@ -68,7 +69,7 @@ pub struct StateVarDependency {
 
 
 /// This stores the name of an essential datum that a state variable depends on.
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug)]
 pub struct EssentialDependency {
    
     pub name: InstructionName,
@@ -100,15 +101,13 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // let mut dependencies: Vec<Dependency> = vec![];
     let mut dependencies:
-        HashMap<String,
-            HashMap<StateVarName, Vec<Dependency>>> = HashMap::new();
+        HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
     
     for (component_name, component_node) in component_nodes.iter() {
 
         let dependencies_for_this_component = create_all_dependencies_for_component(&component_nodes, component_node, &mut essential_data);
 
         dependencies.insert(component_name.to_string(), dependencies_for_this_component);
-
 
 
         component_states.insert(component_name.clone(),
@@ -122,6 +121,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     // log!("component nodes {:#?}", component_nodes);
     // log!("component states {:#?}", component_states);
+    // log!("dependencies {:#?}", dependencies);
 
     DoenetCore {
         component_nodes,
@@ -156,25 +156,57 @@ fn create_all_dependencies_for_component(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<String, EssentialStateVar>,
-) -> HashMap<StateVarName, Vec<Dependency>>
+) -> HashMap<StateVarName, HashMap<InstructionName, Dependency>>
 
 {
 
     // log!("Creating depencies for {:?}", component.name);
-    let mut dependencies: HashMap<StateVarName, Vec<Dependency>> = HashMap::new();
+    let mut dependencies: HashMap<StateVarName, HashMap<InstructionName, Dependency>> = HashMap::new();
 
 
     let my_definitions = component.definition.state_var_definitions();
     for (&state_var_name, state_var_def) in my_definitions {
 
+        dependencies.entry(state_var_name).or_insert(HashMap::new());
+
         let dependency_instructions_hashmap = state_var_def.return_dependency_instructions(HashMap::new());
         for (dep_name, ref dep_instruction) in dependency_instructions_hashmap.into_iter() {
 
-            let dependency = create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name, essential_data);
 
-            dependencies.entry(state_var_name).or_insert(vec![]).push(dependency);
+            let dependency;
+            if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
+                if let Some(primary_input) = component.definition.primary_input_state_var() {
+
+                    if state_var_name == primary_input {
+
+                        // Instead add a dependency to the state var we're shadowing
+                        // We won't the definition of this state var at all
+                        // We'll just set its value to the value of whatever it is pointing to
+                        dependency = Dependency::StateVar(StateVarDependency {
+                            name: dep_name,
+                            depends_on_objects: vec![ObjectName::Component(target_comp.clone())],
+                            depends_on_state_vars: vec![target_state_var],
+                            variables_optional: false,
+                        });
+                    } else {
+
+                        dependency = create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name, essential_data);
+
+                    }
+
+                } else {
+                    panic!("Can't have component shadow a state var if it doesn't have a primary prop");
+                }
 
 
+            } else {
+
+                dependency = create_dependency_from_instruction(&components, component, state_var_name, dep_instruction, dep_name, essential_data);
+
+
+            }
+
+            dependencies.entry(state_var_name).or_insert(HashMap::new()).entry(dep_name).or_insert(dependency);
         }
     }
 
@@ -321,7 +353,7 @@ fn create_dependency_from_instruction(
 
             DependencyInstruction::Attribute(attribute_instruction) => {
 
-                log!("attribute instruction {:#?}", attribute_instruction);
+                // log!("attribute instruction {:#?}", attribute_instruction);
                 // log!("component attributes {:#?}", component.attributes());
 
                 let attribute_name = attribute_instruction.attribute_name;
@@ -387,15 +419,46 @@ fn get_key_to_essential_data(
 /// Recurse until the original target is found
 fn get_name_of_original(
     components: &HashMap<String, ComponentNode>,
-    component: &ComponentNode,
+    component: &ComponentNode
 ) -> String {
     match &component.copy_target {
         Some(CopyTarget::Component(target)) => get_name_of_original(components, components.get(target).unwrap()),
         _ => component.name.clone(),
     }
-}
-    
+} 
 
+
+/// Calculate all the (normal) state vars that depend on the given state var
+fn get_state_variables_depending_on_me(
+    core: &DoenetCore,
+    component_name: &str,
+    state_var_name: StateVarName,
+) -> Vec<(String, StateVarName)> {
+
+    let mut depending_on_me = vec![];
+
+    for (comp_name, comp_deps) in core.dependencies.iter() {
+        for (sv_name, sv_deps) in comp_deps {
+            for (_, dep) in sv_deps {
+
+                if let Dependency::StateVar(sv_dep) = dep {
+                    if sv_dep.depends_on_objects.contains(&ObjectName::Component(component_name.to_string())) {
+                        if sv_dep.depends_on_state_vars.contains(&state_var_name) {
+                            depending_on_me.push((comp_name.clone(), *sv_name));
+                        }
+                    }
+                }
+                // There should be no essential data that depends on normal state vars
+            }
+        }
+    }
+
+    depending_on_me
+
+}
+
+
+    
 
 fn resolve_state_variable(
     core: &DoenetCore,
@@ -413,20 +476,49 @@ fn resolve_state_variable(
         return current_value;
     }
 
+
+    if let Some(CopyTarget::StateVar(ref target_name, target_state_var_name)) = component.copy_target {
+
+        if let Some(primary_state_var) = component.definition.primary_input_state_var() {
+
+            if state_var_name == primary_state_var {
+
+                log!("{}:{} shadows {}:{}", component.name, state_var_name, target_name, target_state_var_name);
+
+                let target = core.component_nodes.get(target_name).unwrap();
+                let value = resolve_state_variable(core, target, target_state_var_name);
+        
+                let component_state = core.component_states.get(&component.name).unwrap().as_ref();
+        
+                set_state_var(component, component_state, state_var_name, value.clone()).expect(
+                    &format!("Incompatible types. Tried to set {}:{} from {}:{}",
+                    component.name, state_var_name, target_name, target_state_var_name)
+                );
+
+                return value;
+            }
+
+        } else {
+            panic!("{}:{} can't be copied into {} which doesn't have a primary input state var",
+                target_name, target_state_var_name, component.name,
+            );
+        }
+
+   
+    }
+
+
+
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
+    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name);
 
-    let empty_vec = vec![];
-    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap_or(&empty_vec);
-
-    for dep in my_dependencies {
-
-        let dep_name: &str;
+    
+    for (dep_name, dep) in my_dependencies.unwrap_or(&HashMap::new()) {
 
         let mut values_for_this_dep: Vec<DependencyValue> = Vec::new();
         match dep {
             Dependency::StateVar(sv_dep) => {
-                dep_name = sv_dep.name;
                 for depends_on in &sv_dep.depends_on_objects {
 
                     match depends_on {
@@ -464,7 +556,6 @@ fn resolve_state_variable(
                 }
             },
             Dependency::Essential(ess_dep) => {
-                dep_name = ess_dep.name;
                 let value = core.essential_data.get(&ess_dep.depends_on_essential).unwrap().clone();
 
                 values_for_this_dep.push(DependencyValue {
@@ -499,42 +590,34 @@ fn mark_stale_state_var_and_dependencies(
     state_var_name: StateVarName)
 {
 
-    // log!("Marking stale {}:{}", component.name(), state_var_name);
+    log!("Marking stale {}:{}", component.name, state_var_name);
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
     let state_var = component_state.get(state_var_name).unwrap();
     state_var.mark_stale();
 
-    let empty_vec = vec![];
-    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name).unwrap_or(&empty_vec);
+    let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_name);
     
-    for dependency in my_dependencies {
-        if let Dependency::StateVar(dependency) = dependency {
-            for depends_on in &dependency.depends_on_objects {
-                match depends_on {
-                    ObjectName::String(_) => {
-                        // do nothing
-                    },
-                    ObjectName::Component(dep_comp_name) => {
-                        let dep_component = core.component_nodes.get(dep_comp_name).unwrap();
+    // log!("depending on me {:#?}", depending_on_me);
 
-                        for &dep_state_var_name in &dependency.depends_on_state_vars {
+    for (depending_comp_name, depending_state_var) in depending_on_me {
+        let depending_comp = core.component_nodes.get(&depending_comp_name).unwrap();
 
-                            mark_stale_state_var_and_dependencies(core, dep_component, dep_state_var_name);
-                        }
-                    }
-                }
-            }
-        }
+        mark_stale_state_var_and_dependencies(core, depending_comp, depending_state_var);
     }
-
 }
+
+
+
 
 fn mark_stale_essential_datum_and_dependencies(
     core: &DoenetCore,
     essential_var_name: &str
 ) {
+
+    log!("Marking stale essential {}", essential_var_name);
+
     // tuples of component and state var that depend on this essential datum
     let my_dependencies: Vec<(String, StateVarName)> = core.dependencies
         .iter()
@@ -542,7 +625,7 @@ fn mark_stale_essential_datum_and_dependencies(
             h.iter()
             .flat_map(|(sv_name, deps)|
                 deps.iter()
-                .filter_map(|d| match d {
+                .filter_map(|(_, d)| match d {
                     Dependency::Essential(ess_dep) => {
                         if ess_dep.depends_on_essential == essential_var_name {
                             Some((component_name.clone(), *sv_name))
@@ -696,10 +779,19 @@ fn process_update_request(
             log!("desired value {:?}", requested_value);
 
 
-            let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
+            let their_update_requests: Vec<UpdateRequest>;
 
-            let their_update_requests = state_var_definition
-                .request_dependencies_to_update_value(requested_value.clone());
+            if let Some(CopyTarget::StateVar(ref _target_comp, _target_state_var)) = component.copy_target {
+                // their_update_requests = vec![UpdateRequest]
+
+                panic!("Haven't implemented update requests for shadowing state var");
+            } else {
+                let state_var_definition = component.definition.state_var_definitions().get(their_name).unwrap();
+
+                their_update_requests = state_var_definition
+                    .request_dependencies_to_update_value(requested_value.clone());
+            }
+
 
             for their_update_request in their_update_requests {
                 process_update_request(core, component, their_name, &their_update_request);

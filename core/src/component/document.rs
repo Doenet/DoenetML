@@ -234,5 +234,4 @@ impl ComponentDefinition for MyComponentDefinition {
         })
     }
 
-
 }

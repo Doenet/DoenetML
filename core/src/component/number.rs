@@ -193,4 +193,5 @@ impl ComponentDefinition for MyComponentDefinition {
     fn should_render_children(&self) -> bool {
         false
     }
+
 }
