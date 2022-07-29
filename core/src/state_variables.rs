@@ -253,22 +253,22 @@ pub trait DepValueSingle {
 impl DepValueSingle for (&DependencyValue, InstructionName) {
     fn into_bool(&self) -> Result<bool, String> {
         self.0.value.clone().try_into().map_err(|_|
-            format!("Instruction [{}] is not a bool", self.1))
+            format!("Instruction [{}] is a {}, expected a bool", self.1, self.0.value.type_as_str()))
     }
 
     fn into_string(&self) -> Result<String, String> {
         self.0.value.clone().try_into().map_err(|_|
-            format!("Instruction [{}] is not a string", self.1))
+            format!("Instruction [{}] is a {}, expected a string", self.1, self.0.value.type_as_str()))
     }
 
     fn into_number(&self) -> Result<f64, String> {
         self.0.value.clone().try_into().map_err(|_|
-            format!("Instruction [{}] is not a number", self.1))
+            format!("Instruction [{}] is a {}, expected a number", self.1, self.0.value.type_as_str()))
     }
 
     fn into_integer(&self) -> Result<i64, String> {
         self.0.value.clone().try_into().map_err(|_|
-            format!("Instruction [{}] is not an integer", self.1))
+            format!("Instruction [{}] is a {}, expected an integer", self.1, self.0.value.type_as_str()))
     }
 
     fn value(&self) -> StateVarValue {
@@ -289,7 +289,8 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
         let (dep_value_opt, name) = self;
 
         dep_value_opt.and_then(|dep_value| Some(dep_value.value.clone().try_into().map_err(|_|
-            format!("Dependency from {} {} is not a bool", name, dep_value.state_var_name))))
+            format!("Instruction [{}] is {}, expected an optional bool", 
+                name, dep_value.value.type_as_str()))))
             .map_or(Ok(None), |v| v.map(Some)) // flip nested Option<Result<T>>
     }
 

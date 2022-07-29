@@ -7,6 +7,7 @@ pub mod state_var;
 pub mod parse_json;
 pub mod utils;
 
+use lazy_static::lazy_static;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -186,18 +187,28 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     //       - followed by a word (including hyphens) (18th group)
     //       - optionally followed by anything in square brackets (20th group)
 
-    let macro_regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
-  
-    (\$) # for now, just one $
-    (
-        (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
-        |
-        \(
-            (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
-        ( \) | \{ )
-    )
+    lazy_static! {
 
-    ").unwrap();
+        // NOTE: It took around ~100ms on a fast computer to create this regex (not including searching with it)
+        static ref MACRO_SEARCH: Regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
+  
+        (\$) # for now, just one $
+        (
+            (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
+            |
+            \(
+                (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
+            ( \) | \{ )
+        )
+    
+        ").unwrap();
+    
+    }
+
+    lazy_static! {
+        static ref POSSIBLE_MACRO: Regex = Regex::new("$").unwrap();
+    }
+
 
 
     // Keyed by the component name and by the original position of the child we are replacing
@@ -230,9 +241,14 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
         let mut new_children = vec![];
         let mut previous_end = 0;
 
-        for capture in macro_regex.captures_iter(string_val) {
+        if ! POSSIBLE_MACRO.is_match(string_val) {
+            continue;
+        }
 
-            log!("capture {:#?}", capture);
+
+        for capture in MACRO_SEARCH.captures_iter(string_val) {
+
+            // log!("capture {:#?}", capture);
 
             let start = capture.get(0).unwrap().start();
             let end = capture.get(0).unwrap().end();
@@ -344,7 +360,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     }
 
 
-    log!("Component to add {:#?}", components_to_add);
+    // log!("Components to add {:#?}", components_to_add);
 
     for new_component in components_to_add {
 
@@ -449,8 +465,17 @@ fn get_attribute_including_copy<'a>(
 
     } else if let Some(CopyTarget::Component(ref target_name)) = component.copy_target {
 
-        let target = components.get(target_name).unwrap();
-        get_attribute_including_copy(components, target, attribute_name)
+        // The hide attribute is an exception: we don't inherit it
+        if attribute_name == "hide" {
+            None
+
+            
+        } else {
+            let target = components.get(target_name).unwrap();
+            get_attribute_including_copy(components, target, attribute_name)
+        }
+
+
 
     } else {
         None
@@ -1259,11 +1284,17 @@ fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
     -> Option<(String, StateVarName)> {
 
     if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
-        if component.definition.primary_input_state_var() == Some(state_var) {
-            Some((target_comp.to_string(), target_state_var))
+        if let Some(primary_input_state_var) = component.definition.primary_input_state_var() {
+
+            if state_var == primary_input_state_var {
+                Some((target_comp.to_string(), target_state_var))
+            } else {
+                None
+            }
         } else {
-            None
+            panic!("{} component type doesn't have a primary input state var", component.component_type);
         }
+
     } else {
         None
     }
