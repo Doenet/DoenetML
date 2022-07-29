@@ -101,7 +101,7 @@ lazy_static! {
 
                 let value = dependency_values.dep_value("children")?
                     .has_exactly_one_element()?
-                    .is_string()?;
+                    .into_string()?;
             
                 let num_val = value.parse::<f64>().unwrap_or(0.0);
 
@@ -124,9 +124,10 @@ lazy_static! {
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
+
                 let value = dependency_values.dep_value("value_sv")?
                     .has_exactly_one_element()?
-                    .is_number()?;
+                    .into_number()?;
 
                 Ok(SetValue(value.to_string()))
 

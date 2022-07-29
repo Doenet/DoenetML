@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::Display;
 
 use crate::prelude::*;
 
@@ -28,28 +27,6 @@ macro_rules! log {
 
 
 
-pub enum StateVarValueType {
-    String,
-    Boolean,
-    Integer,
-    Number,
-}
-
-
-
-
-
-/// Passed into determine_state_vars_from_dependencies
-/// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
-#[derive(Debug)]
-pub struct DependencyValue {
-    /// For now, `component_type: "essential_data"` is used with essential data dependencies
-    pub component_type: ComponentType,
-    pub state_var_name: StateVarName,
-    pub value: StateVarValue,
-}
-
-
 
 /// State variable functions core uses.
 /// The generics force component code to be consistent with the type of a state variable.
@@ -71,6 +48,7 @@ pub struct StateVarDefinition<T> {
 
     pub for_renderer: bool,
 
+    /// Not used much right now except for the default StateVarDefinition
     pub default_value: T,
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
@@ -78,13 +56,6 @@ pub struct StateVarDefinition<T> {
     pub request_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
 }
 
-
-
-
-// Would it be better for the default_value to be coupled with the existence
-// of an essential state var?
-
-// Note that default_value won't get used unless you specify UseEssentialOrDefault
 
 
 impl<T> Default for StateVarDefinition<T>
@@ -107,6 +78,15 @@ impl<T> Default for StateVarDefinition<T>
 }
 
 
+
+pub enum StateVarValueType {
+    String,
+    Boolean,
+    Integer,
+    Number,
+}
+
+
 /// Since `StateVarDefinition` is generic, this enum is needed to store one in a HashMap.
 #[derive(Debug)]
 pub enum StateVarVariant {
@@ -115,9 +95,6 @@ pub enum StateVarVariant {
     Number(StateVarDefinition<f64>),
     Integer(StateVarDefinition<i64>),
 }
-
-
-
 
 
 /// This can contain the value of a state variable of any type,
@@ -133,7 +110,8 @@ pub enum StateVarValue {
 
 
 
-/// This tells core what dependencies to make.
+/// A DependencyInstruction is used to make a Dependency when core is created,
+/// which holds the specific information.
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child(ChildDependencyInstruction),
@@ -181,28 +159,20 @@ pub enum StateVarUpdateInstruction<T> {
 
 
 
-
-// struct DependencyValueTyped<T> {
-//     pub component_type: ComponentType,
-//     pub state_var_name: StateVarName,
-//     pub value: T,
-// }
-
-
-
-pub struct InstructionAddress {
-    component: String,
-    state_var: StateVarName,
-    instruction: InstructionName,
-}
-
-impl Display for InstructionAddress {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:{}:{}", self.component, self.state_var, self.instruction)
-    }
+/// Passed into determine_state_vars_from_dependencies
+/// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
+#[derive(Debug)]
+pub struct DependencyValue {
+    /// For now, `component_type: "essential_data"` is used with essential data dependencies
+    pub component_type: ComponentType,
+    pub state_var_name: StateVarName,
+    pub value: StateVarValue,
 }
 
 
+
+
+/////////// DependencyValue boilerplate ///////////
 
 pub trait DepValueHashMap {
     fn dep_value(&self, instruction_name: InstructionName) -> Result<(&[DependencyValue], InstructionName), String>;
@@ -224,22 +194,16 @@ pub trait DepValueVec {
     fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String>;
     fn has_exactly_one_element(&self) -> Result<(&DependencyValue, InstructionName), String>;
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String>;
-
 }
-
-
 
 impl DepValueVec for (&[DependencyValue], InstructionName) {
 
     fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String> {
         let (dep_values, name) = self;
-
-        if dep_values.is_empty() {
-            Ok((None, name))
-        } else if dep_values.len() == 1 {
-            Ok((Some(&dep_values[0]), name))
-        } else {
-            Err(format!("Expected instruction [{}] to have zero or one elements", name))
+        match dep_values.len() {
+            0 => Ok((None, name)),
+            1 => Ok((Some(&dep_values[0]), name)),
+            _ => Err(format!("Expected instruction [{}] to have zero or one elements", name))
         }
     }
 
@@ -256,59 +220,43 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String> {
         let (dep_values, name) = *self;
 
-        let mut string_values = vec![];
-        for dep_value in dep_values {
-            string_values.push(
-            match &dep_value.value {
-                StateVarValue::String(v) => v.to_string(),
-                _ => return Err(format!("Not all elements in instruction [{}] were strings", name))
-            })
-        }
-
-        Ok(string_values)
-
+        dep_values.iter().map(|dep_value|
+            dep_value.value.clone().try_into().map_err(|_|
+                format!("Not all elements in instruction [{}] were strings", name)
+            )
+        ).collect()
+// return Err(format!("Not all elements in instruction [{}] were strings", name))
     }
 }
 
-pub trait DepValueSingle {
-    fn is_bool(&self) -> Result<bool, String>;
-    fn is_string(&self) -> Result<String, String>;
-    fn is_number(&self) -> Result<f64, String>;
-    fn is_integer(&self) -> Result<i64, String>;
 
+pub trait DepValueSingle {
+    fn into_bool(&self) -> Result<bool, String>;
+    fn into_string(&self) -> Result<String, String>;
+    fn into_number(&self) -> Result<f64, String>;
+    fn into_integer(&self) -> Result<i64, String>;
     fn value(&self) -> StateVarValue;
 }
 
 impl DepValueSingle for (&DependencyValue, InstructionName) {
-    fn is_bool(&self) -> Result<bool, String> {
-        match self.0.value {
-            StateVarValue::Boolean(v) => Ok(v),
-            _ => {
-                // log!("{:#?}", self.0);
-                Err(format!("Instruction [{}] is not a bool", self.1))
-            }
-        }
+    fn into_bool(&self) -> Result<bool, String> {
+        self.0.value.clone().try_into().map_err(|_|
+            format!("Instruction [{}] is not a bool", self.1))
     }
 
-    fn is_string(&self) -> Result<String, String> {
-        match &self.0.value {
-            StateVarValue::String(v) => Ok(v.to_string()),
-            _ => Err(format!("Instruction [{}] is not a string", self.1))
-        } 
+    fn into_string(&self) -> Result<String, String> {
+        self.0.value.clone().try_into().map_err(|_|
+            format!("Instruction [{}] is not a string", self.1))
     }
 
-    fn is_number(&self) -> Result<f64, String> {
-        match self.0.value {
-            StateVarValue::Number(v) => Ok(v),
-            _ => Err(format!("Instruction [{}] is not a number", self.1))
-        }
+    fn into_number(&self) -> Result<f64, String> {
+        self.0.value.clone().try_into().map_err(|_|
+            format!("Instruction [{}] is not a number", self.1))
     }
 
-    fn is_integer(&self) -> Result<i64, String> {
-        match self.0.value {
-            StateVarValue::Integer(v) => Ok(v),
-            _ => Err(format!("Instruction [{}] is not an integer", self.1))
-        }
+    fn into_integer(&self) -> Result<i64, String> {
+        self.0.value.clone().try_into().map_err(|_|
+            format!("Instruction [{}] is not an integer", self.1))
     }
 
     fn value(&self) -> StateVarValue {
@@ -328,16 +276,9 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
     fn is_bool_if_exists(&self) -> Result<Option<bool>, String> {
         let (dep_value_opt, name) = self;
 
-        if let Some(dep_value) = dep_value_opt {
-            match dep_value.value {
-                StateVarValue::Boolean(v) => Ok(Some(v)),
-                _ => Err(format!("Instruction [{}] is a type other than a bool", name))
-            }
-
-        } else {
-            Ok(None)
-        }
-
+        dep_value_opt.and_then(|dep_value| Some(dep_value.value.clone().try_into().map_err(|_|
+            format!("Dependency from {} {} is not a bool", name, dep_value.state_var_name))))
+            .map_or(Ok(None), |v| v.map(Some)) // flip nested Option<Result<T>>
     }
 
     fn value(&self) -> Option<StateVarValue> {
@@ -346,13 +287,10 @@ impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
             None => None,
         }
     }
-
 }
 
 
-
-// Default essential depenency instructions
-// This boilerplate is needed because of the StateVarValue enum (?)
+/////////// Default functions for an essential depenency ///////////
 
 #[allow(non_snake_case)]
 pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
@@ -362,106 +300,35 @@ pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
         ("essential", DependencyInstruction::Essential(EssentialDependencyInstruction))
     ])
 }
+
 #[allow(non_snake_case)]
-pub fn STRING_DETERMINE_FROM_ESSENTIAL(
+pub fn DETERMINE_FROM_ESSENTIAL<T>(
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> Result<StateVarUpdateInstruction<String>, String> {
-
-    let essential = dependency_values.dep_value("essential")?
-        .has_exactly_one_element()?
-        .is_string()?;
-    Ok(StateVarUpdateInstruction::SetValue(essential))
-
-}
-#[allow(non_snake_case)]
-pub fn BOOLEAN_DETERMINE_FROM_ESSENTIAL(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> Result<StateVarUpdateInstruction<bool>, String> {
-
-    let essential = dependency_values.dep_value("essential")?
-        .has_exactly_one_element()?
-        .is_bool()?;
-    Ok(StateVarUpdateInstruction::SetValue(essential))
-
-}
-#[allow(non_snake_case)]
-pub fn NUMBER_DETERMINE_FROM_ESSENTIAL(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> Result<StateVarUpdateInstruction<f64>, String> {
-
-    let essential = dependency_values.dep_value("essential")?
-        .has_exactly_one_element()?
-        .is_number()?;
-    Ok(StateVarUpdateInstruction::SetValue(essential))
+) -> Result<StateVarUpdateInstruction<T>, String>
+where
+    T: TryFrom<StateVarValue>,
+    <T as TryFrom<StateVarValue>>::Error: std::fmt::Debug
+{
+    let essential = dependency_values.get("essential").unwrap().first().unwrap().value.clone();
+    let set_value = T::try_from(essential).map_err(|e| format!("{:#?}", e))?;
+    Ok( StateVarUpdateInstruction::SetValue( set_value ) )
 }
 
 #[allow(non_snake_case)]
-pub fn INTEGER_DETERMINE_FROM_ESSENTIAL(
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-) -> Result<StateVarUpdateInstruction<i64>, String> {
-
-    let essential = dependency_values.dep_value("essential")?
-        .has_exactly_one_element()?
-        .is_integer()?;
-    Ok(StateVarUpdateInstruction::SetValue(essential))
-}
-
-#[allow(non_snake_case)]
-pub fn STRING_REQUEST_ESSENTIAL_TO_UPDATE(
-    desired_value: String,
-) -> HashMap<InstructionName, Vec<DependencyValue>> {
+pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T)
+    -> HashMap<InstructionName, Vec<DependencyValue>> {
     HashMap::from([
         ("essential", vec![
             DependencyValue {
                 component_type: "essential_data",
                 state_var_name: "",
-                value: StateVarValue::String(desired_value),
+                value: desired_value.into(),
             }
         ])
     ])
 }
-#[allow(non_snake_case)]
-pub fn BOOLEAN_REQUEST_ESSENTIAL_TO_UPDATE(
-    desired_value: bool,
-) -> HashMap<InstructionName, Vec<DependencyValue>> {
-    HashMap::from([
-        ("essential", vec![
-            DependencyValue {
-                component_type: "essential_data",
-                state_var_name: "",
-                value: StateVarValue::Boolean(desired_value),
-            }
-        ])
-    ])
-}
-#[allow(non_snake_case)]
-pub fn NUMBER_REQUEST_ESSENTIAL_TO_UPDATE(
-    desired_value: f64,
-) -> HashMap<InstructionName, Vec<DependencyValue>> {
-    HashMap::from([
-        ("essential", vec![
-            DependencyValue {
-                component_type: "essential_data",
-                state_var_name: "",
-                value: StateVarValue::Number(desired_value),
-            }
-        ])
-    ])
-}
-#[allow(non_snake_case)]
-pub fn INTEGER_REQUEST_ESSENTIAL_TO_UPDATE(
-    desired_value: i64,
-) -> HashMap<InstructionName, Vec<DependencyValue>> {
-    HashMap::from([
-        ("essential", vec![
-            DependencyValue {
-                component_type: "essential_data",
-                state_var_name: "",
-                value: StateVarValue::Integer(desired_value),
-            }
-        ])
-    ])
-}
+
+/////////// State variable default definitions ///////////
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]
@@ -491,13 +358,13 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
 
             let parent_hidden = dependency_values.dep_value("parent_hidden")?
                 .has_exactly_one_element()?
-                .is_bool()?;
+                .into_bool();
 
             let my_hide = dependency_values.dep_value("my_hide")?
                 .has_zero_or_one_elements()?
                 .is_bool_if_exists()?;
 
-            Ok(SetValue(parent_hidden || my_hide.unwrap_or(false)))
+            Ok(SetValue(parent_hidden.unwrap_or(false) || my_hide.unwrap_or(false)))
         },
 
 
@@ -583,54 +450,68 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 
 
+/////////// StateVarValue boilerplate ///////////
 
-
-impl StateVarValue {
-    // fn value_type_name(&self) -> &'static str {
-    //     match self {
-    //         Self::String(_) => "String",
-    //         Self::Boolean(_) => "Boolean",
-    //         Self::Integer(_) => "Integer",
-    //         Self::Number(_) => "Number",
-    //     }
-    // }
-
-    pub fn unwrap_bool(&self) -> bool {
-        match self {
-            Self::Boolean(val) => *val,
-            _ => panic!(),
+impl TryFrom<StateVarValue> for String {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::String(x) => Ok( x.to_string() ),
+            _ => Err("StateVarValue is not a string"),
         }
     }
-
-    pub fn unwrap_string(&self) -> String {
-        match self {
-            Self::String(val) => val.to_string(),
-            _ => panic!(),
+}
+impl TryFrom<StateVarValue> for bool {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::Boolean(x) => Ok( x ),
+            _ => Err("StateVarValue is not a bool"),
         }
     }
-
-    pub fn unwrap_number(&self) -> f64 {
-        match self {
-            Self::Number(val) => *val,
-            _ => panic!(),
+}
+impl TryFrom<StateVarValue> for f64 {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::Number(x) => Ok( x ),
+            _ => Err("StateVarValue is not a number"),
         }
     }
-
-    pub fn unwrap_integer(&self) -> i64 {
-        match self {
-            Self::Integer(val) => *val,
-            _ => panic!(),
+}
+impl TryFrom<StateVarValue> for i64 {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::Integer(x) => Ok( x ),
+            _ => Err("StateVarValue is not an integer"),
         }
     }
+}
 
+impl From<String> for StateVarValue {
+    fn from(v: String) -> StateVarValue {
+        StateVarValue::String(v)
+    }
+}
+impl From<bool> for StateVarValue {
+    fn from(v: bool) -> StateVarValue {
+        StateVarValue::Boolean(v)
+    }
+}
+impl From<f64> for StateVarValue {
+    fn from(v: f64) -> StateVarValue {
+        StateVarValue::Number(v)
+    }
+}
+impl From<i64> for StateVarValue {
+    fn from(v: i64) -> StateVarValue {
+        StateVarValue::Integer(v)
+    }
 }
 
 
-
-
-
-
-// Boilerplate so we don't have to match over StateVarVariant elsewhere
+// Boilerplate matching over StateVarVariant
 
 impl StateVarVariant {
 
@@ -703,36 +584,28 @@ impl StateVarVariant {
 
         match self {
             StateVarVariant::String(def) =>  {
-                match desired_value {
-                    StateVarValue::String(v) =>  (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to String"),
-                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to String"),
-                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to String"),
-                }
+                (def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().expect( // only cloned for error msg
+                        &format!("Requested String be updated to {:#?}", desired_value))
+                )
             },
             StateVarVariant::Integer(def) => {
-                match desired_value {
-                    StateVarValue::Integer(v) => (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>  panic!("Requested String state var update to Integer"),
-                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to Integer"),
-                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to Integer"),
-                }
+                (def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().expect( // only cloned for error msg
+                        &format!("Requested Integer be updated to {:#?}", desired_value))
+                )
             },
             StateVarVariant::Number(def) =>  {
-                match desired_value {
-                    StateVarValue::Number(v) =>  (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>  panic!("Requested String state var update to Number"),
-                    StateVarValue::Boolean(_) => panic!("Requested Boolean state var update to Number"),
-                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to Number"),
-                }
+                (def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().expect( // only cloned for error msg
+                        &format!("Requested Number be updated to {:#?}", desired_value))
+                )
             },
             StateVarVariant::Boolean(def) => {
-                match desired_value {
-                    StateVarValue::Boolean(v) => (def.request_dependencies_to_update_value)(v),
-                    StateVarValue::String(_) =>  panic!("Requested String state var update to Boolean"),
-                    StateVarValue::Number(_) =>  panic!("Requested Number state var update to Boolean"),
-                    StateVarValue::Integer(_) => panic!("Requested Integer state var update to Boolean"),
-                }
+                (def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().expect( // only cloned for error msg
+                        &format!("Requested Boolean be updated to {:#?}", desired_value))
+                )
             }
         }       
     }

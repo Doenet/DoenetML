@@ -104,9 +104,9 @@ lazy_static! {
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
 
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
-            determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
 
-            request_dependencies_to_update_value: STRING_REQUEST_ESSENTIAL_TO_UPDATE,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
 
             ..Default::default()
         }));
@@ -147,9 +147,9 @@ lazy_static! {
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             for_renderer: true,
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
-            determine_state_var_from_dependencies: STRING_DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
 
-            request_dependencies_to_update_value: STRING_REQUEST_ESSENTIAL_TO_UPDATE,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
 
             ..Default::default()
         }));
@@ -240,7 +240,7 @@ impl ComponentDefinition for MyComponentDefinition {
 
             "updateValue" => {
 
-                let new_val = resolve_and_retrieve_state_var("immediateValue").unwrap_string();
+                let new_val = resolve_and_retrieve_state_var("immediateValue").try_into().unwrap();
                 
                 let new_val = StateVarValue::String(new_val);
 
