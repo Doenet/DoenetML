@@ -166,6 +166,29 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     use regex::Regex;
     use std::iter::repeat;
 
+
+// One or two $ followed by either
+  // - the following combination without parenthesis:
+  //   - a word (starting with a letter or underscore), capturing word as fourth group, 
+  //   - optionally followed by anything in square brackets (6th group)
+  //   - optionally followed by:
+  //     - a period
+  //     - followed by a word (9th group)
+  //     - optionally followed by anything in square brackets (11th group)
+  // or
+  // - the following combination in parenthesis
+  //   where the closing parenthesis could be replaced by an open brace,
+  //   (capturing the open brace or closing parens as 21st group):
+  //   - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
+  //   - optionally followed by anything in square brackets (15th group)
+  //   - optionally followed by:
+  //     - a period
+  //     - followed by a word (including hyphens) (18th group)
+  //     - optionally followed by anything in square brackets (20th group)
+
+//   let reForBeginning = /(\$\$?)((([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)|\((([\w\/\-]|\.\.\/)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*(\)|{))/;
+
+
     // One (later, we will implement or 2) $ follwed by either
     // - a word (starting with a letter), capturing word as third group, or
     // - an identifier in parentheses, capturing identifier as fourth group,
@@ -174,7 +197,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
 
     let macro_regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
         (\$)
-        (([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_:./-]+)\s*(\)|\{))"
+        (([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_./-]+)\s*(\)|\{))"
     ).unwrap();
 
     // Keyed by the component name and by the original position of the child we are replacing
@@ -684,7 +707,7 @@ fn resolve_state_variable(
 
     let update_instruction = generate_update_instruction_including_shadowing(
         component,state_var_name,dependency_values
-    ).expect(&format!("State var [{}]:[{}] ({} component type) can't determine value",
+    ).expect(&format!("Can't resolve [{}]:[{}] ({} component type)",
         component.name, state_var_name, component.component_type)
     );
 

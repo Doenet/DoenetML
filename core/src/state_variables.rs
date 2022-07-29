@@ -194,6 +194,8 @@ pub trait DepValueVec {
     fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String>;
     fn has_exactly_one_element(&self) -> Result<(&DependencyValue, InstructionName), String>;
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String>;
+
+    // fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName);
 }
 
 impl DepValueVec for (&[DependencyValue], InstructionName) {
@@ -227,6 +229,16 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
         ).collect()
 // return Err(format!("Not all elements in instruction [{}] were strings", name))
     }
+
+
+    // fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
+    //     let (dep_values, name) = *self;
+
+    //     let filtered_dep_values = dep_values.iter()
+    //         .filter(|&dep_value| dep_value.component_type == component_type).collect();
+
+    //     (filtered_dep_values, name)
+    // }
 }
 
 
@@ -507,6 +519,19 @@ impl From<f64> for StateVarValue {
 impl From<i64> for StateVarValue {
     fn from(v: i64) -> StateVarValue {
         StateVarValue::Integer(v)
+    }
+
+}
+
+
+impl StateVarValue {
+    pub fn type_as_str(&self) -> &'static str {
+        match self {
+            Self::String(_) => "string",
+            Self::Boolean(_) => "boolean",
+            Self::Integer(_) => "integer",
+            Self::Number(_) => "number",
+        }
     }
 }
 

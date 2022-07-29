@@ -81,26 +81,44 @@ lazy_static! {
                     desired_state_vars: vec!["value"],
                 });
 
-                HashMap::from([("textlike_children", child_instruct)])
+                HashMap::from([("all_my_children", child_instruct)])
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let textlike_children = dependency_values.dep_value("textlike_children")?
+
+                let bool_children: Vec<&DependencyValue> = dependency_values.get("all_my_children").unwrap().iter()
+                    .filter(|val| val.component_type == "boolean").collect();
+
+                if bool_children.len() == 1 {
+                    let bool_child = bool_children[0];
+
+                    let bool_child_value: bool = bool_child.value.clone().try_into().unwrap();
+
+                    Ok(SetValue(bool_child_value))
+
+
+                } else {
+
+                    // This will break if there are more than one bool children
+                    let textlike_children = dependency_values.dep_value("all_my_children")?
                     .are_strings_if_non_empty()?;
 
-                let mut concatted_text = String::from("");
-                for textlike_child in textlike_children {
-                    concatted_text.push_str(&textlike_child);
+                    let mut concatted_text = String::from("");
+                    for textlike_child in textlike_children {
+                        concatted_text.push_str(&textlike_child);
+                    }
+
+                    let trimmed_text = concatted_text.trim().to_lowercase();
+                    
+                    if trimmed_text == "true" {
+                        Ok(SetValue(true))
+                    } else {
+                        Ok(SetValue(false))
+                    }
+
                 }
 
-                let trimmed_text = concatted_text.trim().to_lowercase();
-                
-                if trimmed_text == "true" {
-                    Ok(SetValue(true))
-                } else {
-                    Ok(SetValue(false))
-                }
 
 
             },
