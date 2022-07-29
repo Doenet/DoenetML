@@ -55,16 +55,14 @@ lazy_static! {
 
             determine_state_var_from_dependencies: |dependency_values| {
 
+                let bool_child_value = dependency_values.dep_value("all_my_children")?
+                    .filter_include_component_type("boolean")
+                    .has_zero_or_one_elements()?
+                    .is_bool_if_exists()?;
 
-                let bool_children: Vec<&DependencyValue> = dependency_values.get("all_my_children").unwrap().iter()
-                    .filter(|val| val.component_type == "boolean").collect();
+                if let Some(bool_val) = bool_child_value {
 
-                if bool_children.len() == 1 {
-                    let bool_child = bool_children[0];
-
-                    let bool_child_value: bool = bool_child.value.clone().try_into().unwrap();
-
-                    Ok(SetValue(bool_child_value))
+                    Ok(SetValue(bool_val))
 
 
                 } else {

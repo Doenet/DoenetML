@@ -173,16 +173,20 @@ pub struct DependencyValue {
 
 
 /////////// DependencyValue boilerplate ///////////
+// Note that these functions aren't cost free. They do allocate vectors, which you wouldn't have to do if 
+// you were unwrapping manually
 
 pub trait DepValueHashMap {
-    fn dep_value(&self, instruction_name: InstructionName) -> Result<(&[DependencyValue], InstructionName), String>;
+    fn dep_value(&self, instruction_name: InstructionName) -> Result<(Vec<&DependencyValue>, InstructionName), String>;
 }
 
 impl DepValueHashMap for HashMap<InstructionName, Vec<DependencyValue>> {
 
-    fn dep_value(&self, instruction_name: InstructionName) -> Result<(&[DependencyValue], InstructionName), String> {
+    fn dep_value(&self, instruction_name: InstructionName) -> Result<(Vec<&DependencyValue>, InstructionName), String> {
         if let Some(values) = self.get(instruction_name) {
-            Ok((values, instruction_name))
+
+            let values_vec = values.iter().collect();
+            Ok((values_vec, instruction_name))
         } else {
             Err(format!("Instruction [{}] does not exist", instruction_name))
         }
@@ -195,12 +199,12 @@ pub trait DepValueVec {
     fn has_exactly_one_element(&self) -> Result<(&DependencyValue, InstructionName), String>;
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String>;
 
-    // fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName);
+    fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName);
 }
 
-impl DepValueVec for (&[DependencyValue], InstructionName) {
+impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
 
-    fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String> {
+   fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String> {
         let (dep_values, name) = self;
         match dep_values.len() {
             0 => Ok((None, name)),
@@ -220,7 +224,7 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
     }
 
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String> {
-        let (dep_values, name) = *self;
+        let (dep_values, name) = self;
 
         dep_values.iter().map(|dep_value|
             dep_value.value.clone().try_into().map_err(|_|
@@ -230,14 +234,16 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
     }
 
 
-    // fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
-    //     let (dep_values, name) = *self;
+    fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
+        let (dep_values, name) = self;
 
-    //     let filtered_dep_values = dep_values.iter()
-    //         .filter(|&dep_value| dep_value.component_type == component_type).collect();
+        let filtered_dep_values = dep_values.iter()
+            .filter(|dep_value| dep_value.component_type == component_type)
+            .map(|&dep_value| dep_value)
+            .collect();
 
-    //     (filtered_dep_values, name)
-    // }
+        (filtered_dep_values, name)
+    }
 }
 
 
