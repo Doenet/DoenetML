@@ -200,4 +200,8 @@ impl ComponentDefinition for MyComponentDefinition {
         false
     }
 
+    fn primary_input_state_var(&self) -> Option<StateVarName> {
+        Some("value")
+    }
+
 }

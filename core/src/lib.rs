@@ -167,46 +167,46 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     use std::iter::repeat;
 
 
-// One or two $ followed by either
-  // - the following combination without parenthesis:
-  //   - a word (starting with a letter or underscore), capturing word as fourth group, 
-  //   - optionally followed by anything in square brackets (6th group)
-  //   - optionally followed by:
-  //     - a period
-  //     - followed by a word (9th group)
-  //     - optionally followed by anything in square brackets (11th group)
-  // or
-  // - the following combination in parenthesis
-  //   where the closing parenthesis could be replaced by an open brace,
-  //   (capturing the open brace or closing parens as 21st group):
-  //   - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
-  //   - optionally followed by anything in square brackets (15th group)
-  //   - optionally followed by:
-  //     - a period
-  //     - followed by a word (including hyphens) (18th group)
-  //     - optionally followed by anything in square brackets (20th group)
-
-//   let reForBeginning = /(\$\$?)((([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)|\((([\w\/\-]|\.\.\/)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*(\)|{))/;
-
-
-    // One (later, we will implement or 2) $ follwed by either
-    // - a word (starting with a letter), capturing word as third group, or
-    // - an identifier in parentheses, capturing identifier as fourth group,
-    //   where the closing parenthesis could be replaced by an open brace,
-    //   capturing the open brace or closing parens as fifth group
+    // One or two $ followed by either
+    //   - the following combination without parenthesis:
+    //     - a word (starting with a letter or underscore), capturing word as fourth group, 
+    //     - optionally followed by anything in square brackets (6th group)
+    //     - optionally followed by:
+    //       - a period
+    //       - followed by a word (9th group)
+    //       - optionally followed by anything in square brackets (11th group)
+    //   or
+    //   - the following combination in parenthesis
+    //     where the closing parenthesis could be replaced by an open brace,
+    //     (capturing the open brace or closing parens as 21st group):
+    //     - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
+    //     - optionally followed by anything in square brackets (15th group)
+    //     - optionally followed by:
+    //       - a period
+    //       - followed by a word (including hyphens) (18th group)
+    //       - optionally followed by anything in square brackets (20th group)
 
     let macro_regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
-        (\$)
-        (([a-zA-Z_]\w*\b)|\(([a-zA-Z0-9_./-]+)\s*(\)|\{))"
-    ).unwrap();
+  
+    (\$) # for now, just one $
+    (
+        (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
+        |
+        \(
+            (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
+        ( \) | \{ )
+    )
+
+    ").unwrap();
+
 
     // Keyed by the component name and by the original position of the child we are replacing
     let mut replacement_children: HashMap<String, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
-    // Keyed on the target component names
-    let mut macro_copy_counter: HashMap<&str, u32> = HashMap::new();
+    // Keyed on the target component names, or the target (component name, state var)
+    let mut macro_copy_counter: HashMap<String, u32> = HashMap::new();
     
 
     // This iterator gives info for every string child
@@ -245,40 +245,78 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                     new_children.push(ComponentChild::String(before.to_string()));
                 }
 
-                let macro_comp_match = capture.get(3).unwrap_or_else(
-                    || capture.get(4).unwrap()
-                );
 
-                if let Some(ending_delim) = capture.get(5) {
+
+                let (macro_comp, macro_prop_option) = if let Some(comp) = capture.get(12) {
+                    (comp, capture.get(18))
+                } else {
+                    (capture.get(4).unwrap(), capture.get(9))
+                };
+
+                if let Some(ending_delim) = capture.get(21) {
                     if ending_delim.as_str() == "{" {
                         panic!("Haven't implemented macros with curly braces");
                     }
                 }
 
-                let target_name = macro_comp_match.as_str();
+                let target_name = macro_comp.as_str();
 
                 let target = components.get(target_name).expect(
                     &format!("Macro for {}, but this component does not exist", target_name)
                 );
 
 
-                let copy_num = macro_copy_counter.entry(target_name).or_insert(0);
-                *copy_num += 1;
+                let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
 
-                let copy_name = format!("__mcr:{}({})_{}", target_name, component.name, copy_num);
+                    let (prop_name, _) = target.definition.state_var_definitions()
+                        .get_key_value(macro_prop.as_str())
+                        .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
 
-                let macro_copy = ComponentNode {
-                    name: copy_name,
-                    parent: Some(component.name.clone()),
-                    children: vec![],
+                    let full_target_name = format!("{}:{}", target_name, prop_name);
 
-                    copy_target: Some(CopyTarget::Component(target.name.clone())),
-                    attributes: target.definition.empty_attribute_data(),
+                    let copy_comp_type = default_component_type_for_state_var(target, prop_name);
 
-                    .. target.clone()
+                    let copy_def = parse_json::generate_component_definitions().get(copy_comp_type).unwrap().clone();
+
+                    let copy_num = macro_copy_counter.entry(full_target_name.clone()).or_insert(0);
+                    *copy_num += 1;
+
+                    let copy_name = format!("__mcr:{}({})_{}", full_target_name, component.name, copy_num);
+
+                    ComponentNode {
+                        name: copy_name,
+                        parent: Some(component.name.clone()),
+                        children: vec![],
+    
+                        copy_target: Some(CopyTarget::StateVar(
+                            target.name.clone(), prop_name)),
+
+                        attributes: copy_def.empty_attribute_data(),
+                        component_type: copy_comp_type,
+                        definition: copy_def,
+                    }
+
+
+                } else {
+
+                    let copy_num = macro_copy_counter.entry(target_name.to_string()).or_insert(0);
+                    *copy_num += 1;
+    
+                    let copy_name = format!("__mcr:{}({})_{}", target_name, component.name, copy_num);
+    
+                    ComponentNode {
+                        name: copy_name,
+                        parent: Some(component.name.clone()),
+                        children: vec![],
+    
+                        copy_target: Some(CopyTarget::Component(target.name.clone())),
+                        attributes: target.definition.empty_attribute_data(),
+    
+                        .. target.clone()
+                    }
                 };
 
-            
+
                 new_children.push(ComponentChild::Component(macro_copy.name.clone()));
                 components_to_add.push(macro_copy);
 
@@ -306,6 +344,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     }
 
 
+    log!("Component to add {:#?}", components_to_add);
 
     for new_component in components_to_add {
 
@@ -332,6 +371,20 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
     }
 
 }
+
+
+fn default_component_type_for_state_var(component: &ComponentNode, state_var: StateVarName) -> ComponentType {
+
+    let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+    match state_var_def {
+        StateVarVariant::Boolean(_) => "boolean",
+        StateVarVariant::Integer(_) => "number",
+        StateVarVariant::Number(_) => "number",
+        StateVarVariant::String(_) => "text",
+    }
+}
+
+
 
 
 fn create_all_dependencies_for_component(

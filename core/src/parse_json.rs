@@ -68,7 +68,7 @@ enum ArgValue {
 
 
 
-fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
+pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
 
     HashMap::from([
         ("text", Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>),
