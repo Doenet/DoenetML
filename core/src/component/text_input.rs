@@ -116,7 +116,7 @@ lazy_static! {
 
         state_var_definitions.insert("expanded", StateVarVariant::Boolean(StateVarDefinition {
             for_renderer: true,
-            determine_state_var_from_dependencies: |_| SetValue(false),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(false)),
             ..Default::default()
             
         }));
@@ -126,7 +126,7 @@ lazy_static! {
 
 
             determine_state_var_from_dependencies: |_| {
-                SetValue(10.0)
+                Ok(SetValue(10.0))
             },
             for_renderer: true,
             default_value: 10.0,
@@ -139,7 +139,7 @@ lazy_static! {
         state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
             default_value: 600.0,
-            determine_state_var_from_dependencies: |_| SetValue(600.0),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(600.0)),
             ..Default::default()
         }));
 

@@ -86,8 +86,8 @@ lazy_static! {
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let textlike_children = dependency_values.dep_value("textlike_children")
-                    .are_strings_if_non_empty();
+                let textlike_children = dependency_values.dep_value("textlike_children")?
+                    .are_strings_if_non_empty()?;
 
                 let mut concatted_text = String::from("");
                 for textlike_child in textlike_children {
@@ -97,9 +97,9 @@ lazy_static! {
                 let trimmed_text = concatted_text.trim().to_lowercase();
                 
                 if trimmed_text == "true" {
-                    SetValue(true)
+                    Ok(SetValue(true))
                 } else {
-                    SetValue(false)
+                    Ok(SetValue(false))
                 }
 
 

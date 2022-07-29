@@ -57,7 +57,6 @@ struct MyStateVars {
     hidden: StateVar,
     disabled: StateVar,
     text: StateVar,
-
 }
 
 
@@ -100,13 +99,13 @@ lazy_static! {
             determine_state_var_from_dependencies: |dependency_values| {
                 log!("number dependency value {:#?}", dependency_values);
 
-                let value = dependency_values.dep_value("children")
-                    .has_exactly_one_element()
-                    .is_string();
+                let value = dependency_values.dep_value("children")?
+                    .has_exactly_one_element()?
+                    .is_string()?;
             
                 let num_val = value.parse::<f64>().unwrap_or(0.0);
 
-                SetValue(num_val)
+                Ok(SetValue(num_val))
             },
 
             ..Default::default()
@@ -125,11 +124,11 @@ lazy_static! {
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
-                let value = dependency_values.dep_value("value_sv")
-                    .has_exactly_one_element()
-                    .is_number();
+                let value = dependency_values.dep_value("value_sv")?
+                    .has_exactly_one_element()?
+                    .is_number()?;
 
-                SetValue(value.to_string())
+                Ok(SetValue(value.to_string()))
 
             },
 

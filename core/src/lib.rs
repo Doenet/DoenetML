@@ -683,9 +683,9 @@ fn resolve_state_variable(
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
-        component,
-        state_var_name,
-        dependency_values
+        component,state_var_name,dependency_values
+    ).expect(&format!("State var [{}]:[{}] ({} component type) can't determine value",
+        component.name, state_var_name, component.component_type)
     );
 
 
@@ -1131,20 +1131,23 @@ fn return_dependency_instruction_including_shadowing(
 }
 
 
+
+
 fn generate_update_instruction_including_shadowing(
     component: &ComponentNode,
     state_var: StateVarName,
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 
-) -> StateVarUpdateInstruction<StateVarValue> {
+) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
 
     if state_var_is_shadowing(component, state_var).is_some() {
 
         // Assuming that target state var is same type as this state var
-        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)
-            .has_exactly_one_element().value();
+        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)?
+            .has_exactly_one_element()?
+            .value();
 
-        StateVarUpdateInstruction::SetValue(target_value)
+        Ok(StateVarUpdateInstruction::SetValue(target_value))
 
     } else {
         // Otherwise, this state var is not shadowing, so proceed normally

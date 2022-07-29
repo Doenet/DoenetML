@@ -100,13 +100,13 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
         
         state_var_definitions.insert("submitLabel", StateVarVariant::String(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue("Check Work".to_string()),
+            determine_state_var_from_dependencies: |_| Ok(SetValue("Check Work".to_string())),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("submitLabelNoCorrectness", StateVarVariant::String(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue("Submit Response".to_string()),
+            determine_state_var_from_dependencies: |_| Ok(SetValue("Submit Response".to_string())),
             for_renderer: true,
             ..Default::default()
         }));
@@ -118,51 +118,51 @@ lazy_static! {
         state_var_definitions.insert("fixed", FIXED_DEFAULT_DEFINITION());
 
         // state_var_definitions.insert("titleChildName", StateVarVariant::String(StateVarDefinition {
-        //     determine_state_var_from_dependencies: |_| SetValue("Submit Response"),
+        //     determine_state_var_from_dependencies: |_| Ok(SetValue("Submit Response")),
         //     for_renderer: true,
         //     ..Default::default()
         // })); 
 
         
         state_var_definitions.insert("title", StateVarVariant::String(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue("".to_string()),
+            determine_state_var_from_dependencies: |_| Ok(SetValue("".to_string())),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("level", StateVarVariant::Number(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(0.0),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(0.0)),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("justSubmitted", StateVarVariant::Boolean(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(true),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(true)),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("showCorrectness", StateVarVariant::Boolean(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(true),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(true)),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("creditAchieved", StateVarVariant::Number(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(1.0),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(1.0)),
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("createSubmitAllButton", StateVarVariant::Boolean(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(false),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(false)),
             for_renderer: true,
             ..Default::default()
         }));
 
 
         state_var_definitions.insert("suppressAnswerSubmitButtons", StateVarVariant::Boolean(StateVarDefinition {
-            determine_state_var_from_dependencies: |_| SetValue(false),
+            determine_state_var_from_dependencies: |_| Ok(SetValue(false)),
             for_renderer: true,
             ..Default::default()
         }));        

@@ -115,7 +115,7 @@ lazy_static! {
                     });
                 }
             
-                SetValue(val)
+                Ok(SetValue(val))
             },
 
             ..Default::default()
