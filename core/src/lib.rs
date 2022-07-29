@@ -1190,10 +1190,10 @@ pub fn json_components(core: &DoenetCore) -> serde_json::Value {
 
 
 
-////////////// Wrappers allowing CopyTarget to override functions //////////////
+////////////// Wrappers providing for CopyTarget and sequence component //////////////
 
 /// This includes the copy target's children. The flag is false when it is
-/// a copy target's child.
+/// a copy target's child. Also skips sequence components.
 fn get_children_including_copy(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode
@@ -1208,11 +1208,23 @@ fn get_children_including_copy(
             .collect();
     }
 
-    children_vec.extend(
-        component.children
-            .iter()
-            .map(|c| (c.clone(), true))
-        );
+    for child in component.children.iter() {
+        let mut skip = false;
+
+        if let ObjectName::Component(name) = child {
+            let child_component = components.get(name).unwrap();
+            if child_component.component_type == "sequence" {
+                // Add this component's children instead of itself.
+                skip = true;
+                children_vec.extend(get_children_including_copy(components, child_component));
+            }
+        }
+
+        if !skip{
+            children_vec.push((child.clone(), true));
+        }
+    }
+
     children_vec
 }
 
