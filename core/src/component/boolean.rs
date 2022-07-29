@@ -35,37 +35,6 @@ impl ComponentStateVars for MyStateVars {
 }
 
 
-#[derive(Debug, Default, Clone)]
-struct MyAttributeData {
-
-    // These types could be more specific
-    hide: Option<Attribute>,
-}
-
-impl AttributeData for MyAttributeData {
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
-        match name {
-            "hide" => {
-                self.hide = Some(attribute);
-            },
-
-            _ => {
-                return Err("Invalid attribute name".to_string())
-            }
-        }
-        Ok(())
-    }
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute> {
-        match name {
-            "hide" => &self.hide,
-            _ => panic!("Invalid attribute name {} for text", name)
-        }
-    }
-}
-
-
-
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
         use StateVarUpdateInstruction::*;
@@ -136,6 +105,33 @@ lazy_static! {
 }
 
 
+
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+}
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => { self.hide = Some(attribute); },
+
+            _ => { return Err("Invalid attribute name".to_string()) }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
+}
+
+
 lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
@@ -146,21 +142,6 @@ lazy_static! {
     };
 }
 
-
-
-
-// impl TextLikeComponent for Number {
-//     fn text_value(&self) -> String {
-//         let val = *self.value.borrow();
-//         val.to_string()
-//     }
-// }
-// impl NumberLikeComponent for Number {
-//     fn add_one(&self) -> f64 {
-//         *self.value.borrow() + 1.0
-//     }
-
-// }
 
 
 #[derive(Clone)]

@@ -292,7 +292,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
 
                     let copy_comp_type = default_component_type_for_state_var(target, prop_name);
 
-                    let copy_def = parse_json::generate_component_definitions().get(copy_comp_type).unwrap().clone();
+                    let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
 
                     let copy_num = macro_copy_counter.entry(full_target_name.clone()).or_insert(0);
                     *copy_num += 1;

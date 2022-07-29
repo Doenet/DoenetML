@@ -56,41 +56,6 @@ impl ComponentStateVars for MyStateVars {
 
 
 
-#[derive(Debug, Default, Clone)]
-struct MyAttributeData {
-
-    // These types could be more specific
-    hide: Option<Attribute>,
-    disabled: Option<Attribute>,
-}
-
-impl AttributeData for MyAttributeData {
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
-        match name {
-            "hide" => {
-                self.hide = Some(attribute);
-            },
-            "disabled" => {
-                self.disabled = Some(attribute);
-            },
-
-            _ => {
-                return Err("Invalid attribute name".to_string())
-            }
-        }
-        Ok(())
-    }
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute> {
-        match name {
-            "hide" => &self.hide,
-            "disabled" => &self.disabled,
-            _ => panic!("Invalid attribute name {} for text", name)
-        }
-    }
-}
-
-
 
 lazy_static! {
 
@@ -167,13 +132,38 @@ lazy_static! {
             ..Default::default()
         }));        
 
-        
-
-
-
-
         return state_var_definitions
     };
+}
+
+
+
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+    disabled: Option<Attribute>,
+}
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => { self.hide = Some(attribute); },
+            "disabled" => { self.disabled = Some(attribute); },
+
+            _ => { return Err("Invalid attribute name".to_string()) }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            "disabled" => &self.disabled,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
 }
 
 
@@ -186,6 +176,7 @@ lazy_static! {
         attribute_definitions
     };
 }
+
 
 
 #[derive(Clone)]

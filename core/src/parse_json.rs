@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::Action;
-use crate::component::{Attribute, AttributeDefinition, CopyTarget};
+use crate::component::{Attribute, AttributeDefinition, CopyTarget, generate_component_definitions};
 use crate::prelude::*;
 
 use crate::AttributeData;
@@ -66,41 +66,6 @@ enum ArgValue {
     String(String),
 }
 
-
-
-pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
-
-    HashMap::from([
-        ("text", Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("number", Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("textInput", Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("document", Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("boolean",  Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("p", Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("numberInput", Box::new(crate::number_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-    ])
-}
-
-
-
-// fn get_component_definition_for_type(component_type: &str) -> Result<(Box<dyn ComponentDefinition>, ComponentType),String> {
-//     let component_def_and_type = match component_type {
-//         "text" =>       (Box::new(crate::text::MyComponentDefinition) as Box<dyn ComponentDefinition>, "text"),
-//         "number" =>     (Box::new(crate::number::MyComponentDefinition) as Box<dyn ComponentDefinition>, "number"),
-//         "textInput" =>  (Box::new(crate::text_input::MyComponentDefinition) as Box<dyn ComponentDefinition>, "textInput"),
-//         "document" =>   (Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>, "document"),
-//         "boolean" =>    (Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>, "boolean"),
-//         "p" =>    (Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>, "p"),
-
-
-//         _ => {
-//             return Err(format!("Invalid component type {}", component_type));
-//         } 
-//     };
-
-//     Ok(component_def_and_type)
-// }
 
 
 pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
@@ -168,6 +133,7 @@ pub fn create_components_tree_from_json(program: &str)
 }
 
 
+/// Recursive function
 fn add_component_from_json(
     component_nodes: &mut HashMap<String, ComponentNode>,
     component_tree: &ComponentTree,
@@ -192,22 +158,21 @@ fn add_component_from_json(
         None => format!("/_{}{}", component_type, count + 1),
     };
 
-    let copy_target: Option<CopyTarget>;
-    if let Some(ref target_name) = component_tree.props.copy_target {
-        if let Some(ref target_state_var) = component_tree.props.prop {
 
-            let state_var_name = all_state_var_names.get(target_state_var).ok_or(
-                format!("{} is not a valid state var name", target_state_var))?;
+    let copy_target: Option<CopyTarget> =
+        if let Some(ref target_name) = component_tree.props.copy_target {
+            if let Some(ref target_state_var) = component_tree.props.prop {
 
-            copy_target = Some(CopyTarget::StateVar(target_name.clone(), state_var_name));
+                let state_var_name = all_state_var_names.get(target_state_var).ok_or(
+                    format!("{} is not a valid state var name", target_state_var))?;
 
+                Some(CopyTarget::StateVar(target_name.clone(), state_var_name))
+            } else {
+                Some(CopyTarget::Component(target_name.clone()))
+            }
         } else {
-            copy_target = Some(CopyTarget::Component(target_name.clone()));
-        }
-    } else {
-        copy_target = None;
-    }
-
+            None
+        };
 
     let attribute_definitions = component_definition.attribute_definitions();
 

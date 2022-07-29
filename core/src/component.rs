@@ -16,6 +16,19 @@ use std::fmt::{Debug, self};
 
 
 
+pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
+    HashMap::from([
+        ("text",         Box::new(crate::text         ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("number"   ,    Box::new(crate::number       ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("textInput",    Box::new(crate::text_input   ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("document",     Box::new(crate::document     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("boolean",      Box::new(crate::boolean      ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("p",            Box::new(crate::p            ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("numberInput",  Box::new(crate::number_input ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+    ])
+}
+
 
 pub enum AttributeDefinition {
     Component(ComponentType),
@@ -119,6 +132,7 @@ pub trait ComponentDefinition: CloneComponentDefinition {
 
     fn should_render_children(&self) -> bool;
 
+    /// These have to match `on_action` and with what the renderers have
     fn action_names(&self) -> Vec<&'static str> {
         vec![]
     }

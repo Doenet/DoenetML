@@ -13,43 +13,6 @@ use crate::state_var::StateVar;
 use crate::log;
 
 
-#[derive(Debug, Default, Clone)]
-struct MyAttributeData {
-
-    // These types could be more specific
-    hide: Option<Attribute>,
-    disabled: Option<Attribute>,
-}
-
-
-impl AttributeData for MyAttributeData {
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
-        match name {
-            "hide" => {
-                self.hide = Some(attribute);
-            },
-            "disabled" => {
-                self.disabled = Some(attribute);
-            },
-
-            _ => {
-                return Err("Invalid attribute name".to_string())
-            }
-        }
-        Ok(())
-    }
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute> {
-        match name {
-            "hide" => &self.hide,
-            "disabled" => &self.disabled,
-            _ => panic!("Invalid attribute name {} for text", name)
-        }
-    }
-}
-
-
-
 
 #[derive(Debug)]
 struct MyStateVars {
@@ -58,7 +21,6 @@ struct MyStateVars {
     disabled: StateVar,
     text: StateVar,
 }
-
 
 impl ComponentStateVars for MyStateVars {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
@@ -74,7 +36,6 @@ impl ComponentStateVars for MyStateVars {
 
 
 }
-
 
 
 lazy_static! {
@@ -141,6 +102,36 @@ lazy_static! {
 
         return state_var_definitions
     };
+}
+
+
+#[derive(Debug, Default, Clone)]
+struct MyAttributeData {
+
+    // These types could be more specific
+    hide: Option<Attribute>,
+    disabled: Option<Attribute>,
+}
+
+
+impl AttributeData for MyAttributeData {
+    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
+        match name {
+            "hide" => { self.hide = Some(attribute); },
+            "disabled" => { self.disabled = Some(attribute); },
+
+            _ => { return Err("Invalid attribute name".to_string()) }
+        }
+        Ok(())
+    }
+
+    fn get(&self, name: AttributeName) -> &Option<Attribute> {
+        match name {
+            "hide" => &self.hide,
+            "disabled" => &self.disabled,
+            _ => panic!("Invalid attribute name {} for text", name)
+        }
+    }
 }
 
 
