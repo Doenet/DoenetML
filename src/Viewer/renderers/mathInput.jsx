@@ -11,13 +11,13 @@ import {
 import mathquill from 'react-mathquill';
 mathquill.addStyles(); //Styling for react-mathquill input field
 let EditableMathField = mathquill.EditableMathField;
-import {
-  focusedMathField,
-  focusedMathFieldReturn,
-  focusedMathFieldID,
-  palletRef,
-  handleRef,
-} from '../../Tools/_framework/Footers/MathInputSelector';
+// import {
+//   focusedMathField,
+//   focusedMathFieldReturn,
+//   focusedMathFieldID,
+//   palletRef,
+//   handleRef,
+// } from '../../Tools/_framework/Footers/MathInputSelector';
 
 import { useRecoilValue, useSetRecoilState } from 'recoil';
 import { rendererState } from './useDoenetRenderer';
@@ -69,12 +69,12 @@ export default function MathInput(props) {
   // does not update to current values
   let validationState = useRef(null);
 
-  const setFocusedField = useSetRecoilState(focusedMathField);
-  const setFocusedFieldID = useSetRecoilState(focusedMathFieldID);
-  const focusedFieldID = useRecoilValue(focusedMathFieldID);
-  const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
-  const containerRef = useRecoilValue(palletRef);
-  const dragHandleRef = useRecoilValue(handleRef);
+  // const setFocusedField = useSetRecoilState(focusedMathField);
+  // const setFocusedFieldID = useSetRecoilState(focusedMathFieldID);
+  // const focusedFieldID = useRecoilValue(focusedMathFieldID);
+  // const setFocusedFieldReturn = useSetRecoilState(focusedMathFieldReturn);
+  // const containerRef = useRecoilValue(palletRef);
+  // const dragHandleRef = useRecoilValue(handleRef);
 
   const updateValidationState = () => {
     validationState.current = 'unvalidated';
@@ -129,30 +129,30 @@ export default function MathInput(props) {
   };
 
   const handleFocus = (e) => {
-    setFocusedField(() => handleVirtualKeyboardClick);
-    setFocusedFieldReturn(() => handlePressEnter);
-    setFocusedFieldID(mathField.id);
+    // setFocusedField(() => handleVirtualKeyboardClick);
+    // setFocusedFieldReturn(() => handlePressEnter);
+    // setFocusedFieldID(mathField.id);
   };
 
   const handleBlur = (e) => {
-    if (containerRef?.current?.contains(e.relatedTarget)) {
-      setTimeout(() => {
-        mathField.focus();
-      }, 100);
-    } else if (dragHandleRef?.current?.contains(e.relatedTarget)) {
-      setTimeout(() => {
-        mathField.focus();
-      }, 100);
-    } else {
+    // if (containerRef?.current?.contains(e.relatedTarget)) {
+    //   setTimeout(() => {
+    //     mathField.focus();
+    //   }, 100);
+    // } else if (dragHandleRef?.current?.contains(e.relatedTarget)) {
+    //   setTimeout(() => {
+    //     mathField.focus();
+    //   }, 100);
+    // } else {
       callAction({
         action: actions.updateValue,
         baseVariableValue: rendererValue.current,
       });
       // console.log(">>>", e.relatedTarget.id, checkWorkButton.props.id);
-      setFocusedField(() => handleDefaultVirtualKeyboardClick);
-      setFocusedFieldReturn(() => handleDefaultVirtualKeyboardReturn);
-      setFocusedFieldID(null);
-    }
+      // setFocusedField(() => handleDefaultVirtualKeyboardClick);
+      // setFocusedFieldReturn(() => handleDefaultVirtualKeyboardReturn);
+      // setFocusedFieldID(null);
+    // }
   };
 
   const onChangeHandler = (text) => {

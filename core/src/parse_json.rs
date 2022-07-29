@@ -77,6 +77,8 @@ pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn Compon
         ("document", Box::new(crate::document::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("boolean",  Box::new(crate::boolean::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("p", Box::new(crate::p::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("numberInput", Box::new(crate::number_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
     ])
 }
 

@@ -227,7 +227,6 @@ impl DepValueVec for (&[DependencyValue], InstructionName) {
                 format!("Not all elements in instruction [{}] were strings", name)
             )
         ).collect()
-// return Err(format!("Not all elements in instruction [{}] were strings", name))
     }
 
 

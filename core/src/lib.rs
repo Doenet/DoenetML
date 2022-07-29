@@ -982,7 +982,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     let action = parse_json::parse_action_from_json(action)
         .expect(&format!("Error parsing json action: {}", action));
 
-    // log!("Handling action {:#?}", action);
+    log!("Handling action {:#?}", action);
 
     // Apply alias to get the original component name
     let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
@@ -1145,7 +1145,7 @@ fn generate_render_tree_internal(
                         "componentName": comp.name,
                         "componentType": comp.component_type,
                         "effectiveName": comp.name,
-                        "rendererType": comp.component_type,
+                        "rendererType": render_type_alias(comp.component_type),
                     }));
                 },
                 ComponentChild::String(string) => {
@@ -1161,6 +1161,13 @@ fn generate_render_tree_internal(
         "childrenInstructions": json!(children_instructions),
     }));
 
+}
+
+fn render_type_alias(comp_type: &str) -> &str {
+    match comp_type {
+        "numberInput" => "textInput",
+        _ => comp_type,
+    }
 }
 
 

@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faLevelDownAlt, faTimes, faCloud, faPercentage } from '@fortawesome/free-solid-svg-icons'
 import { rendererState } from './useDoenetRenderer';
 import { useSetRecoilState } from 'recoil';
-import ToggleButton from '../../_reactComponents/PanelHeaderComponents/ToggleButton';
+// import ToggleButton from '../../_reactComponents/PanelHeaderComponents/ToggleButton';
 
 export default React.memo(function BooleanInput(props) {
   let { name, SVs, actions, ignoreUpdate, rendererName, callAction } = useDoenetRender(props);
@@ -175,17 +175,17 @@ export default React.memo(function BooleanInput(props) {
 
 
   let input;
-  if (SVs.asToggleButton) {
-    input =
-      <ToggleButton
-        id={inputKey}
-        key={inputKey}
-        isSelected={rendererValue}
-        onClick={onChangeHandler}
-        value={SVs.label}
-        disabled={disabled}
-      />;
-  } else {
+  // if (SVs.asToggleButton) {
+  //   input =
+  //     <ToggleButton
+  //       id={inputKey}
+  //       key={inputKey}
+  //       isSelected={rendererValue}
+  //       onClick={onChangeHandler}
+  //       value={SVs.label}
+  //       disabled={disabled}
+  //     />;
+  // } else {
     input = <label>
       <input
         type="checkbox"
@@ -197,7 +197,7 @@ export default React.memo(function BooleanInput(props) {
       />
       {SVs.label}
     </label>;
-  }
+  // }
 
   return <React.Fragment>
     <span id={name}>

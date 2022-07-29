@@ -4,6 +4,8 @@ pub mod text_input;
 pub mod document;
 pub mod boolean;
 pub mod p;
+pub mod number_input;
+pub mod boolean_input;
 
 use crate::prelude::*;
 use crate::state_var::StateVar;
