@@ -6,27 +6,6 @@ use crate::ObjectTraitName;
 
 
 
-/// A macro to provide println! style syntax for console.log logging.
-#[macro_export]
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-
-        #[cfg(feature = "web")]
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-
-        #[cfg(not(feature = "web"))]
-        println!( $( $t )* )
-    }
-}
-
-
-// #[link(name = "logger", kind = "static")]
-// extern "Rust" {
-//     pub fn log_json(json_obj: serde_json::Value);
-// }
-
-
-
 
 /// State variable functions core uses.
 /// The generics force component code to be consistent with the type of a state variable.
@@ -285,17 +264,23 @@ impl DepValueSingle for (&DependencyValue, InstructionName) {
 
 pub trait DepValueOption {
     fn is_bool_if_exists(&self) -> Result<Option<bool>, String>;
+    fn into_if_exists<T: TryFrom<StateVarValue>>(&self) -> Result<Option<T>, String>;
     fn value(&self) -> Option<StateVarValue>;
 }
 
 impl DepValueOption for (Option<&DependencyValue>, InstructionName) {
 
     fn is_bool_if_exists(&self) -> Result<Option<bool>, String> {
+        self.into_if_exists().map_err(|e| e + ", expected a bool")
+    }
+
+    fn into_if_exists<T: TryFrom<StateVarValue>>(&self) -> Result<Option<T>, String> {
         let (dep_value_opt, name) = self;
 
         dep_value_opt.and_then(|dep_value| Some(dep_value.value.clone().try_into().map_err(|_|
-            format!("Instruction [{}] is {}, expected an optional bool", 
-                name, dep_value.value.type_as_str()))))
+                format!("could not convert value {} from instruction [{}]",
+                    dep_value.value.type_as_str(), name)
+            )))
             .map_or(Ok(None), |v| v.map(Some)) // flip nested Option<Result<T>>
     }
 
@@ -347,6 +332,36 @@ pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T)
 }
 
 /////////// State variable default definitions ///////////
+
+/// Arguments: attribute name, StateVarVariant, default value
+/// Example: `definition_from_attribute!("disabled", Boolean, false)`
+macro_rules! definition_from_attribute {
+    ( $attribute:expr, $variant:ident, $default:expr) => {
+        {
+            use crate::state_variables::{StateVarVariant, DependencyInstruction,
+                StateVarUpdateInstruction};
+
+            StateVarVariant::$variant(StateVarDefinition {
+                for_renderer: true,
+                default_value: $default,
+                return_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute(
+                        AttributeDependencyInstruction { attribute_name: $attribute }
+                    );
+                    HashMap::from([("attribute", attribute)])
+                },
+                determine_state_var_from_dependencies: |dependency_values| {
+                    let attribute = dependency_values.dep_value("attribute")?
+                        .has_zero_or_one_elements()?
+                        .into_if_exists()?;
+                    Ok(StateVarUpdateInstruction::SetValue(attribute.unwrap_or($default)))
+                },
+                ..Default::default()
+            })
+        }
+    }
+}
+pub(crate) use definition_from_attribute;
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]
@@ -430,30 +445,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
 
 #[allow(non_snake_case)]
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
-    use StateVarUpdateInstruction::*;
-    use DependencyInstruction::*;
-
-    StateVarVariant::Boolean(StateVarDefinition {     
-        for_renderer: true,
-        return_dependency_instructions: |_| {
-
-            let disabled_attribute = Attribute(AttributeDependencyInstruction {
-                attribute_name: "disabled",
-            });
-
-            HashMap::from([("disabled_attribute", disabled_attribute)])
-        },
-
-        determine_state_var_from_dependencies: |dependency_values| {
-
-            let disabled = dependency_values.dep_value("disabled_attribute")?
-                .has_zero_or_one_elements()?.is_bool_if_exists()?;
-
-            Ok(SetValue(disabled.unwrap_or(false)))
-        },
-
-        ..Default::default()
-    })
+    definition_from_attribute!("disabled", Boolean, false)
 }
 
 

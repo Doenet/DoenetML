@@ -1150,7 +1150,7 @@ fn generate_render_tree_internal(
                         "componentName": comp.name,
                         "componentType": comp.component_type,
                         "effectiveName": comp.name,
-                        "rendererType": render_type_alias(comp.component_type),
+                        "rendererType": render_type_of(comp.component_type),
                     }));
                 },
                 ComponentChild::String(string) => {
@@ -1168,7 +1168,7 @@ fn generate_render_tree_internal(
 
 }
 
-fn render_type_alias(comp_type: &str) -> &str {
+fn render_type_of(comp_type: &str) -> &str {
     match comp_type {
         "numberInput" => "textInput",
         _ => comp_type,
