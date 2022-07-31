@@ -28,7 +28,7 @@ struct ComponentTree {
 #[serde(rename_all = "camelCase")]
 struct Props {
     name: Option<String>,
-    copy_target: Option<String>, //this will become copy_source
+    copy_source: Option<String>, //this will become copy_source
     prop: Option<String>,
     #[serde(flatten)]
     attributes: HashMap<String, AttributeValue>,
@@ -160,7 +160,7 @@ fn add_component_from_json(
 
 
     let copy_source: Option<CopySource> =
-        if let Some(ref source_name) = component_tree.props.copy_target {
+        if let Some(ref source_name) = component_tree.props.copy_source {
             if let Some(ref source_state_var) = component_tree.props.prop {
 
                 let state_var_name = all_state_var_names.get(source_state_var).ok_or(

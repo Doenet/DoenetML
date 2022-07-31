@@ -87,7 +87,11 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         Some(CopySource::Component(_)) => true,
         _ => false,
     });
+
     for (_name, copy) in copies {
+        if let Some(CopySource::Component(ref source_name)) = copy.copy_source {
+            assert!(component_nodes.contains_key(source_name), "Component {} tries to copy from non-existent component {}", copy.name, source_name);
+        }
         add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
 
@@ -276,6 +280,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                 }
 
                 let source_name = macro_comp.as_str();
+
 
                 let source_comp = components.get(source_name).expect(
                     &format!("Macro for {}, but this component does not exist", source_name)
