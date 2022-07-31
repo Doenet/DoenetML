@@ -6,7 +6,7 @@ pub mod boolean;
 pub mod p;
 pub mod number_input;
 pub mod boolean_input;
-// pub mod sequence;
+pub mod sequence;
 
 use crate::prelude::*;
 use crate::state_var::StateVar;
@@ -27,7 +27,7 @@ pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn Compon
         ("p",            Box::new(crate::p            ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("numberInput",  Box::new(crate::number_input ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        // ("sequence",     Box::new(crate::sequence     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),g
+        ("sequence",     Box::new(crate::sequence     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
     ])
 }
 
