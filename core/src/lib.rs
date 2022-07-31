@@ -81,10 +81,10 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         .expect(&format!("Error parsing json for components"));
 
 
-    // For every component copy, add aliases for children it inherits from its target.
+    // For every component copy, add aliases for children it inherits from its source.
     let mut aliases: HashMap<String, String> = HashMap::new();
-    let copies = component_nodes.iter().filter(|(_, c)| match c.copy_target {
-        Some(CopyTarget::Component(_)) => true,
+    let copies = component_nodes.iter().filter(|(_, c)| match c.copy_source {
+        Some(CopySource::Component(_)) => true,
         _ => false,
     });
     for (_name, copy) in copies {
@@ -216,7 +216,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
-    // Keyed on the target component names, or the target (component name, state var)
+    // Keyed on the source component names, or the source (component name, state var)
     let mut macro_copy_counter: HashMap<String, u32> = HashMap::new();
     
 
@@ -275,37 +275,37 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                     }
                 }
 
-                let target_name = macro_comp.as_str();
+                let source_name = macro_comp.as_str();
 
-                let target = components.get(target_name).expect(
-                    &format!("Macro for {}, but this component does not exist", target_name)
+                let source_comp = components.get(source_name).expect(
+                    &format!("Macro for {}, but this component does not exist", source_name)
                 );
 
 
                 let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
 
-                    let (prop_name, _) = target.definition.state_var_definitions()
+                    let (prop_name, _) = source_comp.definition.state_var_definitions()
                         .get_key_value(macro_prop.as_str())
                         .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
 
-                    let full_target_name = format!("{}:{}", target_name, prop_name);
+                    let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
 
-                    let copy_comp_type = default_component_type_for_state_var(target, prop_name);
+                    let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name);
 
                     let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
 
-                    let copy_num = macro_copy_counter.entry(full_target_name.clone()).or_insert(0);
+                    let copy_num = macro_copy_counter.entry(source_comp_sv_name.clone()).or_insert(0);
                     *copy_num += 1;
 
-                    let copy_name = format!("__mcr:{}({})_{}", full_target_name, component.name, copy_num);
+                    let copy_name = format!("__mcr:{}({})_{}", source_comp_sv_name, component.name, copy_num);
 
                     ComponentNode {
                         name: copy_name,
                         parent: Some(component.name.clone()),
                         children: vec![],
     
-                        copy_target: Some(CopyTarget::StateVar(
-                            target.name.clone(), prop_name)),
+                        copy_source: Some(CopySource::StateVar(
+                            source_comp.name.clone(), prop_name)),
 
                         attributes: copy_def.empty_attribute_data(),
                         component_type: copy_comp_type,
@@ -315,20 +315,20 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
 
                 } else {
 
-                    let copy_num = macro_copy_counter.entry(target_name.to_string()).or_insert(0);
+                    let copy_num = macro_copy_counter.entry(source_name.to_string()).or_insert(0);
                     *copy_num += 1;
     
-                    let copy_name = format!("__mcr:{}({})_{}", target_name, component.name, copy_num);
+                    let copy_name = format!("__mcr:{}({})_{}", source_name, component.name, copy_num);
     
                     ComponentNode {
                         name: copy_name,
                         parent: Some(component.name.clone()),
                         children: vec![],
     
-                        copy_target: Some(CopyTarget::Component(target.name.clone())),
-                        attributes: target.definition.empty_attribute_data(),
+                        copy_source: Some(CopySource::Component(source_comp.name.clone())),
+                        attributes: source_comp.definition.empty_attribute_data(),
     
-                        .. target.clone()
+                        .. source_comp.clone()
                     }
                 };
 
@@ -451,7 +451,7 @@ fn create_all_dependencies_for_component(
 }
 
 /// Get the specified if it exists on this component, or on the component it copies
-/// Recursively searches the target (and the target's target if it has one), and finds
+/// Recursively searches the source (and the source's source if it has one), and finds
 /// the nearest attribute to the original node, if any exist
 fn get_attribute_including_copy<'a>(
     components: &'a HashMap<String, ComponentNode>,
@@ -459,11 +459,11 @@ fn get_attribute_including_copy<'a>(
     attribute_name: AttributeName
 )-> Option<&'a Attribute> {
 
-    // let target = components.get(target_name).unwrap();
+    // let source = components.get(source_name).unwrap();
     if let Some(attribute) = component.attributes.get(attribute_name) {
         Some(attribute)
 
-    } else if let Some(CopyTarget::Component(ref target_name)) = component.copy_target {
+    } else if let Some(CopySource::Component(ref source_name)) = component.copy_source {
 
         // The hide attribute is an exception: we don't inherit it
         if attribute_name == "hide" {
@@ -471,8 +471,8 @@ fn get_attribute_including_copy<'a>(
 
             
         } else {
-            let target = components.get(target_name).unwrap();
-            get_attribute_including_copy(components, target, attribute_name)
+            let source = components.get(source_name).unwrap();
+            get_attribute_including_copy(components, source, attribute_name)
         }
 
 
@@ -644,13 +644,13 @@ fn get_key_to_essential_data(
     format!("{}:{}", get_name_of_original(components, component), state_var_name)
 }
 
-/// Recurse until the original target is found
+/// Recurse until the original source is found
 fn get_name_of_original(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode
 ) -> String {
-    match &component.copy_target {
-        Some(CopyTarget::Component(target)) => get_name_of_original(components, components.get(target).unwrap()),
+    match &component.copy_source {
+        Some(CopySource::Component(source)) => get_name_of_original(components, components.get(source).unwrap()),
         _ => component.name.clone(),
     }
 } 
@@ -1195,19 +1195,19 @@ pub fn json_components(core: &DoenetCore) -> serde_json::Value {
 
 
 
-////////////// Wrappers providing for CopyTarget and sequence component //////////////
+////////////// Wrappers providing for CopySource and sequence component //////////////
 
-/// This includes the copy target's children. The flag is false when it is
-/// a copy target's child. Also skips sequence components.
+/// This includes the copy source's children. The flag is false when it is
+/// a copy source's child. Also skips sequence components.
 fn get_children_including_copy(
     components: &HashMap<String, ComponentNode>,
     component: &ComponentNode
 ) -> Vec<(ComponentChild, bool)> {
     let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
-    if let Some(CopyTarget::Component(ref target)) = component.copy_target {
+    if let Some(CopySource::Component(ref source)) = component.copy_source {
 
-        let target_comp = components.get(target).unwrap();
-        children_vec = get_children_including_copy(components, target_comp)
+        let source_comp = components.get(source).unwrap();
+        children_vec = get_children_including_copy(components, source_comp)
             .iter()
             .map(|(c, _)| (c.clone(), false))
             .collect();
@@ -1239,12 +1239,12 @@ fn return_dependency_instruction_including_shadowing(
     state_var: StateVarName,
 ) -> HashMap<InstructionName, DependencyInstruction> {
 
-    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
+    if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
 
         HashMap::from([
             (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar(StateVarDependencyInstruction {
-                component_name: Some(target_comp), //.clone(),
-                state_var: target_state_var
+                component_name: Some(source_comp), //.clone(),
+                state_var: source_state_var
             }))
         ])
 
@@ -1267,12 +1267,12 @@ fn generate_update_instruction_including_shadowing(
 
     if state_var_is_shadowing(component, state_var).is_some() {
 
-        // Assuming that target state var is same type as this state var
-        let target_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)?
+        // Assuming that source state var is same type as this state var
+        let source_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)?
             .has_exactly_one_element()?
             .value();
 
-        Ok(StateVarUpdateInstruction::SetValue(target_value))
+        Ok(StateVarUpdateInstruction::SetValue(source_value))
 
     } else {
         // Otherwise, this state var is not shadowing, so proceed normally
@@ -1290,9 +1290,9 @@ fn request_dependencies_to_update_value_including_shadow(
     state_var: StateVarName,
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest> {
-    if let Some((target_comp, target_state_var)) = state_var_is_shadowing(component, state_var) {
+    if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
 
-        vec![UpdateRequest::SetStateVar(target_comp, target_state_var, new_value)]
+        vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
     } else {
         let requests = component.definition.state_var_definitions().get(state_var).unwrap()
@@ -1302,16 +1302,16 @@ fn request_dependencies_to_update_value_including_shadow(
     }
 }
 
-/// Detect if a state var is shadowing because of a CopyTarget
+/// Detect if a state var is shadowing because of a CopySource
 /// and has a primary input state variable, which is needed.
 fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
     -> Option<(String, StateVarName)> {
 
-    if let Some(CopyTarget::StateVar(ref target_comp, target_state_var)) = component.copy_target {
+    if let Some(CopySource::StateVar(ref source_comp, source_state_var)) = component.copy_source {
         if let Some(primary_input_state_var) = component.definition.primary_input_state_var() {
 
             if state_var == primary_input_state_var {
-                Some((target_comp.to_string(), target_state_var))
+                Some((source_comp.to_string(), source_state_var))
             } else {
                 None
             }

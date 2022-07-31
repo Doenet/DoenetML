@@ -71,10 +71,10 @@ pub fn package_subtree_as_json(
         None => Value::Null,
     });
     my_json_props.insert("type".to_owned(), Value::String(component.component_type.to_string()));
-    my_json_props.insert("copyTarget".to_owned(), match &component.copy_target {
-        Some(CopyTarget::Component(copy_target_name)) => Value::String(copy_target_name.to_string()),
-        Some(CopyTarget::StateVar(target_name, target_state_var)) => Value::String(
-            format!("{} {}", target_name, target_state_var)
+    my_json_props.insert("copySource".to_owned(), match &component.copy_source {
+        Some(CopySource::Component(copy_source_name)) => Value::String(copy_source_name.to_string()),
+        Some(CopySource::StateVar(source_name, source_state_var)) => Value::String(
+            format!("{} {}", source_name, source_state_var)
         ),
         None => Value::Null,
     });

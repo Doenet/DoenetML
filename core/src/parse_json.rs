@@ -1,7 +1,7 @@
 use serde::Deserialize;
 
 use crate::Action;
-use crate::component::{Attribute, AttributeDefinition, CopyTarget, generate_component_definitions};
+use crate::component::{Attribute, AttributeDefinition, CopySource, generate_component_definitions};
 use crate::prelude::*;
 
 use crate::AttributeData;
@@ -28,7 +28,7 @@ struct ComponentTree {
 #[serde(rename_all = "camelCase")]
 struct Props {
     name: Option<String>,
-    copy_target: Option<String>,
+    copy_target: Option<String>, //this will become copy_source
     prop: Option<String>,
     #[serde(flatten)]
     attributes: HashMap<String, AttributeValue>,
@@ -159,16 +159,16 @@ fn add_component_from_json(
     };
 
 
-    let copy_target: Option<CopyTarget> =
-        if let Some(ref target_name) = component_tree.props.copy_target {
-            if let Some(ref target_state_var) = component_tree.props.prop {
+    let copy_source: Option<CopySource> =
+        if let Some(ref source_name) = component_tree.props.copy_target {
+            if let Some(ref source_state_var) = component_tree.props.prop {
 
-                let state_var_name = all_state_var_names.get(target_state_var).ok_or(
-                    format!("{} is not a valid state var name", target_state_var))?;
+                let state_var_name = all_state_var_names.get(source_state_var).ok_or(
+                    format!("{} is not a valid state var name", source_state_var))?;
 
-                Some(CopyTarget::StateVar(target_name.clone(), state_var_name))
+                Some(CopySource::StateVar(source_name.clone(), state_var_name))
             } else {
-                Some(CopyTarget::Component(target_name.clone()))
+                Some(CopySource::Component(source_name.clone()))
             }
         } else {
             None
@@ -214,7 +214,7 @@ fn add_component_from_json(
                         component_type: attr_comp_type,
                         attributes: attr_component_definition.empty_attribute_data(),
                 
-                        copy_target: None,
+                        copy_source: None,
 
                         definition: attr_component_definition.clone(),
                     };
@@ -292,7 +292,7 @@ fn add_component_from_json(
         component_type,
         attributes,
 
-        copy_target,
+        copy_source,
 
         definition: component_definition.clone(),
     };

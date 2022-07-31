@@ -54,7 +54,7 @@ pub struct ComponentNode {
     pub attributes: Box<dyn AttributeData>, //assuming the AttributeData type matches with the component_type
 
     // Flags
-    pub copy_target: Option<CopyTarget>,
+    pub copy_source: Option<CopySource>,
 
     pub definition: Box<dyn ComponentDefinition>,
 }
@@ -75,20 +75,20 @@ pub trait ComponentStateVars: Debug {
     fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
 }
 
-/// How a CopyTarget affects its component
+/// How a CopySource affects its component
 ///
 /// Component:
-/// - This only works if the target component is the same type.
-/// - In a `ChildUpdateInstruction`, the target's children are included before 
+/// - This only works if the source component is the same type.
+/// - In a `ChildUpdateInstruction`, the source's children are included before 
 ///   including its own. So without its own children, many of component'struct
-///   state variables become exactly the same as the target's.
+///   state variables become exactly the same as the source's.
 /// - For the renderer, these 'inherited' children are copied but need
 ///   a different name supplied by core's `aliases` HashMap. When the renderer 
 ///   sends an action that involves an alias, it is redirected
-///   to the target's existing child.
-/// - An `EssentialDependencyInstruction` will point to the target's
+///   to the source's existing child.
+/// - An `EssentialDependencyInstruction` will point to the source's
 ///   essential variables. The component does not have essential data for itself.s
-/// - Attributes are inherited from the target but are overridden when specified.
+/// - Attributes are inherited from the source but are overridden when specified.
 ///
 /// StateVar:
 /// - Three `StateVariableDefinition` functions are overridden for the component's
@@ -96,10 +96,10 @@ pub trait ComponentStateVars: Debug {
 ///   - `return_dependency_instructions`
 ///   - `determine_state_var_from_dependencies`
 ///   - `request_dependencies_to_update_value`
-///   These overrides cause the primary variable to depend on and copy the target.
-/// - If the component type has no primary input, a StateVar CopyTarget will not work.
+///   These overrides cause the primary variable to depend on and copy the source.
+/// - If the component type has no primary input, a StateVar CopySource will not work.
 #[derive(Debug, Clone)]
-pub enum CopyTarget {
+pub enum CopySource {
     Component(String),
     StateVar(String, StateVarName),
 }
