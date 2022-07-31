@@ -23,7 +23,6 @@ struct MyStateVars {
     immediate_value: StateVar,
     width: StateVar,
     disabled: StateVar,
-
 }
 
 impl ComponentStateVars for MyStateVars {
@@ -40,9 +39,8 @@ impl ComponentStateVars for MyStateVars {
             _ => Err(format!("MathInput does not have state var {}", state_var_name))
         }
     }
-
-
 }
+
 
 
 lazy_static! {
@@ -180,7 +178,7 @@ impl ComponentDefinition for MyComponentDefinition {
 
         Box::new(MyStateVars {
 
-            value: StateVar::new(StateVarValueType::String),
+            value: StateVar::new(StateVarValueType::Number),
             hidden: StateVar::new(StateVarValueType::Boolean),
             immediate_value: StateVar::new(StateVarValueType::String),
             size: StateVar::new(StateVarValueType::Number),
@@ -222,7 +220,8 @@ impl ComponentDefinition for MyComponentDefinition {
             "updateValue" => {
 
                 let immediate_value: String =
-                    resolve_and_retrieve_state_var("immediateValue").try_into().unwrap();
+                    resolve_and_retrieve_state_var("immediateValue").try_into()
+                    .expect("Immediate value should have been a string");
 
                 let value = immediate_value.parse().unwrap_or(0.0);
                 

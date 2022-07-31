@@ -87,7 +87,7 @@ pub trait ComponentStateVars: Debug {
 ///   sends an action that involves an alias, it is redirected
 ///   to the target's existing child.
 /// - An `EssentialDependencyInstruction` will point to the target's
-///   essential variables. The compnent does not have essential data for itself.
+///   essential variables. The component does not have essential data for itself.s
 /// - Attributes are inherited from the target but are overridden when specified.
 ///
 /// StateVar:

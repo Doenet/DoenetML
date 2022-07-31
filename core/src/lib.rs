@@ -709,7 +709,7 @@ fn resolve_state_variable(
     state_var_name: StateVarName
 ) -> StateVarValue {
         
-    // log!("Resolving {}:{}", component.name, state_var_name);
+    // log!("Resolving {}:{} if not resolved", component.name, state_var_name);
 
     let state_vars = core.component_states.get(&component.name).unwrap();
 
@@ -783,6 +783,9 @@ fn resolve_state_variable(
     }
 
 
+    // log!("{}:{} dependency values: {:#?}", component.name, state_var_name, dependency_values);
+
+
     let update_instruction = generate_update_instruction_including_shadowing(
         component,state_var_name,dependency_values
     ).expect(&format!("Can't resolve [{}]:[{}] ({} component type)",
@@ -805,7 +808,7 @@ fn mark_stale_state_var_and_dependencies(
     state_var_name: StateVarName)
 {
 
-    log!("Marking stale {}:{}", component.name, state_var_name);
+    // log!("Marking stale {}:{}", component.name, state_var_name);
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
@@ -831,7 +834,7 @@ fn mark_stale_essential_datum_and_dependencies(
     essential_var_name: &str
 ) {
 
-    log!("Marking stale essential {}", essential_var_name);
+    // log!("Marking stale essential {}", essential_var_name);
 
     // tuples of component and state var that depend on this essential datum
     let my_dependencies: Vec<(String, StateVarName)> = core.dependencies
@@ -895,13 +898,15 @@ fn handle_update_instruction<'a>(
 
             let new_state_var_value = new_value;
             set_state_var(component, component_state_vars, name, new_state_var_value.clone()).expect(
-                &format!("Failed to set {}:{}", component.name, name)
+                &format!("Failed to set {}:{} while handling SetValue update instruction", component.name, name)
             );
 
             updated_value = new_state_var_value;
         }
 
     };
+
+    // log!("Updated value {}", updated_value);
 
     return updated_value;
 }
@@ -1023,14 +1028,14 @@ fn process_update_request(
                 &format!("Failed to set essential value for {}, {}", component.name, key)
             );
 
-            log!("Updated essential data {:#?}", core.essential_data);
+            // log!("Updated essential data {:#?}", core.essential_data);
 
             mark_stale_essential_datum_and_dependencies(core, &key);
         },
 
         UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_name, requested_value) => {
 
-            log!("desired value {:?}", requested_value);
+            // log!("desired value {:?}", requested_value);
 
             let dep_comp = core.component_nodes.get(dep_comp_name).unwrap();
 
@@ -1041,7 +1046,7 @@ fn process_update_request(
                 requested_value.clone(),
             );
 
-            log!("dep_update_requests {:#?}", dep_update_requests);
+            // log!("dep_update_requests {:#?}", dep_update_requests);
 
             for dep_update_request in dep_update_requests {
                 process_update_request(core, dep_comp, dep_state_var_name, &dep_update_request);
