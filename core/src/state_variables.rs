@@ -78,7 +78,7 @@ pub enum StateVarVariant {
 
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum StateVarValue {
     String(String),
     Number(f64),

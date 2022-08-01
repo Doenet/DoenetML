@@ -11,10 +11,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
-    "compile-wasm": "wasm-pack build --target web --dev rust-doenet-core-wasm/",
-    "compile-wasm-nightly": "bash -c 'export RUSTFLAGS=\"-Z macro-backtrace\"; rustup run nightly wasm-pack build --target web --dev rust-doenet-core-wasm/'",
-    "test": "cypress open",
-    "test:all": "cypress run -b 'chrome' --config video=false --headless"
+    "compile-wasm": "wasm-pack build --target web --dev",
+    "compile-wasm-nightly": "bash -c 'export RUSTFLAGS=\"-Z macro-backtrace\"; rustup run nightly wasm-pack build --target web --dev'",
+    "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
+    "test-node": "wasm-pack test --node"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
@@ -36,10 +36,10 @@
     "react-dom": "^18.2.0",
     "react-visibility-sensor-v2": "^1.0.0",
     "recoil": "^0.7.4",
-    "rust-doenet-core-wasm": "file:rust-doenet-core-wasm/pkg",
     "vite-plugin-plain-text": "^1.2.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.18.9",
     "@lezer/generator": "^0.15.2",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",

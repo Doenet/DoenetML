@@ -9,11 +9,11 @@ describe('Text Tag Tests', function () {
 
     it('spaces preserved between tags', () => {
       cy.window().then(async (win) => {
+
         win.postMessage({
           doenetML: `
       <document><p><text>Hello</text> <text>there</text>!</p>
-  
-      <p><text>We <text>could</text> be <text copyTarget="/_text2" />.</text></p></document>
+      <p><text>We <text>could</text> be <text copySource="/_text2" />.</text></p></document>
       `}, "*");
       });
   

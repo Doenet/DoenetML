@@ -1,4 +1,4 @@
-import init, { PublicDoenetCore } from "rust-doenet-core-wasm";
+import init, { PublicDoenetCore } from "../../pkg";
 import { parseAndCompile } from "../Parser/parser";
 
 let doenetCore;
