@@ -775,7 +775,7 @@ fn resolve_state_variable(
 
                 values_for_this_dep.push(DependencyValue {
 
-                    value: value.get_value().unwrap(),
+                    value: value.get_value(),
 
                     // We don't really need these fields in this case (?)
                     component_type: "essential_data",

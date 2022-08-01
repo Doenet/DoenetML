@@ -467,7 +467,9 @@ impl TryFrom<StateVarValue> for String {
     fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
         match v {
             StateVarValue::String(x) => Ok( x.to_string() ),
-            _ => Err("StateVarValue is not a string"),
+            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to string"),
+            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to string"),
+            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to string"),
         }
     }
 }
@@ -476,7 +478,9 @@ impl TryFrom<StateVarValue> for bool {
     fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
         match v {
             StateVarValue::Boolean(x) => Ok( x ),
-            _ => Err("StateVarValue is not a bool"),
+            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to boolean"),
+            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to boolean"),
+            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to boolean"),
         }
     }
 }
@@ -485,7 +489,9 @@ impl TryFrom<StateVarValue> for f64 {
     fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
         match v {
             StateVarValue::Number(x) => Ok( x ),
-            _ => Err("StateVarValue is not a number"),
+            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to number"),
+            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to number"),
+            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to number"),
         }
     }
 }
@@ -494,7 +500,9 @@ impl TryFrom<StateVarValue> for i64 {
     fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
         match v {
             StateVarValue::Integer(x) => Ok( x ),
-            _ => Err("StateVarValue is not an integer"),
+            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to integer"),
+            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to integer"),
+            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to integer"),
         }
     }
 }
