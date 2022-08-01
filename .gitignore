@@ -27,11 +27,11 @@ src/media/byPageId/
 
 
 
-core/target
-core/Cargo.lock
+doenet-core/target
+doenet-core/Cargo.lock
 
-core/core-derive/Cargo.lock
-core/core-derive/target
+doenet-core/core-derive/Cargo.lock
+doenet-core/core-derive/target
 
 target
 pkg
