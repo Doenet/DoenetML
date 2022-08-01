@@ -96,14 +96,14 @@ pub fn create_components_tree_from_json(program: &str)
 
     let component_definitions = generate_component_definitions();
 
-    let mut all_state_var_names = HashMap::new();
-    for (_, def) in component_definitions.iter() {
-
-        for &name in def.state_var_definitions().keys() {
-            all_state_var_names.insert(name.to_string(), name);
-        }
-
-    }
+    let all_state_var_names: HashMap<String, StateVarName> = component_definitions
+        .iter()
+        .flat_map(|(_, def)|
+            def.state_var_definitions()
+            .iter()
+            .map(|(name, _)| (name.to_string(), *name))
+            .collect::<HashMap<String, StateVarName>>())
+        .collect();
 
     // log!("All state var names {:#?}", all_state_var_names);
 

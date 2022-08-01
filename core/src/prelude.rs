@@ -10,6 +10,7 @@ pub type ComponentType = &'static str;
 /// camelCase
 pub type AttributeName = &'static str;
 
+// A ComponentName is not be static because it cannot be known at compile time.
 pub type ComponentName = String;
 
 /// A macro to provide println! style syntax for console.log logging.
