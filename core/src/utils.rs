@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 use crate::component::*;
+use crate::state_var::StateVar;
 use crate::state_variables::StateVarValue;
 use crate::state_var::State;
 use crate::Dependency;
@@ -10,8 +11,8 @@ use crate::Dependency;
 
 
 pub fn package_subtree_as_json(
-    components: &HashMap<String, ComponentNode>,
-    component_states: &HashMap<String, Box<dyn ComponentStateVars>>,
+    components: &HashMap<ComponentName, ComponentNode>,
+    component_states: &HashMap<ComponentName, HashMap<StateVarName, StateVar>>,
     component: &ComponentNode
 ) -> serde_json::Value {
 
@@ -38,7 +39,7 @@ pub fn package_subtree_as_json(
     let attributes: Map<String, Value> = component.definition.attribute_definitions().keys()
         .into_iter()
         .filter_map(|attribute_name|
-            match component.attributes.get(&attribute_name) {
+            match component.attributes.get(attribute_name) {
                 Some(attribute) => {
                     let attribute_json = match attribute {
                         Attribute::Component(component_name) => {
@@ -110,7 +111,7 @@ pub fn package_subtree_as_json(
 
 
 pub fn json_dependencies(
-    dependencies: &HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>
+    dependencies: &HashMap<ComponentName, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>
 ) -> serde_json::Value {
 
     use serde_json::Value;

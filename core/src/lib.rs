@@ -8,6 +8,7 @@ pub mod parse_json;
 pub mod utils;
 
 use lazy_static::lazy_static;
+use state_var::StateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
 
@@ -21,21 +22,23 @@ use state_variables::*;
 /// This stores the components and dependency graph.
 #[derive(Debug)]
 pub struct DoenetCore {
-    pub component_nodes: HashMap<String, ComponentNode>,
-    pub component_states: HashMap<String, Box<dyn ComponentStateVars>>,
-    pub root_component_name: String,
+    pub component_nodes: HashMap<ComponentName, ComponentNode>,
+    pub component_states: HashMap<ComponentName, HashMap<StateVarName, StateVar>>,
+    pub root_component_name: ComponentName,
 
     /// Stores every dependency, indexed by the name of the component and the state variable.
-    pub dependencies: HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>,
+    pub dependencies: HashMap<ComponentName, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>,
 
     /// States that the user can change and which state variables may depend on
     /// (ex: the contents of input dialogues)
     pub essential_data: HashMap<String, EssentialStateVar>,
 
-    /// We send components to the renderer that do not exist: the inherited children of a copy.
+    /// We send components to the renderer that do not exists
+    /// - the inherited children of a copy
+    ///
     /// The renderer needs to recognize these as a different component so we alias its name.
-    /// This maps the renderer's to the actual name.
-    pub aliases: HashMap<String, String>,
+    /// This maps the name the renderer is given to the actual name.
+    pub aliases: HashMap<String, ComponentName>,
 }
 
 
@@ -82,7 +85,7 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
 
     // For every component copy, add aliases for children it inherits from its source.
-    let mut aliases: HashMap<String, String> = HashMap::new();
+    let mut aliases: HashMap<String, ComponentName> = HashMap::new();
     let copies = component_nodes.iter().filter(|(_, c)| match c.copy_source {
         Some(CopySource::Component(_)) => true,
         _ => false,
@@ -108,9 +111,9 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
     // Fill in HashMaps: component_states and dependencies for every component
     // and supply essential_data required by any `EssentialDependency`.
 
-    let mut component_states: HashMap<String, Box<dyn ComponentStateVars>> = HashMap::new();
+    let mut component_states: HashMap<ComponentName, HashMap<StateVarName, StateVar>> = HashMap::new();
     let mut dependencies:
-        HashMap<String, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
+        HashMap<ComponentName, HashMap<StateVarName, HashMap<InstructionName, Dependency>>> = HashMap::new();
     let mut essential_data: HashMap<String, EssentialStateVar> = HashMap::new();
 
     for (component_name, component_node) in component_nodes.iter() {
@@ -124,9 +127,17 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         dependencies.insert(component_name.to_string(), dependencies_for_this_component);
 
 
+        let component_state: HashMap<StateVarName, StateVar> = component_node
+            .definition
+            .state_var_definitions()
+            .iter()
+            .map(|(&sv_name, sv_variant)| (sv_name, StateVar::new(sv_variant)))
+            .collect();
+
+
         component_states.insert(
             component_name.clone(),
-            component_node.definition.new_stale_component_state_vars()
+            component_state,
         );
     }
 
@@ -148,14 +159,14 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 }
 
 
-fn name_child_of_copy(child: &str, copy: &str) -> String {
+fn name_child_of_copy(child: &str, copy: &str) -> ComponentName {
     format!("__cp:{}({})", child, copy)
 }
 
 fn add_alias_for_children(
-    aliases: &mut HashMap<String, String>,
+    aliases: &mut HashMap<String, ComponentName>,
     component: &ComponentNode,
-    component_nodes: &HashMap<String, ComponentNode>,
+    component_nodes: &HashMap<ComponentName, ComponentNode>,
     copy: &String,
 ) {
     for (child, _) in get_children_including_copy(component_nodes, component).iter() {
@@ -166,7 +177,7 @@ fn add_alias_for_children(
 }
 
 
-fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
+fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentNode>) {
 
     use regex::Regex;
     use std::iter::repeat;
@@ -216,12 +227,12 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
 
 
     // Keyed by the component name and by the original position of the child we are replacing
-    let mut replacement_children: HashMap<String, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
+    let mut replacement_children: HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
     // Keyed on the source component names, or the source (component name, state var)
-    let mut macro_copy_counter: HashMap<String, u32> = HashMap::new();
+    let mut macro_copy_counter: HashMap<ComponentName, u32> = HashMap::new();
     
 
     // This iterator gives info for every string child
@@ -312,7 +323,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                         copy_source: Some(CopySource::StateVar(
                             source_comp.name.clone(), prop_name)),
 
-                        attributes: copy_def.empty_attribute_data(),
+                        attributes: HashMap::new(),
                         component_type: copy_comp_type,
                         definition: copy_def,
                     }
@@ -331,7 +342,7 @@ fn replace_macros_with_copies(components: &mut HashMap<String, ComponentNode>) {
                         children: vec![],
     
                         copy_source: Some(CopySource::Component(source_comp.name.clone())),
-                        attributes: source_comp.definition.empty_attribute_data(),
+                        attributes: HashMap::new(),
     
                         .. source_comp.clone()
                     }
@@ -409,7 +420,7 @@ fn default_component_type_for_state_var(component: &ComponentNode, state_var: St
 
 
 fn create_all_dependencies_for_component(
-    components: &HashMap<String, ComponentNode>,
+    components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> HashMap<StateVarName, HashMap<InstructionName, Dependency>> {
@@ -459,7 +470,7 @@ fn create_all_dependencies_for_component(
 /// Recursively searches the source (and the source's source if it has one), and finds
 /// the nearest attribute to the original node, if any exist
 fn get_attribute_including_copy<'a>(
-    components: &'a HashMap<String, ComponentNode>,
+    components: &'a HashMap<ComponentName, ComponentNode>,
     component: &'a ComponentNode,
     attribute_name: AttributeName
 )-> Option<&'a Attribute> {
@@ -490,7 +501,7 @@ fn get_attribute_including_copy<'a>(
 
 /// This function also creates essential data when a DependencyInstruction asks for it.
 fn create_dependency_from_instruction(
-    components: &HashMap<String, ComponentNode>,
+    components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     state_var_name: StateVarName,
     instruction: &DependencyInstruction,
@@ -642,7 +653,7 @@ fn create_dependency_from_instruction(
 
 /// A key to the essential_data HashMap is a combination of the component and state var name.
 fn get_key_to_essential_data(
-    components: &HashMap<String, ComponentNode>,
+    components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     state_var_name: &str,
 ) -> String {
@@ -651,7 +662,7 @@ fn get_key_to_essential_data(
 
 /// Recurse until the original source is found
 fn get_name_of_original(
-    components: &HashMap<String, ComponentNode>,
+    components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode
 ) -> String {
     match &component.copy_source {
@@ -693,7 +704,7 @@ fn get_state_variables_depending_on_me(
 /// Iterate through each dependency as a tuple.
 /// TODO: find if this is slower
 fn _dependencies_iter(core: &DoenetCore)
-    -> impl Iterator<Item=(&String, StateVarName, InstructionName, &Dependency)> {
+    -> impl Iterator<Item=(&ComponentName, StateVarName, InstructionName, &Dependency)> {
 
     core.dependencies.iter()
         .flat_map(|(c_name, h1)| h1.iter()
@@ -798,7 +809,7 @@ fn resolve_state_variable(
     );
 
 
-    let new_value = handle_update_instruction(component, state_vars.as_ref(), state_var_name, update_instruction);
+    let new_value = handle_update_instruction(component, state_vars, state_var_name, update_instruction);
 
     return new_value;
 
@@ -842,7 +853,7 @@ fn mark_stale_essential_datum_and_dependencies(
     // log!("Marking stale essential {}", essential_var_name);
 
     // tuples of component and state var that depend on this essential datum
-    let my_dependencies: Vec<(String, StateVarName)> = core.dependencies
+    let my_dependencies: Vec<(ComponentName, StateVarName)> = core.dependencies
         .iter()
         .flat_map(|(component_name, h)|
             h.iter()
@@ -876,7 +887,7 @@ fn mark_stale_essential_datum_and_dependencies(
 /// Sets the state var and returns the new value
 fn handle_update_instruction<'a>(
     component: &'a ComponentNode,
-    component_state_vars: &dyn ComponentStateVars,
+    component_state_vars: &HashMap<StateVarName, StateVar>,
     name: StateVarName,
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
@@ -919,7 +930,7 @@ fn handle_update_instruction<'a>(
 
 fn set_state_var(
     component: &ComponentNode,
-    component_state_vars: &dyn ComponentStateVars,
+    component_state_vars: &HashMap<StateVarName, StateVar>,
     name: StateVarName,
     val: StateVarValue)
 -> Result<(), String> {
@@ -935,8 +946,11 @@ fn set_state_var(
 
 #[derive(Debug)]
 pub struct Action {
-    pub component_name: String,
+    pub component_name: ComponentName,
     pub action_name: String,
+
+    /// The keys are not strictly state variable names.
+    /// They are whatever name the renderer calls the new value.
     pub args: HashMap<String, StateVarValue>,
 }
 
@@ -945,7 +959,7 @@ pub struct Action {
 #[derive(Debug, Clone)]
 enum UpdateRequest {
     SetEssentialValue(String, StateVarValue),
-    SetStateVar(String, StateVarName, StateVarValue),
+    SetStateVar(ComponentName, StateVarName, StateVarValue),
 }
 
 
@@ -1084,12 +1098,12 @@ fn generate_render_tree_internal(
     core: &DoenetCore,
     component: &ComponentNode,
     json_obj: &mut Vec<serde_json::Value>,
-    came_from_copy: Option<&String>,
+    came_from_copy: Option<&ComponentName>,
 ) {
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
-    let comp_state_vars = component_state.as_ref();
+    let comp_state_vars = component_state;
 
     use serde_json::json;
 
@@ -1205,7 +1219,7 @@ pub fn json_components(core: &DoenetCore) -> serde_json::Value {
 /// This includes the copy source's children. The flag is false when it is
 /// a copy source's child. Also skips sequence components.
 fn get_children_including_copy(
-    components: &HashMap<String, ComponentNode>,
+    components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode
 ) -> Vec<(ComponentChild, bool)> {
     let mut children_vec: Vec<(ComponentChild, bool)> = Vec::new();
@@ -1310,7 +1324,7 @@ fn request_dependencies_to_update_value_including_shadow(
 /// Detect if a state var is shadowing because of a CopySource
 /// and has a primary input state variable, which is needed.
 fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
-    -> Option<(String, StateVarName)> {
+    -> Option<(ComponentName, StateVarName)> {
 
     if let Some(CopySource::StateVar(ref source_comp, source_state_var)) = component.copy_source {
         if let Some(primary_input_state_var) = component.definition.primary_input_state_var() {

@@ -4,7 +4,6 @@ use crate::Action;
 use crate::component::{Attribute, AttributeDefinition, CopySource, generate_component_definitions};
 use crate::prelude::*;
 
-use crate::AttributeData;
 use crate::ComponentDefinition;
 use crate::ComponentChild;
 use crate::ComponentNode;
@@ -176,7 +175,7 @@ fn add_component_from_json(
 
     let attribute_definitions = component_definition.attribute_definitions();
 
-    let mut attributes: Box<dyn AttributeData> = component_definition.empty_attribute_data();
+    let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
 
     // Create a hashmap from lowercase valid names to normalized valid names
     let attr_lowercase_to_normalized: HashMap<String, AttributeName> =
@@ -212,14 +211,19 @@ fn add_component_from_json(
                         children: vec![string_child],
                 
                         component_type: attr_comp_type,
-                        attributes: attr_component_definition.empty_attribute_data(),
+                        attributes: HashMap::new(),
                 
                         copy_source: None,
 
                         definition: attr_component_definition.clone(),
                     };
 
-                    attributes.add_attribute(attribute_name, Attribute::Component(attr_comp_name.clone()))?;
+                    add_attribute(
+                        &mut attributes,
+                        &component_definition,
+                        attribute_name,
+                        Attribute::Component(attr_comp_name.clone())
+                    ).map_err(|e| format!("For a {} component, {}", component_type, e))?;
 
                     component_nodes.insert(attr_comp_name, attribute_component_node);
                 },
@@ -231,9 +235,12 @@ fn add_component_from_json(
 
                             match attr_value {
                                 AttributeValue::Bool(bool_value) => {
-                                    attributes.add_attribute(
+                                    add_attribute(
+                                        &mut attributes,
+                                        &component_definition,
                                         attribute_name,
-                                        Attribute::Primitive(StateVarValue::Boolean(*bool_value)))?;
+                                        Attribute::Primitive(StateVarValue::Boolean(*bool_value))
+                                    ).map_err(|e| format!("For a {} component, {}", component_type, e))?;
                                 }
                                 _ => {
                                     return Err(format!("Attribute {} has the wrong type", attribute_name));
@@ -301,3 +308,20 @@ fn add_component_from_json(
 
     Ok(component_name)
 }
+
+/// Safely add an attribute, ensuring that it exists
+fn add_attribute(
+    attributes: &mut HashMap<AttributeName, Attribute>,
+    component_def: &Box<dyn ComponentDefinition>,
+    name: AttributeName,
+    attribute: Attribute,
+) -> Result<(), String> {
+
+    if component_def.attribute_definitions().contains_key(name) {
+        attributes.insert(name, attribute);
+        Ok(())
+    } else {
+        Err(format!("no attribute called {}", name))
+    }
+}
+

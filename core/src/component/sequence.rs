@@ -8,32 +8,6 @@ use super::*;
 
 use crate::ObjectTraitName;
 
-use crate::state_var::StateVar;
-
-
-
-#[derive(Debug)]
-struct MyStateVars {
-    hidden: StateVar,
-    disabled: StateVar,
-    from: StateVar,
-    to: StateVar,
-}
-
-impl ComponentStateVars for MyStateVars {
-    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
-        match state_var_name {
-            "hidden" => Ok(&self.hidden),
-            "disabled" => Ok(&self.disabled),
-            "from" => Ok(&self.from),
-            "to" => Ok(&self.to),
-
-            _ => Err(format!("Number does not have state var {}", state_var_name))
-        }
-    }
-
-
-}
 
 
 lazy_static! {
@@ -53,41 +27,6 @@ lazy_static! {
     };
 }
 
-
-#[derive(Debug, Default, Clone)]
-struct MyAttributeData {
-
-    // These types could be more specific
-    hide: Option<Attribute>,
-    disabled: Option<Attribute>,
-    from: Option<Attribute>,
-    to: Option<Attribute>,
-}
-
-
-impl AttributeData for MyAttributeData {
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
-        match name {
-            "hide" => { self.hide = Some(attribute); },
-            "disabled" => { self.disabled = Some(attribute); },
-            "from" => { self.from = Some(attribute); },
-            "to" => { self.to = Some(attribute); },
-
-            _ => { return Err("Invalid attribute name".to_string()) }
-        }
-        Ok(())
-    }
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute> {
-        match name {
-            "hide" => &self.hide,
-            "disabled" => &self.disabled,
-            "from" => &self.from,
-            "to" => &self.to,
-            _ => panic!("Invalid attribute name {} for sequence", name)
-        }
-    }
-}
 
 
 lazy_static! {
@@ -118,21 +57,6 @@ impl ComponentDefinition for MyComponentDefinition {
 
     fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
         &MY_STATE_VAR_DEFINITIONS
-    }
-
-    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
-        Box::new(MyAttributeData { ..Default::default() })
-    }
-
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
-
-        Box::new(MyStateVars {
-            hidden: StateVar::new(StateVarValueType::Boolean),
-            disabled: StateVar::new(StateVarValueType::Boolean),
-
-            from: StateVar::new(StateVarValueType::Number),
-            to: StateVar::new(StateVarValueType::Number),
-        })
     }
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {

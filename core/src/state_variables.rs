@@ -108,7 +108,7 @@ pub struct ChildDependencyInstruction {
 
 #[derive(Default, Clone, Debug)]
 pub struct StateVarDependencyInstruction {
-    pub component_name: Option<String>, //default: Option::None
+    pub component_name: Option<ComponentName>, //default: Option::None
     pub state_var: StateVarName, //default: ""
 }
 
@@ -666,9 +666,4 @@ impl StateVarVariant {
         }
     }
 }
-
-
-
-
-
 

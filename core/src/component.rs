@@ -9,7 +9,6 @@ pub mod boolean_input;
 pub mod sequence;
 
 use crate::prelude::*;
-use crate::state_var::StateVar;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
 
 use std::collections::HashMap;
@@ -39,19 +38,20 @@ pub enum AttributeDefinition {
 
 #[derive(Debug, Clone)]
 pub enum Attribute {
-    Component(String),
+    Component(ComponentName), // attribute component
     Primitive(StateVarValue)
 }
 
 #[derive(Debug, Clone)]
 pub struct ComponentNode {
 
-    pub name: String,
-    pub parent: Option<String>,
+    pub name: ComponentName,
+    pub parent: Option<ComponentName>,
     pub children: Vec<ComponentChild>,
     pub component_type: ComponentType,
 
-    pub attributes: Box<dyn AttributeData>, //assuming the AttributeData type matches with the component_type
+    // assuming the AttributeData type matches with the component_type
+    pub attributes: HashMap<AttributeName, Attribute>,
 
     // Flags
     pub copy_source: Option<CopySource>,
@@ -60,20 +60,6 @@ pub struct ComponentNode {
 }
 
 
-pub trait AttributeData: Debug + CloneAttributeData {
-    // attributes(&self)  -> HashMap
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute>;
-
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String>;
-
-    // fn add_if_exists(&self, attribute_name: AttributeName, attribute_value: StateVarValue) -> Option<String>
-}
-
-
-pub trait ComponentStateVars: Debug {
-    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String>;
-}
 
 /// How a CopySource affects its component
 ///
@@ -100,8 +86,8 @@ pub trait ComponentStateVars: Debug {
 /// - If the component type has no primary input, a StateVar CopySource will not work.
 #[derive(Debug, Clone)]
 pub enum CopySource {
-    Component(String),
-    StateVar(String, StateVarName),
+    Component(ComponentName),
+    StateVar(ComponentName, StateVarName),
 }
 
 
@@ -118,9 +104,6 @@ pub trait ComponentDefinition: CloneComponentDefinition {
 
     //TODO: Do we really need this?
     fn get_trait_names(&self) -> Vec<ObjectTraitName>;
-
-    fn empty_attribute_data(&self) -> Box<dyn AttributeData>;
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars>;
 
     /// Process an action and return the state variables to change.
     fn on_action<'a>(
@@ -160,105 +143,18 @@ impl Debug for dyn ComponentDefinition {
 
 
 
-
 pub type ComponentChild = ObjectName;
 
 /// An object refers to either a component or a string child.
 #[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum ObjectName {
-    Component(String),
+    Component(ComponentName),
     String(String),
 }
 
 
 
-
-
-
-
-
-
-
-
-// trait StateVariableDefinition<T> 
-// where T:Default
-// {
-
-//     /// Some state variable's dependencies change based on other variables.
-//     // pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
-
-//     /// Return the instructions that core can use to make Dependency structs.
-//     fn return_dependency_instructions() -> HashMap<InstructionName, DependencyInstruction>;
-    
-//     /// Determine the value and return that to core as an update instruction.
-//     fn determine_state_var_from_dependencies(dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-//     ) -> StateVarUpdateInstruction<T>;
-
-//     fn for_renderer() -> bool {
-//         false
-//     }
-
-//     fn default_value() -> T {
-//         T::default()
-//     }
-
-//     // arg is desired value
-//     fn request_dependencies_to_update_value(desired_value: T) -> Vec<UpdateRequest>;
-// }
-
-
-
-// struct Value(StateVar);
-// impl StateVariableDefinition<String> for Value {
-
-//     fn return_dependency_instructions() -> HashMap<InstructionName, DependencyInstruction> {
-//         HashMap::new()
-//     }
-
-//     fn determine_state_var_from_dependencies(_dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-//         ) -> StateVarUpdateInstruction<String> {
-//         StateVarUpdateInstruction::SetValue("hi there".to_string())
-//     }
-
-//     fn request_dependencies_to_update_value(_desired_value: String) -> Vec<UpdateRequest> {
-//         vec![]
-//     }
-// }
-
-
-
-
-
-
-
-
-
-
-
 // Boiler plate to allow cloning of trait objects
-
-
-pub trait CloneAttributeData {
-    fn clone_attribute_data<'a>(&self) -> Box<dyn AttributeData>;
-}
-
-impl<T> CloneAttributeData for T
-where
-    T: AttributeData + Clone + 'static,
-{
-    fn clone_attribute_data<'a>(&self) -> Box<dyn AttributeData> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn AttributeData> {
-    fn clone(&self) -> Self {
-        self.clone_attribute_data()
-    }
-}
-
-
-
 
 pub trait CloneComponentDefinition {
     fn clone_comp_def<'a>(&self) -> Box<dyn ComponentDefinition>;
@@ -278,5 +174,4 @@ impl Clone for Box<dyn ComponentDefinition> {
         self.clone_comp_def()
     }
 }
-
 

@@ -10,6 +10,7 @@ pub type ComponentType = &'static str;
 /// camelCase
 pub type AttributeName = &'static str;
 
+pub type ComponentName = String;
 
 /// A macro to provide println! style syntax for console.log logging.
 macro_rules! log {

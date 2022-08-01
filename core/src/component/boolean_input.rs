@@ -8,31 +8,6 @@ use super::*;
 
 use crate::ObjectTraitName;
 
-use crate::state_var::StateVar;
-
-
-
-#[derive(Debug)]
-struct MyStateVars {
-    value: StateVar,
-    hidden: StateVar,
-    disabled: StateVar,
-    // hide: StateVar,
-
-}
-
-impl ComponentStateVars for MyStateVars {
-    fn get(&self, state_var_name: StateVarName) -> Result<&StateVar, String> {
-        match state_var_name {
-            "value" => Ok(&self.value),
-            "hidden" => Ok(&self.hidden),
-            "disabled" => Ok(&self.disabled),
-
-            _ => Err(format!("BooleanInput does not have state var {}", state_var_name))
-        }
-    }
-
-}
 
 
 lazy_static! {
@@ -61,35 +36,6 @@ lazy_static! {
 
 
 
-#[derive(Debug, Default, Clone)]
-struct MyAttributeData {
-
-    // These types could be more specific
-    hide: Option<Attribute>,
-    disabled: Option<Attribute>,
-}
-
-impl AttributeData for MyAttributeData {
-    fn add_attribute(&mut self, name: AttributeName, attribute: Attribute) -> Result<(), String> {
-        match name {
-            "hide" => { self.hide = Some(attribute); },
-            "disabled" => { self.disabled = Some(attribute); },
-
-            _ => { return Err("Invalid attribute name".to_string()) }
-        }
-        Ok(())
-    }
-
-    fn get(&self, name: AttributeName) -> &Option<Attribute> {
-        match name {
-            "hide" => &self.hide,
-            "disabled" => &self.disabled,
-            _ => panic!("Invalid attribute name {} for booleanInput", name)
-        }
-    }
-}
-
-
 lazy_static! {
     pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
         let mut attribute_definitions = HashMap::new();
@@ -99,7 +45,6 @@ lazy_static! {
         attribute_definitions
     };
 }
-
 
 
 
@@ -118,21 +63,6 @@ impl ComponentDefinition for MyComponentDefinition {
 
     fn get_trait_names(&self) -> Vec<ObjectTraitName> {
         vec![ObjectTraitName::TextLike]
-    }
-
-
-
-    fn empty_attribute_data(&self) -> Box<dyn AttributeData> {
-        Box::new(MyAttributeData { ..Default::default() })
-    }
-
-    fn new_stale_component_state_vars(&self) -> Box<dyn ComponentStateVars> {
-
-        Box::new(MyStateVars {
-            value: StateVar::new(StateVarValueType::Boolean),
-            hidden: StateVar::new(StateVarValueType::Boolean),
-            disabled: StateVar::new(StateVarValueType::Boolean),
-        })
     }
 
     fn should_render_children(&self) -> bool {

@@ -36,14 +36,14 @@ pub enum State<T> {
 impl StateVar {
 
     /// Stale StateVar of the given type
-    pub fn new(value_type: StateVarValueType) -> Self {
+    pub fn new(value_type: &StateVarVariant) -> Self {
         StateVar {
             value_type_protector: RefCell::new(
                 match value_type {
-                    StateVarValueType::Boolean => ValueTypeProtector::Boolean(Stale),
-                    StateVarValueType::Integer => ValueTypeProtector::Integer(Stale),
-                    StateVarValueType::Number => ValueTypeProtector::Number(Stale),
-                    StateVarValueType::String => ValueTypeProtector::String(Stale),
+                    StateVarVariant::Boolean(_) => ValueTypeProtector::Boolean(Stale),
+                    StateVarVariant::Integer(_) => ValueTypeProtector::Integer(Stale),
+                    StateVarVariant::Number(_) => ValueTypeProtector::Number(Stale),
+                    StateVarVariant::String(_) => ValueTypeProtector::String(Stale),
                 }
             )
         }
