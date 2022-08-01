@@ -15,9 +15,9 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
 
-        state_var_definitions.insert("from", definition_from_attribute!("from", Integer, 1));
+        state_var_definitions.insert("from", definition_from_attribute!("from", Number, 1.0));
 
-        state_var_definitions.insert("to", definition_from_attribute!("to", Integer, 1));
+        state_var_definitions.insert("to", definition_from_attribute!("to", Number, 1.0));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 

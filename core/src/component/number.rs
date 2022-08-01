@@ -34,13 +34,27 @@ lazy_static! {
             determine_state_var_from_dependencies: |dependency_values| {
                 log!("number dependency value {:#?}", dependency_values);
 
-                let value = dependency_values.dep_value("children")?
-                    .has_exactly_one_element()?
-                    .into_string()?;
-            
-                let num_val = value.parse::<f64>().unwrap_or(0.0);
 
-                Ok(SetValue(num_val))
+                let number_child_value: Option<f64> = dependency_values.dep_value("children")?
+                    .filter_include_component_type("number")
+                    .has_zero_or_one_elements()?
+                    .into_if_exists()?;
+
+                if let Some(number_val) = number_child_value {
+
+                    Ok(SetValue(number_val))
+
+
+                } else {
+
+                    let value = dependency_values.dep_value("children")?
+                        .has_exactly_one_element()?
+                        .into_string()?;
+
+                    let num_val = value.parse::<f64>().unwrap_or(0.0);
+
+                    Ok(SetValue(num_val))
+                }
             },
 
             ..Default::default()

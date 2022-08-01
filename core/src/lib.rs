@@ -554,28 +554,31 @@ fn create_dependency_from_instruction(
                 let mut depends_on_children: Vec<ObjectName> = vec![];
                 for (child, _) in get_children_including_copy(components, component).iter() {
 
-                    for desired_child_type in child_instruction.desired_children.iter() {
-                        match child {
-                            ComponentChild::Component(child_component_name) => {
-                                let child_component = components.get(child_component_name).unwrap();
+                    match child {
+                        ComponentChild::Component(child_component_name) => {
+                            let child_component = components.get(child_component_name).unwrap();
 
+                            for desired_child_type in child_instruction.desired_children.iter() {
                                 if child_component.definition.get_trait_names().contains(desired_child_type) {
-                                    // If not already in list, add it to the list
-                                    if !depends_on_children.contains(&ObjectName::Component(child_component.name.clone())) {
-                                        depends_on_children.push(ObjectName::Component(child_component.name.clone()));
+
+                                    let object_name = ObjectName::Component(child_component.name.clone());
+
+                                    // Add if not already added from previous desired_child_type.
+                                    if !depends_on_children.contains(&object_name) {
+                                        depends_on_children.push(object_name);
                                     }
                                 }
-                            },
+                            }
+                        },
 
-                            ComponentChild::String(string_value) => {
-                                if desired_child_type == &ObjectTraitName::TextLike ||
-                                    desired_child_type == &ObjectTraitName::NumberLike {
+                        ComponentChild::String(string_value) => {
+                            if child_instruction.desired_children.contains(&ObjectTraitName::TextLike)
+                            || child_instruction.desired_children.contains(&ObjectTraitName::NumberLike) {
 
-                                    depends_on_children.push(ObjectName::String(string_value.to_owned()));
+                                depends_on_children.push(ObjectName::String(string_value.to_owned()));
 
-                                }
-                            },
-                        }
+                            }
+                        },
 
                     }
                 }
@@ -725,8 +728,6 @@ fn resolve_state_variable(
     state_var_name: StateVarName
 ) -> StateVarValue {
         
-    // log!("Resolving {}:{} if not resolved", component.name, state_var_name);
-
     let state_vars = core.component_states.get(&component.name).unwrap();
 
     // No need to continue if the state var is already resolved
@@ -734,6 +735,8 @@ fn resolve_state_variable(
     if let State::Resolved(current_value) = current_state.get_state() {
         return current_value;
     }
+
+    // log!("Resolving {}:{}", component.name, state_var_name);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
@@ -1232,22 +1235,11 @@ fn get_children_including_copy(
             .collect();
     }
 
-    for child in component.children.iter() {
-        let mut skip = false;
-
-        if let ObjectName::Component(name) = child {
-            let child_component = components.get(name).unwrap();
-            if child_component.component_type == "sequence" {
-                // Add this component's children instead of itself.
-                skip = true;
-                children_vec.extend(get_children_including_copy(components, child_component));
-            }
-        }
-
-        if !skip{
-            children_vec.push((child.clone(), true));
-        }
-    }
+    children_vec.extend(
+        component.children
+        .iter()
+        .map(|c| (c.clone(), true))
+    );
 
     children_vec
 }
