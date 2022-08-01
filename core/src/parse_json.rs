@@ -96,17 +96,6 @@ pub fn create_components_tree_from_json(program: &str)
 
     let component_definitions = generate_component_definitions();
 
-    let all_state_var_names: HashMap<String, StateVarName> = component_definitions
-        .iter()
-        .flat_map(|(_, def)|
-            def.state_var_definitions()
-            .iter()
-            .map(|(name, _)| (name.to_string(), *name))
-            .collect::<HashMap<String, StateVarName>>())
-        .collect();
-
-    // log!("All state var names {:#?}", all_state_var_names);
-
     let component_tree: Vec<ComponentOrString> = serde_json::from_str(program).map_err(|e| e.to_string())?;
     let component_tree = component_tree.iter()
         .find_map(|v| match v {
@@ -125,7 +114,6 @@ pub fn create_components_tree_from_json(program: &str)
         None,
         &mut component_type_counter,
         &component_definitions,
-        &all_state_var_names,
     )?;
 
     Ok((component_nodes, root_component_name))
@@ -139,7 +127,6 @@ fn add_component_from_json(
     parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
     component_definitions: &HashMap<ComponentType, Box<dyn ComponentDefinition>>,
-    all_state_var_names: &HashMap<String, StateVarName>,
 
 ) -> Result<String, String> {
 
@@ -162,8 +149,11 @@ fn add_component_from_json(
         if let Some(ref source_name) = component_tree.props.copy_source {
             if let Some(ref source_state_var) = component_tree.props.prop {
 
-                let state_var_name = all_state_var_names.get(source_state_var).ok_or(
-                    format!("{} is not a valid state var name", source_state_var))?;
+                let state_var_name = *component_definition
+                    .state_var_definitions()
+                    .get_key_value(source_state_var.as_str())
+                    .ok_or(format!("{} is not a valid state var name", source_state_var))?
+                    .0;
 
                 Some(CopySource::StateVar(source_name.clone(), state_var_name))
             } else {
@@ -281,8 +271,6 @@ fn add_component_from_json(
                     Some(component_name.clone()),
                     component_type_counter,
                     component_definitions,
-                    all_state_var_names,
-
                 )?;
 
                 children.push(ComponentChild::Component(child_name));
