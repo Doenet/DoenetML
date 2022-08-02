@@ -22,6 +22,7 @@ enum ValueTypeProtector {
     Boolean(State<bool>),
     Integer(State<i64>),
     Number(State<f64>),
+    NumberArray(Vec<State<f64>>),
 }
 
 
@@ -44,6 +45,7 @@ impl StateVar {
                     StateVarVariant::Integer(_) => ValueTypeProtector::Integer(Stale),
                     StateVarVariant::Number(_) => ValueTypeProtector::Number(Stale),
                     StateVarVariant::String(_) => ValueTypeProtector::String(Stale),
+                    StateVarVariant::NumberArray(_) => ValueTypeProtector::NumberArray(Vec::new()),
                 }
             )
         }
@@ -65,6 +67,9 @@ impl StateVar {
             ValueTypeProtector::Boolean(_) => ValueTypeProtector::Boolean(Stale),
             ValueTypeProtector::Number(_)  => ValueTypeProtector::Number(Stale),
             ValueTypeProtector::Integer(_) => ValueTypeProtector::Integer(Stale),
+            ValueTypeProtector::NumberArray(array)  => ValueTypeProtector::NumberArray(
+                array.iter().map(|_| Stale).collect()
+            ),
         }
     }
 
@@ -89,7 +94,22 @@ impl StateVar {
             ValueTypeProtector::Integer(value_option) => match value_option {
                 Resolved(val) => Resolved(StateVarValue::Integer(val.clone())),
                 Stale => Stale
-            }                                    
+            }
+            ValueTypeProtector::NumberArray(_) => panic!(),
+        }
+    }
+
+
+    pub fn get_element_state(&self, index: usize) -> State<StateVarValue> {
+
+        let type_protector = &*self.value_type_protector.borrow();
+
+        match type_protector {
+            ValueTypeProtector::NumberArray(array) => match array[index] {
+                Resolved(val) => Resolved(StateVarValue::Number(val.clone())),
+                Stale => Stale
+            },
+            _ => panic!(),
         }
     }
 
@@ -186,6 +206,18 @@ impl ValueTypeProtector {
             ValueTypeProtector::Boolean(state) => {
                 *state = Resolved(new_value.try_into()?);
             }
+            ValueTypeProtector::NumberArray(state) => panic!(),
+        }
+
+        Ok(())
+    }
+
+    fn set_element_value(&mut self, index: usize, new_value: StateVarValue) -> Result<(), String> {
+        match self {
+            ValueTypeProtector::NumberArray(array) => {
+                array[index] = Resolved(new_value.try_into()?);
+            }
+            _ => panic!(),
         }
 
         Ok(())
