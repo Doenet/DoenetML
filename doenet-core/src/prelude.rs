@@ -28,7 +28,7 @@ macro_rules! log_json {
     ( $label:expr, $a:ident ) => {
 
         #[cfg(feature = "web")]
-        web_sys::console::log_2(&$label.into(), &wasm_bindgen::JsValue::from_serde($a).unwrap());
+        web_sys::console::log_2(&$label.into(), &wasm_bindgen::JsValue::from_serde(&$a).unwrap());
     }
 }
 macro_rules! log_debug {
