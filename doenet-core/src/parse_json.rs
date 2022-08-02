@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
 use crate::{Action, DoenetMLError};
 use crate::component::{Attribute, AttributeDefinition, CopySource, generate_component_definitions};
@@ -12,10 +12,8 @@ use std::collections::HashMap;
 
 use crate::state_variables::*;
 
-use crate::log;
-
 // Structures for create_components_tree_from_json
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ComponentTree {
     component_type: String,
@@ -23,7 +21,7 @@ struct ComponentTree {
     children: Vec<ComponentOrString>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Props {
     name: Option<String>,
@@ -33,14 +31,14 @@ struct Props {
     attributes: HashMap<String, AttributeValue>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 enum AttributeValue {
     String(String),
     Bool(bool),
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 enum ComponentOrString {
     Component(ComponentTree),
@@ -49,7 +47,7 @@ enum ComponentOrString {
 
 
 // Structures for parse_action_from_json
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ActionStructure {
     component_name: String,
@@ -57,7 +55,7 @@ struct ActionStructure {
     args: HashMap<String, ArgValue>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(untagged)]
 enum ArgValue {
     Bool(bool),
@@ -104,13 +102,10 @@ pub fn create_components_tree_from_json(program: &str)
             .collect::<HashMap<String, StateVarName>>())
         .collect();
 
-    // log!("All state var names {:#?}", all_state_var_names);
-
     let component_tree: Vec<ComponentOrString> = serde_json::from_str(program)
         // This fails if there is a problem with the parser, not the input doenetML,
         // so we don't throw a doenetML error here
         .expect("Error extracting json");
-        // .map_err(|e| e.to_string())?;
 
     let first_component = component_tree.iter()
         .find_map(|v| match v {
@@ -135,7 +130,7 @@ pub fn create_components_tree_from_json(program: &str)
         tree_wrapped_in_document(component_tree)
     };
 
-    // log!("Root json object {:#?}", component_tree);
+    log_json!(format!("Component Tree"), component_tree);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
@@ -152,7 +147,6 @@ pub fn create_components_tree_from_json(program: &str)
         &mut doenet_ml_errors,
     );
 
-    // log!("root component name {:?}", root_component_name);
     let root_component_name = root_component_name.unwrap();
 
     (component_nodes, root_component_name, doenet_ml_errors)

@@ -13,7 +13,7 @@ pub type AttributeName = &'static str;
 // A ComponentName is not be static because it cannot be known at compile time.
 pub type ComponentName = String;
 
-/// A macro to provide println! style syntax for console.log logging.
+/// Macros providing println! style syntax for logging.
 macro_rules! log {
     ( $( $t:tt )* ) => {
 
@@ -24,7 +24,26 @@ macro_rules! log {
         println!( $( $t )* )
     }
 }
+macro_rules! log_json {
+    ( $label:expr, $a:ident ) => {
+
+        #[cfg(feature = "web")]
+        web_sys::console::log_2(&$label.into(), &wasm_bindgen::JsValue::from_serde($a).unwrap());
+    }
+}
+macro_rules! log_debug {
+    ( $( $t:tt )* ) => {
+
+        #[cfg(feature = "web")]
+        web_sys::console::debug_1(&format!( $( $t )* ).into());
+
+        #[cfg(not(feature = "web"))]
+        println!( $( $t )* )
+    }
+}
 pub(crate) use log;
+pub(crate) use log_json;
+pub(crate) use log_debug;
 
 // #[link(name = "logger", kind = "static")]
 // extern "Rust" {

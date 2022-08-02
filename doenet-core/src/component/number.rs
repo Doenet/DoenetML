@@ -8,8 +8,6 @@ use super::*;
 
 use crate::ObjectTraitName;
 
-use crate::log;
-
 
 
 lazy_static! {
@@ -32,8 +30,6 @@ lazy_static! {
 
 
             determine_state_var_from_dependencies: |dependency_values| {
-                log!("number dependency value {:#?}", dependency_values);
-
 
                 let number_child_value: Option<f64> = dependency_values.dep_value("children")?
                     .filter_include_component_type("number")

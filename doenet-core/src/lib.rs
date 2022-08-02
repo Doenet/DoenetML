@@ -340,7 +340,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 
         for capture in MACRO_SEARCH.captures_iter(string_val) {
 
-            // log!("capture {:#?}", capture);
+            log_debug!("capture {:#?}", capture);
 
             let start = capture.get(0).unwrap().start();
             let end = capture.get(0).unwrap().end();
@@ -453,7 +453,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
     }
 
 
-    // log!("Components to add {:#?}", components_to_add);
+    log_debug!("Components to add from macros: {:#?}", components_to_add);
 
     for new_component in components_to_add {
 
@@ -462,7 +462,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
     }
 
 
-    // log!("Replacement children {:#?}", replacement_children);
+    log_debug!("Replacement children {:#?}", replacement_children);
 
     for (component_name, new_children_hashmap) in replacement_children {
         
@@ -502,7 +502,7 @@ fn create_all_dependencies_for_component(
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> HashMap<StateVarName, HashMap<InstructionName, Dependency>> {
 
-    // log!("Creating depencies for {:?}", component.name);
+    log_debug!("Creating dependencies for {:?}", component.name);
     let mut dependencies: HashMap<StateVarName, HashMap<InstructionName, Dependency>> = HashMap::new();
 
 
@@ -586,8 +586,7 @@ fn create_dependency_from_instruction(
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> Dependency {
 
-    // log!("Creating dependency {}:{}:{}", component.name, state_var_name, instruction_name);
-
+    log_debug!("Creating dependency {}:{}:{}", component.name, state_var_name, instruction_name);
 
     if let DependencyInstruction::Essential(_) = instruction {
         // An Essential DependencyInstruction returns an Essential Dependency.
@@ -677,9 +676,6 @@ fn create_dependency_from_instruction(
 
 
             DependencyInstruction::Attribute(attribute_instruction) => {
-
-                // log!("attribute instruction {:#?}", attribute_instruction);
-                // log!("component attributes {:#?}", component.attributes());
 
                 let attribute_name = attribute_instruction.attribute_name;
 
@@ -813,7 +809,7 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    // log!("Resolving {}:{}", component.name, state_var_name);
+    log_debug!("Resolving {}:{}", component.name, state_var_name);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
@@ -846,8 +842,6 @@ fn resolve_state_variable(
 
                             for &dep_state_var_name in &sv_dep.depends_on_state_vars {
 
-                                // log!("About to recurse and resolve {}:{}", depends_on_component.name(), dep_state_var_name);
-
                                 let depends_on_value = resolve_state_variable(core, depends_on_component, dep_state_var_name);
 
                                 values_for_this_dep.push(DependencyValue {
@@ -874,12 +868,11 @@ fn resolve_state_variable(
                 })
             }
         }
-        // log!("dep name {}", dep.name);
         dependency_values.insert(dep_name, values_for_this_dep);
     }
 
 
-    // log!("{}:{} dependency values: {:#?}", component.name, state_var_name, dependency_values);
+    log_debug!("{}:{} dependency values: {:#?}", component.name, state_var_name, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
@@ -904,7 +897,7 @@ fn mark_stale_state_var_and_dependencies(
     state_var_name: StateVarName)
 {
 
-    // log!("Marking stale {}:{}", component.name, state_var_name);
+    log_debug!("Marking stale {}:{}", component.name, state_var_name);
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
@@ -913,8 +906,6 @@ fn mark_stale_state_var_and_dependencies(
 
     let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_name);
     
-    // log!("depending on me {:#?}", depending_on_me);
-
     for (depending_comp_name, depending_state_var) in depending_on_me {
         let depending_comp = core.component_nodes.get(&depending_comp_name).unwrap();
 
@@ -930,7 +921,7 @@ fn mark_stale_essential_datum_and_dependencies(
     essential_var_name: &str
 ) {
 
-    // log!("Marking stale essential {}", essential_var_name);
+    log_debug!("Marking stale essential {}", essential_var_name);
 
     // tuples of component and state var that depend on this essential datum
     let my_dependencies: Vec<(ComponentName, StateVarName)> = core.dependencies
@@ -953,9 +944,6 @@ fn mark_stale_essential_datum_and_dependencies(
         )
         .collect();
 
-    // log!("Marking stale essential value '{}' Its dependencies are {:#?}",
-    //      essential_var_name, my_dependencies);
-
     for (component_name, state_var_name) in my_dependencies {
         let component = core.component_nodes.get(&component_name).unwrap();
         mark_stale_state_var_and_dependencies(core, &component, state_var_name);
@@ -972,7 +960,7 @@ fn handle_update_instruction<'a>(
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
-    // log!("Updating state var {}:{}", component.name, name);
+    log_debug!("Updating state var {}:{}", component.name, name);
 
 
     let updated_value: StateVarValue;
@@ -1002,7 +990,7 @@ fn handle_update_instruction<'a>(
 
     };
 
-    // log!("Updated value {}", updated_value);
+    log_debug!("State var updated to {}", updated_value);
 
     return updated_value;
 }
@@ -1086,7 +1074,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     let action = parse_json::parse_action_from_json(action)
         .expect(&format!("Error parsing json action: {}", action));
 
-    log!("Handling action {:#?}", action);
+    log_debug!("Handling action {:#?}", action);
 
     // Apply alias to get the original component name
     let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
@@ -1115,7 +1103,7 @@ fn process_update_request(
     update_request: &UpdateRequest
 ) {
 
-    // log!("Processing update request for {}:{}", component.name(), state_var_name);
+    log_debug!("Processing update request for {}:{}", component.name, state_var_name);
 
     match update_request {
         UpdateRequest::SetEssentialValue(key, requested_value) => {
@@ -1127,14 +1115,12 @@ fn process_update_request(
                 &format!("Failed to set essential value for {}, {}", component.name, key)
             );
 
-            // log!("Updated essential data {:#?}", core.essential_data);
+            log_debug!("Updated essential data {:#?}", core.essential_data);
 
             mark_stale_essential_datum_and_dependencies(core, &key);
         },
 
         UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_name, requested_value) => {
-
-            // log!("desired value {:?}", requested_value);
 
             let dep_comp = core.component_nodes.get(dep_comp_name).unwrap();
 
@@ -1144,8 +1130,6 @@ fn process_update_request(
                 dep_state_var_name,
                 requested_value.clone(),
             );
-
-            // log!("dep_update_requests {:#?}", dep_update_requests);
 
             for dep_update_request in dep_update_requests {
                 process_update_request(core, dep_comp, dep_state_var_name, &dep_update_request);

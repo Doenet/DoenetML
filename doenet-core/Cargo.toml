@@ -15,10 +15,11 @@ phf = { version = "0.10", features = ["macros"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 regex = "1.5"
+wasm-bindgen = {version = "0.2.81", features = ["serde-serialize"], optional = true}
 web-sys = {version = "0.3", features = ["console"], optional = true}
 
 
 
 [features]
 # The web feature makes the log! macro additionally go to web-sys:console
-web = ["dep:web-sys"]
+web = ["dep:web-sys", "dep:wasm-bindgen"]
