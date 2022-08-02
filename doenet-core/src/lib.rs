@@ -108,6 +108,11 @@ pub enum DoenetMLError {
     InvalidComponentType {
         comp_type: String,
     },
+
+    ComponentCopiesAncestor {
+        comp_name: String,
+        ancestor_name: String,
+    }
 }
 
 impl Error for DoenetMLError {}
@@ -124,7 +129,8 @@ impl Display for DoenetMLError {
                 write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
             InvalidComponentType { comp_type } => 
                 write!(f, "Component type {} does not exist", comp_type),
-
+            ComponentCopiesAncestor { comp_name, ancestor_name } => 
+                write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
         }
     }
 }
@@ -145,39 +151,63 @@ impl Display for DoenetMLError {
 pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
     // Create component nodes.
-    let (component_nodes, root_component_name, mut doenet_ml_errors) = 
+    let (mut component_nodes, root_component_name, mut doenet_ml_errors) = 
         parse_json::create_components_tree_from_json(program);
+
+    
+    // Parse macros and generate components from them
+    replace_macros_with_copies(&mut component_nodes);
+
+    let component_nodes = component_nodes;
 
 
     // For every component copy, add aliases for children it inherits from its source.
     let mut aliases: HashMap<String, ComponentName> = HashMap::new();
-    let copies = component_nodes.iter().filter(|(_, c)| match c.copy_source {
-        Some(CopySource::Component(_)) => true,
-        _ => false,
+    let copies = component_nodes.iter().filter_map(|(_, c)| match c.copy_source {
+        Some(CopySource::Component(ref source)) => Some((c, source)),
+        _ => None,
     });
 
     let mut invalid_copies: Vec<String> = vec![];
 
-    for (name, copy) in copies {
-        if let Some(CopySource::Component(ref source_name)) = copy.copy_source {
+    for (copy, source_name) in copies {
 
-            if !component_nodes.contains_key(source_name) {
+        let mut ancestors: Vec<String> = vec![];
+        let mut possible_parent = &copy.parent;
+        while let Some(parent) = possible_parent {
+            ancestors.push(parent.clone());
+            possible_parent = &component_nodes.get(parent).unwrap().parent;
+        }
 
-                // The component tried to copy a non-existent component, so log an error,
-                // and pretend it didn't copy anything
 
-                doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
-                    comp_name: source_name.to_string()
-                });
+        if !component_nodes.contains_key(source_name) {
 
-                invalid_copies.push(name.to_string());
+            // The component tried to copy a non-existent component, so log an error,
+            // and pretend it didn't copy anything
 
-                // Don't make an alias
-                continue;
-            }
+            doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
+                comp_name: source_name.to_string()
+            });
+
+            invalid_copies.push(copy.name.to_string());
+
+            
+        } else if ancestors.contains(source_name) {
+            // The component tried to copy its ancestor, so log an error,
+            // and pretend it doesn't copy anything
+
+            doenet_ml_errors.push(DoenetMLError::ComponentCopiesAncestor {
+                comp_name: copy.name.clone(), ancestor_name: source_name.clone()
+            });
+
+            invalid_copies.push(copy.name.to_string());
+
+
+        } else {
+
+            add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
 
         }
-        add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
 
     let mut component_nodes = component_nodes;
@@ -187,10 +217,6 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
         let culprit_component = component_nodes.get_mut(&invalid_copy).unwrap();
         culprit_component.copy_source = None;
     }
-
-
-    // Parse macros and generate components from them
-    replace_macros_with_copies(&mut component_nodes);
 
     let component_nodes = component_nodes;
 

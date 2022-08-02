@@ -37,7 +37,11 @@ fn text_inside_text() {
 // #[wasm_bindgen_test]
 // fn text_with_child_of_itself_fails_immediately() {
 //     let data = r#"
-//         <text name='a'>I have myself as a child: <text copySource='a' /></text>
+//         <text name='hi'><text>
+//             I have myself copied here $hi
+//         </text></text>
+
+//         <text name='a' copySource='hi'>
 //     "#;
 
 //     let (dc, ml_errs) = doenet_core_from(data);
