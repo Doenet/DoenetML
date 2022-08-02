@@ -9,6 +9,24 @@ use crate::Dependency;
 
 
 
+/// List components and children in a JSON array
+pub fn json_components(
+    components: &HashMap<ComponentName, ComponentNode>,
+    component_states: &HashMap<ComponentName, HashMap<StateVarName, StateVar>>
+) -> serde_json::Value {
+
+    let json_components: serde_json::Map<String, serde_json::Value> = components
+        .values()
+        .map(|component| (component.name.to_string(),
+                package_subtree_as_json(
+                    &components,
+                    &&component_states,
+                    component)))
+        .collect();
+
+    serde_json::Value::Object(json_components)
+}
+
 
 pub fn package_subtree_as_json(
     components: &HashMap<ComponentName, ComponentNode>,

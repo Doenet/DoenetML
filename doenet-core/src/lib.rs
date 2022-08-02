@@ -16,6 +16,7 @@ use std::{error::Error, fmt::Display};
 
 use crate::prelude::*;
 use crate::component::*;
+use crate::utils::{json_components, json_dependencies};
 
 use state_var::{State, EssentialStateVar};
 use state_variables::*;
@@ -219,11 +220,9 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     }
 
 
-    // log!("component nodes {:#?}", component_nodes);
-    // log!("component states {:#?}", component_states);
-    // log!("dependencies {:#?}", dependencies);
+    log_json!("Components upon core creation", json_dependencies(&dependencies));
+    log_json!("Dependencies upon core creation", json_components(&component_nodes, &component_states));
 
-    
 
     (DoenetCore {
         component_nodes,
@@ -1256,23 +1255,6 @@ fn render_type_of(comp_type: &str) -> &str {
         "numberInput" => "textInput",
         _ => comp_type,
     }
-}
-
-
-
-/// List components and children in a JSON array
-pub fn json_components(core: &DoenetCore) -> serde_json::Value {
-
-    let json_components: serde_json::Map<String, serde_json::Value> = core.component_nodes
-        .values()
-        .map(|component| (component.name.to_string(),
-                utils::package_subtree_as_json(
-                    &core.component_nodes,
-                    &&core.component_states,
-                    component)))
-        .collect();
-
-    serde_json::Value::Object(json_components)
 }
 
 
