@@ -21,7 +21,7 @@ pub type ComponentName = String;
 /// ArrayElement and SizeOf refer to state variables that go along with
 /// an array state variable.
 /// They are "subsets" of a basic reference to an array state var.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum StateVarReference {
     Basic(StateVarName),
     ArrayElement(StateVarName, usize),

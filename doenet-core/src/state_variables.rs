@@ -39,15 +39,24 @@ pub struct StateVarDefinition<T> {
 #[derive(Debug)]
 pub struct StateVarArrayDefinition<T> {
 
+    pub return_array_dependency_instructions: fn(
+        HashMap<StateVarName, StateVarValue>
+    ) -> HashMap<InstructionName, DependencyInstruction>,
+
+
+
     pub return_element_dependency_instructions: fn(
-        u32,
+        usize,
         HashMap<StateVarName, StateVarValue>
     ) -> HashMap<InstructionName, DependencyInstruction>,
 
     pub determine_element_from_dependencies: fn(
-        u32,
+        usize,
         HashMap<InstructionName, Vec<DependencyValue>>
-    ) -> Result<StateVarUpdateInstruction<Vec<T>>, String>,
+    ) -> Result<StateVarUpdateInstruction<T>, String>,
+
+    pub request_element_dependencies_to_update_value: fn(usize, T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+
 
     pub return_size_dependency_instructions: fn(
         HashMap<StateVarName, StateVarValue>
@@ -55,13 +64,12 @@ pub struct StateVarArrayDefinition<T> {
 
     pub determine_size_from_dependencies: fn(
         HashMap<InstructionName, Vec<DependencyValue>>
-    ) -> Result<StateVarUpdateInstruction<T>, String>,
+    ) -> Result<StateVarUpdateInstruction<usize>, String>,
 
     pub for_renderer: bool,
 
     pub initial_essential_element_value: T,
 
-    pub request_element_dependencies_to_update_value: fn(u32, T) -> HashMap<InstructionName, Vec<DependencyValue>>,
 }
 
 
@@ -83,6 +91,32 @@ impl<T> Default for StateVarDefinition<T>
             },
         }
     }
+}
+
+
+impl<T> Default for StateVarArrayDefinition<T>
+    where T: Default
+{
+    fn default() -> Self {
+        StateVarArrayDefinition {
+            return_array_dependency_instructions: |_| HashMap::new(),
+
+            return_element_dependency_instructions: |_, _| HashMap::new(),
+            determine_element_from_dependencies: |_, _| Ok(StateVarUpdateInstruction::SetValue(T::default())),
+            request_element_dependencies_to_update_value: |_, _| {
+                log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
+                HashMap::new()
+            },
+
+            return_size_dependency_instructions: |_| HashMap::new(),
+            determine_size_from_dependencies: |_| Ok(StateVarUpdateInstruction::SetValue(0)),
+
+            for_renderer: false, 
+            initial_essential_element_value: T::default(),
+
+        }
+    }
+
 }
 
 

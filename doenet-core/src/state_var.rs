@@ -95,7 +95,7 @@ impl StateVar {
                 Resolved(val) => Resolved(StateVarValue::Integer(val.clone())),
                 Stale => Stale
             }
-            ValueTypeProtector::NumberArray(_) => panic!(),
+            ValueTypeProtector::NumberArray(_) => Stale,
         }
     }
 
