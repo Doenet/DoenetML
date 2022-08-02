@@ -16,6 +16,7 @@ pub struct StateVarDefinition<T> {
     // pub state_vars_to_determine_dependencies: fn() -> Vec<StateVarName>,
 
     /// Reutrn the instructions that core can use to make Dependency structs.
+    /// Note: arg currently unused
     pub return_dependency_instructions: fn(
         HashMap<StateVarName, StateVarValue>
     ) -> HashMap<InstructionName, DependencyInstruction>,
@@ -28,11 +29,39 @@ pub struct StateVarDefinition<T> {
     pub for_renderer: bool,
 
     /// Not used much right now except for the default StateVarDefinition
-    pub default_value: T,
+    pub initial_essential_value: T,
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
     /// values for the dependencies that would make this state variable return that value.
     pub request_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+}
+
+#[derive(Debug)]
+pub struct StateVarArrayDefinition<T> {
+
+    pub return_element_dependency_instructions: fn(
+        u32,
+        HashMap<StateVarName, StateVarValue>
+    ) -> HashMap<InstructionName, DependencyInstruction>,
+
+    pub determine_element_from_dependencies: fn(
+        u32,
+        HashMap<InstructionName, Vec<DependencyValue>>
+    ) -> Result<StateVarUpdateInstruction<Vec<T>>, String>,
+
+    pub return_size_dependency_instructions: fn(
+        HashMap<StateVarName, StateVarValue>
+    ) -> HashMap<InstructionName, DependencyInstruction>,
+
+    pub determine_size_from_dependencies: fn(
+        HashMap<InstructionName, Vec<DependencyValue>>
+    ) -> Result<StateVarUpdateInstruction<T>, String>,
+
+    pub for_renderer: bool,
+
+    pub initial_essential_element_value: T,
+
+    pub request_element_dependencies_to_update_value: fn(u32, T) -> HashMap<InstructionName, Vec<DependencyValue>>,
 }
 
 
@@ -46,7 +75,7 @@ impl<T> Default for StateVarDefinition<T>
             determine_state_var_from_dependencies:
                 |_| Ok(StateVarUpdateInstruction::SetValue(T::default())),
             for_renderer: false,
-            default_value: T::default(),
+            initial_essential_value: T::default(),
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -73,6 +102,7 @@ pub enum StateVarVariant {
     Boolean(StateVarDefinition<bool>),
     Number(StateVarDefinition<f64>),
     Integer(StateVarDefinition<i64>),
+    NumberArray(StateVarArrayDefinition<f64>),
 }
 
 
@@ -343,7 +373,7 @@ macro_rules! definition_from_attribute {
 
             StateVarVariant::$variant(StateVarDefinition {
                 for_renderer: true,
-                default_value: $default,
+                initial_essential_value: $default,
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute(
                         AttributeDependencyInstruction { attribute_name: $attribute }
@@ -575,6 +605,8 @@ impl StateVarVariant {
                 (def.return_dependency_instructions)(prerequisite_state_values),
             StateVarVariant::Integer(def) =>
                 (def.return_dependency_instructions)(prerequisite_state_values),
+            StateVarVariant::NumberArray(def) =>
+                (def.return_array_dependency_instructions)(prerequisite_state_values),
         }
     }
     
@@ -613,6 +645,7 @@ impl StateVarVariant {
                     SetValue(val) => SetValue(StateVarValue::Boolean(val)),
                 })
             }                     
+            _ => panic!(),
         }
     }
 
@@ -644,6 +677,7 @@ impl StateVarVariant {
                         &format!("Requested Boolean be updated to {:#?}", desired_value))
                 )
             }
+            _ => panic!(),
         }       
     }
 
@@ -654,15 +688,33 @@ impl StateVarVariant {
             StateVarVariant::Integer(def) => def.for_renderer,
             StateVarVariant::Number(def) =>  def.for_renderer,
             StateVarVariant::Boolean(def) => def.for_renderer,
+            StateVarVariant::NumberArray(def) => def.for_renderer,
         }
     }
 
-    pub fn default_value(&self) -> StateVarValue {
+    pub fn initial_essential_value(&self) -> StateVarValue {
         match self {
-            StateVarVariant::String(def) =>  StateVarValue::String( def.default_value.clone()),
-            StateVarVariant::Integer(def) => StateVarValue::Integer(def.default_value),
-            StateVarVariant::Number(def) =>  StateVarValue::Number( def.default_value),
-            StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.default_value),
+            StateVarVariant::String(def) =>  StateVarValue::String( def.initial_essential_value.clone()),
+            StateVarVariant::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
+            StateVarVariant::Number(def) =>  StateVarValue::Number( def.initial_essential_value),
+            StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
+            _ => panic!(),
+        }
+    }
+
+    pub fn is_array(&self) -> bool {
+        match self {
+            StateVarVariant::NumberArray(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn return_size_dependency_instructions(&self,
+        prerequisite_state_values: HashMap<StateVarName, StateVarValue>)
+         -> HashMap<InstructionName, DependencyInstruction> {
+        match self {
+            StateVarVariant::NumberArray(def) => (def.return_size_dependency_instructions)(prerequisite_state_values),
+            _ => panic!()
         }
     }
 }

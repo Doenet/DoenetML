@@ -13,7 +13,33 @@ pub type AttributeName = &'static str;
 // A ComponentName is not be static because it cannot be known at compile time.
 pub type ComponentName = String;
 
-/// Macros providing println! style syntax for logging.
+
+/// A basic StateVarReference refers to either of the following:
+/// - StateVarDefinition, refering to the single state variable
+/// - StateVarArrayDefinition, refering to the entire array
+///
+/// ArrayElement and SizeOf refer to state variables that go along with
+/// an array state variable.
+/// They are "subsets" of a basic reference to an array state var.
+#[derive(Debug, PartialEq, Eq, Hash)]
+pub enum StateVarReference {
+    Basic(StateVarName),
+    ArrayElement(StateVarName, usize),
+    SizeOf(StateVarName),
+}
+
+impl StateVarReference {
+    pub fn name(&self) -> StateVarName {
+        match self {
+            StateVarReference::Basic(name) => name,
+            StateVarReference::ArrayElement(name, _) => name,
+            StateVarReference::SizeOf(name) => name,
+        }
+    }
+}
+
+
+/// Macros for logging.
 macro_rules! log {
     ( $( $t:tt )* ) => {
 
@@ -45,8 +71,3 @@ pub(crate) use log;
 pub(crate) use log_json;
 pub(crate) use log_debug;
 
-// #[link(name = "logger", kind = "static")]
-// extern "Rust" {
-//     pub fn log_json(json_obj: serde_json::Value);
-// }
-// pub(crate) use log_json;

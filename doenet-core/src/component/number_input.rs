@@ -47,7 +47,6 @@ lazy_static! {
                 Ok(SetValue(10.0))
             },
             for_renderer: true,
-            default_value: 10.0,
             ..Default::default()
         }));
 
@@ -56,7 +55,6 @@ lazy_static! {
 
         state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
-            default_value: 600.0,
             determine_state_var_from_dependencies: |_| Ok(SetValue(600.0)),
             ..Default::default()
         }));
