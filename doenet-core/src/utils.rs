@@ -129,7 +129,7 @@ pub fn package_subtree_as_json(
 
 
 pub fn json_dependencies(
-    dependencies: &HashMap<ComponentName, HashMap<StateVarName, HashMap<InstructionName, Dependency>>>
+    dependencies: &HashMap<ComponentName, HashMap<StateVarReference, HashMap<InstructionName, Dependency>>>
 ) -> serde_json::Value {
 
     use serde_json::Value;
@@ -172,7 +172,7 @@ pub fn json_dependencies(
 
                 output
                     .entry(comp_name.clone()).or_insert(HashMap::new())
-                    .entry(state_var_name.clone()).or_insert(HashMap::new())
+                    .entry(state_var_name.name().clone()).or_insert(HashMap::new())
                     .entry(display_name)
                     .or_insert(value);
                 

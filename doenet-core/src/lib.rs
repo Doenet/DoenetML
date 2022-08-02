@@ -20,6 +20,16 @@ use crate::component::*;
 use state_var::{State, EssentialStateVar};
 use state_variables::*;
 
+#[derive(Debug)]
+enum DependenciesForStateVar {
+    Single(HashMap<InstructionName, Dependency>),
+    Array {
+        common: HashMap<InstructionName, Dependency>,
+        size: HashMap<InstructionName, Dependency>,
+        elements: HashMap<usize, HashMap<InstructionName, Dependency>>,
+    }
+}
+
 
 /// This stores the components and dependency graph.
 #[derive(Debug)]
@@ -29,7 +39,7 @@ pub struct DoenetCore {
     pub root_component_name: ComponentName,
 
     /// Stores every dependency, indexed by the name of the component and the state variable.
-    pub dependencies: HashMap<ComponentName, HashMap<StateVarReference, HashMap<InstructionName, Dependency>>>,
+    pub dependencies: HashMap<ComponentName, HashMap<StateVarName, DependenciesForStateVar>>,
 
     /// States that the user can change and which state variables may depend on
     /// (ex: the contents of input dialogues)
@@ -189,8 +199,7 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     // and supply essential_data required by any `EssentialDependency`.
 
     let mut component_states: HashMap<ComponentName, HashMap<StateVarName, StateVar>> = HashMap::new();
-    let mut dependencies:
-        HashMap<ComponentName, HashMap<StateVarReference, HashMap<InstructionName, Dependency>>> = HashMap::new();
+    let mut dependencies: HashMap<ComponentName, HashMap<StateVarName, DependenciesForStateVar>> = HashMap::new();
     let mut essential_data: HashMap<String, EssentialStateVar> = HashMap::new();
 
     for (component_name, component_node) in component_nodes.iter() {
@@ -220,9 +229,9 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
 
     log_json!("Components upon core creation",
-        utils::json_dependencies(&dependencies));
-    log_json!("Dependencies upon core creation",
         utils::json_components(&component_nodes, &component_states));
+    log_json!("Dependencies upon core creation",
+        utils::json_dependencies(&dependencies));
 
 
     (DoenetCore {
@@ -501,45 +510,68 @@ fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<String, EssentialStateVar>,
-) -> HashMap<StateVarReference, HashMap<InstructionName, Dependency>> {
+) -> HashMap<StateVarName, DependenciesForStateVar> {
 
     log_debug!("Creating dependencies for {:?}", component.name);
-    let mut dependencies: HashMap<StateVarReference, HashMap<InstructionName, Dependency>> = HashMap::new();
+    let mut dependencies: HashMap<StateVarName, DependenciesForStateVar> = HashMap::new();
 
 
     let my_definitions = component.definition.state_var_definitions();
-    for (&state_var_name, &state_var_variant) in my_definitions {
+    for (&state_var_name, state_var_variant) in my_definitions.iter() {
 
-        // All the state vars have keys on the dependency hashmap
-        dependencies.entry(StateVarReference::Basic(state_var_name)).or_insert(HashMap::new());
-
-        let dependency_instructions = return_dependency_instruction_including_shadowing(component, state_var_name);
-
-
-        for (dep_name, ref dep_instruction) in dependency_instructions.into_iter() {
-
-            let dependency = create_dependency_from_instruction(
-                &components, component, &StateVarReference::Basic(state_var_name),
-                dep_instruction, dep_name, essential_data
-            );
-
-            dependencies.entry(StateVarReference::Basic(state_var_name)).or_insert(HashMap::new()).entry(dep_name).or_insert(dependency);
-        }
-
-        
-        // For array state variables, add the size to the dependency graph
         if state_var_variant.is_array() {
-            let size_instructions = state_var_variant.return_size_dependency_instructions(HashMap::new());
+            let mut deps_for_common = HashMap::new();
+            let mut deps_for_size = HashMap::new();
+            let mut deps_for_each_element: HashMap<usize, HashMap<InstructionName, Dependency>> = HashMap::new();
 
-            for (dep_name, ref size_instruction) in dependency_instructions.into_iter() {
+            
+            let common_dep_instructions = return_dependency_instruction_including_shadowing(component, &StateVarReference::Basic(state_var_name));
 
-                let size_dependency = create_dependency_from_instruction(
-                    &components, component, &StateVarReference::SizeOf(state_var_name),
-                    size_instruction, dep_name, essential_data
+            for (dep_name, ref dep_instruction) in common_dep_instructions.into_iter() {
+                let dependency = create_dependency_from_instruction(
+                    &components, component, &StateVarReference::Basic(state_var_name),
+                    dep_instruction, dep_name, essential_data
                 );
 
-                dependencies.entry(StateVarReference::SizeOf(state_var_name)).or_insert(HashMap::new()).entry(dep_name).or_insert(size_dependency);
+                deps_for_common.insert(dep_name, dependency);
             }
+
+
+            let size_dep_instructions = state_var_variant.return_size_dependency_instructions(HashMap::new());
+
+            for (dep_name, ref dep_instruction) in size_dep_instructions.into_iter() {
+                let dependency = create_dependency_from_instruction(
+                    &components, component, &&StateVarReference::SizeOf(state_var_name),
+                    dep_instruction, dep_name, essential_data
+                );
+
+                deps_for_common.insert(dep_name, dependency);
+            }
+
+
+            dependencies.insert(state_var_name, DependenciesForStateVar::Array {
+                common: deps_for_common,
+                size: deps_for_size,
+                elements: deps_for_each_element
+            });
+
+
+        } else {
+            let mut deps_for_state_var = HashMap::new();
+
+            let dependency_instructions = return_dependency_instruction_including_shadowing(component, &StateVarReference::Basic(state_var_name));
+
+            for (dep_name, ref dep_instruction) in dependency_instructions.into_iter() {
+                let dependency = create_dependency_from_instruction(
+                    &components, component, &StateVarReference::Basic(state_var_name),
+                    dep_instruction, dep_name, essential_data
+                );
+
+                deps_for_state_var.insert(dep_name, dependency);
+            }
+
+            dependencies.insert(state_var_name, DependenciesForStateVar::Single(deps_for_state_var));
+
         }
     }
 
@@ -773,7 +805,7 @@ fn get_name_of_original(
 fn get_state_variables_depending_on_me(
     core: &DoenetCore,
     component_name: &str,
-    state_var_name: StateVarName,
+    state_var_ref: &StateVarReference,
 ) -> Vec<(ComponentName, StateVarReference)> {
 
     let mut depending_on_me = vec![];
@@ -784,8 +816,8 @@ fn get_state_variables_depending_on_me(
 
                 if let Dependency::StateVar(sv_dep) = dep {
                     if sv_dep.depends_on_objects.contains(&ObjectName::Component(component_name.to_string())) {
-                        if sv_dep.depends_on_state_vars.contains(&state_var_name) {
-                            depending_on_me.push((comp_name.clone(), *sv_reference));
+                        if sv_dep.depends_on_state_vars.contains(&state_var_ref.name()) {
+                            depending_on_me.push((comp_name.clone(), sv_reference.clone()));
                         }
                     }
                 }
@@ -819,7 +851,7 @@ fn _dependencies_iter(core: &DoenetCore)
 fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_name: &StateVarReference,
+    state_var_name: StateVarName,
 ) -> StateVarValue {
         
     let state_vars = core.component_states.get(&component.name).unwrap();
@@ -834,7 +866,7 @@ fn resolve_state_variable(
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
-    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_name);
+    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(&StateVarReference::Basic(state_var_name));
 
     
     for (dep_name, dep) in my_dependencies.unwrap_or(&HashMap::new()) {
@@ -897,7 +929,7 @@ fn resolve_state_variable(
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
-        component,state_var_name,dependency_values
+        component, &StateVarReference::Basic(state_var_name), dependency_values
     ).expect(&format!("Can't resolve [{}]:[{}] ({} component type)",
         component.name, state_var_name, component.component_type)
     );
@@ -915,22 +947,22 @@ fn resolve_state_variable(
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_name: StateVarName)
+    state_var_ref: &StateVarReference)
 {
 
-    log_debug!("Marking stale {}:{}", component.name, state_var_name);
+    log_debug!("Marking stale {}:{:?}", component.name, state_var_ref);
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
-    let state_var = component_state.get(state_var_name).unwrap();
+    let state_var = component_state.get(state_var_ref.name()).unwrap();
     state_var.mark_stale();
 
-    let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_name);
+    let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_ref);
     
     for (depending_comp_name, depending_state_var) in depending_on_me {
         let depending_comp = core.component_nodes.get(&depending_comp_name).unwrap();
 
-        mark_stale_state_var_and_dependencies(core, depending_comp, depending_state_var);
+        mark_stale_state_var_and_dependencies(core, depending_comp, &depending_state_var);
     }
 }
 
@@ -945,7 +977,7 @@ fn mark_stale_essential_datum_and_dependencies(
     log_debug!("Marking stale essential {}", essential_var_name);
 
     // tuples of component and state var that depend on this essential datum
-    let my_dependencies: Vec<(ComponentName, StateVarName)> = core.dependencies
+    let my_dependencies: Vec<(ComponentName, StateVarReference)> = core.dependencies
         .iter()
         .flat_map(|(component_name, h)|
             h.iter()
@@ -954,7 +986,7 @@ fn mark_stale_essential_datum_and_dependencies(
                 .filter_map(|(_, d)| match d {
                     Dependency::Essential(ess_dep) => {
                         if ess_dep.depends_on_essential == essential_var_name {
-                            Some((component_name.clone(), *sv_name))
+                            Some((component_name.clone(), sv_name.clone()))
                         } else {
                             None
                         }
@@ -965,9 +997,9 @@ fn mark_stale_essential_datum_and_dependencies(
         )
         .collect();
 
-    for (component_name, state_var_name) in my_dependencies {
+    for (component_name, state_var_ref) in my_dependencies {
         let component = core.component_nodes.get(&component_name).unwrap();
-        mark_stale_state_var_and_dependencies(core, &component, state_var_name);
+        mark_stale_state_var_and_dependencies(core, &component, &state_var_ref);
     }
 }
 
@@ -1057,13 +1089,13 @@ enum UpdateRequest {
 fn convert_dependency_values_to_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var: StateVarName,
+    state_var: &StateVarReference,
     requests: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> Vec<UpdateRequest> {
 
     let instruction_names = core.dependencies
         .get(&component.name).unwrap()
-        .get(state_var).unwrap();
+        .get(&state_var).unwrap();
 
     requests.iter()
         .flat_map(|(instruction_name, values)|
@@ -1112,7 +1144,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     for (state_var_name, requested_value) in state_vars_to_update {
 
         let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_name, requested_value);
-        process_update_request(core, component, state_var_name, &request);
+        process_update_request(core, component, StateVarReference::Basic(state_var_name), &request);
     }
 }
 
@@ -1120,11 +1152,11 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_name: StateVarName,
+    state_var_ref: StateVarReference,
     update_request: &UpdateRequest
 ) {
 
-    log_debug!("Processing update request for {}:{}", component.name, state_var_name);
+    log_debug!("Processing update request for {}:{:?}", component.name, state_var_ref);
 
     match update_request {
         UpdateRequest::SetEssentialValue(key, requested_value) => {
@@ -1148,15 +1180,15 @@ fn process_update_request(
             let dep_update_requests = request_dependencies_to_update_value_including_shadow(
                 core,
                 dep_comp,
-                dep_state_var_name,
+                &StateVarReference::Basic(dep_state_var_name),
                 requested_value.clone(),
             );
 
             for dep_update_request in dep_update_requests {
-                process_update_request(core, dep_comp, dep_state_var_name, &dep_update_request);
+                process_update_request(core, dep_comp, StateVarReference::Basic(dep_state_var_name), &dep_update_request);
             }
 
-            mark_stale_state_var_and_dependencies(core, component, state_var_name);
+            mark_stale_state_var_and_dependencies(core, component, &state_var_ref);
         }
     }
 }
@@ -1194,12 +1226,7 @@ fn generate_render_tree_internal(
 
     let state_vars = component.definition.state_var_definitions();
 
-    let renderered_state_vars = state_vars.into_iter().filter(|kv| match kv.1 {
-        StateVarVariant::Integer(sv) => sv.for_renderer,
-        StateVarVariant::Number(sv) =>  sv.for_renderer,
-        StateVarVariant::String(sv) =>  sv.for_renderer,
-        StateVarVariant::Boolean(sv) => sv.for_renderer,
-    });
+    let renderered_state_vars = state_vars.into_iter().filter(|kv| kv.1.for_renderer());
 
     let mut state_values = serde_json::Map::new();
     for (name, _variant) in renderered_state_vars {
@@ -1312,7 +1339,7 @@ fn get_children_including_copy(
 
 fn return_dependency_instruction_including_shadowing(
     component: &ComponentNode,
-    state_var: StateVarName,
+    state_var: &StateVarReference,
 ) -> HashMap<InstructionName, DependencyInstruction> {
 
     if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
@@ -1325,7 +1352,7 @@ fn return_dependency_instruction_including_shadowing(
         ])
 
     } else {
-        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+        let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
 
         state_var_def.return_dependency_instructions(HashMap::new())
     }
@@ -1336,7 +1363,7 @@ fn return_dependency_instruction_including_shadowing(
 
 fn generate_update_instruction_including_shadowing(
     component: &ComponentNode,
-    state_var: StateVarName,
+    state_var: &StateVarReference,
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 
 ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
@@ -1352,7 +1379,7 @@ fn generate_update_instruction_including_shadowing(
 
     } else {
         // Otherwise, this state var is not shadowing, so proceed normally
-        let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+        let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
 
         state_var_def.determine_state_var_from_dependencies(dependency_values)
     }
@@ -1363,7 +1390,7 @@ fn generate_update_instruction_including_shadowing(
 fn request_dependencies_to_update_value_including_shadow(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var: StateVarName,
+    state_var: &StateVarReference,
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest> {
     if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
@@ -1371,7 +1398,7 @@ fn request_dependencies_to_update_value_including_shadow(
         vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
     } else {
-        let requests = component.definition.state_var_definitions().get(state_var).unwrap()
+        let requests = component.definition.state_var_definitions().get(state_var.name()).unwrap()
             .request_dependencies_to_update_value(new_value);
 
         convert_dependency_values_to_update_request(core, component, state_var, requests)
@@ -1380,13 +1407,13 @@ fn request_dependencies_to_update_value_including_shadow(
 
 /// Detect if a state var is shadowing because of a CopySource
 /// and has a primary input state variable, which is needed.
-fn state_var_is_shadowing(component: &ComponentNode, state_var: StateVarName)
+fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateVarReference)
     -> Option<(ComponentName, StateVarName)> {
 
     if let Some(CopySource::StateVar(ref source_comp, source_state_var)) = component.copy_source {
         if let Some(primary_input_state_var) = component.definition.primary_input_state_var() {
 
-            if state_var == primary_input_state_var {
+            if state_var == &StateVarReference::Basic(primary_input_state_var) {
                 Some((source_comp.to_string(), source_state_var))
             } else {
                 None

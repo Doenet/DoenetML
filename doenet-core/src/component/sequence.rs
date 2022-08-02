@@ -13,7 +13,45 @@ use crate::ObjectTraitName;
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
 
+        use StateVarUpdateInstruction::*;
+
         let mut state_var_definitions = HashMap::new();
+
+        state_var_definitions.insert("value", StateVarVariant::NumberArray(StateVarArrayDefinition {
+            return_array_dependency_instructions: |_| {
+                HashMap::from([(
+                    "sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                        component_name: None,
+                        state_var: "from",
+                    })
+                )])
+            },
+
+            determine_element_from_dependencies: |index, dependency_values| {
+                let from: f64 = dependency_values.dep_value("sv_from")?
+                    .has_exactly_one_element()?
+                    .into_number()?;
+
+                Ok(SetValue(from + index as f64))
+            },
+
+
+            return_size_dependency_instructions: |_| {
+                HashMap::from([
+                    ("sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                        component_name: None,
+                        state_var: "from",
+                    })),
+                    ("sv_to", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                        component_name: None,
+                        state_var: "to",
+                    })
+                )])
+            },
+
+            ..Default::default()
+        }));
+
 
         state_var_definitions.insert("from", definition_from_attribute!("from", Number, 1.0));
 
