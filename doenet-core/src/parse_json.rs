@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use crate::Action;
+use crate::{Action, DoenetMLError};
 use crate::component::{Attribute, AttributeDefinition, CopySource, generate_component_definitions};
 use crate::prelude::*;
 
@@ -15,7 +15,7 @@ use crate::state_variables::*;
 use crate::log;
 
 // Structures for create_components_tree_from_json
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ComponentTree {
     component_type: String,
@@ -23,7 +23,7 @@ struct ComponentTree {
     children: Vec<ComponentOrString>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct Props {
     name: Option<String>,
@@ -33,14 +33,14 @@ struct Props {
     attributes: HashMap<String, AttributeValue>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(untagged)]
 enum AttributeValue {
     String(String),
     Bool(bool),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 #[serde(untagged)]
 enum ComponentOrString {
     Component(ComponentTree),
@@ -91,8 +91,7 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 
 
 pub fn create_components_tree_from_json(program: &str)
-    -> Result<(HashMap<String, ComponentNode>, String), String> {
-
+    -> (HashMap<String, ComponentNode>, String, Vec<DoenetMLError>) {
 
     let component_definitions = generate_component_definitions();
 
@@ -107,17 +106,41 @@ pub fn create_components_tree_from_json(program: &str)
 
     // log!("All state var names {:#?}", all_state_var_names);
 
-    let component_tree: Vec<ComponentOrString> = serde_json::from_str(program).map_err(|e| e.to_string())?;
-    let component_tree = component_tree.iter()
+    let component_tree: Vec<ComponentOrString> = serde_json::from_str(program)
+        // This fails if there is a problem with the parser, not the input doenetML,
+        // so we don't throw a doenetML error here
+        .expect("Error extracting json");
+        // .map_err(|e| e.to_string())?;
+
+    let first_component = component_tree.iter()
         .find_map(|v| match v {
             ComponentOrString::Component(tree) => Some(tree),
             _ => None,
-        }).ok_or("No component trees")?;
+        });
+    
+    let tree_wrapped_in_document = |orig_comp_tree | ComponentTree {
+        component_type: String::from("document"),
+        props: Props { name: None, copy_source: None, prop: None, attributes: HashMap::new() },
+        children: orig_comp_tree,
+    };
+
+    let component_tree = if let Some(first_comp) = first_component {
+        if first_comp.component_type == "document" {
+            first_comp.clone()
+
+        } else {
+            tree_wrapped_in_document(component_tree)
+        }
+    } else {
+        tree_wrapped_in_document(component_tree)
+    };
 
     // log!("Root json object {:#?}", component_tree);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
+
+    let mut doenet_ml_errors: Vec<DoenetMLError> = vec![];
 
     let root_component_name = add_component_from_json(
         &mut component_nodes,
@@ -126,13 +149,20 @@ pub fn create_components_tree_from_json(program: &str)
         &mut component_type_counter,
         &component_definitions,
         &all_state_var_names,
-    )?;
+        &mut doenet_ml_errors,
+    );
 
-    Ok((component_nodes, root_component_name))
+    // log!("root component name {:?}", root_component_name);
+    let root_component_name = root_component_name.unwrap();
+
+    (component_nodes, root_component_name, doenet_ml_errors)
 }
 
 
 /// Recursive function
+/// The return is the name of the child, if it exists
+/// (it might not because of invalid doenet ml)
+
 fn add_component_from_json(
     component_nodes: &mut HashMap<String, ComponentNode>,
     component_tree: &ComponentTree,
@@ -140,14 +170,23 @@ fn add_component_from_json(
     component_type_counter: &mut HashMap<String, u32>,
     component_definitions: &HashMap<ComponentType, Box<dyn ComponentDefinition>>,
     all_state_var_names: &HashMap<String, StateVarName>,
+    doenet_ml_errors: &mut Vec<DoenetMLError>,
 
-) -> Result<String, String> {
+) -> Option<String> {
 
     let component_type: &str = &component_tree.component_type;
 
-    let (&component_type, component_definition) = component_definitions.get_key_value(component_type).ok_or(
-        format!("{} is not a valid component type", component_type)
-    )?;
+    let (&component_type, component_definition) = {
+        if let Some(comp_def) = component_definitions.get_key_value(component_type) {
+            comp_def
+        } else {
+            doenet_ml_errors.push(
+                DoenetMLError::InvalidComponentType { comp_type: component_type.to_string() }
+            );
+            return None;
+        }
+    };
+
 
     let count = *component_type_counter.get(component_type).unwrap_or(&0);
     component_type_counter.insert(component_type.to_string(), count + 1);
@@ -158,24 +197,33 @@ fn add_component_from_json(
     };
 
 
-    let copy_source: Option<CopySource> =
+    let copy_source: Option<CopySource> = {
         if let Some(ref source_name) = component_tree.props.copy_source {
             if let Some(ref source_state_var) = component_tree.props.prop {
 
-                let state_var_name = all_state_var_names.get(source_state_var).ok_or(
-                    format!("{} is not a valid state var name", source_state_var))?;
+                if let Some(state_var_name) = all_state_var_names.get(source_state_var) {
+                    Some(CopySource::StateVar(source_name.clone(), state_var_name))
 
-                Some(CopySource::StateVar(source_name.clone(), state_var_name))
+                } else {
+                    doenet_ml_errors.push(DoenetMLError::StateVarDoesNotExist {
+                        comp_name: component_name.clone(),
+                        sv_name: source_state_var.to_string() 
+                    });
+
+                    None
+                }
+
             } else {
                 Some(CopySource::Component(source_name.clone()))
             }
         } else {
             None
-        };
-
-    let attribute_definitions = component_definition.attribute_definitions();
+        }
+    };
 
     let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
+
+    let attribute_definitions = component_definition.attribute_definitions();
 
     // Create a hashmap from lowercase valid names to normalized valid names
     let attr_lowercase_to_normalized: HashMap<String, AttributeName> =
@@ -185,81 +233,84 @@ fn add_component_from_json(
         .collect();
 
     for (attr_name, attr_value) in component_tree.props.attributes.iter() {
-        if let Some(attribute_name) = attr_lowercase_to_normalized.get(&attr_name.to_lowercase()) {
 
-            let attribute_def = attribute_definitions.get(attribute_name).ok_or("no item")?;
-    
-            match attribute_def {
-                AttributeDefinition::Component(attr_comp_type) => {
+        let attribute_name = 
+        if let Some(valid_normalized_name) = attr_lowercase_to_normalized.get(&attr_name.to_lowercase()) {
+            // This component has an attribute that matches the input name
+            valid_normalized_name
+        } else {
+            doenet_ml_errors.push(DoenetMLError::AttributeDoesNotExist {
+                comp_name: component_name.clone(), attr_name: attr_name.to_string()
+            });
+            continue;
+        };
 
-                    //String child
-                    let string_child = ComponentChild::String(match attr_value {
-                        AttributeValue::Bool(v) => v.to_string(),
-                        AttributeValue::String(v) => v.to_string(),
-                    });
 
-                    // Make sure this is unique
-                    let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
+        let attribute_def = attribute_definitions.get(attribute_name).unwrap();
 
-                    let attr_component_definition = component_definitions.get(attr_comp_type).ok_or(
-                        format!("{} is not a valid component type", attr_comp_type)
-                    )?;
+        match attribute_def {
+            AttributeDefinition::Component(attr_comp_type) => {
 
-                    let attribute_component_node = ComponentNode {
-                        name: attr_comp_name.clone(),
-                        parent: Some(component_name.clone()),
-                        children: vec![string_child],
-                
-                        component_type: attr_comp_type,
-                        attributes: HashMap::new(),
-                
-                        copy_source: None,
+                let attr_component_definition = component_definitions.get(attr_comp_type).expect(
+                    &format!("The definition of the {} component defined an attribute of type {}, but that type does not exist", component_type, attr_comp_type)
+                );
 
-                        definition: attr_component_definition.clone(),
-                    };
+                //String child
+                let string_child = ComponentChild::String(match attr_value {
+                    AttributeValue::Bool(v) => v.to_string(),
+                    AttributeValue::String(v) => v.to_string(),
+                });
 
-                    add_attribute(
-                        &mut attributes,
-                        &component_definition,
-                        attribute_name,
-                        Attribute::Component(attr_comp_name.clone())
-                    ).map_err(|e| format!("For a {} component, {}", component_type, e))?;
+                // Make sure this is unique
+                let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
 
-                    component_nodes.insert(attr_comp_name, attribute_component_node);
-                },
-    
-                AttributeDefinition::Primitive(attr_primitive_type) => {
 
-                    match attr_primitive_type {
-                        StateVarValueType::Boolean => {
+                let attribute_component_node = ComponentNode {
+                    name: attr_comp_name.clone(),
+                    parent: Some(component_name.clone()),
+                    children: vec![string_child],
+            
+                    component_type: attr_comp_type,
+                    attributes: HashMap::new(),
+            
+                    copy_source: None,
 
-                            match attr_value {
-                                AttributeValue::Bool(bool_value) => {
-                                    add_attribute(
-                                        &mut attributes,
-                                        &component_definition,
-                                        attribute_name,
-                                        Attribute::Primitive(StateVarValue::Boolean(*bool_value))
-                                    ).map_err(|e| format!("For a {} component, {}", component_type, e))?;
-                                }
-                                _ => {
-                                    return Err(format!("Attribute {} has the wrong type", attribute_name));
-                                },
+                    definition: attr_component_definition.clone(),
+                };
+
+
+                attributes.insert(attribute_name, Attribute::Component(attr_comp_name.clone()));
+                component_nodes.insert(attr_comp_name, attribute_component_node);
+
+            },
+
+            AttributeDefinition::Primitive(attr_primitive_type) => {
+
+                match attr_primitive_type {
+                    StateVarValueType::Boolean => {
+
+                        match attr_value {
+                            AttributeValue::Bool(bool_value) => {
+
+                                attributes.insert(attribute_name,                                Attribute::Primitive(StateVarValue::Boolean(*bool_value)));
                             }
 
-                        },
+                            _ => {
+                                panic!("Attribute {} has the wrong type", attribute_name)
 
-                        _ => {
-                            log!("Primitive non-bool attribute definition does nothing right now");
+                            }
                         }
-                    }
-    
-                }
-            }
 
-        } else {
-            return Err(format!("{} does not have the attribute {}", component_name, attr_name));
+                    },
+
+                    _ => {
+                        log!("Primitive non-bool attribute definition does nothing right now");
+                    }
+                }
+
+            }
         }
+
     }
 
 
@@ -275,17 +326,20 @@ fn add_component_from_json(
             },
 
             ComponentOrString::Component(child_tree) => {
-                let child_name = add_component_from_json(
+                let child_name_if_not_error = add_component_from_json(
                     component_nodes,
                     &child_tree,
                     Some(component_name.clone()),
                     component_type_counter,
                     component_definitions,
                     all_state_var_names,
+                    doenet_ml_errors
+                );
 
-                )?;
+                if let Some(child_name) = child_name_if_not_error {
+                    children.push(ComponentChild::Component(child_name));
+                }
 
-                children.push(ComponentChild::Component(child_name));
             },
         }
     }
@@ -306,22 +360,5 @@ fn add_component_from_json(
 
     component_nodes.insert(component_name.clone(), component_node);
 
-    Ok(component_name)
+    return Some(component_name);
 }
-
-/// Safely add an attribute, ensuring that it exists
-fn add_attribute(
-    attributes: &mut HashMap<AttributeName, Attribute>,
-    component_def: &Box<dyn ComponentDefinition>,
-    name: AttributeName,
-    attribute: Attribute,
-) -> Result<(), String> {
-
-    if component_def.attribute_definitions().contains_key(name) {
-        attributes.insert(name, attribute);
-        Ok(())
-    } else {
-        Err(format!("no attribute called {}", name))
-    }
-}
-

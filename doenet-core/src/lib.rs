@@ -11,6 +11,8 @@ use lazy_static::lazy_static;
 use state_var::StateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
+use std::{error::Error, fmt::Display};
+
 
 use crate::prelude::*;
 use crate::component::*;
@@ -77,11 +79,64 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 
-pub fn create_doenet_core(program: &str) -> DoenetCore {
+
+/// This error type should be used for any error that is caused by the 
+/// user inputting invalid doenetML. It should only be thrown on core creation.
+#[derive(Debug)]
+pub enum DoenetMLError {
+    ComponentDoesNotExist {
+        comp_name: String
+    },
+    StateVarDoesNotExist {
+        comp_name: String,
+        sv_name: String,
+    },
+    AttributeDoesNotExist {
+        comp_name: String,
+        attr_name: String,
+    },
+    InvalidComponentType {
+        comp_type: String,
+    },
+}
+
+impl Error for DoenetMLError {}
+impl Display for DoenetMLError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use DoenetMLError::*;
+
+        match self {
+            ComponentDoesNotExist { comp_name } => 
+                write!(f, "Component {} does not exist", comp_name),
+            StateVarDoesNotExist { comp_name, sv_name } =>
+                write!(f, "State variable {} does not exist on {}", sv_name, comp_name),
+            AttributeDoesNotExist { comp_name, attr_name } =>
+                write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
+            InvalidComponentType { comp_type } => 
+                write!(f, "Component type {} does not exist", comp_type),
+
+        }
+    }
+}
+// impl From<&str> for DoenetMLError {
+//     fn from(message: &str) -> Self {
+//         DoenetMLError { message: message.to_string()  }
+//     }
+// }
+// impl From<String> for DoenetMLError {
+//     fn from(message: String) -> Self {
+//         DoenetMLError { message }
+//     }
+// }
+
+
+
+
+pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
     // Create component nodes.
-    let (component_nodes, root_component_name) = parse_json::create_components_tree_from_json(program)
-        .expect(&format!("Error parsing json for components"));
+    let (component_nodes, root_component_name, mut doenet_ml_errors) = 
+        parse_json::create_components_tree_from_json(program);
 
 
     // For every component copy, add aliases for children it inherits from its source.
@@ -91,18 +146,40 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
         _ => false,
     });
 
-    for (_name, copy) in copies {
+    let mut invalid_copies: Vec<String> = vec![];
+
+    for (name, copy) in copies {
         if let Some(CopySource::Component(ref source_name)) = copy.copy_source {
-            assert!(component_nodes.contains_key(source_name), "Component {} tries to copy from non-existent component {}", copy.name, source_name);
+
+            if !component_nodes.contains_key(source_name) {
+
+                // The component tried to copy a non-existent component, so log an error,
+                // and pretend it didn't copy anything
+
+                doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
+                    comp_name: source_name.to_string()
+                });
+
+                invalid_copies.push(name.to_string());
+
+                // Don't make an alias
+                continue;
+            }
+
         }
         add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
     }
 
-
-    // Parse macros and generate components from them
-
     let mut component_nodes = component_nodes;
 
+    // Remove invalid copy references
+    for invalid_copy in invalid_copies {
+        let culprit_component = component_nodes.get_mut(&invalid_copy).unwrap();
+        culprit_component.copy_source = None;
+    }
+
+
+    // Parse macros and generate components from them
     replace_macros_with_copies(&mut component_nodes);
 
     let component_nodes = component_nodes;
@@ -148,14 +225,14 @@ pub fn create_doenet_core(program: &str) -> DoenetCore {
 
     
 
-    DoenetCore {
+    (DoenetCore {
         component_nodes,
         component_states,
         root_component_name,
         dependencies,
         essential_data,
         aliases,
-    }
+    }, doenet_ml_errors)
 }
 
 

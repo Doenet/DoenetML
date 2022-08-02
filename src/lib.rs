@@ -20,11 +20,11 @@ macro_rules! log {
     }
 }
 
-// // Raw module means that this relative path is based on the wasm file's location
-// #[wasm_bindgen(raw_module = "/src/Core/CoreWorker.js")]
-// extern "C" {
-//     fn logJson(label: &str, json_obj: String);
-// }
+// Raw module means that this relative path is based on the wasm file's location
+#[wasm_bindgen(raw_module = "/src/Core/CoreWorker.js")]
+extern "C" {
+    fn logJson(label: &str, json_obj: String);
+}
 
 
 // // Raw module means that this relative path is based on the wasm file's location
@@ -57,10 +57,14 @@ impl PublicDoenetCore {
                 
         log!("core recieved the string: {}", program);
 
-        let core = doenet_core::create_doenet_core(program);
+        let (core, doenet_ml_errors) = doenet_core::create_doenet_core(program);
 
-        // logJson("Components on core creation\n", to_string(&doenet_core::json_components(&core)).unwrap());
-        // logJson("Dependencies on core creation\n", to_string(&doenet_core::utils::json_dependencies(&core.dependencies)).unwrap());
+        for ml_error in doenet_ml_errors {
+            web_sys::console::error_1(&JsValue::from_str(&format!("DoenetML Error: {}", ml_error)));
+        }
+
+        logJson("Components on core creation\n", serde_json::to_string(&doenet_core::json_components(&core)).unwrap());
+        logJson("Dependencies on core creation\n", serde_json::to_string(&doenet_core::utils::json_dependencies(&core.dependencies)).unwrap());
 
         web_sys::console::time_end_with_label("DoenetCore creation");
     
