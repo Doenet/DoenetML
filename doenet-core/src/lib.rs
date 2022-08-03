@@ -1222,47 +1222,52 @@ pub struct Action {
 #[derive(Debug, Clone)]
 enum UpdateRequest {
     SetEssentialValue(String, StateVarValue),
-    SetStateVar(ComponentName, StateVarName, StateVarValue),
+    SetStateVar(ComponentName, StateVarReference, StateVarValue),
 }
 
 
-// /// Among other things, this produces info about the component name based on
-// /// the dependency instruction.
-// fn convert_dependency_values_to_update_request(
-//     core: &DoenetCore,
-//     component: &ComponentNode,
-//     state_var: &StateVarReference,
-//     requests: HashMap<InstructionName, Vec<DependencyValue>>
-// ) -> Vec<UpdateRequest> {
+/// Among other things, this produces info about the component name based on
+/// the dependency instruction.
+fn convert_dependency_values_to_update_request(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    state_var: &StateVarReference,
+    requests: HashMap<InstructionName, Vec<DependencyValue>>
+) -> Vec<UpdateRequest> {
 
-//     let instruction_names = core.dependencies
-//         .get(&component.name).unwrap()
-//         .get(&state_var).unwrap();
+    let instruction_names = core.dependencies
+        .get(&component.name).unwrap()
+        .get(&StateVarGroup::Single(state_var.clone())).unwrap();
 
-//     requests.iter()
-//         .flat_map(|(instruction_name, values)|
-//             values.iter()
-//                 .map(|value|
-//                     match instruction_names.get(instruction_name).unwrap() {
-//                         Dependency::Essential(dep) => {
-//                             UpdateRequest::SetEssentialValue(
-//                                 dep.depends_on_essential.clone(),
-//                                 value.value.clone(),
-//                             )
-//                         },
-//                         Dependency::StateVar(_) => {
-//                             UpdateRequest::SetStateVar(
-//                                 component.name.clone(),
-//                                 value.state_var_name.clone(),
-//                                 value.value.clone(),
-//                             )
-//                         },
-//                     }
-//                 )
-//                 .collect::<Vec<UpdateRequest>>()
-//         )
-//         .collect()
-// }
+    requests.iter()
+        .flat_map(|(instruction_name, values)|
+            values.iter()
+                .flat_map(|value|
+                    instruction_names.get(instruction_name).unwrap()
+                    .iter()
+                    .filter_map(|instruction|
+                        match instruction {
+                            Dependency::Essential { essential_key } => {
+                                Some(UpdateRequest::SetEssentialValue(
+                                    essential_key.clone(),
+                                    value.value.clone(),
+                                ))
+                            },
+                            Dependency::StateVar { component_name, state_var_ref } => {
+                                Some(UpdateRequest::SetStateVar(
+                                    component_name.clone(),
+                                    state_var_ref.clone(),
+                                    value.value.clone(),
+                                ))
+                            },
+                            _ => None,
+                        }
+                    ).collect::<Vec<UpdateRequest>>()
+                )
+                .collect::<Vec<UpdateRequest>>()
+        )
+        .collect()
+}
 
 pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     
@@ -1287,10 +1292,10 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         &state_var_resolver
     );
 
-    for (state_var_name, requested_value) in state_vars_to_update {
+    for (state_var_ref, requested_value) in state_vars_to_update {
 
-        let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_name, requested_value);
-        process_update_request(core, component, StateVarReference::Basic(state_var_name), &request);
+        let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_ref.clone(), requested_value);
+        process_update_request(core, component, &state_var_ref, &request);
     }
 }
 
@@ -1298,7 +1303,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 fn process_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_ref: StateVarReference,
+    state_var_ref: &StateVarReference,
     update_request: &UpdateRequest
 ) {
 
@@ -1319,19 +1324,19 @@ fn process_update_request(
             mark_stale_essential_datum_and_dependencies(core, key);
         },
 
-        UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_name, requested_value) => {
+        UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_ref, requested_value) => {
 
             let dep_comp = core.component_nodes.get(dep_comp_name).unwrap();
 
             let dep_update_requests = request_dependencies_to_update_value_including_shadow(
                 core,
                 dep_comp,
-                &StateVarReference::Basic(dep_state_var_name),
+                dep_state_var_ref,
                 requested_value.clone(),
             );
 
             for dep_update_request in dep_update_requests {
-                process_update_request(core, dep_comp, StateVarReference::Basic(dep_state_var_name), &dep_update_request);
+                process_update_request(core, dep_comp, dep_state_var_ref, &dep_update_request);
             }
 
             mark_stale_state_var_and_dependencies(core, component, &state_var_ref);
@@ -1363,11 +1368,6 @@ fn generate_render_tree_internal(
     json_obj: &mut Vec<serde_json::Value>,
     came_from_copy: Option<&ComponentName>,
 ) {
-
-    let component_state = core.component_states.get(&component.name).unwrap();
-
-    let comp_state_vars = component_state;
-
     use serde_json::json;
 
     let state_vars = component.definition.state_var_definitions();
@@ -1537,22 +1537,20 @@ fn generate_update_instruction_including_shadowing(
 fn request_dependencies_to_update_value_including_shadow(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var: &StateVarReference,
+    state_var_ref: &StateVarReference,
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest> {
 
-    // if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
+    if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var_ref) {
 
-    //     vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
+        vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
-    // } else {
-    //     let requests = component.definition.state_var_definitions().get(state_var.name()).unwrap()
-    //         .request_dependencies_to_update_value(new_value);
+    } else {
+        let requests = component.definition.state_var_definitions().get(state_var_ref.name()).unwrap()
+            .request_dependencies_to_update_value(new_value);
 
-    //     convert_dependency_values_to_update_request(core, component, state_var, requests)
-    // }
-
-    vec![]
+        convert_dependency_values_to_update_request(core, component, state_var_ref, requests)
+    }
 }
 
 /// Detect if a state var is shadowing because of a CopySource

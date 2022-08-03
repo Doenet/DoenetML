@@ -109,7 +109,6 @@ impl StateForStateVar {
                     let new_size = size.set_value(val.clone());
                     
                     if let Ok(_) = new_size {
-                        let basic_variant = StateVarVariant::Number(Default::default());
                         elements.borrow_mut().resize(
                             i64::try_from(val).unwrap() as usize,
                             StateVar {

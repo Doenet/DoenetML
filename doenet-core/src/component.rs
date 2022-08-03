@@ -111,7 +111,7 @@ pub trait ComponentDefinition: CloneComponentDefinition {
         _action_name: &str,
         _args: HashMap<String, StateVarValue>,
         _resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarName, StateVarValue> {
+    ) -> HashMap<StateVarReference, StateVarValue> {
         HashMap::new()
     }
 
