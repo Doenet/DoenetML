@@ -200,7 +200,8 @@ fn add_component_from_json(
             if let Some(ref source_state_var) = component_tree.props.prop {
 
                 if let Some(state_var_name) = all_state_var_names.get(source_state_var) {
-                    Some(CopySource::StateVar(source_name.clone(), state_var_name))
+                    // TODO: parse non-basic props
+                    Some(CopySource::StateVar(source_name.clone(), StateVarReference::Basic(state_var_name)))
 
                 } else {
                     doenet_ml_errors.push(DoenetMLError::StateVarDoesNotExist {

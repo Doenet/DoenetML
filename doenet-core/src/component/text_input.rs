@@ -112,11 +112,11 @@ impl ComponentDefinition for MyComponentDefinition {
         vec!["updateImmediateValue", "updateValue"]
     }
 
-    fn on_action(
+    fn on_action<'a>(
         &self,
         action_name: &str,
         args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &dyn Fn(StateVarName) -> StateVarValue
+        resolve_and_retrieve_state_var: &dyn Fn(&'a StateVarReference) -> StateVarValue
     ) -> HashMap<StateVarName, StateVarValue> {
 
         match action_name {
@@ -129,7 +129,7 @@ impl ComponentDefinition for MyComponentDefinition {
 
             "updateValue" => {
 
-                let new_val = resolve_and_retrieve_state_var("immediateValue").try_into().unwrap();
+                let new_val = resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into().unwrap();
                 let new_val = StateVarValue::String(new_val);
 
                 HashMap::from([("value", new_val)])

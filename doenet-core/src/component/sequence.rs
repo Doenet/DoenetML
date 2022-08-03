@@ -22,7 +22,7 @@ lazy_static! {
                 HashMap::from([(
                     "sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
                         component_name: None,
-                        state_var: "from",
+                        state_var: StateVarReference::Basic("from"),
                     })
                 )])
             },
@@ -40,11 +40,11 @@ lazy_static! {
                 HashMap::from([
                     ("sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
                         component_name: None,
-                        state_var: "from",
+                        state_var: StateVarReference::Basic("from"),
                     })),
                     ("sv_to", DependencyInstruction::StateVar(StateVarDependencyInstruction {
                         component_name: None,
-                        state_var: "to",
+                        state_var: StateVarReference::Basic("to"),
                     })
                 )])
             },

@@ -73,11 +73,11 @@ impl ComponentDefinition for MyComponentDefinition {
         vec!["updateBoolean"]
     }
 
-    fn on_action(
+    fn on_action<'a>(
         &self,
         action_name: &str,
         args: HashMap<String, StateVarValue>,
-        _: &dyn Fn(StateVarName) -> StateVarValue
+        _: &dyn Fn(&'a StateVarReference) -> StateVarValue
     ) -> HashMap<StateVarName, StateVarValue> {
 
             match action_name {
