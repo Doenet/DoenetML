@@ -1,5 +1,5 @@
 use crate::{state_variables::*, prelude::StateVarReference};
-use std::{cell::RefCell, fmt, borrow::{Borrow, BorrowMut}};
+use std::{cell::RefCell, fmt};
 use self::State::*;
 
 
@@ -122,6 +122,25 @@ impl StateForStateVar {
                 },
                 _ => panic!()
             }
+        }
+    }
+
+    pub fn mark_single_stale(&self, state_var_ref: &StateVarReference) {
+        match self {
+            Self::Single(sv) => sv.mark_stale(),
+
+            Self::Array { size, elements } => match state_var_ref {
+                StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().mark_stale(),
+                StateVarReference::SizeOf(_) => size.mark_stale(),
+                _ => panic!()
+            }
+        }
+    }
+
+    pub fn elements_len(&self) -> usize {
+        match self {
+            Self::Single(_) => panic!(),
+            Self::Array { size: _, elements } => elements.borrow().len(),
         }
     }
 

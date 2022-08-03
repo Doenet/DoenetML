@@ -21,6 +21,7 @@ pub enum StateVarReference {
     SizeOf(StateVarName),
 }
 
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum StateVarGroup {
     Single(StateVarReference),
     Array(StateVarName),

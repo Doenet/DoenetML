@@ -8,8 +8,7 @@ pub mod parse_json;
 pub mod utils;
 
 use lazy_static::lazy_static;
-use state_var::{StateVar, StateForStateVar};
-use std::cell::RefCell;
+use state_var::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::{error::Error, fmt::Display};
@@ -21,17 +20,6 @@ use crate::component::*;
 use state_var::{State, EssentialStateVar};
 use state_variables::*;
 
-#[derive(Debug, serde::Serialize)]
-pub enum DependenciesForStateVar {
-    Single(HashMap<InstructionName, Vec<Dependency>>),
-    Array {
-        size: HashMap<InstructionName, Vec<Dependency>>,
-        all_elements: HashMap<InstructionName, Vec<Dependency>>,
-        specific_elements: HashMap<usize, HashMap<InstructionName, Vec<Dependency>>>,
-    
-    }
-}
-
 
 /// This stores the components and dependency graph.
 #[derive(Debug)]
@@ -41,9 +29,7 @@ pub struct DoenetCore {
     pub root_component_name: ComponentName,
 
     /// Stores every dependency, indexed by the name of the component and the state variable.
-    pub dependencies: HashMap<ComponentName, HashMap<StateVarReference, HashMap<InstructionName, Vec<Dependency>>>>,
-
-    // pub group_dependencies: HashMap<ComponentName, HashMap<StateVarName, fn (usize) -> Vec<Dependency>>>,
+    pub dependencies: HashMap<ComponentName, HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>>>,
 
 
     /// States that the user can change and which state variables may depend on
@@ -61,7 +47,7 @@ pub struct DoenetCore {
 
 
 /// A collection of edges on the dependency tree
-#[derive(Debug, serde::Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum Dependency {
     StateVar {
         component_name: String,
@@ -554,10 +540,10 @@ fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<String, EssentialStateVar>,
-) -> HashMap<StateVarReference, HashMap<InstructionName, Vec<Dependency>>> {
+) -> HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> {
 
     log_debug!("Creating dependencies for {:?}", component.name);
-    let mut dependencies: HashMap<StateVarReference, HashMap<InstructionName, Vec<Dependency>>> = HashMap::new();
+    let mut dependencies: HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> = HashMap::new();
 
 
     let my_definitions = component.definition.state_var_definitions();
@@ -566,11 +552,32 @@ fn create_all_dependencies_for_component(
         if state_var_variant.is_array() {
 
             let size_dep_instructions = state_var_variant.return_size_dependency_instructions(HashMap::new());
-            // log!("size dep instructions {:#?}", size_dep_instructions);
-
             let mut instruction_dependencies = HashMap::new();
 
             for (dep_name, ref dep_instruction) in size_dep_instructions.into_iter() {
+                let dependency = create_dependencies_from_instruction(
+                    &components, component, &&StateVarReference::SizeOf(state_var_name),
+                    dep_instruction, dep_name, essential_data,
+                );
+
+                instruction_dependencies.insert(
+                    dep_name,
+                    dependency ,  
+                );
+
+            }
+
+            dependencies.insert(
+                StateVarGroup::Single(StateVarReference::SizeOf(state_var_name)),
+                instruction_dependencies,
+            );
+
+
+
+            let array_dep_instruactions = state_var_variant.return_dependency_instructions(HashMap::new());
+            let mut instruction_dependencies = HashMap::new();
+
+            for (dep_name, ref dep_instruction) in array_dep_instruactions.into_iter() {
                 let dependency = create_dependencies_from_instruction(
                     &components, component, &&StateVarReference::SizeOf(state_var_name),
                     dep_instruction, dep_name, essential_data
@@ -578,16 +585,15 @@ fn create_all_dependencies_for_component(
 
                 instruction_dependencies.insert(
                     dep_name,
-                    dependency   
+                    dependency,
                 );
 
             }
 
             dependencies.insert(
-                StateVarReference::SizeOf(state_var_name),
-                instruction_dependencies
+                StateVarGroup::Array(state_var_name),
+                instruction_dependencies,
             );
-
 
         } else {
 
@@ -608,7 +614,7 @@ fn create_all_dependencies_for_component(
             }
 
             dependencies.insert(
-                StateVarReference::Basic(state_var_name),
+                StateVarGroup::Single(StateVarReference::Basic(state_var_name)),
                 instruction_dependencies
             );
 
@@ -616,19 +622,6 @@ fn create_all_dependencies_for_component(
     }
 
     dependencies
-
-
-    // component.definition.state_var_definitions()
-    //     .iter()
-    //     .flat_map(|(&sv_name, sv_def)|
-    //         sv_def.return_dependency_instructions(HashMap::new())
-    //             .iter()
-    //             .map(|(dep_name, dep_instruction)|
-    //                 create_dependency_from_instruction(&components, component, sv_name, dep_instruction, dep_name)
-    //             )
-    //             .collect::<Vec<_>>()
-    //     )
-    //     .collect()
 
 }
 
@@ -879,7 +872,7 @@ fn get_state_variables_depending_on_me(
     core: &DoenetCore,
     sv_component_name: &ComponentName,
     sv_reference: &StateVarReference,
-) -> Vec<(ComponentName, StateVarReference)> {
+) -> Vec<(ComponentName, StateVarGroup)> {
 
     let mut depending_on_me = vec![];
 
@@ -891,16 +884,21 @@ fn get_state_variables_depending_on_me(
 
                     match dependency {
                         Dependency::StateVar { component_name, state_var_ref } => {
-                            if component_name == sv_component_name && state_var_ref == sv_reference {
-                                depending_on_me.push((component_name.clone(), state_var_ref.clone()));
+                            if component_name == sv_component_name
+                            && state_var_ref == sv_reference {
+                                depending_on_me.push((comp_name.clone(), sv_ref.clone()));
                             }
                         },
 
                         Dependency::StateVarArray { component_name, array_state_var_name } => {
-                            panic!();
+                            // check if the state variables is in this group
+                            if component_name == sv_component_name
+                            && *array_state_var_name == sv_reference.name() {
+                                depending_on_me.push((comp_name.clone(), sv_ref.clone()));
+                            }
                         },
 
-                        _ => {},
+                        _ => {}, // Essential and String dependencies are endpoints
 
                     }
                 }
@@ -931,8 +929,30 @@ fn resolve_state_variable(
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
-    let my_dependencies = core.dependencies.get(&component.name).unwrap().get(state_var_ref).unwrap();
+    let my_dependencies_direct = core.dependencies.get(&component.name).unwrap().get(&StateVarGroup::Single(state_var_ref.clone())).unwrap();
 
+    let empty_hash = HashMap::new();
+    // find what groups the state var is a part of
+    let my_dependencies_indirect = core.dependencies
+        .get(&component.name)
+        .unwrap()
+        .get(&StateVarGroup::Array(state_var_ref.name()))
+        .unwrap_or(&empty_hash);
+
+    // combine HashMaps
+    let mut my_dependencies: HashMap<InstructionName, Vec<Dependency>> = my_dependencies_direct.clone();
+    for (instruct_name, dep) in my_dependencies_indirect.into_iter() {
+        if let Some(deps) = my_dependencies.get_mut(instruct_name) {
+            deps.extend(dep.clone());
+        } else {
+            my_dependencies.insert(instruct_name, dep.clone());
+        }
+    }
+    // let my_dependencies: HashMap<InstructionName, Vec<Dependency>> = my_dependencies_direct
+    //     .into_iter()
+    //     .chain(my_dependencies_indirect)
+    //     .map(|(&k, &v)| (k,v))
+    //     .collect();
     
     for (dep_name, deps) in my_dependencies {
 
@@ -943,8 +963,8 @@ fn resolve_state_variable(
 
                 Dependency::StateVar { component_name, state_var_ref } => {
 
-                    let depends_on_component = core.component_nodes.get(component_name).unwrap();
-                    let depends_on_value = resolve_state_variable(core, depends_on_component, state_var_ref);
+                    let depends_on_component = core.component_nodes.get(&component_name).unwrap();
+                    let depends_on_value = resolve_state_variable(core, depends_on_component, &state_var_ref);
 
                     values_for_this_dep.push(DependencyValue {
                         component_type: depends_on_component.component_type,
@@ -963,7 +983,7 @@ fn resolve_state_variable(
                 },
 
                 Dependency::Essential { essential_key } => {
-                    let value = core.essential_data.get(essential_key).unwrap().clone();
+                    let value = core.essential_data.get(&essential_key).unwrap().clone();
     
                     values_for_this_dep.push(DependencyValue {
     
@@ -977,7 +997,7 @@ fn resolve_state_variable(
 
                 Dependency::StateVarArray { component_name, array_state_var_name } => {
 
-                    let depends_on_component = core.component_nodes.get(component_name).unwrap();
+                    let depends_on_component = core.component_nodes.get(&component_name).unwrap();
                     let size_value = resolve_state_variable(
                         core,
                         depends_on_component,
@@ -1023,7 +1043,42 @@ fn resolve_state_variable(
 
 }
 
+fn references_from_group(
+    core: &DoenetCore,
+    sv_component: &ComponentNode,
+    sv_name: &StateVarName,
+) -> Vec<StateVarReference> {
 
+    let state_var = core.component_states.get(&sv_component.name).unwrap().get(sv_name).unwrap();
+
+    let existing_elements = (0..state_var.elements_len())
+        .map(|i|
+            StateVarReference::ArrayElement(sv_name, i)
+        );
+
+    let specific_deps = core.dependencies.get(&sv_component.name).unwrap()
+        .iter()
+        .filter_map(|(g, _)|
+            match g {
+                StateVarGroup::Single(StateVarReference::SizeOf(s)) => {
+                    Some(StateVarReference::SizeOf(s))
+                },
+                StateVarGroup::Single(StateVarReference::ArrayElement(s, i)) => {
+                    Some(StateVarReference::ArrayElement(s, *i))
+                },
+                _ => None,
+        }
+    );
+
+    // combine
+    let mut all_elements = Vec::new();
+    for elem in existing_elements.chain(specific_deps) {
+        if !all_elements.contains(&elem) {
+            all_elements.push(elem);
+        }
+    }
+    all_elements
+}
 
 
 fn mark_stale_state_var_and_dependencies(
@@ -1032,22 +1087,30 @@ fn mark_stale_state_var_and_dependencies(
     state_var_ref: &StateVarReference)
 {
 
-    panic!();
+    log_debug!("Marking stale {}:{:?}", component.name, state_var_ref);
 
-    // log_debug!("Marking stale {}:{:?}", component.name, state_var_ref);
+    let component_state = core.component_states.get(&component.name).unwrap();
 
-    // let component_state = core.component_states.get(&component.name).unwrap();
+    let state_var = component_state.get(state_var_ref.name()).unwrap();
+    state_var.mark_single_stale(state_var_ref);
 
-    // let state_var = component_state.get(state_var_ref.name()).unwrap();
-    // state_var.mark_stale();
-
-    // let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_ref);
+    let depending_on_me = get_state_variables_depending_on_me(core, &component.name, state_var_ref);
     
-    // for (depending_comp_name, depending_state_var) in depending_on_me {
-    //     let depending_comp = core.component_nodes.get(&depending_comp_name).unwrap();
+    for (depending_comp_name, depending_group) in depending_on_me {
+        let depending_comp = core.component_nodes.get(&depending_comp_name).unwrap();
 
-    //     mark_stale_state_var_and_dependencies(core, depending_comp, &depending_state_var);
-    // }
+        match depending_group {
+            StateVarGroup::Single(sv_ref) => {
+                mark_stale_state_var_and_dependencies(core, depending_comp, &sv_ref);
+            },
+            StateVarGroup::Array(sv_name) => {
+                let members = references_from_group(core, component, &sv_name);
+                for member in members {
+                    mark_stale_state_var_and_dependencies(core, depending_comp, &member);
+                }
+            }
+        }
+    }
 }
 
 
@@ -1055,37 +1118,43 @@ fn mark_stale_state_var_and_dependencies(
 
 fn mark_stale_essential_datum_and_dependencies(
     core: &DoenetCore,
-    essential_var_name: &str
+    essential_var_name: &String,
 ) {
 
     log_debug!("Marking stale essential {}", essential_var_name);
-    panic!();
 
-    // // tuples of component and state var that depend on this essential datum
-    // let my_dependencies: Vec<(ComponentName, StateVarReference)> = core.dependencies
-    //     .iter()
-    //     .flat_map(|(component_name, h)|
-    //         h.iter()
-    //         .flat_map(|(sv_name, deps)|
-    //             deps.iter()
-    //             .filter_map(|(_, d)| match d {
-    //                 Dependency::Essential(ess_dep) => {
-    //                     if ess_dep.depends_on_essential == essential_var_name {
-    //                         Some((component_name.clone(), sv_name.clone()))
-    //                     } else {
-    //                         None
-    //                     }
-    //                 },
-    //                 _ => None,
-    //             })
-    //         )
-    //     )
-    //     .collect();
+    let search_for = Dependency::Essential { essential_key: essential_var_name.clone() };
 
-    // for (component_name, state_var_ref) in my_dependencies {
-    //     let component = core.component_nodes.get(&component_name).unwrap();
-    //     mark_stale_state_var_and_dependencies(core, &component, &state_var_ref);
-    // }
+    // tuples of component and state var that depend on this essential datum
+    let my_dependencies: Vec<(ComponentName, StateVarReference)> = core.dependencies.iter()
+        .flat_map(|(component_name, h)|
+            h.iter()
+            .filter_map(|(sv_group, deps)|
+                match sv_group {
+                    StateVarGroup::Single(s) => {
+                        Some(
+                            deps.iter()
+                            .flat_map(|(_name, ds)|
+                                ds.iter()
+                                .filter_map(|d|
+                                    if *d == search_for {
+                                        Some((component_name.clone(), s.clone()))
+                                    } else {
+                                        None
+                                    }
+                                ).collect::<Vec<(ComponentName, StateVarReference)>>()
+                            ).collect::<Vec<(ComponentName, StateVarReference)>>()
+                        )
+                    },
+                    _ => None, // group dependencies should not have essential data (for now)
+                }
+            ).flatten().collect::<Vec<(ComponentName, StateVarReference)>>()
+        ).collect();
+
+    for (component_name, state_var_ref) in my_dependencies {
+        let component = core.component_nodes.get(&component_name).unwrap();
+        mark_stale_state_var_and_dependencies(core, &component, &state_var_ref);
+    }
 }
 
 
@@ -1247,7 +1316,7 @@ fn process_update_request(
 
             log_debug!("Updated essential data {:#?}", core.essential_data);
 
-            mark_stale_essential_datum_and_dependencies(core, &key);
+            mark_stale_essential_datum_and_dependencies(core, key);
         },
 
         UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_name, requested_value) => {
