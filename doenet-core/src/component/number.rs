@@ -62,7 +62,7 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
                     component_name: None,
-                    state_var: "value",
+                    state_var: StateVarReference::Basic("value"),
                 });
             
                 HashMap::from([("value_sv", instruction)]) 

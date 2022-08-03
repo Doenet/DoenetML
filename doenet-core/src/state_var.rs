@@ -1,8 +1,9 @@
-use crate::state_variables::*;
-use std::{cell::RefCell, fmt};
+use crate::{state_variables::*, prelude::StateVarReference};
+use std::{cell::RefCell, fmt, borrow::{Borrow, BorrowMut}};
 use self::State::*;
 
 
+#[derive(Clone)]
 pub struct StateVar {
 
     // Why we need RefCells: the Box does not allow mutability in the thing it wraps.
@@ -17,16 +18,16 @@ pub struct StateVar {
 /// which protects state variables from changing type.
 /// We have to store the State enum *inside* each variant
 /// so that the type is retained even when the content is Stale.
+#[derive(Clone)]
 enum ValueTypeProtector {
     String(State<String>),
     Boolean(State<bool>),
     Integer(State<i64>),
     Number(State<f64>),
-    NumberArray(Vec<State<f64>>),
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum State<T> {
     Stale,
     Resolved(T),
@@ -34,22 +35,101 @@ pub enum State<T> {
 
 
 
-impl StateVar {
+#[derive(Debug)]
+pub enum StateForStateVar {
+    Single(StateVar),
+    Array {
+        size: StateVar,
+        elements: RefCell<Vec<StateVar>>,
+    }
+}
+
+impl StateForStateVar {
 
     /// Stale StateVar of the given type
     pub fn new(value_type: &StateVarVariant) -> Self {
-        StateVar {
-            value_type_protector: RefCell::new(
-                match value_type {
-                    StateVarVariant::Boolean(_) => ValueTypeProtector::Boolean(Stale),
-                    StateVarVariant::Integer(_) => ValueTypeProtector::Integer(Stale),
-                    StateVarVariant::Number(_) => ValueTypeProtector::Number(Stale),
-                    StateVarVariant::String(_) => ValueTypeProtector::String(Stale),
-                    StateVarVariant::NumberArray(_) => ValueTypeProtector::NumberArray(Vec::new()),
+
+        match value_type {
+            StateVarVariant::Boolean(_) => Self::Single(StateVar {
+                value_type_protector: RefCell::new(ValueTypeProtector::Boolean(Stale))
+            }),
+            StateVarVariant::Integer(_) => Self::Single(StateVar {
+                value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale))
+            }),
+            StateVarVariant::Number(_) =>  Self::Single(StateVar {
+                value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale))
+            }),
+            StateVarVariant::String(_) =>  Self::Single(StateVar {
+                value_type_protector: RefCell::new(ValueTypeProtector::String(Stale))
+            }),
+            StateVarVariant::NumberArray(_) => {
+                Self::Array {
+                    size: StateVar {
+                        value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale)),
+                    },
+                    elements: RefCell::new(
+                        vec![]
+                    )
                 }
-            )
+            }
         }
     }
+
+
+    pub fn get_single_state(&self, sv_ref: &StateVarReference) -> State<StateVarValue> {
+        match self {
+            Self::Single(sv) => {
+                match sv_ref {
+                    StateVarReference::Basic(_) => sv.get_state(),
+                    _ => panic!(),
+                }
+            },
+            Self::Array { size, elements } => {
+                match sv_ref {
+                    StateVarReference::SizeOf(_) => size.get_state(),
+                    StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().get_state(),
+                    _ => panic!(),
+                }
+            },
+
+        }
+
+    }
+
+
+    pub fn set_single_state(&self, state_var_ref: &StateVarReference, val: StateVarValue) -> Result<(), String> {
+        match self {
+            Self::Single(sv) => sv.set_value(val),
+
+            Self::Array { size, elements } => match state_var_ref {
+                StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().set_value(val),
+
+                StateVarReference::SizeOf(_) => {
+
+                    let new_size = size.set_value(val.clone());
+                    
+                    if let Ok(_) = new_size {
+                        let basic_variant = StateVarVariant::Number(Default::default());
+                        elements.borrow_mut().resize(
+                            i64::try_from(val).unwrap() as usize,
+                            StateVar {
+                                value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale))
+                            }
+                        );
+                    }
+
+                    new_size
+                },
+                _ => panic!()
+            }
+        }
+    }
+
+}
+
+
+
+impl StateVar {
 
 
     pub fn set_value(&self, new_value: StateVarValue) -> Result<(), String> {
@@ -67,9 +147,6 @@ impl StateVar {
             ValueTypeProtector::Boolean(_) => ValueTypeProtector::Boolean(Stale),
             ValueTypeProtector::Number(_)  => ValueTypeProtector::Number(Stale),
             ValueTypeProtector::Integer(_) => ValueTypeProtector::Integer(Stale),
-            ValueTypeProtector::NumberArray(array)  => ValueTypeProtector::NumberArray(
-                array.iter().map(|_| Stale).collect()
-            ),
         }
     }
 
@@ -95,23 +172,9 @@ impl StateVar {
                 Resolved(val) => Resolved(StateVarValue::Integer(val.clone())),
                 Stale => Stale
             }
-            ValueTypeProtector::NumberArray(_) => Stale,
         }
     }
 
-
-    pub fn get_element_state(&self, index: usize) -> State<StateVarValue> {
-
-        let type_protector = &*self.value_type_protector.borrow();
-
-        match type_protector {
-            ValueTypeProtector::NumberArray(array) => match array[index] {
-                Resolved(val) => Resolved(StateVarValue::Number(val.clone())),
-                Stale => Stale
-            },
-            _ => panic!(),
-        }
-    }
 
 
     pub fn copy_value_if_resolved(&self) -> Option<StateVarValue> {
@@ -206,21 +269,10 @@ impl ValueTypeProtector {
             ValueTypeProtector::Boolean(state) => {
                 *state = Resolved(new_value.try_into()?);
             }
-            ValueTypeProtector::NumberArray(state) => panic!(),
         }
 
         Ok(())
     }
 
-    fn set_element_value(&mut self, index: usize, new_value: StateVarValue) -> Result<(), String> {
-        match self {
-            ValueTypeProtector::NumberArray(array) => {
-                array[index] = Resolved(new_value.try_into()?);
-            }
-            _ => panic!(),
-        }
-
-        Ok(())
-    }
 }
 

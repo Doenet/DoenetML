@@ -87,7 +87,7 @@ pub struct ComponentNode {
 #[derive(Debug, Clone)]
 pub enum CopySource {
     Component(ComponentName),
-    StateVar(ComponentName, StateVarName),
+    StateVar(ComponentName, StateVarReference),
 }
 
 
@@ -110,7 +110,7 @@ pub trait ComponentDefinition: CloneComponentDefinition {
         &'a self,
         _action_name: &str,
         _args: HashMap<String, StateVarValue>,
-        _resolve_and_retrieve_state_var: &'a dyn Fn(StateVarName) -> StateVarValue
+        _resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateVarReference) -> StateVarValue
     ) -> HashMap<StateVarName, StateVarValue> {
         HashMap::new()
     }

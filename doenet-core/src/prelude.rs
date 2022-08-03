@@ -14,18 +14,16 @@ pub type AttributeName = &'static str;
 pub type ComponentName = String;
 
 
-/// A basic StateVarReference refers to either of the following:
-/// - StateVarDefinition, refering to the single state variable
-/// - StateVarArrayDefinition, refering to the entire array
-///
-/// ArrayElement and SizeOf refer to state variables that go along with
-/// an array state variable.
-/// They are "subsets" of a basic reference to an array state var.
-#[derive(Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum StateVarReference {
     Basic(StateVarName),
     ArrayElement(StateVarName, usize),
     SizeOf(StateVarName),
+}
+
+pub enum StateVarGroup {
+    Single(StateVarReference),
+    Array(StateVarName),
 }
 
 impl StateVarReference {

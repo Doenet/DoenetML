@@ -170,10 +170,10 @@ pub struct ChildDependencyInstruction {
     pub desired_state_vars: Vec<StateVarName>,
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Clone, Debug)]
 pub struct StateVarDependencyInstruction {
-    pub component_name: Option<ComponentName>, //default: Option::None
-    pub state_var: StateVarName, //default: ""
+    pub component_name: Option<ComponentName>,
+    pub state_var: StateVarReference,
 }
 
 #[derive(Clone, Debug)]
@@ -482,7 +482,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
         return_dependency_instructions: |_| {
             let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
                 component_name: None, //myself
-                state_var: "value",
+                state_var: StateVarReference::Basic("value"),
             });
         
             HashMap::from([("value_of_value", instruction)])
