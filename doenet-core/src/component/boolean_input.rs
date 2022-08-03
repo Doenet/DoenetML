@@ -78,14 +78,17 @@ impl ComponentDefinition for MyComponentDefinition {
         action_name: &str,
         args: HashMap<String, StateVarValue>,
         _: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarName, StateVarValue> {
+    ) -> HashMap<StateVarReference, StateVarValue> {
 
             match action_name {
                 "updateBoolean" => {
 
                     let new_val = args.get("boolean").expect("No boolean argument");
 
-                    HashMap::from([("value", new_val.clone())])
+                    HashMap::from([(
+                        StateVarReference::Basic("value"),
+                        new_val.clone()
+                    )])
                 }
 
                 _ => panic!("Unknown action '{}' called on booleanInput", action_name)

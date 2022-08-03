@@ -117,14 +117,17 @@ impl ComponentDefinition for MyComponentDefinition {
         action_name: &str,
         args: HashMap<String, StateVarValue>,
         resolve_and_retrieve_state_var: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarName, StateVarValue> {
+    ) -> HashMap<StateVarReference, StateVarValue> {
 
         match action_name {
             "updateImmediateValue" => {
                 // Note: the key here is whatever the renderers call the new value
                 let new_val = args.get("text").expect("No text argument");
 
-                HashMap::from([("immediateValue", new_val.clone())])
+                HashMap::from([(
+                    StateVarReference::Basic("immediateValue"),
+                    new_val.clone()
+                )])
             },
 
             "updateValue" => {
@@ -132,7 +135,10 @@ impl ComponentDefinition for MyComponentDefinition {
                 let new_val = resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into().unwrap();
                 let new_val = StateVarValue::String(new_val);
 
-                HashMap::from([("value", new_val)])
+                HashMap::from([(
+                    StateVarReference::Basic("value"),
+                    new_val
+                )])
 
             }
 
