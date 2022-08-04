@@ -20,10 +20,10 @@ lazy_static! {
             for_renderer: true,
 
             return_dependency_instructions: |_| {
-                let instruction = DependencyInstruction::Child(ChildDependencyInstruction {
+                let instruction = DependencyInstruction::Child {
                     desired_children: vec![ObjectTraitName::NumberLike],
                     desired_state_vars: vec!["value"],
-                });
+                };
             
                 HashMap::from([("children", instruction)]) 
             },
@@ -60,10 +60,10 @@ lazy_static! {
             for_renderer: true,
 
             return_dependency_instructions: |_| {
-                let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                let instruction = DependencyInstruction::StateVar {
                     component_name: None,
-                    state_var: StateVarReference::Basic("value"),
-                });
+                    state_var: StateVarGroup::Single(StateVarReference::Basic("value")),
+                };
             
                 HashMap::from([("value_sv", instruction)]) 
             },

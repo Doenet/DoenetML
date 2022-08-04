@@ -158,4 +158,9 @@ impl ComponentDefinition for MyComponentDefinition {
         }
     }
 
+
+    fn renderer_type(&self) -> RendererType {
+        RendererType::Special("textInput")
+    }
+
 }

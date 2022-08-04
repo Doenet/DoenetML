@@ -65,7 +65,14 @@ impl PublicDoenetCore {
 
     pub fn update_renderers(&self) -> String {
 
-        doenet_core::update_renderers(&self.0)
+        web_sys::console::time_with_label("Update renderers");
+
+        let result = doenet_core::update_renderers(&self.0);
+
+        web_sys::console::time_end_with_label("Update renderers");
+
+        result
+
     }
 
 
