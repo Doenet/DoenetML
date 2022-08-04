@@ -41,7 +41,7 @@ pub struct DoenetCore {
     ///      - indirect dependency: when a group depends on something,
     ///        and members of the group inherit the dependency.
     ///        The motivation for indirect dependencies is that
-    ///        the size of groups can change (e.g. an array state var changes size).
+    ///        the size of groups can change (e.g. an array changes size).
     ///        To keep the dependency graph static, we do not update
     ///        individual dependencies but simply apply the group dependency.
     /// 3. the instruction name, given by the state variable to track where
@@ -52,9 +52,9 @@ pub struct DoenetCore {
                 HashMap<InstructionName,
                     Vec<Dependency>>>>,
 
-    /// States that the user can change and which state variables may depend on
-    /// (e.g. the contents of input dialogues)
-    pub essential_data: HashMap<String, EssentialStateVar>,
+    /// States that the user can change (e.g. the contents of an input dialogue).
+    /// Each datum is associated with the state variable of a particular component.
+    pub essential_data: HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 
     /// We send components to the renderer that do not exists
     /// - the inherited children of a copy
@@ -70,19 +70,19 @@ pub struct DoenetCore {
 #[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
 pub enum Dependency {
     StateVar {
-        component_name: String,
+        component_name: ComponentName,
         state_var_ref: StateVarReference,
     },
     Essential {
-        /// The name of an essential datum that a state variable depends on.
-        essential_key: String,
+        component_name: ComponentName,
+        state_var_name: StateVarName,
     },
 
     String {
         value: String,
     },
 
-    /// Unlike the others, this represents multiple edges on the dependency graph,
+    /// This represents multiple edges on the dependency graph,
     /// since it references multiple state variables.
     StateVarArray {
         component_name: String,
@@ -200,6 +200,9 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
     log_json!("Dependencies upon core creation",
         utils::json_dependencies(&dependencies));
+
+    log_debug!("Essential data upon core creation {:?}",
+        essential_data);
 
 
     (DoenetCore {
@@ -416,7 +419,8 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 
                     let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
 
-                    let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name);
+                    let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name)
+                        .expect(&format!("could not create component for state var copy macro"));
                     let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
 
                     let copy_num = macro_copy_counter.entry(source_comp_sv_name.clone()).or_insert(0);
@@ -510,15 +514,18 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 }
 
 
-fn default_component_type_for_state_var(component: &ComponentNode, state_var: StateVarName) -> ComponentType {
+fn default_component_type_for_state_var(component: &ComponentNode, state_var: StateVarName)
+    -> Result<ComponentType, String> {
 
     let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
     match state_var_def {
-        StateVarVariant::Boolean(_) => "boolean",
-        StateVarVariant::Integer(_) => "number",
-        StateVarVariant::Number(_) => "number",
-        StateVarVariant::String(_) => "text",
-        StateVarVariant::NumberArray(_) => panic!(),
+        StateVarVariant::Boolean(_) => Ok("boolean"),
+        StateVarVariant::Integer(_) => Ok("number"),
+        StateVarVariant::Number(_) => Ok("number"),
+        StateVarVariant::String(_) => Ok("text"),
+        StateVarVariant::NumberArray(_) => Err(
+            format!("no component for NumberArray state variable")
+        ),
     }
 }
 
@@ -528,7 +535,7 @@ fn default_component_type_for_state_var(component: &ComponentNode, state_var: St
 fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
-    essential_data: &mut HashMap<String, EssentialStateVar>,
+    essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) -> HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> {
 
     log_debug!("Creating dependencies for {}", component.name);
@@ -622,21 +629,18 @@ fn get_attribute_including_copy<'a>(
     attribute_name: AttributeName
 )-> Option<&'a Attribute> {
 
-    // let source = components.get(source_name).unwrap();
     if let Some(attribute) = component.attributes.get(attribute_name) {
         Some(attribute)
 
     } else if let Some(CopySource::Component(ref source_name)) = component.copy_source {
 
-        // The hide attribute is an exception: we don't inherit it
         if attribute_name == "hide" {
+            // The hide attribute is an exception: we don't inherit it
             None
-
         } else {
             let source = components.get(source_name).unwrap();
             get_attribute_including_copy(components, source, attribute_name)
         }
-
     } else {
         None
     }
@@ -650,7 +654,7 @@ fn create_dependencies_from_instruction(
     state_var_reference: &StateVarReference,
     instruction: &DependencyInstruction,
     instruction_name: InstructionName,
-    essential_data: &mut HashMap<String, EssentialStateVar>,
+    essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) -> Vec<Dependency> {
 
     log_debug!("Creating dependency {}:{}:{}", component.name, state_var_reference, instruction_name);
@@ -660,20 +664,26 @@ fn create_dependencies_from_instruction(
     match &instruction {
 
         DependencyInstruction::Essential => {
-            // An Essential DependencyInstruction returns an Essential Dependency.
 
-            let depends_on_essential = get_key_to_essential_data(components, component, state_var_reference);
-            let variant = component.definition.state_var_definitions().get(state_var_reference.name()).unwrap();
+            let component_name = get_name_of_original(components, component);
+            let state_var_name = state_var_reference.name();
+
+            let variant = component.definition.state_var_definitions().get(state_var_name).unwrap();
+            let essential_datum = EssentialStateVar::new(variant.initial_essential_value());
 
             // A copy uses the same essential data, so `insert` would be called twice
             // with the same key, but that's ok.
-            essential_data.insert(
-                depends_on_essential.clone(),
-                EssentialStateVar::new(variant.initial_essential_value()),
-            );
+            essential_data
+                .entry(component_name.clone())
+                .or_insert(HashMap::new())
+                .insert(
+                    state_var_name,
+                    essential_datum,
+                );
 
             dependencies.push(Dependency::Essential {
-                essential_key: depends_on_essential
+                component_name,
+                state_var_name,
             });
 
         },
@@ -832,26 +842,14 @@ fn create_dependencies_from_instruction(
 }
 
 
-/// A key to the essential_data HashMap is a combination of the component and state var name.
-fn get_key_to_essential_data(
-    components: &HashMap<ComponentName, ComponentNode>,
-    component: &ComponentNode,
-    state_var_reference: &StateVarReference,
-) -> String {
-    match state_var_reference {
-        StateVarReference::Basic(name) => format!("{}:{}", get_name_of_original(components, component), name),
-        StateVarReference::ArrayElement(name, index) => format!("{}:{}[{}]", get_name_of_original(components, component), name, index),
-        StateVarReference::SizeOf(_) => panic!("size essential value"),
-    }
-}
-
-/// Recurse until the original source is found
+/// Recurse for a copy until the original source is found
 fn get_name_of_original(
     components: &HashMap<ComponentName, ComponentNode>,
-    component: &ComponentNode
-) -> String {
+    component: &ComponentNode,
+) -> ComponentName {
     match &component.copy_source {
-        Some(CopySource::Component(source)) => get_name_of_original(components, components.get(source).unwrap()),
+        Some(CopySource::Component(source)) =>
+            get_name_of_original(components, components.get(source).unwrap()),
         _ => component.name.clone(),
     }
 } 
@@ -888,7 +886,8 @@ fn get_state_variables_depending_on_me(
                             }
                         },
 
-                        _ => {}, // Essential and String dependencies are endpoints
+                        // Essential and String dependencies are endpoints
+                        _ => {},
 
                     }
                 }
@@ -1010,12 +1009,17 @@ fn resolve_state_variable(
 
                 },
 
-                Dependency::Essential { essential_key } => {
-                    let value = core.essential_data.get(&essential_key).unwrap().clone();
+                Dependency::Essential { component_name, state_var_name } => {
+
+                    let value = core.essential_data
+                        .get(&component_name).unwrap()
+                        .get(&state_var_name).unwrap()
+                        .clone()
+                        .get_value(get_essential_datum_index(state_var_ref));
     
                     values_for_this_dep.push(DependencyValue {
     
-                        value: value.get_value(),
+                        value,
     
                         // We don't really need these fields in this case (?)
                         component_type: "essential_data",
@@ -1071,6 +1075,14 @@ fn resolve_state_variable(
 
     return new_value;
 
+}
+
+fn get_essential_datum_index(state_var_ref: &StateVarReference) -> usize {
+    match state_var_ref {
+        StateVarReference::Basic(_) => 0,
+        StateVarReference::SizeOf(_) => 0,
+        StateVarReference::ArrayElement(_, i) => i+1,
+    }
 }
 
 fn references_from_group(
@@ -1148,12 +1160,16 @@ fn mark_stale_state_var_and_dependencies(
 
 fn mark_stale_essential_datum_and_dependencies(
     core: &DoenetCore,
-    essential_var_name: &String,
+    component_name: ComponentName,
+    state_var: &StateVarReference,
 ) {
 
-    log_debug!("Marking stale essential {}", essential_var_name);
+    log_debug!("Marking stale essential {}:{}", component_name, state_var);
 
-    let search_for = Dependency::Essential { essential_key: essential_var_name.clone() };
+    let search_for = Dependency::Essential {
+        component_name,
+        state_var_name: state_var.name(),
+    };
 
     // tuples of component and state var that depend on this essential datum
     let my_dependencies: Vec<(ComponentName, StateVarReference)> = core.dependencies.iter()
@@ -1251,7 +1267,7 @@ pub struct Action {
 /// Internal struct used to track changes
 #[derive(Debug, Clone)]
 enum UpdateRequest {
-    SetEssentialValue(String, StateVarValue),
+    SetEssentialValue(ComponentName, StateVarReference, StateVarValue),
     SetStateVar(ComponentName, StateVarReference, StateVarValue),
 }
 
@@ -1272,35 +1288,34 @@ fn convert_dependency_values_to_update_request(
     requests.iter()
         .flat_map(|(instruction_name, values)|
             values.iter()
-                .flat_map(|value|
-                    instruction_names.get(instruction_name).unwrap()
-                    .iter()
-                    .filter_map(|instruction|
-                        match instruction {
-                            Dependency::Essential { essential_key } => {
-                                Some(UpdateRequest::SetEssentialValue(
-                                    essential_key.clone(),
-                                    value.value.clone(),
-                                ))
-                            },
-                            Dependency::StateVar { component_name, state_var_ref } => {
-                                Some(UpdateRequest::SetStateVar(
-                                    component_name.clone(),
-                                    state_var_ref.clone(),
-                                    value.value.clone(),
-                                ))
-                            },
-                            _ => None,
-                        }
-                    ).collect::<Vec<UpdateRequest>>()
-                )
-                .collect::<Vec<UpdateRequest>>()
-        )
-        .collect()
+            .flat_map(|value|
+                instruction_names.get(instruction_name).unwrap()
+                .iter()
+                .filter_map(|instruction|
+                    match instruction {
+                        Dependency::Essential { component_name, state_var_name: _ } => {
+                            Some(UpdateRequest::SetEssentialValue(
+                                component_name.clone(),
+                                state_var.clone(),
+                                value.value.clone(),
+                            ))
+                        },
+                        Dependency::StateVar { component_name, state_var_ref } => {
+                            Some(UpdateRequest::SetStateVar(
+                                component_name.clone(),
+                                state_var_ref.clone(),
+                                value.value.clone(),
+                            ))
+                        },
+                        _ => None,
+                    }
+                ).collect::<Vec<UpdateRequest>>()
+            ).collect::<Vec<UpdateRequest>>()
+        ).collect()
 }
 
 pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
-    
+
     let action = parse_json::parse_action_from_json(action)
         .expect(&format!("Error parsing json action: {}", action));
 
@@ -1325,7 +1340,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     for (state_var_ref, requested_value) in state_vars_to_update {
 
         let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_ref.clone(), requested_value);
-        process_update_request(core, component, &state_var_ref, &request);
+        process_update_request(core, &request);
     }
 
     log_json!("Updated component tree", utils::json_components(&core.component_nodes, &core.component_states));
@@ -1334,43 +1349,46 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 
 fn process_update_request(
     core: &DoenetCore,
-    component: &ComponentNode,
-    state_var_ref: &StateVarReference,
     update_request: &UpdateRequest
 ) {
 
-    log_debug!("Processing update request for {}:{}", component.name, state_var_ref);
+    log_debug!("Processing update request {:?}", update_request);
 
     match update_request {
-        UpdateRequest::SetEssentialValue(key, requested_value) => {
+        UpdateRequest::SetEssentialValue(component_name, state_var_ref, requested_value) => {
 
-            let essential_var = core.essential_data.get(key)
-                .expect(&format!("'{}' is not in essential data {:#?}", key, core.essential_data));
+            let essential_var = core.essential_data
+                .get(component_name).unwrap()
+                .get(state_var_ref.name()).unwrap();
 
-            essential_var.set_value(requested_value.clone()).expect(
-                &format!("Failed to set essential value for {}, {}", component.name, key)
-            );
+            essential_var.set_value(
+                    get_essential_datum_index(state_var_ref),
+                    requested_value.clone()
+                ).expect(
+                    &format!("Failed to set essential value for {}, {}", component_name, state_var_ref)
+                );
 
-            log_debug!("Updated essential data {:#?}", core.essential_data);
+            log_debug!("Updated essential data {:?}", core.essential_data);
 
-            mark_stale_essential_datum_and_dependencies(core, key);
+            mark_stale_essential_datum_and_dependencies(core, component_name.clone(), state_var_ref);
         },
 
-        UpdateRequest::SetStateVar(dep_comp_name, dep_state_var_ref, requested_value) => {
+        UpdateRequest::SetStateVar(component_name, state_var_ref, requested_value) => {
 
-            let dep_comp = core.component_nodes.get(dep_comp_name).unwrap();
+            let dep_comp = core.component_nodes.get(component_name).unwrap();
 
             let dep_update_requests = request_dependencies_to_update_value_including_shadow(
                 core,
                 dep_comp,
-                dep_state_var_ref,
+                state_var_ref,
                 requested_value.clone(),
             );
 
             for dep_update_request in dep_update_requests {
-                process_update_request(core, dep_comp, dep_state_var_ref, &dep_update_request);
+                process_update_request(core, &dep_update_request);
             }
 
+            let component = core.component_nodes.get(component_name).unwrap();
             mark_stale_state_var_and_dependencies(core, component, &state_var_ref);
         }
     }

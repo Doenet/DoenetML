@@ -158,7 +158,7 @@ pub enum StateVarVariantArray {
 
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, serde::Serialize)]
 pub enum StateVarValue {
     String(String),
     Number(f64),

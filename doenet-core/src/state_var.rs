@@ -208,8 +208,10 @@ impl StateVar {
 /// A special endpoint on the dependency graph which is associated with a
 /// particular state var. Actions often update these.
 /// An EssentialStateVar cannot be stale so it does not need a ValueTypeProtector
+#[derive(serde::Serialize)]
 pub struct EssentialStateVar {
-    value: RefCell<StateVarValue>,
+    value: RefCell<Vec<StateVarValue>>,
+    default: StateVarValue, // used when extending `value`
 }
 
 
@@ -217,18 +219,24 @@ impl EssentialStateVar {
 
     pub fn new(value: StateVarValue) -> Self {
         EssentialStateVar {
-            value: RefCell::new(value)
+            value: RefCell::new(vec![value.clone()]),
+            default: value,
         }
     }
 
-    pub fn set_value(&self, new_value: StateVarValue) -> Result<(), String> {
-        self.value.borrow_mut().set_protect_type(new_value)?;
+    pub fn set_value(&self, index: usize, new_value: StateVarValue) -> Result<(), String> {
+        let mut v = self.value.borrow_mut();
+        let new_len = std::cmp::max(v.len(), index + 1);
+
+        v.resize(new_len, self.default.clone());
+        v.get_mut(index).unwrap().set_protect_type(new_value)?;
+
         Ok(())
     }
 
 
-    pub fn get_value(&self) -> StateVarValue {
-        self.value.borrow().clone()
+    pub fn get_value(&self, index: usize) -> StateVarValue {
+        self.value.borrow().get(index).unwrap().clone()
     }
 }
 
@@ -244,7 +252,7 @@ impl fmt::Debug for StateVar {
 
 impl fmt::Debug for EssentialStateVar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.get_value()))
+        f.write_str(&format!("{:?}", &self.value.borrow()))
     }
 }
 

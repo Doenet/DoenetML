@@ -15,7 +15,6 @@ use lazy_static::lazy_static;
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
         use StateVarUpdateInstruction::*;
-        use DependencyInstruction::*;
 
         let mut state_var_definitions = HashMap::new();
 
