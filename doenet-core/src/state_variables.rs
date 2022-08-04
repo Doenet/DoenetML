@@ -438,6 +438,7 @@ pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T)
 
 /////////// State variable default definitions ///////////
 
+/// Attributes for the renderer
 /// Arguments: attribute name, StateVarVariant, default value
 /// Example: `definition_from_attribute!("disabled", Boolean, false)`
 macro_rules! definition_from_attribute {
@@ -448,7 +449,7 @@ macro_rules! definition_from_attribute {
 
             StateVarVariant::$variant(StateVarDefinition {
                 for_renderer: true,
-                initial_essential_value: $default,
+                initial_essential_value: $default.into(),
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
                     HashMap::from([("attribute", attribute)])
@@ -457,7 +458,7 @@ macro_rules! definition_from_attribute {
                     let attribute = dependency_values.dep_value("attribute")?
                         .has_zero_or_one_elements()?
                         .into_if_exists()?;
-                    Ok(StateVarUpdateInstruction::SetValue(attribute.unwrap_or($default)))
+                    Ok(StateVarUpdateInstruction::SetValue(attribute.unwrap_or($default.into())))
                 },
                 ..Default::default()
             })

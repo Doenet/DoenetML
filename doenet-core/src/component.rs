@@ -7,6 +7,7 @@ pub mod p;
 pub mod number_input;
 pub mod boolean_input;
 pub mod sequence;
+pub mod graph;
 
 use crate::prelude::*;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
@@ -27,6 +28,7 @@ pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn Compon
         ("numberInput",  Box::new(crate::number_input ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("sequence",     Box::new(crate::sequence     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("graph",        Box::new(crate::graph        ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
     ])
 }
 
@@ -96,6 +98,7 @@ pub enum ObjectTraitName {
     TextLike,
     NumberLike,
     ComponentLike,
+    Graphical,
 }
 
 pub trait ComponentDefinition: CloneComponentDefinition {
