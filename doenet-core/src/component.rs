@@ -129,6 +129,10 @@ pub trait ComponentDefinition: CloneComponentDefinition {
         None
     }
 
+    fn renderer_type(&self) -> RendererType {
+        RendererType::Myself
+    }
+
 }
 
 impl Debug for dyn ComponentDefinition {
@@ -150,6 +154,14 @@ pub type ComponentChild = ObjectName;
 pub enum ObjectName {
     Component(ComponentName),
     String(String),
+}
+
+
+
+pub enum RendererType {
+    Myself,
+    Special(&'static str),
+    // DoNotRender,
 }
 
 

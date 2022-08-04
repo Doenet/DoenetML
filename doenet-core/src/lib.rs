@@ -659,7 +659,7 @@ fn create_dependencies_from_instruction(
 
     match &instruction {
 
-        DependencyInstruction::Essential(_) => {
+        DependencyInstruction::Essential => {
             // An Essential DependencyInstruction returns an Essential Dependency.
 
             let depends_on_essential = get_key_to_essential_data(components, component, state_var_reference);
@@ -678,21 +678,33 @@ fn create_dependencies_from_instruction(
 
         },
 
-        DependencyInstruction::StateVar(state_var_instruction) => {
+        DependencyInstruction::StateVar { component_name, state_var } => {
 
-            dependencies.push(Dependency::StateVar {
-                component_name: 
-                    if let Some(ref name) = state_var_instruction.component_name {
-                        name.to_string()
-                    } else {
-                        component.name.clone()
-                    },
-                state_var_ref: state_var_instruction.state_var.clone()
+            let name = if let Some(ref name) = component_name {
+                name.to_string()
+            } else {
+                component.name.clone()
+            };
+
+            dependencies.push(match state_var {
+
+                StateVarGroup::Single(state_var_ref) => {
+                    Dependency::StateVar {
+                        component_name: name,
+                        state_var_ref: state_var_ref.clone()
+                    }
+                },
+                StateVarGroup::Array(array_sv_name) => {
+                    Dependency::StateVarArray {
+                        component_name: name,
+                        array_state_var_name: array_sv_name,
+                    }
+                },
             });
 
         },
 
-        DependencyInstruction::Child(child_instruction) => {
+        DependencyInstruction::Child { desired_children, desired_state_vars } => {
 
         
             // let mut depends_on_children: Vec<ObjectName> = vec![];
@@ -702,14 +714,14 @@ fn create_dependencies_from_instruction(
                     ComponentChild::Component(child_component_name) => {
                         let child_component = components.get(child_component_name).unwrap();
 
-                        let child_is_in_desired_type = child_instruction.desired_children.iter().fold(
+                        let child_is_in_desired_type = desired_children.iter().fold(
                             false,
                             |accum, desired_type| {
                                 accum || child_component.definition.get_trait_names().contains(desired_type)
                         });
 
                         if child_is_in_desired_type {
-                            for desired_state_var in child_instruction.desired_state_vars.iter() {
+                            for desired_state_var in desired_state_vars.iter() {
 
                                 let sv_def = child_component.definition
                                     .state_var_definitions()
@@ -738,8 +750,8 @@ fn create_dependencies_from_instruction(
                     },
 
                     ComponentChild::String(string_value) => {
-                        if child_instruction.desired_children.contains(&ObjectTraitName::TextLike)
-                        || child_instruction.desired_children.contains(&ObjectTraitName::NumberLike) {
+                        if desired_children.contains(&ObjectTraitName::TextLike)
+                        || desired_children.contains(&ObjectTraitName::NumberLike) {
 
                             dependencies.push(Dependency::String { value: string_value.to_string() });
                         }
@@ -750,9 +762,9 @@ fn create_dependencies_from_instruction(
             
 
         },
-        DependencyInstruction::Parent(parent_instruction) => {
+        DependencyInstruction::Parent { state_var } => {
 
-            let desired_state_var = parent_instruction.state_var;
+            let desired_state_var = state_var;
 
             let parent_name = component.parent.clone().expect(&format!(
                 "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",
@@ -783,9 +795,7 @@ fn create_dependencies_from_instruction(
         },
 
 
-        DependencyInstruction::Attribute(attribute_instruction) => {
-
-            let attribute_name = attribute_instruction.attribute_name;
+        DependencyInstruction::Attribute { attribute_name } => {
 
             if let Some(attribute) = get_attribute_including_copy(components, component, attribute_name) {
                 match attribute {
@@ -1447,12 +1457,17 @@ fn generate_render_tree_internal(
                         }));
                     }
 
+                    let renderer_type = match comp.definition.renderer_type() {
+                        RendererType::Special(name) => name,
+                        RendererType::Myself => comp.component_type,
+                    };
+
                     children_instructions.push(json!({
                         "actions": child_actions,
                         "componentName": comp.name,
                         "componentType": comp.component_type,
                         "effectiveName": comp.name,
-                        "rendererType": render_type_of(comp.component_type),
+                        "rendererType": renderer_type,
                     }));
                 },
                 ComponentChild::String(string) => {
@@ -1468,13 +1483,6 @@ fn generate_render_tree_internal(
         "childrenInstructions": json!(children_instructions),
     }));
 
-}
-
-fn render_type_of(comp_type: &str) -> &str {
-    match comp_type {
-        "numberInput" => "textInput",
-        _ => comp_type,
-    }
 }
 
 
@@ -1516,10 +1524,10 @@ fn return_dependency_instruction_including_shadowing(
     if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
 
         HashMap::from([
-            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar(StateVarDependencyInstruction {
+            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar {
                 component_name: Some(source_comp), //.clone(),
-                state_var: source_state_var
-            }))
+                state_var: StateVarGroup::Single(source_state_var),
+            })
         ])
 
     } else {

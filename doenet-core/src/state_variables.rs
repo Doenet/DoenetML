@@ -173,41 +173,51 @@ pub enum StateVarValue {
 /// which holds the specific information.
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
-    Child(ChildDependencyInstruction),
-    StateVar(StateVarDependencyInstruction),
-    Parent(ParentDependencyInstruction),
-    Attribute(AttributeDependencyInstruction),
-    Essential(EssentialDependencyInstruction),
+    Child {
+        desired_children: Vec<ObjectTraitName>,
+        desired_state_vars: Vec<StateVarName>,
+    },
+    StateVar {
+        component_name: Option<ComponentName>,
+        state_var: StateVarGroup,
+    },
+    Parent {
+        state_var: StateVarName,
+    },
+    Attribute {
+        attribute_name: AttributeName,
+    },
+    Essential,
 }
 
-#[derive(Clone, Debug)]
-pub struct ChildDependencyInstruction {
-    pub desired_children: Vec<ObjectTraitName>,
-    pub desired_state_vars: Vec<StateVarName>,
-}
+// #[derive(Clone, Debug)]
+// pub struct ChildDependencyInstruction {
+//     pub desired_children: Vec<ObjectTraitName>,
+//     pub desired_state_vars: Vec<StateVarName>,
+// }
 
-#[derive(Clone, Debug)]
-pub struct StateVarDependencyInstruction {
-    pub component_name: Option<ComponentName>,
-    pub state_var: StateVarReference,
-}
+// #[derive(Clone, Debug)]
+// pub struct StateVarDependencyInstruction {
+//     pub component_name: Option<ComponentName>,
+//     pub state_var: StateVarReference,
+// }
 
-#[derive(Clone, Debug)]
-pub struct ParentDependencyInstruction {
-    // pub parent_trait: ObjectTraitName,
+// #[derive(Clone, Debug)]
+// pub struct ParentDependencyInstruction {
+//     // pub parent_trait: ObjectTraitName,
 
-    // pub parent_of_component: Option<String>,
+//     // pub parent_of_component: Option<String>,
 
-    pub state_var: StateVarName,
-}
+//     pub state_var: StateVarName,
+// }
 
-#[derive(Debug, Clone)]
-pub struct AttributeDependencyInstruction {
-    pub attribute_name: AttributeName,
-}
+// #[derive(Debug, Clone)]
+// pub struct AttributeDependencyInstruction {
+//     pub attribute_name: AttributeName,
+// }
 
-#[derive(Debug, Clone)]
-pub struct EssentialDependencyInstruction;
+// #[derive(Debug, Clone)]
+// pub struct EssentialDependencyInstruction;
 
 
 #[derive(Debug)]
@@ -256,7 +266,10 @@ impl DepValueHashMap for HashMap<InstructionName, Vec<DependencyValue>> {
 pub trait DepValueVec {
     fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String>;
     fn has_exactly_one_element(&self) -> Result<(&DependencyValue, InstructionName), String>;
+
     fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String>;
+
+    fn into_number_list(&self) -> Result<Vec<f64>, String>;
 
     fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName);
 }
@@ -291,6 +304,18 @@ impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
             )
         ).collect()
     }
+
+
+    fn into_number_list(&self) -> Result<Vec<f64>, String> {
+        let (dep_values, name) = self;
+
+        dep_values.iter().map(|dep_value|
+            dep_value.value.clone().try_into().map_err(|_|
+                format!("Not all elements in instruction [{}] were strings", name)
+            )
+        ).collect()
+    }
+
 
 
     fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
@@ -380,7 +405,7 @@ pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
     _: HashMap<StateVarName, StateVarValue>
 ) -> HashMap<InstructionName, DependencyInstruction> {
     HashMap::from([
-        ("essential", DependencyInstruction::Essential(EssentialDependencyInstruction))
+        ("essential", DependencyInstruction::Essential)
     ])
 }
 
@@ -425,9 +450,7 @@ macro_rules! definition_from_attribute {
                 for_renderer: true,
                 initial_essential_value: $default,
                 return_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute(
-                        AttributeDependencyInstruction { attribute_name: $attribute }
-                    );
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
                     HashMap::from([("attribute", attribute)])
                 },
                 determine_state_var_from_dependencies: |dependency_values| {
@@ -452,17 +475,13 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
     StateVarVariant::Boolean(StateVarDefinition {
         
         return_dependency_instructions: |_| {
-            let parent_dep_instruct = ParentDependencyInstruction {
-                state_var: "hidden",
-            };
-
-            let from_hide_instruct = AttributeDependencyInstruction {
-                attribute_name: "hide"
-            };
-
             HashMap::from([
-                ("parent_hidden", DependencyInstruction::Parent(parent_dep_instruct)),
-                ("my_hide", DependencyInstruction::Attribute(from_hide_instruct)),
+                ("parent_hidden", DependencyInstruction::Parent {
+                    state_var: "hidden",
+                }),
+                ("my_hide", DependencyInstruction::Attribute {
+                    attribute_name: "hide"
+                }),
             ])
         },
 
@@ -495,13 +514,11 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
     StateVarVariant::String(StateVarDefinition {
         for_renderer: true,
 
-        return_dependency_instructions: |_| {
-            let instruction = DependencyInstruction::StateVar(StateVarDependencyInstruction {
-                component_name: None, //myself
-                state_var: StateVarReference::Basic("value"),
-            });
-        
-            HashMap::from([("value_of_value", instruction)])
+        return_dependency_instructions: |_| {        
+            HashMap::from([("value_of_value", DependencyInstruction::StateVar {
+                component_name: None,
+                state_var: StateVarGroup::Single(StateVarReference::Basic("value"))
+            })])
         },
 
         determine_state_var_from_dependencies: |dependency_values| {

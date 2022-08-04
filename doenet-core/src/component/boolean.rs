@@ -20,10 +20,10 @@ lazy_static! {
         
 
             return_dependency_instructions: |_| {
-                let child_instruct = DependencyInstruction::Child(ChildDependencyInstruction {
+                let child_instruct = DependencyInstruction::Child {
                     desired_children: vec![ObjectTraitName::TextLike],
                     desired_state_vars: vec!["value"],
-                });
+                };
 
                 HashMap::from([("all_my_children", child_instruct)])
             },

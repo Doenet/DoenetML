@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 use crate::prelude::*;
+use crate::state_var;
 use crate::state_variables::*;
 use super::*;
 
@@ -18,12 +19,14 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value", StateVarVariant::NumberArray(StateVarArrayDefinition {
+
+
             return_array_dependency_instructions: |_| {
                 HashMap::from([(
-                    "sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                    "sv_from", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarReference::Basic("from"),
-                    })
+                        state_var: StateVarGroup::Single(StateVarReference::Basic("from")),
+                    }
                 )])
             },
 
@@ -38,15 +41,15 @@ lazy_static! {
 
             return_size_dependency_instructions: |_| {
                 HashMap::from([
-                    ("sv_from", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                    ("sv_from", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarReference::Basic("from"),
-                    })),
-                    ("sv_to", DependencyInstruction::StateVar(StateVarDependencyInstruction {
+                        state_var: StateVarGroup::Single(StateVarReference::Basic("from")),
+                    }),
+                    ("sv_to", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarReference::Basic("to"),
+                        state_var: StateVarGroup::Single(StateVarReference::Basic("to")),
                     })
-                )])
+                ])
             },
 
             determine_size_from_dependencies: |dependency_values| {
@@ -60,6 +63,38 @@ lazy_static! {
                     .into_number()?;
 
                 Ok(SetValue((to - from + 1.0) as usize))
+            },
+
+            ..Default::default()
+        }));
+
+
+        state_var_definitions.insert("text", StateVarVariant::String(StateVarDefinition {
+            // Text sv is just to be used by the renderer
+            for_renderer: true,
+
+            return_dependency_instructions: |_| {
+                HashMap::from([
+                    ("sv_value", DependencyInstruction::StateVar {
+                        component_name: None,
+                        state_var: StateVarGroup::Array("value"),
+                    })
+                ])
+            },
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                let value = dependency_values.dep_value("sv_value")?
+                    .into_number_list()?;
+
+                let mut text = String::new();
+                for element_val in value {
+                    text.push_str(&format!("{}, ", element_val));
+                }
+                // Remove the last ", "
+                text.pop();
+                text.pop();
+
+                Ok(SetValue(text))
             },
 
             ..Default::default()
@@ -116,6 +151,11 @@ impl ComponentDefinition for MyComponentDefinition {
 
     fn should_render_children(&self) -> bool {
         false
+    }
+
+
+    fn renderer_type(&self) -> RendererType {
+        RendererType::Special("text")
     }
 
 }

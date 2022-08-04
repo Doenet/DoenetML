@@ -23,10 +23,10 @@ lazy_static! {
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
 
             return_dependency_instructions: |_| {
-                let instruction = Child(ChildDependencyInstruction {                    
+                let instruction = Child {                    
                     desired_children: vec![ObjectTraitName::TextLike],
                     desired_state_vars: vec!["value"],
-                });
+                };
             
                 HashMap::from([("children_value_svs", instruction)])
             },
