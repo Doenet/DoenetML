@@ -95,8 +95,8 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 
-/// This error type should be used for any error that is caused by the 
-/// user inputting invalid doenetML. It should only be thrown on core creation.
+/// This error type is used for any error that is caused by the 
+/// user inputting invalid doenetML. It is thrown only on core creation.
 #[derive(Debug)]
 pub enum DoenetMLError {
     ComponentDoesNotExist {
@@ -139,17 +139,6 @@ impl Display for DoenetMLError {
         }
     }
 }
-// impl From<&str> for DoenetMLError {
-//     fn from(message: &str) -> Self {
-//         DoenetMLError { message: message.to_string()  }
-//     }
-// }
-// impl From<String> for DoenetMLError {
-//     fn from(message: String) -> Self {
-//         DoenetMLError { message }
-//     }
-// }
-
 
 
 
@@ -166,7 +155,8 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     let component_nodes = component_nodes;
 
 
-    // For every component copy, add aliases for children it inherits from its source.
+    // For every component copy, check if the copy is valid,
+    // and if so add aliases for children it inherits from its source.
     let mut aliases: HashMap<String, ComponentName> = HashMap::new();
     let copies = component_nodes.iter().filter_map(|(_, c)| match c.copy_source {
         Some(CopySource::Component(ref source)) => Some((c, source)),
@@ -177,6 +167,7 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
     for (copy, source_name) in copies {
 
+        // find all parents
         let mut ancestors: Vec<String> = vec![];
         let mut possible_parent = &copy.parent;
         while let Some(parent) = possible_parent {
@@ -187,31 +178,28 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 
         if !component_nodes.contains_key(source_name) {
 
-            // The component tried to copy a non-existent component, so log an error,
-            // and pretend it didn't copy anything
-
+            // The component tried to copy a non-existent component.
+            // Log an error and pretend it didn't copy anything.
             doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
                 comp_name: source_name.to_string()
             });
 
             invalid_copies.push(copy.name.to_string());
 
-            
         } else if ancestors.contains(source_name) {
-            // The component tried to copy its ancestor, so log an error,
-            // and pretend it doesn't copy anything
 
+            // The component tried to copy its ancestor.
+            // Log an error and pretend it doesn't copy anything
             doenet_ml_errors.push(DoenetMLError::ComponentCopiesAncestor {
-                comp_name: copy.name.clone(), ancestor_name: source_name.clone()
+                comp_name: copy.name.clone(),
+                ancestor_name: source_name.clone(),
             });
 
             invalid_copies.push(copy.name.to_string());
 
-
         } else {
 
             add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
-
         }
     }
 
@@ -263,20 +251,8 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     log_json!("Components upon core creation",
         utils::json_components(&component_nodes, &component_states));
 
-    let json_dependencies: HashMap<String, HashMap<String, HashMap<&str, Vec<Dependency>>>> = dependencies.iter()
-        .map(|(k, comp_deps)| {
-            (k.clone(),
-            comp_deps
-                .iter()
-                .map(|(sv_group_name, deps)| {
-                    (format!("{:?}", sv_group_name), deps.clone())
-                })
-                .collect::<HashMap<String, HashMap<&str, Vec<Dependency>>>>()
-            )
-        })
-        .collect();
-
-    log_json!("Dependencies upon core creation", json_dependencies);
+    log_json!("Dependencies upon core creation",
+        utils::json_dependencies(&dependencies));
 
 
     (DoenetCore {
@@ -369,10 +345,10 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
     // This iterator gives info for every string child
     // (original index of child, string value, component)
     let all_string_children = components.iter()
-        .flat_map(| (_, comp) |
+        .flat_map(|(_, comp)|
             comp.children.iter()
                 .enumerate()
-                .filter_map(| (id, child) | {
+                .filter_map(|(id, child)| {
                     match child {
                         ObjectName::String(string_val) => Some((id, string_val)),
                         _ => None,
@@ -408,12 +384,11 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                 }
 
 
-
-                let (macro_comp, macro_prop_option) = if let Some(comp) = capture.get(12) {
-                    (comp, capture.get(18))
-                } else {
-                    (capture.get(4).unwrap(), capture.get(9))
-                };
+                let (macro_comp, macro_prop_option) =
+                    match capture.get(12) {
+                        Some(comp) => (comp, capture.get(18)),
+                        None => (capture.get(4).unwrap(), capture.get(9)),
+                    };
 
                 if let Some(ending_delim) = capture.get(21) {
                     if ending_delim.as_str() == "{" {
@@ -438,7 +413,6 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                     let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
 
                     let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name);
-
                     let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
 
                     let copy_num = macro_copy_counter.entry(source_comp_sv_name.clone()).or_insert(0);
@@ -480,10 +454,8 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                     }
                 };
 
-
                 new_children.push(ComponentChild::Component(macro_copy.name.clone()));
                 components_to_add.push(macro_copy);
-
 
                 previous_end = end;
 
@@ -491,7 +463,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 
         }
 
-        if previous_end != 0 {
+        if previous_end > 0 {
 
             // There was at least one macro
 
@@ -500,10 +472,8 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                 new_children.push(ComponentChild::String(last.to_string()));
             }
 
-
             replacement_children.entry(component.name.clone()).or_insert(HashMap::new())
                 .entry(child_id).or_insert(new_children);
-
         }
     }
 
@@ -512,7 +482,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 
     for new_component in components_to_add {
 
-        debug_assert!( !components.contains_key(&new_component.name));
+        debug_assert!( !components.contains_key(&new_component.name) );
         components.insert(new_component.name.clone(), new_component);
     }
 
@@ -530,7 +500,6 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                 original_child_id..original_child_id + 1,
                 new_children
             );
-
         }
     }
 
@@ -640,9 +609,9 @@ fn create_all_dependencies_for_component(
 
 }
 
-/// Get the specified if it exists on this component, or on the component it copies
-/// Recursively searches the source (and the source's source if it has one), and finds
-/// the nearest attribute to the original node, if any exist
+/// Get the specified attribute if it exists on this component.
+/// If not, and if the component is a copy, recursively search for one
+/// in the source (and the source's source if it has one, etc).
 fn get_attribute_including_copy<'a>(
     components: &'a HashMap<ComponentName, ComponentNode>,
     component: &'a ComponentNode,
@@ -659,7 +628,6 @@ fn get_attribute_including_copy<'a>(
         if attribute_name == "hide" {
             None
 
-            
         } else {
             let source = components.get(source_name).unwrap();
             get_attribute_including_copy(components, source, attribute_name)
@@ -739,10 +707,10 @@ fn create_dependencies_from_instruction(
                         if child_is_in_desired_type {
                             for desired_state_var in child_instruction.desired_state_vars.iter() {
 
-                                // Look up what kind of child state var it is
-                                // If the state var is an array, depend on the array, otherwise as normal
-
-                                let sv_def = child_component.definition.state_var_definitions().get(desired_state_var).unwrap();
+                                let sv_def = child_component.definition
+                                    .state_var_definitions()
+                                    .get(desired_state_var)
+                                    .unwrap();
 
                                 if sv_def.is_array() {
                                     dependencies.push(Dependency::StateVarArray {
