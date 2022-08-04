@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 /// camelCase
 pub type StateVarName = &'static str;
 
@@ -30,9 +32,9 @@ pub enum StateVarGroup {
 impl StateVarReference {
     pub fn name(&self) -> StateVarName {
         match self {
-            StateVarReference::Basic(name) => name,
-            StateVarReference::ArrayElement(name, _) => name,
-            StateVarReference::SizeOf(name) => name,
+            Self::Basic(name) => name,
+            Self::ArrayElement(name, _) => name,
+            Self::SizeOf(name) => name,
         }
     }
 }
@@ -66,16 +68,26 @@ macro_rules! log_debug {
         println!( $( $t )* )
     }
 }
-use std::{fmt::Display};
 
 pub(crate) use log;
 pub(crate) use log_json;
 pub(crate) use log_debug;
 
 
-
+impl Display for StateVarReference {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Basic(sv_name) => write!(f, "{}", sv_name),
+            Self::SizeOf(sv_name) => write!(f, "{}.size", sv_name),
+            Self::ArrayElement(sv_name, i) => write!(f, "{}[{}]", sv_name, i),
+        }
+    }
+}
 impl Display for StateVarGroup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
+        match self {
+            Self::Single(sv_ref) => write!(f, "Single::{}", sv_ref),
+            Self::Array(sv_name) => write!(f, "Array::{}", sv_name),
+        }
     }
 }

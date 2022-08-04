@@ -21,19 +21,39 @@ use state_var::{State, EssentialStateVar};
 use state_variables::*;
 
 
-/// This stores the components and dependency graph.
+/// A static DoenetCore is created from parsed DoenetML at the beginning.
+/// While `component_states` and `essential_data` can update using
+/// internal mutability (the RefCell), the over-arching HashMaps do not.
 #[derive(Debug)]
 pub struct DoenetCore {
     pub component_nodes: HashMap<ComponentName, ComponentNode>,
     pub component_states: HashMap<ComponentName, HashMap<StateVarName, StateForStateVar>>,
     pub root_component_name: ComponentName,
 
-    /// Stores every dependency, indexed by the name of the component and the state variable.
-    pub dependencies: HashMap<ComponentName, HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>>>,
-
+    /// The Dependency Graph
+    /// A DAC whose vertices are every component's state variables.
+    ///
+    /// Indexed by:
+    /// 1. the name of the component
+    /// 2. the name of a state variable group
+    ///    which allows for two kinds of dependencies:
+    ///      - direct dependency: when a single state var depends on something
+    ///      - indirect dependency: when a group depends on something,
+    ///        and members of the group inherit the dependency.
+    ///        The motivation for indirect dependencies is that
+    ///        the size of groups can change (e.g. an array state var changes size).
+    ///        To keep the dependency graph static, we do not update
+    ///        individual dependencies but simply apply the group dependency.
+    /// 3. the instruction name, given by the state variable to track where
+    ///    dependecy values came from.
+    pub dependencies:
+        HashMap<ComponentName,
+            HashMap<StateVarGroup,
+                HashMap<InstructionName,
+                    Vec<Dependency>>>>,
 
     /// States that the user can change and which state variables may depend on
-    /// (ex: the contents of input dialogues)
+    /// (e.g. the contents of input dialogues)
     pub essential_data: HashMap<String, EssentialStateVar>,
 
     /// We send components to the renderer that do not exists
@@ -54,7 +74,7 @@ pub enum Dependency {
         state_var_ref: StateVarReference,
     },
     Essential {
-        /// This stores the name of an essential datum that a state variable depends on.
+        /// The name of an essential datum that a state variable depends on.
         essential_key: String,
     },
 
@@ -62,30 +82,12 @@ pub enum Dependency {
         value: String,
     },
 
+    /// Unlike the others, this represents multiple edges on the dependency graph,
+    /// since it references multiple state variables.
     StateVarArray {
         component_name: String,
         array_state_var_name: StateVarName,
     },
-}
-
-
-
-/// This stores some of the state variables (or strings) that a state variable depends on.
-/// Note that a Dependency struct contains multiple edges of the dependency tree.
-#[derive(Debug)]
-pub struct StateVarDependency {
-
-    // We will use outer product of entries (except for the strings, which don't have state vars)
-    pub depends_on_objects: Vec<ObjectName>,
-    pub depends_on_state_vars: Vec<StateVarName>,
-
-    pub variables_optional: bool,
-}
-
-
-#[derive(Debug)]
-pub struct EssentialDependency {
-    pub depends_on_essential: String,
 }
 
 
@@ -95,8 +97,8 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 
-/// This error type is used for any error that is caused by the 
-/// user inputting invalid doenetML. It is thrown only on core creation.
+/// An error that is caused by the user inputting invalid DoenetML.
+/// It is thrown only on core creation.
 #[derive(Debug)]
 pub enum DoenetMLError {
     ComponentDoesNotExist {
@@ -152,70 +154,15 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     // Parse macros and generate components from them
     replace_macros_with_copies(&mut component_nodes);
 
-    let component_nodes = component_nodes;
 
-
-    // For every component copy, check if the copy is valid,
-    // and if so add aliases for children it inherits from its source.
     let mut aliases: HashMap<String, ComponentName> = HashMap::new();
-    let copies = component_nodes.iter().filter_map(|(_, c)| match c.copy_source {
-        Some(CopySource::Component(ref source)) => Some((c, source)),
-        _ => None,
-    });
 
-    let mut invalid_copies: Vec<String> = vec![];
+    doenet_ml_errors.extend(
+        copy_sources_add_aliases_or_invalidate(&mut component_nodes, &mut aliases)
+    );
 
-    for (copy, source_name) in copies {
-
-        // find all parents
-        let mut ancestors: Vec<String> = vec![];
-        let mut possible_parent = &copy.parent;
-        while let Some(parent) = possible_parent {
-            ancestors.push(parent.clone());
-            possible_parent = &component_nodes.get(parent).unwrap().parent;
-        }
-
-
-        if !component_nodes.contains_key(source_name) {
-
-            // The component tried to copy a non-existent component.
-            // Log an error and pretend it didn't copy anything.
-            doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
-                comp_name: source_name.to_string()
-            });
-
-            invalid_copies.push(copy.name.to_string());
-
-        } else if ancestors.contains(source_name) {
-
-            // The component tried to copy its ancestor.
-            // Log an error and pretend it doesn't copy anything
-            doenet_ml_errors.push(DoenetMLError::ComponentCopiesAncestor {
-                comp_name: copy.name.clone(),
-                ancestor_name: source_name.clone(),
-            });
-
-            invalid_copies.push(copy.name.to_string());
-
-        } else {
-
-            add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
-        }
-    }
-
-    let mut component_nodes = component_nodes;
-
-    // Remove invalid copy references
-    for invalid_copy in invalid_copies {
-        let culprit_component = component_nodes.get_mut(&invalid_copy).unwrap();
-        culprit_component.copy_source = None;
-    }
-
-    let component_nodes = component_nodes;
-
-
-    // Fill in HashMaps: component_states and dependencies for every component
-    // and supply essential_data required by any `EssentialDependency`.
+    // Fill in component_states and dependencies HashMaps for every component
+    // and supply essential_data required by any Essential Dependency.
 
     let mut component_states = HashMap::new();
     let mut dependencies = HashMap::new();
@@ -229,23 +176,23 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
             &mut essential_data
         );
 
-        dependencies.insert(component_name.to_string(), dependencies_for_this_component);
+        let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
+            component_node.definition.state_var_definitions()
+            .iter()
+            .map(|(&sv_name, sv_variant)| (sv_name, StateForStateVar::new(&sv_variant)))
+            .collect();
 
 
-        let mut component_state: HashMap<StateVarName, StateForStateVar> = HashMap::new();
-        
-        for (&sv_name, sv_variant) in component_node.definition.state_var_definitions() {
-            component_state.insert(sv_name, StateForStateVar::new(&sv_variant));
-        }
-
+        dependencies.insert(
+            component_name.clone(),
+            dependencies_for_this_component
+        );
 
         component_states.insert(
             component_name.clone(),
-            component_state,
+            state_for_this_component,
         );
     }
-
-    let dependencies = dependencies;
 
 
     log_json!("Components upon core creation",
@@ -265,6 +212,63 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
     }, doenet_ml_errors)
 }
 
+
+/// For every copy either invalidate it and make it not a copy
+/// or add the necessary aliases for the renderers to use
+fn copy_sources_add_aliases_or_invalidate(
+    component_nodes: &mut HashMap<ComponentName, ComponentNode>,
+    aliases: &mut HashMap<String, ComponentName>,
+) -> Vec<DoenetMLError> {
+    let copies = component_nodes.iter().filter_map(|(_, c)| match c.copy_source {
+        Some(CopySource::Component(ref source)) => Some((c, source)),
+        _ => None,
+    });
+
+    let mut doenet_ml_errors = Vec::new();
+    let mut invalid_copies: Vec<String> = vec![];
+
+    for (copy, source_name) in copies {
+
+        // Find all ancestors (parents)
+        let mut ancestors: Vec<String> = vec![];
+        let mut possible_parent = &copy.parent;
+        while let Some(parent) = possible_parent {
+            ancestors.push(parent.clone());
+            possible_parent = &component_nodes.get(parent).unwrap().parent;
+        }
+
+        if !component_nodes.contains_key(source_name) {
+
+            // The component tried to copy a non-existent component.
+            // Log an error and pretend it didn't copy anything.
+            doenet_ml_errors.push(DoenetMLError::ComponentDoesNotExist {
+                comp_name: source_name.to_string()
+            });
+            invalid_copies.push(copy.name.to_string());
+
+        } else if ancestors.contains(source_name) {
+
+            // The component tried to copy its ancestor.
+            // Log an error and pretend it doesn't copy anything
+            doenet_ml_errors.push(DoenetMLError::ComponentCopiesAncestor {
+                comp_name: copy.name.clone(),
+                ancestor_name: source_name.clone(),
+            });
+            invalid_copies.push(copy.name.to_string());
+
+        } else {
+            add_alias_for_children(aliases, copy, &component_nodes, &copy.name);
+        }
+    }
+
+    // Remove invalid copy references
+    for invalid_copy in invalid_copies {
+        let culprit_component = component_nodes.get_mut(&invalid_copy).unwrap();
+        culprit_component.copy_source = None;
+    }
+
+    doenet_ml_errors
+}
 
 fn name_child_of_copy(child: &str, copy: &str) -> ComponentName {
     format!("__cp:{}({})", child, copy)
@@ -527,7 +531,7 @@ fn create_all_dependencies_for_component(
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> {
 
-    log_debug!("Creating dependencies for {:?}", component.name);
+    log_debug!("Creating dependencies for {}", component.name);
     let mut dependencies: HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> = HashMap::new();
 
 
@@ -649,7 +653,7 @@ fn create_dependencies_from_instruction(
     essential_data: &mut HashMap<String, EssentialStateVar>,
 ) -> Vec<Dependency> {
 
-    log_debug!("Creating dependency {}:{:?}:{}", component.name, state_var_reference, instruction_name);
+    log_debug!("Creating dependency {}:{}:{}", component.name, state_var_reference, instruction_name);
 
     let mut dependencies: Vec<Dependency> = Vec::new();
 
@@ -751,7 +755,7 @@ fn create_dependencies_from_instruction(
             let desired_state_var = parent_instruction.state_var;
 
             let parent_name = component.parent.clone().expect(&format!(
-                "Component {} doesn't have a parent, but the dependency instruction {:?}:{} asks for one.",
+                "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",
                     component.name, state_var_reference, instruction_name
             ));
 
@@ -901,7 +905,7 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    log_debug!("Resolving {}:{:?}", component.name, state_var_ref);
+    log_debug!("Resolving {}:{}", component.name, state_var_ref);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
     let empty_hash = HashMap::new();
@@ -912,7 +916,7 @@ fn resolve_state_variable(
         .get(&StateVarGroup::Single(state_var_ref.clone()))
         .unwrap_or(&empty_hash);
 
-    log_debug!("{}:{:?} direct depedencies {:#?}", component.name, state_var_ref, my_dependencies_direct);
+    log_debug!("{}:{} direct depedencies {:#?}", component.name, state_var_ref, my_dependencies_direct);
 
     // find what groups the state var is a part of
     let my_dependencies_indirect = match state_var_ref {
@@ -927,7 +931,7 @@ fn resolve_state_variable(
     };
 
 
-    log_debug!("{}:{:?} indirect depedencies {:#?}", component.name, state_var_ref, my_dependencies_indirect);
+    log_debug!("{}:{} indirect depedencies {:#?}", component.name, state_var_ref, my_dependencies_indirect);
 
 
     // combine HashMaps
@@ -947,14 +951,26 @@ fn resolve_state_variable(
             my_dependencies.insert(instruct_name, deps.clone());
         }
     }
-    // let my_dependencies: HashMap<InstructionName, Vec<Dependency>> = my_dependencies_direct
+
+    // let my_dependencies: HashMap<InstructionName, Vec<Dependency>> =
+    //     my_dependencies_direct.clone()
     //     .into_iter()
-    //     .chain(my_dependencies_indirect)
-    //     .map(|(&k, &v)| (k,v))
+    //     .map(|(k, mut v)| {
+    //         v.extend(
+    //             my_dependencies_indirect.get(k).unwrap().clone()
+    //             .into_iter()
+    //             .filter(|dep| !v.contains(dep))
+    //             .collect::<Vec<Dependency>>());
+    //         (k, v)
+    //     })
+    //     .chain(
+    //         my_dependencies_indirect.clone()
+    //         .into_iter()
+    //         .filter(|(k, _)| !my_dependencies_direct.contains_key(*k))
+    //     )
     //     .collect();
 
-
-    // log_debug!("{}:{:?} direct and indirect depedencies (de-duplicated) {:#?}", component.name, state_var_ref, my_dependencies);
+    // log_debug!("{}:{} depedencies (de-duplicated) {:#?}", component.name, state_var_ref, my_dependencies);
     
     for (dep_name, deps) in my_dependencies {
 
@@ -1031,12 +1047,12 @@ fn resolve_state_variable(
     }
 
 
-    log_debug!("{}:{:?} dependency values: {:#?}", component.name, state_var_ref, dependency_values);
+    log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
         component, state_var_ref, dependency_values
-    ).expect(&format!("Can't resolve [{}]:[{:?}] ({} component type)",
+    ).expect(&format!("Can't resolve {}:{} (a {} component type)",
         component.name, state_var_ref, component.component_type)
     );
 
@@ -1074,7 +1090,7 @@ fn references_from_group(
         }
     );
 
-    // combine
+    // combine vectors without redundancy
     let mut all_elements = Vec::new();
     for elem in existing_elements.chain(specific_deps) {
         if !all_elements.contains(&elem) {
@@ -1091,7 +1107,7 @@ fn mark_stale_state_var_and_dependencies(
     state_var_ref: &StateVarReference)
 {
 
-    log_debug!("Marking stale {}:{:?}", component.name, state_var_ref);
+    log_debug!("Marking stale {}:{}", component.name, state_var_ref);
 
     let component_state = core.component_states.get(&component.name).unwrap();
 
@@ -1171,7 +1187,7 @@ fn handle_update_instruction<'a>(
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
-    log_debug!("Updating state var {}:{}", component.name, state_var_ref.name());
+    log_debug!("Updating state var {}:{}", component.name, state_var_ref);
 
     let state_var = component_state_vars.get(state_var_ref.name()).unwrap();
 
@@ -1194,7 +1210,7 @@ fn handle_update_instruction<'a>(
         StateVarUpdateInstruction::SetValue(new_value) => {
 
             state_var.set_single_state(state_var_ref, new_value.clone()).expect(
-                &format!("Failed to set {}:{:?} while handling SetValue update instruction", component.name, state_var_ref)
+                &format!("Failed to set {}:{} while handling SetValue update instruction", component.name, state_var_ref)
             );
 
             updated_value = new_value;
@@ -1202,7 +1218,7 @@ fn handle_update_instruction<'a>(
 
     };
 
-    log_debug!("State var updated to {}", updated_value);
+    log_debug!("Updated to {}", updated_value);
 
     return updated_value;
 }
@@ -1313,7 +1329,7 @@ fn process_update_request(
     update_request: &UpdateRequest
 ) {
 
-    log_debug!("Processing update request for {}:{:?}", component.name, state_var_ref);
+    log_debug!("Processing update request for {}:{}", component.name, state_var_ref);
 
     match update_request {
         UpdateRequest::SetEssentialValue(key, requested_value) => {
@@ -1349,6 +1365,8 @@ fn process_update_request(
         }
     }
 }
+
+
 
 
 
@@ -1523,7 +1541,7 @@ fn return_dependency_instruction_including_shadowing(
 
 
 
-
+/// This determines the state var given its dependency values.
 fn generate_update_instruction_including_shadowing(
     component: &ComponentNode,
     state_var: &StateVarReference,
