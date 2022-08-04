@@ -901,27 +901,50 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    log_debug!("Resolving {}:{:?}", component.name, state_var_ref.name());
+    log_debug!("Resolving {}:{:?}", component.name, state_var_ref);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
-
-    let my_dependencies_direct = core.dependencies.get(&component.name).unwrap().get(&StateVarGroup::Single(state_var_ref.clone())).unwrap();
-
     let empty_hash = HashMap::new();
-    // find what groups the state var is a part of
-    let my_dependencies_indirect = core.dependencies
+
+    let my_dependencies_direct = core.dependencies
         .get(&component.name)
         .unwrap()
-        .get(&StateVarGroup::Array(state_var_ref.name()))
+        .get(&StateVarGroup::Single(state_var_ref.clone()))
         .unwrap_or(&empty_hash);
+
+    log_debug!("{}:{:?} direct depedencies {:#?}", component.name, state_var_ref, my_dependencies_direct);
+
+    // find what groups the state var is a part of
+    let my_dependencies_indirect = match state_var_ref {
+        StateVarReference::ArrayElement(_, _) => {
+            core.dependencies
+            .get(&component.name)
+            .unwrap()
+            .get(&StateVarGroup::Array(state_var_ref.name()))
+            .unwrap_or(&empty_hash)
+        },
+        _ => &empty_hash,
+    };
+
+
+    log_debug!("{}:{:?} indirect depedencies {:#?}", component.name, state_var_ref, my_dependencies_indirect);
+
 
     // combine HashMaps
     let mut my_dependencies: HashMap<InstructionName, Vec<Dependency>> = my_dependencies_direct.clone();
-    for (instruct_name, dep) in my_dependencies_indirect.into_iter() {
-        if let Some(deps) = my_dependencies.get_mut(instruct_name) {
-            deps.extend(dep.clone());
+    for (instruct_name, deps) in my_dependencies_indirect.into_iter() {
+        if let Some(existing_deps) = my_dependencies.get_mut(instruct_name) {
+
+            existing_deps.extend(
+                deps.clone().into_iter().filter(|dep| {
+                    !existing_deps.contains(dep)
+                }).collect::<Vec<Dependency>>()
+            );
+
+
         } else {
-            my_dependencies.insert(instruct_name, dep.clone());
+            // Didn't have instruction name
+            my_dependencies.insert(instruct_name, deps.clone());
         }
     }
     // let my_dependencies: HashMap<InstructionName, Vec<Dependency>> = my_dependencies_direct
@@ -929,6 +952,9 @@ fn resolve_state_variable(
     //     .chain(my_dependencies_indirect)
     //     .map(|(&k, &v)| (k,v))
     //     .collect();
+
+
+    // log_debug!("{}:{:?} direct and indirect depedencies (de-duplicated) {:#?}", component.name, state_var_ref, my_dependencies);
     
     for (dep_name, deps) in my_dependencies {
 
@@ -974,6 +1000,8 @@ fn resolve_state_variable(
                 Dependency::StateVarArray { component_name, array_state_var_name } => {
 
                     let depends_on_component = core.component_nodes.get(&component_name).unwrap();
+
+                    // important to resolve the size before the elements
                     let size_value = resolve_state_variable(
                         core,
                         depends_on_component,
@@ -1003,7 +1031,7 @@ fn resolve_state_variable(
     }
 
 
-    log_debug!("{}:{} dependency values: {:#?}", component.name, state_var_ref.name(), dependency_values);
+    log_debug!("{}:{:?} dependency values: {:#?}", component.name, state_var_ref, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
@@ -1273,6 +1301,8 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_ref.clone(), requested_value);
         process_update_request(core, component, &state_var_ref, &request);
     }
+
+    log_json!("Updated component tree", utils::json_components(&core.component_nodes, &core.component_states));
 }
 
 

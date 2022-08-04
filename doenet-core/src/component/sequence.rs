@@ -49,6 +49,19 @@ lazy_static! {
                 )])
             },
 
+            determine_size_from_dependencies: |dependency_values| {
+                // TODO: from and to should be integers
+
+                let from = dependency_values.dep_value("sv_from")?
+                    .has_exactly_one_element()?
+                    .into_number()?;
+                let to = dependency_values.dep_value("sv_to")?
+                    .has_exactly_one_element()?
+                    .into_number()?;
+
+                Ok(SetValue((to - from + 1.0) as usize))
+            },
+
             ..Default::default()
         }));
 
