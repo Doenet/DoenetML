@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use crate::StateForStateVar;
+use crate::{Dependency};
 use crate::prelude::*;
 use crate::component::*;
 use crate::state_variables::StateVarValue;
@@ -171,129 +172,21 @@ pub fn package_subtree_as_json(
 
 
 
-// pub fn json_dependencies(
-//     dependencies: &HashMap<ComponentName, HashMap<StateVarName, DependenciesForStateVar>>
-// ) -> serde_json::Value {
+pub fn json_dependencies(
+    dependencies: &HashMap<ComponentName, HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>>>,
+) -> HashMap<String, HashMap<String, HashMap<&str, Vec<Dependency>>>> {
 
-//     use serde_json::Value;
-
-//     let mut output: HashMap<String, HashMap<String, HashMap<String, Value>>> = HashMap::new();
-
-//     for (comp_name, comp_deps) in dependencies {
-//         for (state_var_name, state_var_deps) in comp_deps {
-
-//             match state_var_deps {
-//                 DependenciesForStateVar::Array { size, all_elements, specific_elements } => {
-
-//                     let size_display = generate_display_for_dependencies(size);
-//                     let label = format!("{} (size)", state_var_name);
-
-//                     output
-//                         .entry(comp_name.clone()).or_insert(HashMap::new())                    
-//                         .entry(label).or_insert(size_display);
-
-//                     let common_display = generate_display_for_dependencies(all_elements);
-//                     let label = format!("{} (common)", state_var_name);
-
-//                     output
-//                         .entry(comp_name.clone()).or_insert(HashMap::new())                    
-//                         .entry(label).or_insert(common_display);
-                    
-//                     // let mut element_displays = HashMap::new();
-//                     for (element_id, element) in specific_elements {
-//                         let element_display = generate_display_for_dependencies(element);
-//                         let label = format!("{} (element {})", state_var_name, element_id);
-
-//                         output
-//                             .entry(comp_name.clone()).or_insert(HashMap::new())                    
-//                             .entry(label).or_insert(element_display);
-//                     }
-
-//                 },
-
-//                 DependenciesForStateVar::Single(single_state_var_deps) => {
-//                     let display = generate_display_for_dependencies(single_state_var_deps);
-
-//                         output
-//                             .entry(comp_name.clone()).or_insert(HashMap::new())
-//                             .entry(state_var_name.to_string()).or_insert(display);
-//                 }
-//             }
-
-
-//         }
-//     }
-
-//     serde_json::json!(output)
-// }
-
-
-// fn generate_display_for_dependencies(dependencies: &HashMap<InstructionName, Vec<Dependency>>)
-//     -> HashMap<String, serde_json::Value>
-// {
-//     use serde_json::json;
-
-//     let mut values = HashMap::new();
-
-//     for (instruct_name, deps_for_instruction) in dependencies {
-
-//         values.insert(instruct_name, serde_json::to_string(deps_for_instruction));
-
-
-//     //     let mut values = vec![];
-
-//     //     for dep in deps_for_instruction {
-//     //         let value;
-
-//     //         match dep {
-
-//     //             Dependency::StateVar { component_name, state_var_name } => {
-//     //                 values.push(format!("sv: {} {}", component_name, state_var_name));
-//     //             },
-//     //             Dependency::Essential { essential_key } => {
-//     //                 values.push(format!("essen: {}", essential_key));
-//     //             },
-//     //             Dependency::String { value } => {
-//     //                 values.push(format!("str: {}", value));
-
-//     //             },
-//     //             Dependency::StateVar { component_name, state_var_name } => {
-//     //                 values.push(format!("str: {}", value));
-
-//     //             }
-//     //         }
-//     //     }
-
-
-//     //     let display_name = match deps_for_instruction {
-//     //         Dependency::Essential(_) => format!("{} (essential)", instruct_name),
-//     //         Dependency::StateVar(_) => format!("{} (state var)", instruct_name),
-//     //     };
-
-//     //     let value = match deps_for_instruction {
-//     //         Dependency::Essential(ref essen_dep) => {
-//     //             json!({
-//     //                 "depends_on_essential": essen_dep.depends_on_essential,
-//     //             })
-//     //         },
-//     //         Dependency::StateVar(ref sv_dep) => {
-//     //             let depends_on_objects: Vec<String> = sv_dep.depends_on_objects.iter().map(
-//     //                 |depends_on_obj| match depends_on_obj {
-//     //                     ObjectName::Component(comp_name) => comp_name.to_string(),
-//     //                     ObjectName::String(str) => format!("{} (str)", str),
-//     //                 }
-//     //             ).collect();
-
-//     //             json!({
-//     //                 "depends on objects": depends_on_objects,
-//     //                 "depends on state_vars": sv_dep.depends_on_state_vars,
-//     //                 "variables optional": sv_dep.variables_optional,
-//     //             })
-//     //         },
-//     //     };
-
-//     //     values.insert(display_name, value);
-//     }
-
-//     values
-// }
+    dependencies
+        .iter()
+        .map(|(k, comp_deps)| {
+            (k.clone(),
+            comp_deps
+                .iter()
+                .map(|(sv_group_name, deps)| {
+                    (format!("{:?}", sv_group_name), deps.clone())
+                })
+                .collect::<HashMap<String, HashMap<&str, Vec<Dependency>>>>()
+            )
+        })
+        .collect()
+}
