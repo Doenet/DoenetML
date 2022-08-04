@@ -257,10 +257,26 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
         );
     }
 
+    let dependencies = dependencies;
+
 
     log_json!("Components upon core creation",
         utils::json_components(&component_nodes, &component_states));
-    log_json!("Dependencies upon core creation", dependencies);
+
+    let json_dependencies: HashMap<String, HashMap<String, HashMap<&str, Vec<Dependency>>>> = dependencies.iter()
+        .map(|(k, comp_deps)| {
+            (k.clone(),
+            comp_deps
+                .iter()
+                .map(|(sv_group_name, deps)| {
+                    (format!("{:?}", sv_group_name), deps.clone())
+                })
+                .collect::<HashMap<String, HashMap<&str, Vec<Dependency>>>>()
+            )
+        })
+        .collect();
+
+    log_json!("Dependencies upon core creation", json_dependencies);
 
 
     (DoenetCore {
@@ -573,11 +589,10 @@ fn create_all_dependencies_for_component(
             );
 
 
-
-            let array_dep_instruactions = state_var_variant.return_dependency_instructions(HashMap::new());
+            let array_dep_instructions = state_var_variant.return_array_dependency_instructions(HashMap::new());
             let mut instruction_dependencies = HashMap::new();
 
-            for (dep_name, ref dep_instruction) in array_dep_instruactions.into_iter() {
+            for (dep_name, ref dep_instruction) in array_dep_instructions.into_iter() {
                 let dependency = create_dependencies_from_instruction(
                     &components, component, &&StateVarReference::SizeOf(state_var_name),
                     dep_instruction, dep_name, essential_data
@@ -649,8 +664,6 @@ fn get_attribute_including_copy<'a>(
             let source = components.get(source_name).unwrap();
             get_attribute_including_copy(components, source, attribute_name)
         }
-
-
 
     } else {
         None
@@ -802,10 +815,7 @@ fn create_dependencies_from_instruction(
 
             let attribute_name = attribute_instruction.attribute_name;
 
-            let possible_attribute: Option<&Attribute> = get_attribute_including_copy(components, component, attribute_name);
-
-
-            if let Some(attribute) = possible_attribute {
+            if let Some(attribute) = get_attribute_including_copy(components, component, attribute_name) {
                 match attribute {
                     Attribute::Component(attr_comp_name) => {
 
@@ -831,8 +841,6 @@ fn create_dependencies_from_instruction(
                     },
                 }
 
-            } else {
-                panic!()
             }
 
         },
@@ -1501,7 +1509,17 @@ fn return_dependency_instruction_including_shadowing(
     } else {
         let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
 
-        state_var_def.return_dependency_instructions(HashMap::new())
+        match state_var {
+            StateVarReference::Basic(_) => {
+                state_var_def.return_dependency_instructions(HashMap::new())
+            },
+            StateVarReference::SizeOf(_) => {
+                state_var_def.return_size_dependency_instructions(HashMap::new())
+            },
+            StateVarReference::ArrayElement(_, id) => {
+                state_var_def.return_element_dependency_instructions(*id, HashMap::new())
+            }
+        }
     }
 }
 
@@ -1528,7 +1546,18 @@ fn generate_update_instruction_including_shadowing(
         // Otherwise, this state var is not shadowing, so proceed normally
         let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
 
-        state_var_def.determine_state_var_from_dependencies(dependency_values)
+        match state_var {
+            StateVarReference::Basic(_) => {
+                state_var_def.determine_state_var_from_dependencies(dependency_values)
+            },
+            StateVarReference::SizeOf(_) => {
+                state_var_def.determine_size_from_dependencies(dependency_values)
+            },
+            StateVarReference::ArrayElement(_, id) => {
+                state_var_def.determine_element_from_dependencies(*id, dependency_values)
+            }
+        }
+
     }
 }
 

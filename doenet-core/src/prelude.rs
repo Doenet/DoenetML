@@ -66,7 +66,16 @@ macro_rules! log_debug {
         println!( $( $t )* )
     }
 }
+use std::{fmt::Display};
+
 pub(crate) use log;
 pub(crate) use log_json;
 pub(crate) use log_debug;
 
+
+
+impl Display for StateVarGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}

@@ -137,6 +137,22 @@ pub enum StateVarVariant {
     Number(StateVarDefinition<f64>),
     Integer(StateVarDefinition<i64>),
     NumberArray(StateVarArrayDefinition<f64>),
+    // Single(StateVarVariantSingle),
+    // Array(StateVarVariantArray),
+}
+
+#[derive(Debug)]
+pub enum StateVarVariantSingle {
+    String(StateVarDefinition<String>),
+    Boolean(StateVarDefinition<bool>),
+    Number(StateVarDefinition<f64>),
+    Integer(StateVarDefinition<i64>),
+}
+
+
+#[derive(Debug)]
+pub enum StateVarVariantArray {
+    NumberArray(StateVarArrayDefinition<f64>),
 }
 
 
@@ -612,6 +628,12 @@ impl std::fmt::Display for StateVarValue {
 }
 
 
+
+
+
+
+
+
 // Boilerplate matching over StateVarVariant
 
 impl StateVarVariant {
@@ -626,23 +648,30 @@ impl StateVarVariant {
     //     }
     // }
 
+
+    // Non-array specific functions
+
+
     pub fn return_dependency_instructions(&self,
         prerequisite_state_values: HashMap<StateVarName, StateVarValue>)
          -> HashMap<InstructionName, DependencyInstruction> {
 
         match self {
-            StateVarVariant::String(def) =>
+            Self::String(def) =>
                 (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Boolean(def) =>
+            Self::Boolean(def) =>
                 (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Number(def) =>
+            Self::Number(def) =>
                 (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::Integer(def) =>
+            Self::Integer(def) =>
                 (def.return_dependency_instructions)(prerequisite_state_values),
-            StateVarVariant::NumberArray(def) =>
-                (def.return_array_dependency_instructions)(prerequisite_state_values),
+
+            _ => unreachable!(),
         }
     }
+
+
+    
     
     pub fn determine_state_var_from_dependencies(&self,
         dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
@@ -651,35 +680,36 @@ impl StateVarVariant {
         use StateVarUpdateInstruction::*;
 
         match self {
-            StateVarVariant::String(def) => {
+            Self::String(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values)?;
                 Ok(match instruction {                    
                     NoChange => NoChange,
                     SetValue(val) => SetValue(StateVarValue::String(val)),
                 })
             },
-            StateVarVariant::Integer(def) => {
+            Self::Integer(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values)?;
                 Ok(match instruction {
                     NoChange => NoChange,
                     SetValue(val) => SetValue(StateVarValue::Integer(val)),
                 })
             },
-            StateVarVariant::Number(def) => {
+            Self::Number(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values)?;
                 Ok(match instruction {
                     NoChange => NoChange,
                     SetValue(val) => SetValue(StateVarValue::Number(val)),
                 })
             },
-            StateVarVariant::Boolean(def) => {
+            Self::Boolean(def) => {
                 let instruction = (def.determine_state_var_from_dependencies)(dependency_values)?;
                 Ok(match instruction {
                     NoChange => NoChange,
                     SetValue(val) => SetValue(StateVarValue::Boolean(val)),
                 })
-            }                     
-            _ => panic!(),
+            },
+
+            _ => unreachable!(),
         }
     }
 
@@ -687,69 +717,154 @@ impl StateVarVariant {
         -> HashMap<InstructionName, Vec<DependencyValue>> {
 
         match self {
-            StateVarVariant::String(def) =>  {
+            Self::String(def) =>  {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
                         &format!("Requested String be updated to {:#?}", desired_value))
                 )
             },
-            StateVarVariant::Integer(def) => {
+            Self::Integer(def) => {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
                         &format!("Requested Integer be updated to {:#?}", desired_value))
                 )
             },
-            StateVarVariant::Number(def) =>  {
+            Self::Number(def) =>  {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
                         &format!("Requested Number be updated to {:#?}", desired_value))
                 )
             },
-            StateVarVariant::Boolean(def) => {
+            Self::Boolean(def) => {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
                         &format!("Requested Boolean be updated to {:#?}", desired_value))
                 )
-            }
-            _ => panic!(),
+            },
+
+            _ => unreachable!(),
         }       
-    }
-
-
-    pub fn for_renderer(&self) -> bool {
-        match self {
-            StateVarVariant::String(def) =>  def.for_renderer,
-            StateVarVariant::Integer(def) => def.for_renderer,
-            StateVarVariant::Number(def) =>  def.for_renderer,
-            StateVarVariant::Boolean(def) => def.for_renderer,
-            StateVarVariant::NumberArray(def) => def.for_renderer,
-        }
     }
 
     pub fn initial_essential_value(&self) -> StateVarValue {
         match self {
-            StateVarVariant::String(def) =>  StateVarValue::String( def.initial_essential_value.clone()),
-            StateVarVariant::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
-            StateVarVariant::Number(def) =>  StateVarValue::Number( def.initial_essential_value),
-            StateVarVariant::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
-            _ => panic!(),
+            Self::String(def) =>  StateVarValue::String( def.initial_essential_value.clone()),
+            Self::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
+            Self::Number(def) =>  StateVarValue::Number( def.initial_essential_value),
+            Self::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
+
+            _ => unreachable!(),
         }
     }
 
-    pub fn is_array(&self) -> bool {
+
+
+    // Array specific functions
+
+    pub fn return_array_dependency_instructions(&self,
+        prereq_state_values: HashMap<StateVarName, StateVarValue>)
+         -> HashMap<InstructionName, DependencyInstruction> {
+
         match self {
-            StateVarVariant::NumberArray(_) => true,
-            _ => false,
+            Self::NumberArray(def) => (def.return_array_dependency_instructions)(prereq_state_values),
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn return_element_dependency_instructions(&self,
+        index: usize,
+        prereq_state_values: HashMap<StateVarName, StateVarValue>)
+         -> HashMap<InstructionName, DependencyInstruction> {
+
+        match self {
+            Self::NumberArray(def) => (def.return_element_dependency_instructions)(index, prereq_state_values),
+            _ => unreachable!(),
         }
     }
 
     pub fn return_size_dependency_instructions(&self,
-        prerequisite_state_values: HashMap<StateVarName, StateVarValue>)
+        prereq_state_values: HashMap<StateVarName, StateVarValue>)
          -> HashMap<InstructionName, DependencyInstruction> {
+
         match self {
-            StateVarVariant::NumberArray(def) => (def.return_size_dependency_instructions)(prerequisite_state_values),
-            _ => panic!()
+            Self::NumberArray(def) => (def.return_size_dependency_instructions)(prereq_state_values),
+            _ => unreachable!(),
         }
     }
+
+    
+    pub fn determine_size_from_dependencies(&self,
+        dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+    ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
+
+        use StateVarUpdateInstruction::*;
+
+        match self {
+            Self::NumberArray(def) => {
+                let instruction = (def.determine_size_from_dependencies)(dependency_values)?;
+                Ok(match instruction {                    
+                    NoChange => NoChange,
+                    SetValue(val) => SetValue(StateVarValue::Integer(val as i64)),
+                })
+            },
+
+            _ => unreachable!(),
+        }
+    }
+
+
+    pub fn determine_element_from_dependencies(&self,
+        id: usize, dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+    ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
+
+        use StateVarUpdateInstruction::*;
+
+        match self {
+            Self::NumberArray(def) => {
+                let instruction = (def.determine_element_from_dependencies)(id, dependency_values)?;
+                Ok(match instruction {                    
+                    NoChange => NoChange,
+                    SetValue(val) => SetValue(StateVarValue::Number(val)),
+                })
+            },
+
+            _ => unreachable!(),
+        }
+    }
+
+
+    pub fn initial_essential_element_value(&self) -> StateVarValue {
+        match self {
+            Self::NumberArray(def) =>  StateVarValue::Number(def.initial_essential_element_value),
+            _ => unreachable!(),
+        }
+    }
+
+
+
+
+
+
+    // Both array and non-array functions
+
+
+    pub fn for_renderer(&self) -> bool {
+        match self {
+            Self::String(def) =>  def.for_renderer,
+            Self::Integer(def) => def.for_renderer,
+            Self::Number(def) =>  def.for_renderer,
+            Self::Boolean(def) => def.for_renderer,
+            Self::NumberArray(def) => def.for_renderer,
+        }
+    }
+
+
+    pub fn is_array(&self) -> bool {
+        match self {
+            Self::NumberArray(_) => true,
+            _ => false,
+        }
+    }
+
 }
 
