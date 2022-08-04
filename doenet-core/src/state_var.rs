@@ -27,7 +27,7 @@ enum ValueTypeProtector {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum State<T> {
     Stale,
     Resolved(T),
