@@ -128,15 +128,15 @@ export default React.memo(function Graph(props) {
         strokeColor: 'var(--canvastext)',
         drawLabels: SVs.displayXAxisTickLabels
       }
-      if (SVs.xTickScaleFactor !== null) {
-        let xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
-        let scale = xTickScaleFactor.evaluate_to_constant();
-        if (scale > 0) {
-          let scaleSymbol = xTickScaleFactor.toString();
-          xaxisOptions.ticks.scale = scale;
-          xaxisOptions.ticks.scaleSymbol = scaleSymbol;
-        }
-      }
+      // if (SVs.xTickScaleFactor !== null) {
+      //   let xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
+      //   let scale = xTickScaleFactor.evaluate_to_constant();
+      //   if (scale > 0) {
+      //     let scaleSymbol = xTickScaleFactor.toString();
+      //     xaxisOptions.ticks.scale = scale;
+      //     xaxisOptions.ticks.scaleSymbol = scaleSymbol;
+      //   }
+      // }
       xaxisOptions.strokeColor = "var(--canvastext)";
       xaxisOptions.highlight = false;
 
@@ -287,15 +287,15 @@ export default React.memo(function Graph(props) {
         strokeColor: "var(--canvastext)",
         drawLabels: SVs.displayYAxisTickLabels
       }
-      if (SVs.yTickScaleFactor !== null) {
-        let yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
-        let scale = yTickScaleFactor.evaluate_to_constant();
-        if (scale > 0) {
-          let scaleSymbol = yTickScaleFactor.toString();
-          yaxisOptions.ticks.scale = scale;
-          yaxisOptions.ticks.scaleSymbol = scaleSymbol;
-        }
-      }
+      // if (SVs.yTickScaleFactor !== null) {
+      //   let yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
+      //   let scale = yTickScaleFactor.evaluate_to_constant();
+      //   if (scale > 0) {
+      //     let scaleSymbol = yTickScaleFactor.toString();
+      //     yaxisOptions.ticks.scale = scale;
+      //     yaxisOptions.ticks.scaleSymbol = scaleSymbol;
+      //   }
+      // }
       if (SVs.grid === "dense") {
         yaxisOptions.ticks.majorHeight = -1;
         yaxisOptions.ticks.minorHeight = -1;

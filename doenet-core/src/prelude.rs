@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-/// camelCase
+/// The name (camelCase) of a state variable that could be
+/// a basic or an array depending on the component.
 pub type StateVarName = &'static str;
 
 /// camelCase
@@ -12,10 +13,11 @@ pub type ComponentType = &'static str;
 /// camelCase
 pub type AttributeName = &'static str;
 
-// A ComponentName is not be static because it cannot be known at compile time.
+/// A ComponentName is not static because it cannot be known at compile time.
 pub type ComponentName = String;
 
 
+/// A single value
 #[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum StateVarReference {
     Basic(StateVarName),

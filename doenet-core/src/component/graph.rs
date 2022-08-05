@@ -9,6 +9,12 @@ use super::*;
 use crate::ObjectTraitName;
 
 
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct Descendant {
+    component_name: String,
+    component_type: ComponentType,
+}
 
 lazy_static! {
 
@@ -26,13 +32,16 @@ lazy_static! {
                     })
                 ])
             },
-            determine_state_var_from_dependencies: |_dependency_values| {
-                // let descendants = dependency_values.dep_value("descendants")?;
-                // let component_types: Vec<ComponentType> = descendants.0
-                //     .iter()
-                //     .map(|dv| dv.component_type)
-                //     .collect();
-                Ok(SetValue("What goes here?".to_string()))
+            determine_state_var_from_dependencies: |dependency_values| {
+                let descendants = dependency_values.dep_value("descendants")?;
+                let descendants: Vec<Descendant> = descendants.0
+                    .iter()
+                    .map(|dv| Descendant {
+                        component_name: String::new(),
+                        component_type: dv.component_type,
+                    })
+                    .collect();
+                Ok(SetValue(serde_json::to_string(&descendants).unwrap()))
             },
             for_renderer: true,
             ..Default::default()
@@ -68,45 +77,61 @@ lazy_static! {
 
         state_var_definitions.insert("xmin", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
+                ("essential", DependencyInstruction::Essential),
+                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmin" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: |_| Ok(SetValue(-10.0)),
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: -10.0,
             for_renderer: true,
             ..Default::default()
         }));
         state_var_definitions.insert("ymin", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
+                ("essential", DependencyInstruction::Essential),
+                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymin" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: |_| Ok(SetValue(-10.0)),
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: -10.0,
             for_renderer: true,
             ..Default::default()
         }));
         state_var_definitions.insert("xmax", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
+                ("essential", DependencyInstruction::Essential),
+                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmax" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: |_| Ok(SetValue(10.0)),
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: 10.0,
             for_renderer: true,
             ..Default::default()
         }));
         state_var_definitions.insert("ymax", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
+                ("essential", DependencyInstruction::Essential),
+                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymax" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: |_| Ok(SetValue(10.0)),
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: 10.0,
             for_renderer: true,
             ..Default::default()
         }));
@@ -224,5 +249,36 @@ impl ComponentDefinition for MyComponentDefinition {
 
     fn should_render_children(&self) -> bool {
         true
+    }
+
+    fn action_names(&self) -> Vec<&'static str> {
+        vec!["changeAxisLimits"]
+    }
+
+    fn on_action<'a>(
+        &self,
+        action_name: &str,
+        args: HashMap<String, StateVarValue>,
+        _: &dyn Fn(&'a StateVarReference) -> StateVarValue
+    ) -> HashMap<StateVarReference, StateVarValue> {
+
+        match action_name {
+            "changeAxisLimits" => {
+                // Note: the key here is whatever the renderers call the new value
+                let xmin = args.get("xmin").expect("missing bound argument").clone().into_number().unwrap();
+                let xmax = args.get("xmax").expect("missing bound argument").clone().into_number().unwrap();
+                let ymin = args.get("ymin").expect("missing bound argument").clone().into_number().unwrap();
+                let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
+
+                HashMap::from([
+                    (StateVarReference::Basic("xmin"), xmin),
+                    (StateVarReference::Basic("xmax"), xmax),
+                    (StateVarReference::Basic("ymin"), ymin),
+                    (StateVarReference::Basic("ymax"), ymax),
+                ])
+            },
+
+            _ => panic!("Unknown action '{}' called on graph", action_name)
+        }
     }
 }

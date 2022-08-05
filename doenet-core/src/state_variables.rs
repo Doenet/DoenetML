@@ -637,6 +637,14 @@ impl StateVarValue {
             Self::Number(_) => "number",
         }
     }
+
+    pub fn into_number(self) -> Result<StateVarValue, String> {
+        match self {
+            StateVarValue::Integer(i) => Ok(StateVarValue::Number(i as f64)),
+            StateVarValue::Number(n) => Ok(StateVarValue::Number(n)),
+            _ => Err("cannot convert value into number".to_string()),
+        }
+    }
 }
 
 impl std::fmt::Display for StateVarValue {
