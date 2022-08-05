@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
     "compile-wasm": "wasm-pack build --target web --dev --features web-logging",
+    "compile-wasm-release": "wasm-pack build --target web --release --features web-logging",
     "compile-wasm-nightly": "bash -c 'export RUSTFLAGS=\"-Z macro-backtrace\"; rustup run nightly wasm-pack build --target web --dev'",
     "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
     "test-node": "wasm-pack test --node"
