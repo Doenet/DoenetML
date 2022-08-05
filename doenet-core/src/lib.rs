@@ -880,24 +880,12 @@ fn get_state_variables_depending_on_me(
 }
 
 
-
-fn resolve_state_variable(
+fn dependencies_of_state_var(
     core: &DoenetCore,
     component: &ComponentNode,
     state_var_ref: &StateVarReference,
-) -> StateVarValue {
-        
-    let state_vars = core.component_states.get(&component.name).unwrap();
+) -> HashMap<InstructionName, Vec<Dependency>> {
 
-    // No need to continue if the state var is already resolved
-    let current_state = state_vars.get(state_var_ref.name()).unwrap().get_single_state(state_var_ref);
-    if let State::Resolved(current_value) = current_state {
-        return current_value;
-    }
-
-    log_debug!("Resolving {}:{}", component.name, state_var_ref);
-
-    let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
     let empty_hash = HashMap::new();
 
     let direct_dependencies = core.dependencies
@@ -923,7 +911,6 @@ fn resolve_state_variable(
 
     log_debug!("{}:{} indirect depedencies {:#?}", component.name, state_var_ref, indirect_dependencies);
 
-
     // combine HashMaps
     let mut my_dependencies: HashMap<InstructionName, Vec<Dependency>> = direct_dependencies.clone();
     for (instruct_name, deps) in indirect_dependencies.into_iter() {
@@ -941,6 +928,28 @@ fn resolve_state_variable(
         }
     }
 
+    my_dependencies
+}
+
+fn resolve_state_variable(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    state_var_ref: &StateVarReference,
+) -> StateVarValue {
+
+    let state_vars = core.component_states.get(&component.name).unwrap();
+
+    // No need to continue if the state var is already resolved
+    let current_state = state_vars.get(state_var_ref.name()).unwrap().get_single_state(state_var_ref);
+    if let State::Resolved(current_value) = current_state {
+        return current_value;
+    }
+
+    log_debug!("Resolving {}:{}", component.name, state_var_ref);
+
+    let my_dependencies = dependencies_of_state_var(core, component, state_var_ref);
+
+    let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
     for (dep_name, deps) in my_dependencies {
 
@@ -1015,11 +1024,10 @@ fn resolve_state_variable(
                         });
     
                     }
-
-                }
+                },
             }
         }
-       
+
         dependency_values.insert(dep_name, values_for_this_dep);
     }
 
@@ -1046,6 +1054,20 @@ fn get_essential_datum_index(state_var_ref: &StateVarReference) -> usize {
         StateVarReference::SizeOf(_) => 0,
         StateVarReference::ArrayElement(_, i) => i + 1, // reserve 0 for SizeOf
     }
+}
+
+/// This must resolve the size
+fn elements_of_array(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    sv_name: &StateVarName,
+) -> Vec<StateVarReference> {
+    let size_ref = StateVarReference::SizeOf(sv_name);
+    let size: i64 = resolve_state_variable(core, component, &size_ref)
+        .try_into()
+        .unwrap();
+
+    (0..(size as usize)).map(|i| StateVarReference::ArrayElement(sv_name, i)).collect()
 }
 
 fn references_from_group(
@@ -1253,15 +1275,14 @@ fn convert_dependency_values_to_update_request(
     requests: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> Vec<UpdateRequest> {
 
-    let instruction_names = core.dependencies
-        .get(&component.name).unwrap()
-        .get(&StateVarGroup::Single(state_var.clone())).unwrap();
+    let my_dependencies = dependencies_of_state_var(core, component, state_var);
+
 
     requests.iter()
         .flat_map(|(instruction_name, values)|
             values.iter()
             .flat_map(|value|
-                instruction_names.get(instruction_name).unwrap()
+                my_dependencies.get(instruction_name).unwrap()
                 .iter()
                 .filter_map(|instruction|
                     match instruction {
@@ -1402,17 +1423,39 @@ fn generate_render_tree_internal(
     for (name, variant) in renderered_state_vars {
 
         if variant.is_array() {
-            panic!("Can't render array state variables");
+
+            // TODO: not the best way to do this?
+            let sv_refs = elements_of_array(core, component, name);
+
+            let mut values: Vec<f64> = Vec::new();
+            for sv_ref in sv_refs {
+                values.push(
+                    resolve_state_variable(core, component, &sv_ref)
+                    .try_into()
+                    .unwrap()
+                );
+            }
+
+            state_values.insert(name.to_string(), json!(values));
+
+        } else {
+            let state_var_value = resolve_state_variable(core, component, &StateVarReference::Basic(name));
+
+            if *name == "selectedStyle" || *name == "graphicalDescendants" {
+                if let StateVarValue::String(v) = state_var_value {
+                    log_debug!("deserializing for renderer: {}", v);
+                    let value = serde_json::from_str(&v).unwrap();
+                    state_values.insert(name.to_string(), value);
+                }
+            } else {
+                state_values.insert(name.to_string(), match state_var_value {
+                    StateVarValue::Integer(v) => json!(v),
+                    StateVarValue::Number(v) =>  json!(v),
+                    StateVarValue::String(v) =>  json!(v),
+                    StateVarValue::Boolean(v) => json!(v),
+                });
+            }
         }
-
-        let state_var_value = resolve_state_variable(core, component, &StateVarReference::Basic(name));
-
-        state_values.insert(name.to_string(), match state_var_value {
-            StateVarValue::Integer(v) => json!(v),
-            StateVarValue::Number(v) =>  json!(v),
-            StateVarValue::String(v) =>  json!(v),
-            StateVarValue::Boolean(v) => json!(v),
-        });
     }
 
     let name_to_render = match &came_from_copy {
@@ -1630,7 +1673,7 @@ fn request_dependencies_to_update_value_including_shadow(
 
     } else {
         let requests = component.definition.state_var_definitions().get(state_var_ref.name()).unwrap()
-            .request_dependencies_to_update_value(new_value);
+            .request_dependencies_to_update_value(state_var_ref, new_value);
 
         convert_dependency_values_to_update_request(core, component, state_var_ref, requests)
     }

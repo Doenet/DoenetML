@@ -8,6 +8,7 @@ pub mod number_input;
 pub mod boolean_input;
 pub mod sequence;
 pub mod graph;
+pub mod point;
 
 use crate::prelude::*;
 use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
@@ -29,6 +30,7 @@ pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn Compon
         ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("sequence",     Box::new(crate::sequence     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
         ("graph",        Box::new(crate::graph        ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
+        ("point",        Box::new(crate::point        ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
     ])
 }
 

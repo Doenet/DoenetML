@@ -9,12 +9,6 @@ use super::*;
 use crate::ObjectTraitName;
 
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
-struct Descendant {
-    component_name: String,
-    component_type: ComponentType,
-}
 
 lazy_static! {
 
@@ -28,18 +22,19 @@ lazy_static! {
                     HashMap::from([
                     ("descendants", DependencyInstruction::Child {
                         desired_children: vec![ObjectTraitName::Graphical],
-                        desired_state_vars: vec![],
+                        desired_state_vars: vec!["disabled"],
                     })
                 ])
             },
             determine_state_var_from_dependencies: |dependency_values| {
                 let descendants = dependency_values.dep_value("descendants")?;
-                let descendants: Vec<Descendant> = descendants.0
+                let descendants: Vec<serde_json::Value> = descendants.0
                     .iter()
-                    .map(|dv| Descendant {
-                        component_name: String::new(),
-                        component_type: dv.component_type,
-                    })
+                    .map(|dv|
+                        serde_json::json!({
+                            "component_type": dv.component_type,
+                        })
+                    )
                     .collect();
                 Ok(SetValue(serde_json::to_string(&descendants).unwrap()))
             },

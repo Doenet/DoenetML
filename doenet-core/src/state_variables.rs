@@ -66,6 +66,8 @@ pub struct StateVarArrayDefinition<T> {
         HashMap<InstructionName, Vec<DependencyValue>>
     ) -> Result<StateVarUpdateInstruction<usize>, String>,
 
+    pub request_size_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+
     pub for_renderer: bool,
 
     pub initial_essential_element_value: T,
@@ -104,13 +106,16 @@ impl<T> Default for StateVarArrayDefinition<T>
             return_element_dependency_instructions: |_, _| HashMap::new(),
             determine_element_from_dependencies: |_, _| Ok(StateVarUpdateInstruction::SetValue(T::default())),
             request_element_dependencies_to_update_value: |_, _| {
-                log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
+                log!("DEFAULT REQUEST_ELEMENT_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
                 HashMap::new()
             },
 
             return_size_dependency_instructions: |_| HashMap::new(),
             determine_size_from_dependencies: |_| Ok(StateVarUpdateInstruction::SetValue(0)),
-
+            request_size_dependencies_to_update_value: |_| {
+                log!("DEFAULT REQUEST_SIZE_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
+                HashMap::new()
+            },
             for_renderer: false, 
             initial_essential_element_value: T::default(),
 
@@ -473,6 +478,30 @@ macro_rules! definition_from_attribute {
 }
 pub(crate) use definition_from_attribute;
 
+
+// macro_rules! definition_from_attribute_with_essential {
+//     ( $attribute:expr, $variant:ident, $default:expr) => {
+//         {
+//             use crate::state_variables::{StateVarVariant, DependencyInstruction,
+//                 StateVarUpdateInstruction};
+
+//             StateVarVariant::$variant(StateVarDefinition {
+//                 return_dependency_instructions: |_| HashMap::from([
+//                     ("essential", DependencyInstruction::Essential),
+//                     ("attribute", DependencyInstruction::Attribute{ attribute_name: $attribute }),
+
+//                 ]),
+//                 determine_state_var_from_dependencies:
+//                     determine_from_essential_or_attribute!( $default ),
+//                 request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+//                 for_renderer: true,
+//                 ..Default::default()
+//             })
+//         }
+//     }
+// }
+// pub(crate) use definition_from_attribute_with_essential;
+
 /// Arguments: default
 /// Macro assumes instruction names are essential and attribute
 macro_rules! determine_from_essential_or_attribute {
@@ -771,8 +800,11 @@ impl StateVarVariant {
         }
     }
 
-    pub fn request_dependencies_to_update_value(&self, desired_value: StateVarValue)
-        -> HashMap<InstructionName, Vec<DependencyValue>> {
+    pub fn request_dependencies_to_update_value(
+        &self,
+        state_var: &StateVarReference,
+        desired_value: StateVarValue,
+    ) -> HashMap<InstructionName, Vec<DependencyValue>> {
 
         match self {
             Self::String(def) =>  {
@@ -800,7 +832,27 @@ impl StateVarVariant {
                 )
             },
 
-            _ => unreachable!(),
+            Self::NumberArray(def) => {
+                match state_var {
+                    StateVarReference::ArrayElement(_, i) => {
+                        (def.request_element_dependencies_to_update_value)(
+                            *i,
+                            desired_value.clone().try_into().expect( // only cloned for error msg
+                                &format!("Requested NumberArray element be updated to {:#?}", desired_value)
+                            ),
+                        )
+                    },
+                    StateVarReference::SizeOf(_) => {
+                        (def.request_size_dependencies_to_update_value)(
+                            desired_value.clone().try_into().expect( // only cloned for error msg
+                                &format!("Requested NumberArray size be updated to {:#?}", desired_value)
+                            ),
+                        )
+                    }
+                    StateVarReference::Basic(_) => panic!("reference does not match definition"),
+                }
+            },
+
         }       
     }
 
@@ -810,8 +862,7 @@ impl StateVarVariant {
             Self::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
             Self::Number(def) =>  StateVarValue::Number( def.initial_essential_value),
             Self::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
-
-            _ => unreachable!(),
+            Self::NumberArray(_) => StateVarValue::Number(f64::default()),
         }
     }
 
