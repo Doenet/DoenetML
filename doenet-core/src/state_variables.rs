@@ -414,11 +414,17 @@ pub fn DETERMINE_FROM_ESSENTIAL<T>(
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> Result<StateVarUpdateInstruction<T>, String>
 where
-    T: TryFrom<StateVarValue>,
+    T: TryFrom<StateVarValue> + Default,
     <T as TryFrom<StateVarValue>>::Error: std::fmt::Debug
 {
-    let essential = dependency_values.get("essential").unwrap().first().unwrap().value.clone();
-    let set_value = T::try_from(essential).map_err(|e| format!("{:#?}", e))?;
+    let essential = dependency_values.dep_value("essential")?;
+    let essential = essential.has_zero_or_one_elements()?;
+    let set_value = match essential.0 {
+        Some(dep_value) => {
+            T::try_from(dep_value.value.clone()).map_err(|e| format!("{:#?}", e))?
+        },
+        None => T::default(),
+    };
     Ok( StateVarUpdateInstruction::SetValue( set_value ) )
 }
 
@@ -466,6 +472,32 @@ macro_rules! definition_from_attribute {
     }
 }
 pub(crate) use definition_from_attribute;
+
+/// Arguments: default
+/// Macro assumes instruction names are essential and attribute
+macro_rules! determine_from_essential_or_attribute {
+    ( $default:expr ) => {
+        {
+            |dependency_values| {
+                let essential = dependency_values.dep_value("essential")?;
+                let essential = essential.has_zero_or_one_elements()?;
+                let set_value = match essential.0 {
+                    Some(dep_value) => {
+                        dep_value.value.clone().try_into().map_err(|e| format!("{:#?}", e))?
+                    },
+                    None => {
+                         dependency_values.dep_value("attribute")?
+                            .has_zero_or_one_elements()?
+                            .into_if_exists()?
+                            .unwrap_or($default.into())
+                    },
+                };
+                Ok( StateVarUpdateInstruction::SetValue( set_value ) )
+            }
+        }
+    }
+}
+pub(crate) use determine_from_essential_or_attribute;
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]

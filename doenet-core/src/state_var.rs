@@ -219,7 +219,7 @@ impl EssentialStateVar {
 
     pub fn new(value: StateVarValue) -> Self {
         EssentialStateVar {
-            value: RefCell::new(vec![value.clone()]),
+            value: RefCell::new(vec![]),
             default: value,
         }
     }
@@ -235,8 +235,11 @@ impl EssentialStateVar {
     }
 
 
-    pub fn get_value(&self, index: usize) -> StateVarValue {
-        self.value.borrow().get(index).unwrap().clone()
+    pub fn get_value(&self, index: usize) -> Option<StateVarValue> {
+        match self.value.borrow().get(index) {
+            Some(x) => Some(x.clone()),
+            None => None,
+        }
     }
 }
 

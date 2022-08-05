@@ -78,28 +78,27 @@ lazy_static! {
         state_var_definitions.insert("xmin", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
                 ("essential", DependencyInstruction::Essential),
-                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmin" }),
+                ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmin" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: determine_from_essential_or_attribute!(-10),
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
-            initial_essential_value: -10.0,
             for_renderer: true,
             ..Default::default()
         }));
         state_var_definitions.insert("ymin", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
                 ("essential", DependencyInstruction::Essential),
-                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymin" }),
+                ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymin" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: determine_from_essential_or_attribute!(-10),
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
             initial_essential_value: -10.0,
             for_renderer: true,
@@ -108,13 +107,13 @@ lazy_static! {
         state_var_definitions.insert("xmax", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
                 ("essential", DependencyInstruction::Essential),
-                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmax" }),
+                ("attribute", DependencyInstruction::Attribute{ attribute_name: "xmax" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: determine_from_essential_or_attribute!(10),
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
             initial_essential_value: 10.0,
             for_renderer: true,
@@ -123,13 +122,13 @@ lazy_static! {
         state_var_definitions.insert("ymax", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
                 ("essential", DependencyInstruction::Essential),
-                // ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymax" }),
+                ("attribute", DependencyInstruction::Attribute{ attribute_name: "ymax" }),
                 // ("aspectRatio", DependencyInstruction::StateVar {
                 //     component_name: None,
                 //     state_var: StateVarGroup::Single(StateVarReference::Basic("aspectRatio")),
                 // }),
             ]),
-            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            determine_state_var_from_dependencies: determine_from_essential_or_attribute!(10),
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
             initial_essential_value: 10.0,
             for_renderer: true,
@@ -219,6 +218,15 @@ lazy_static! {
         attribute_definitions.insert("showNavigation", AttributeDefinition::Component("boolean"));
 
         attribute_definitions.insert("fixAxes", AttributeDefinition::Component("boolean"));
+
+
+        attribute_definitions.insert("xmin", AttributeDefinition::Component("number"));
+
+        attribute_definitions.insert("ymin", AttributeDefinition::Component("number"));
+
+        attribute_definitions.insert("xmax", AttributeDefinition::Component("number"));
+
+        attribute_definitions.insert("ymax", AttributeDefinition::Component("number"));
 
 
         attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));

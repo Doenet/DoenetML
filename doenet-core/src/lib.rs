@@ -464,7 +464,6 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                         definition: copy_def,
                     }
 
-
                 } else {
 
                     let copy_name = name_macro_component(
@@ -685,24 +684,23 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::StateVar { component_name, state_var } => {
 
-            let name = if let Some(ref name) = component_name {
-                name.to_string()
-            } else {
-                component.name.clone()
+            let component_name = match component_name {
+                Some(ref name) => name.to_string(),
+                None => component.name.clone(),
             };
 
             dependencies.push(match state_var {
 
                 StateVarGroup::Single(state_var_ref) => {
                     Dependency::StateVar {
-                        component_name: name,
+                        component_name,
                         state_var_ref: state_var_ref.clone()
                     }
                 },
-                StateVarGroup::Array(array_sv_name) => {
+                StateVarGroup::Array(array_state_var_name) => {
                     Dependency::StateVarArray {
-                        component_name: name,
-                        array_state_var_name: array_sv_name,
+                        component_name,
+                        array_state_var_name,
                     }
                 },
             });
@@ -980,14 +978,16 @@ fn resolve_state_variable(
                         .clone()
                         .get_value(get_essential_datum_index(state_var_ref));
     
-                    values_for_this_dep.push(DependencyValue {
-    
-                        value,
-    
-                        // We don't really need these fields in this case (?)
-                        component_type: "essential_data",
-                        state_var_name: "",
-                    })
+                    if let Some(value) = value {
+                        values_for_this_dep.push(DependencyValue {
+
+                            value,
+
+                            // We don't really need these fields in this case (?)
+                            component_type: "essential_data",
+                            state_var_name: "",
+                        })
+                    }
                 },
 
                 Dependency::StateVarArray { component_name, array_state_var_name } => {
@@ -1044,7 +1044,7 @@ fn get_essential_datum_index(state_var_ref: &StateVarReference) -> usize {
     match state_var_ref {
         StateVarReference::Basic(_) => 0,
         StateVarReference::SizeOf(_) => 0,
-        StateVarReference::ArrayElement(_, i) => i+1,
+        StateVarReference::ArrayElement(_, i) => i + 1, // reserve 0 for SizeOf
     }
 }
 
