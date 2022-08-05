@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use lazy_static::lazy_static;
+use evalexpr;
 
 use crate::prelude::*;
 use crate::state_variables::*;
@@ -31,26 +32,29 @@ lazy_static! {
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let number_child_value: Option<f64> = dependency_values.dep_value("children")?
-                    .filter_include_component_type("number")
-                    .has_zero_or_one_elements()?
-                    .into_if_exists()?;
+                let (children, _) = dependency_values.dep_value("children")?;
 
-                if let Some(number_val) = number_child_value {
+                let mut concatted_children = String::new();
+                for child in children {
+                    let str_child_val = match &child.value {
+                        StateVarValue::Number(num) => num.to_string(),
+                        StateVarValue::String(str) => str.to_string(),
+                        _ => return Err("Invalid children value for number".to_string())
+                    };
 
-                    Ok(SetValue(number_val))
-
-
-                } else {
-
-                    let value = dependency_values.dep_value("children")?
-                        .has_exactly_one_element()?
-                        .into_string()?;
-
-                    let num_val = value.parse::<f64>().unwrap_or(0.0);
-
-                    Ok(SetValue(num_val))
+                    concatted_children.push_str(&str_child_val);
                 }
+
+                // log!("concatted children {}", concatted_children);
+
+                let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
+                    num_result.as_number().unwrap_or(f64::NAN)
+                } else {
+                    return Err("Can't parse number children as math".to_string())
+                };
+
+
+                Ok(SetValue(num))
             },
 
             ..Default::default()
