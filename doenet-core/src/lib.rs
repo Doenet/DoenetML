@@ -558,7 +558,7 @@ fn create_all_dependencies_for_component(
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) -> HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> {
 
-    log_debug!("Creating dependencies for {}", component.name);
+    // log_debug!("Creating dependencies for {}", component.name);
     let mut dependencies: HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> = HashMap::new();
 
 
@@ -651,7 +651,7 @@ fn create_dependencies_from_instruction(
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) -> Vec<Dependency> {
 
-    log_debug!("Creating dependency {}:{}:{}", component.name, state_var_reference, instruction_name);
+    // log_debug!("Creating dependency {}:{}:{}", component.name, state_var_reference, instruction_name);
 
     let mut dependencies: Vec<Dependency> = Vec::new();
 
@@ -894,7 +894,7 @@ fn dependencies_of_state_var(
         .get(&StateVarGroup::Single(state_var_ref.clone()))
         .unwrap_or(&empty_hash);
 
-    log_debug!("{}:{} direct depedencies {:#?}", component.name, state_var_ref, direct_dependencies);
+    // log_debug!("{}:{} direct depedencies {:#?}", component.name, state_var_ref, direct_dependencies);
 
     // find what groups the state var is a part of
     let indirect_dependencies = match state_var_ref {
@@ -909,7 +909,7 @@ fn dependencies_of_state_var(
     };
 
 
-    log_debug!("{}:{} indirect depedencies {:#?}", component.name, state_var_ref, indirect_dependencies);
+    // log_debug!("{}:{} indirect depedencies {:#?}", component.name, state_var_ref, indirect_dependencies);
 
     // combine HashMaps
     let mut my_dependencies: HashMap<InstructionName, Vec<Dependency>> = direct_dependencies.clone();
@@ -945,7 +945,7 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    log_debug!("Resolving {}:{}", component.name, state_var_ref);
+    // log_debug!("Resolving {}:{}", component.name, state_var_ref);
 
     let my_dependencies = dependencies_of_state_var(core, component, state_var_ref);
 
@@ -1032,7 +1032,7 @@ fn resolve_state_variable(
     }
 
 
-    log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
+    // log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
@@ -1121,7 +1121,7 @@ fn mark_stale_state_var_and_dependencies(
         return;
     }
 
-    log_debug!("Marking stale {}:{}", component.name, state_var_ref);
+    // log_debug!("Marking stale {}:{}", component.name, state_var_ref);
 
     state_var.mark_single_stale(state_var_ref);
 
@@ -1153,7 +1153,7 @@ fn mark_stale_essential_datum_dependencies(
     state_var: &StateVarReference,
 ) {
 
-    log_debug!("Marking stale essential {}:{}", component_name, state_var);
+    // log_debug!("Marking stale essential {}:{}", component_name, state_var);
 
     let search_dep = Dependency::Essential {
         component_name,
@@ -1207,7 +1207,7 @@ fn handle_update_instruction<'a>(
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
-    log_debug!("Updating state var {}:{}", component.name, state_var_ref);
+    // log_debug!("Updating state var {}:{}", component.name, state_var_ref);
 
     let state_var = component_state_vars.get(state_var_ref.name()).unwrap();
 
@@ -1238,7 +1238,7 @@ fn handle_update_instruction<'a>(
 
     };
 
-    log_debug!("Updated to {}", updated_value);
+    // log_debug!("Updated to {}", updated_value);
 
     return updated_value;
 }
@@ -1312,7 +1312,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
     let action = parse_json::parse_action_from_json(action)
         .expect(&format!("Error parsing json action: {}", action));
 
-    log_debug!("Handling action {:#?}", action);
+    // log_debug!("Handling action {:#?}", action);
 
     // Apply alias to get the original component name
     let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
@@ -1336,7 +1336,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         process_update_request(core, &request);
     }
 
-    log_json!("Updated component tree", utils::json_components(&core.component_nodes, &core.component_states));
+    // log_json!("Updated component tree", utils::json_components(&core.component_nodes, &core.component_states));
 }
 
 
@@ -1345,7 +1345,7 @@ fn process_update_request(
     update_request: &UpdateRequest
 ) {
 
-    log_debug!("Processing update request {:?}", update_request);
+    // log_debug!("Processing update request {:?}", update_request);
 
     match update_request {
         UpdateRequest::SetEssentialValue(component_name, state_var_ref, requested_value) => {
@@ -1361,7 +1361,7 @@ fn process_update_request(
                     &format!("Failed to set essential value for {}, {}", component_name, state_var_ref)
                 );
 
-            log_debug!("Updated essential data {:?}", core.essential_data);
+            // log_debug!("Updated essential data {:?}", core.essential_data);
 
             mark_stale_essential_datum_dependencies(core, component_name.clone(), state_var_ref);
         },
@@ -1443,7 +1443,7 @@ fn generate_render_tree_internal(
 
             if *name == "selectedStyle" || *name == "graphicalDescendants" {
                 if let StateVarValue::String(v) = state_var_value {
-                    log_debug!("deserializing for renderer: {}", v);
+                    // log_debug!("deserializing for renderer: {}", v);
                     let value = serde_json::from_str(&v).unwrap();
                     state_values.insert(name.to_string(), value);
                 }

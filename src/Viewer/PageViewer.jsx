@@ -135,7 +135,8 @@ export default function PageViewer(props) {
 
     if (coreWorker.current) {
       coreWorker.current.onmessage = function (e) {
-        console.log('message from core', e.data)
+        
+        // console.log('message from core', e.data)
         if (e.data.messageType === "updateRenderers") {
           if (e.data.init && coreInfo.current) {
             // we don't initialize renderer state values if already have a coreInfo

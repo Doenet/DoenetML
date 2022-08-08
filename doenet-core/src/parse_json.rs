@@ -67,7 +67,7 @@ enum ArgValue {
 
 pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 
-    log_debug!("Parsing string for action: {}", action);
+    // log_debug!("Parsing string for action: {}", action);
 
     let action_structure: ActionStructure = serde_json::from_str(action).map_err(|e| e.to_string())?;
 
@@ -93,7 +93,7 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 pub fn create_components_tree_from_json(program: &str)
     -> (HashMap<String, ComponentNode>, String, Vec<DoenetMLError>) {
 
-    log_debug!("Parsing string for component tree: {}", program);
+    // log_debug!("Parsing string for component tree: {}", program);
 
     let component_definitions = generate_component_definitions();
 
