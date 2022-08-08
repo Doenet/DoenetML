@@ -127,7 +127,7 @@ fn sequence_copies_component() {
 fn sequence_from_and_to_can_be_copied_as_props() {
     let data = r#"
         <number name='f'>-1000</number>
-        <number name='t'>-9993</number>
+        <number name='t'>-993</number>
 
         <sequence name='s' from="$f" to="$t" />
 
@@ -144,9 +144,9 @@ fn sequence_from_and_to_can_be_copied_as_props() {
     doenet_core::update_renderers(&dc);
 
     assert_state_var_basic_is_number(&dc, "/_number3", "value", -1000.0);
-    assert_state_var_basic_is_number(&dc, "/_number4", "value", -9993.0);
+    assert_state_var_basic_is_number(&dc, "/_number4", "value", -993.0);
     assert_state_var_basic_is_number(&dc, "/_number5", "value", -1000.0);
-    assert_state_var_basic_is_number(&dc, "/_number6", "value", -9993.0);
+    assert_state_var_basic_is_number(&dc, "/_number6", "value", -993.0);
 }
 
 

@@ -196,35 +196,6 @@ pub enum DependencyInstruction {
     Essential,
 }
 
-// #[derive(Clone, Debug)]
-// pub struct ChildDependencyInstruction {
-//     pub desired_children: Vec<ObjectTraitName>,
-//     pub desired_state_vars: Vec<StateVarName>,
-// }
-
-// #[derive(Clone, Debug)]
-// pub struct StateVarDependencyInstruction {
-//     pub component_name: Option<ComponentName>,
-//     pub state_var: StateVarReference,
-// }
-
-// #[derive(Clone, Debug)]
-// pub struct ParentDependencyInstruction {
-//     // pub parent_trait: ObjectTraitName,
-
-//     // pub parent_of_component: Option<String>,
-
-//     pub state_var: StateVarName,
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct AttributeDependencyInstruction {
-//     pub attribute_name: AttributeName,
-// }
-
-// #[derive(Debug, Clone)]
-// pub struct EssentialDependencyInstruction;
-
 
 #[derive(Debug)]
 pub enum StateVarUpdateInstruction<T> {

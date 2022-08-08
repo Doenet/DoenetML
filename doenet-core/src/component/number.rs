@@ -116,7 +116,7 @@ lazy_static! {
 
         primary_input_state_var: Some("value"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike],
+        get_trait_names: || vec![ObjectTraitName::TextLike, ObjectTraitName::NumberLike],
         
         ..Default::default()
     };
