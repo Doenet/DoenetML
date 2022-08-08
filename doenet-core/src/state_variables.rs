@@ -638,6 +638,17 @@ impl TryFrom<StateVarValue> for i64 {
     }
 }
 
+impl From<StateVarValue> for serde_json::Value {
+    fn from(v: StateVarValue) -> serde_json::Value {
+        match v {
+            StateVarValue::Integer(v) => serde_json::json!(v),
+            StateVarValue::Number(v) =>  serde_json::json!(v),
+            StateVarValue::String(v) =>  serde_json::json!(v),
+            StateVarValue::Boolean(v) => serde_json::json!(v),
+        }
+    }
+}
+
 impl From<String> for StateVarValue {
     fn from(v: String) -> StateVarValue {
         StateVarValue::String(v)

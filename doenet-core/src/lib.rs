@@ -1460,12 +1460,7 @@ fn generate_render_tree_internal(
                     state_values.insert(name.to_string(), value);
                 }
             } else {
-                state_values.insert(name.to_string(), match state_var_value {
-                    StateVarValue::Integer(v) => json!(v),
-                    StateVarValue::Number(v) =>  json!(v),
-                    StateVarValue::String(v) =>  json!(v),
-                    StateVarValue::Boolean(v) => json!(v),
-                });
+                state_values.insert(name.to_string(), state_var_value.into());
             }
         }
     }
