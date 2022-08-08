@@ -86,63 +86,44 @@ lazy_static! {
 }
 
 
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+        get_trait_names: || vec![ObjectTraitName::TextLike],
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        action_names: || vec!["updateImmediateValue", "updateValue"],
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike]
-    }
+        on_action: |action_name, args, resolve_and_retrieve_state_var| {
+            match action_name {
+                "updateImmediateValue" => {
+                    // Note: the key here is whatever the renderers call the new value
+                    let new_val = args.get("text").expect("No text argument");
 
-    fn should_render_children(&self) -> bool {
-        false
-    }
+                    HashMap::from([(
+                        StateVarReference::Basic("immediateValue"),
+                        new_val.clone()
+                    )])
+                },
 
+                "updateValue" => {
 
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["updateImmediateValue", "updateValue"]
-    }
+                    let new_val = resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into().unwrap();
+                    let new_val = StateVarValue::String(new_val);
 
-    fn on_action<'a>(
-        &self,
-        action_name: &str,
-        args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
+                    HashMap::from([(
+                        StateVarReference::Basic("value"),
+                        new_val
+                    )])
 
-        match action_name {
-            "updateImmediateValue" => {
-                // Note: the key here is whatever the renderers call the new value
-                let new_val = args.get("text").expect("No text argument");
+                }
 
-                HashMap::from([(
-                    StateVarReference::Basic("immediateValue"),
-                    new_val.clone()
-                )])
-            },
-
-            "updateValue" => {
-
-                let new_val = resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into().unwrap();
-                let new_val = StateVarValue::String(new_val);
-
-                HashMap::from([(
-                    StateVarReference::Basic("value"),
-                    new_val
-                )])
-
+                _ => panic!("Unknown action '{}' called on textInput", action_name)
             }
+        },
 
-            _ => panic!("Unknown action '{}' called on textInput", action_name)
-        }
-    }
+        ..Default::default()
+    };
 }

@@ -209,60 +209,44 @@ lazy_static! {
 
 
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::Graphical]
-    }
+        get_trait_names: || vec![ObjectTraitName::Graphical],
 
-    fn should_render_children(&self) -> bool {
-        false
-    }
+        action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
 
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["movePoint", "switchPoint", "pointClicked"]
-    }
+        on_action: |action_name, args, _| {
+            match action_name {
+                "movePoint" => {
+                    let x = args.get("x").expect("No x argument");
+                    let y = args.get("y").expect("No y argument");
+                    // let z = args.get("z").expect("No z argument");
 
-    fn on_action<'a>(
-        &self,
-        action_name: &str,
-        args: HashMap<String, StateVarValue>,
-        _: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
+                    HashMap::from([
+                        (StateVarReference::ArrayElement("coords", 0), x.clone()),
+                        (StateVarReference::ArrayElement("coords", 1), y.clone()),
+                    ])
+                },
+                "switchPoint" => {
 
-        match action_name {
-            "movePoint" => {
-                let x = args.get("x").expect("No x argument");
-                let y = args.get("y").expect("No y argument");
-                // let z = args.get("z").expect("No z argument");
+                    HashMap::from([
+                    ])
+                }
+                "pointClicked" => {
 
-                HashMap::from([
-                    (StateVarReference::ArrayElement("coords", 0), x.clone()),
-                    (StateVarReference::ArrayElement("coords", 1), y.clone()),
-                ])
-            },
-            "switchPoint" => {
+                    HashMap::from([
+                    ])
+                }
 
-                HashMap::from([
-                ])
+                _ => panic!("Unknown action '{}' called on point", action_name)
             }
-            "pointClicked" => {
+        },
 
-                HashMap::from([
-                ])
-            }
-
-            _ => panic!("Unknown action '{}' called on point", action_name)
-        }
-    }
+        ..Default::default()
+    };
 }

@@ -233,55 +233,38 @@ lazy_static! {
 }
 
 
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+        should_render_children: true,
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        action_names: || vec!["changeAxisLimits"],
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![]
-    }
+        on_action: |action_name, args, _| {
 
-    fn should_render_children(&self) -> bool {
-        true
-    }
+            match action_name {
+                "changeAxisLimits" => {
+                    // Note: the key here is whatever the renderers call the new value
+                    let xmin = args.get("xmin").expect("missing bound argument").clone().into_number().unwrap();
+                    let xmax = args.get("xmax").expect("missing bound argument").clone().into_number().unwrap();
+                    let ymin = args.get("ymin").expect("missing bound argument").clone().into_number().unwrap();
+                    let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
 
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["changeAxisLimits"]
-    }
+                    HashMap::from([
+                        (StateVarReference::Basic("xmin"), xmin),
+                        (StateVarReference::Basic("xmax"), xmax),
+                        (StateVarReference::Basic("ymin"), ymin),
+                        (StateVarReference::Basic("ymax"), ymax),
+                    ])
+                },
 
-    fn on_action<'a>(
-        &self,
-        action_name: &str,
-        args: HashMap<String, StateVarValue>,
-        _: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
+                _ => panic!("Unknown action '{}' called on graph", action_name)
+            }
+        },
 
-        match action_name {
-            "changeAxisLimits" => {
-                // Note: the key here is whatever the renderers call the new value
-                let xmin = args.get("xmin").expect("missing bound argument").clone().into_number().unwrap();
-                let xmax = args.get("xmax").expect("missing bound argument").clone().into_number().unwrap();
-                let ymin = args.get("ymin").expect("missing bound argument").clone().into_number().unwrap();
-                let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
-
-                HashMap::from([
-                    (StateVarReference::Basic("xmin"), xmin),
-                    (StateVarReference::Basic("xmax"), xmax),
-                    (StateVarReference::Basic("ymin"), ymin),
-                    (StateVarReference::Basic("ymax"), ymax),
-                ])
-            },
-
-            _ => panic!("Unknown action '{}' called on graph", action_name)
-        }
-    }
+        ..Default::default()
+    };
 }

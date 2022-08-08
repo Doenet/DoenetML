@@ -81,31 +81,18 @@ lazy_static! {
 }
 
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        should_render_children: true,
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike]
-    }
+        get_trait_names: || vec![ObjectTraitName::TextLike],
 
-    fn should_render_children(&self) -> bool {
-        true
-    }
-
-
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["recordVisibilityChange"]
-    }
-
-
+        action_names: || vec!["recordVisibilityChange"],
+        
+        ..Default::default()
+    };
 }
-

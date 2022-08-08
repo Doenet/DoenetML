@@ -126,6 +126,7 @@ impl<T> Default for StateVarArrayDefinition<T>
 
 
 
+#[derive(Debug)]
 pub enum StateVarValueType {
     String,
     Boolean,

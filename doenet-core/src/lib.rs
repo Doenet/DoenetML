@@ -187,7 +187,7 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
         );
 
         let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
-            component_node.definition.state_var_definitions()
+            component_node.definition.state_var_definitions
             .iter()
             .map(|(&sv_name, sv_variant)| (sv_name, StateForStateVar::new(&sv_variant)))
             .collect();
@@ -434,7 +434,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 
                 let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
 
-                    let (prop_name, _) = source_comp.definition.state_var_definitions()
+                    let (prop_name, _) = source_comp.definition.state_var_definitions
                         .get_key_value(macro_prop.as_str())
                         .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
 
@@ -537,7 +537,7 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
 fn default_component_type_for_state_var(component: &ComponentNode, state_var: StateVarName)
     -> Result<ComponentType, String> {
 
-    let state_var_def = component.definition.state_var_definitions().get(state_var).unwrap();
+    let state_var_def = component.definition.state_var_definitions.get(state_var).unwrap();
     match state_var_def {
         StateVarVariant::Boolean(_) => Ok("boolean"),
         StateVarVariant::Integer(_) => Ok("number"),
@@ -562,7 +562,7 @@ fn create_all_dependencies_for_component(
     let mut dependencies: HashMap<StateVarGroup, HashMap<InstructionName, Vec<Dependency>>> = HashMap::new();
 
 
-    let my_definitions = component.definition.state_var_definitions();
+    let my_definitions = component.definition.state_var_definitions;
     for (&state_var_name, state_var_variant) in my_definitions.iter() {
 
         if state_var_variant.is_array() {
@@ -662,7 +662,7 @@ fn create_dependencies_from_instruction(
             let component_name = get_essential_data_component_including_copy(components, component);
             let state_var_name = state_var_reference.name();
 
-            let variant = component.definition.state_var_definitions().get(state_var_name).unwrap();
+            let variant = component.definition.state_var_definitions.get(state_var_name).unwrap();
             let essential_datum = EssentialStateVar::new(variant.initial_essential_value());
 
             // A copy uses the same essential data, so `insert` would be called twice
@@ -720,14 +720,14 @@ fn create_dependencies_from_instruction(
                         let child_is_in_desired_type = desired_children.iter().fold(
                             false,
                             |accum, desired_type| {
-                                accum || child_component.definition.get_trait_names().contains(desired_type)
+                                accum || (child_component.definition.get_trait_names)().contains(desired_type)
                         });
 
                         if child_is_in_desired_type {
                             for desired_state_var in desired_state_vars.iter() {
 
                                 let sv_def = child_component.definition
-                                    .state_var_definitions()
+                                    .state_var_definitions
                                     .get(desired_state_var)
                                     .unwrap();
 
@@ -779,7 +779,7 @@ fn create_dependencies_from_instruction(
             // Look up what kind of child state var it is
             // If the state var is an array, depend on the array, otherwise as normal
 
-            let sv_def = parent_component.definition.state_var_definitions().get(desired_state_var).unwrap();
+            let sv_def = parent_component.definition.state_var_definitions.get(desired_state_var).unwrap();
 
             if sv_def.is_array() {
                 dependencies.push(Dependency::StateVarArray {
@@ -1324,10 +1324,10 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         resolve_state_variable(core, component, state_var_ref)
     };
 
-    let state_vars_to_update = component.definition.on_action(
+    let state_vars_to_update = (component.definition.on_action)(
         &action.action_name,
         action.args,
-        &state_var_resolver
+        &state_var_resolver,
     );
 
     for (state_var_ref, requested_value) in state_vars_to_update {
@@ -1415,7 +1415,7 @@ fn generate_render_tree_internal(
 ) {
     use serde_json::json;
 
-    let state_vars = component.definition.state_var_definitions();
+    let state_vars = component.definition.state_var_definitions;
 
     let renderered_state_vars = state_vars.into_iter().filter(|kv| kv.1.for_renderer());
 
@@ -1464,7 +1464,7 @@ fn generate_render_tree_internal(
     };
 
     let mut children_instructions = Vec::new();
-    if component.definition.should_render_children() {
+    if component.definition.should_render_children {
         for (child, actual_child) in get_children_including_copy(&core.component_nodes, component).iter() {
             match child {
                 ComponentChild::Component(comp_name) => {
@@ -1483,14 +1483,14 @@ fn generate_render_tree_internal(
 
                     let mut child_actions = serde_json::Map::new();
 
-                    for action_name in comp.definition.action_names() {
+                    for action_name in (comp.definition.action_names)() {
                         child_actions.insert(action_name.to_string(), json!({
                             "actionName": action_name,
                             "componentName": comp.name,
                         }));
                     }
 
-                    let renderer_type = match comp.definition.renderer_type() {
+                    let renderer_type = match comp.definition.renderer_type {
                         RendererType::Special(name) => name,
                         RendererType::Myself => comp.component_type,
                     };
@@ -1604,7 +1604,7 @@ fn return_dependency_instruction_including_shadowing(
         ])
 
     } else {
-        let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
+        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
         match state_var {
             StateVarReference::Basic(_) => {
@@ -1641,7 +1641,7 @@ fn generate_update_instruction_including_shadowing(
 
     } else {
         // Otherwise, this state var is not shadowing, so proceed normally
-        let state_var_def = component.definition.state_var_definitions().get(state_var.name()).unwrap();
+        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
         match state_var {
             StateVarReference::Basic(_) => {
@@ -1672,7 +1672,7 @@ fn request_dependencies_to_update_value_including_shadow(
         vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
     } else {
-        let requests = component.definition.state_var_definitions().get(state_var_ref.name()).unwrap()
+        let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
             .request_dependencies_to_update_value(state_var_ref, new_value);
 
         convert_dependency_values_to_update_request(core, component, state_var_ref, requests)
@@ -1685,7 +1685,7 @@ fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateVarReferen
     -> Option<(ComponentName, StateVarReference)> {
 
     if let Some(CopySource::StateVar(ref source_comp, ref source_state_var)) = component.copy_source {
-        if let Some(primary_input_state_var) = component.definition.primary_input_state_var() {
+        if let Some(primary_input_state_var) = component.definition.primary_input_state_var {
 
             if state_var == &StateVarReference::Basic(primary_input_state_var) {
                 Some((source_comp.to_string(), source_state_var.clone()))

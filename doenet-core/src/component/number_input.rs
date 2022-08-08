@@ -95,72 +95,50 @@ lazy_static! {
 }
 
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        renderer_type: RendererType::Special("textInput"),
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike, ObjectTraitName::NumberLike]
-    }
+        get_trait_names: || vec![ObjectTraitName::TextLike],
 
-    fn should_render_children(&self) -> bool {
-        false
-    }
+        action_names: || vec!["updateImmediateValue", "updateValue"],
 
+        on_action: |action_name, args, resolve_and_retrieve_state_var| {
+            match action_name {
+                "updateImmediateValue" => {
+                    // Note: the key here is whatever the renderers call the new value
+                    let new_val = args.get("text").expect("No text argument");
 
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["updateImmediateValue", "updateValue"]
-    }
+                    HashMap::from([(
+                        StateVarReference::Basic("immediateValue"),
+                        new_val.clone()
+                    )])
+                },
 
-    fn on_action<'a>(
-        &self,
-        action_name: &str,
-        args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
+                "updateValue" => {
 
-        match action_name {
-            "updateImmediateValue" => {
-                // Note: the key here is whatever the renderers call the new value
-                let new_val = args.get("text").expect("No text argument");
+                    let immediate_value: String =
+                        resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into()
+                        .expect("Immediate value should have been a string");
 
-                HashMap::from([(
-                    StateVarReference::Basic("immediateValue"),
-                    new_val.clone()
-                )])
-            },
+                    let value = immediate_value.parse().unwrap_or(0.0);
 
-            "updateValue" => {
+                    let new_val = StateVarValue::Number(value);
 
-                let immediate_value: String =
-                    resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into()
-                    .expect("Immediate value should have been a string");
+                    HashMap::from([(
+                        StateVarReference::Basic("value"),
+                        new_val
+                    )])
+                }
 
-                let value = immediate_value.parse().unwrap_or(0.0);
-                
-                let new_val = StateVarValue::Number(value);
-
-                HashMap::from([(
-                    StateVarReference::Basic("value"),
-                    new_val
-                )])
+                _ => panic!("Unknown action '{}' called on numberInput", action_name)
             }
+        },
 
-            _ => panic!("Unknown action '{}' called on numberInput", action_name)
-        }
-    }
-
-
-    fn renderer_type(&self) -> RendererType {
-        RendererType::Special("textInput")
-    }
-
+        ..Default::default()
+    };
 }

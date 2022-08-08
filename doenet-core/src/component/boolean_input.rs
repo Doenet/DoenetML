@@ -47,39 +47,19 @@ lazy_static! {
 }
 
 
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
+        primary_input_state_var: Some("value"),
 
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
+        get_trait_names: || vec![ObjectTraitName::TextLike],
 
+        action_names: || vec!["updateBoolean"],
 
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![ObjectTraitName::TextLike]
-    }
-
-    fn should_render_children(&self) -> bool {
-        false
-    }
-
-    fn action_names(&self) -> Vec<&'static str> {
-        vec!["updateBoolean"]
-    }
-
-    fn on_action<'a>(
-        &self,
-        action_name: &str,
-        args: HashMap<String, StateVarValue>,
-        _: &dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
-
+        on_action: |action_name, args, _| {
             match action_name {
                 "updateBoolean" => {
 
@@ -93,7 +73,8 @@ impl ComponentDefinition for MyComponentDefinition {
 
                 _ => panic!("Unknown action '{}' called on booleanInput", action_name)
             }
-        }
+        },
 
+        ..Default::default()
+    };
 }
-

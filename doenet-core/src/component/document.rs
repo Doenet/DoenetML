@@ -6,8 +6,6 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
-
 
 
 lazy_static! {
@@ -101,25 +99,14 @@ lazy_static! {
     };
 }
 
+lazy_static! {
+    pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
 
+        state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-#[derive(Clone)]
-pub struct MyComponentDefinition;
+        should_render_children: true,
 
-impl ComponentDefinition for MyComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition> {
-        &MY_ATTRIBUTE_DEFINITIONS
-    }
-
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant> {
-        &MY_STATE_VAR_DEFINITIONS
-    }
-
-    fn get_trait_names(&self) -> Vec<ObjectTraitName> {
-        vec![]
-    }
-
-    fn should_render_children(&self) -> bool {
-        true
-    }
+        ..Default::default()
+    };
 }

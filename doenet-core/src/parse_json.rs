@@ -99,8 +99,8 @@ pub fn create_components_tree_from_json(program: &str)
 
     let all_state_var_names: HashMap<String, StateVarName> = component_definitions
         .iter()
-        .flat_map(|(_, def)|
-            def.state_var_definitions()
+        .flat_map(|(_, &def)|
+            def.state_var_definitions
             .iter()
             .map(|(name, _)| (name.to_string(), *name))
             .collect::<HashMap<String, StateVarName>>())
@@ -166,7 +166,7 @@ fn add_component_from_json(
     component_tree: &ComponentTree,
     parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
-    component_definitions: &HashMap<ComponentType, Box<dyn ComponentDefinition>>,
+    component_definitions: &HashMap<ComponentType, &'static ComponentDefinition>,
     all_state_var_names: &HashMap<String, StateVarName>,
     doenet_ml_errors: &mut Vec<DoenetMLError>,
 
@@ -174,7 +174,7 @@ fn add_component_from_json(
 
     let component_type: &str = &component_tree.component_type;
 
-    let (&component_type, component_definition) = {
+    let (&component_type, &component_definition) = {
         if let Some(comp_def) = component_definitions.get_key_value(component_type) {
             comp_def
         } else {
@@ -222,7 +222,7 @@ fn add_component_from_json(
 
     let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
 
-    let attribute_definitions = component_definition.attribute_definitions();
+    let attribute_definitions = component_definition.attribute_definitions;
 
     // Create a hashmap from lowercase valid names to normalized valid names
     let attr_lowercase_to_normalized: HashMap<String, AttributeName> =

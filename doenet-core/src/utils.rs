@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::StateForStateVar;
-use crate::{Dependency};
+use crate::Dependency;
 use crate::prelude::*;
 use crate::component::*;
 use crate::state_variables::StateVarValue;
@@ -54,7 +54,7 @@ pub fn package_subtree_as_json(
         )
         .collect();
 
-    let attributes: Map<String, Value> = component.definition.attribute_definitions().keys()
+    let attributes: Map<String, Value> = component.definition.attribute_definitions.keys()
         .into_iter()
         .filter_map(|attribute_name|
             match component.attributes.get(attribute_name) {
@@ -100,7 +100,7 @@ pub fn package_subtree_as_json(
 
     let component_state = component_states.get(&component.name).unwrap();
 
-    for &state_var_name in component.definition.state_var_definitions().keys() {
+    for &state_var_name in component.definition.state_var_definitions.keys() {
 
         let state_for_state_var = component_state.get(state_var_name).unwrap();
 

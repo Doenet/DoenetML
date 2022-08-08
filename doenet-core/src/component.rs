@@ -18,23 +18,24 @@ use std::fmt::{Debug, self};
 
 
 
-pub fn generate_component_definitions() -> HashMap<ComponentType, Box<dyn ComponentDefinition>> {
-    HashMap::from([
-        ("text",         Box::new(crate::text         ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("number"   ,    Box::new(crate::number       ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("textInput",    Box::new(crate::text_input   ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("document",     Box::new(crate::document     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("boolean",      Box::new(crate::boolean      ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("p",            Box::new(crate::p            ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("numberInput",  Box::new(crate::number_input ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("booleanInput", Box::new(crate::boolean_input::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("sequence",     Box::new(crate::sequence     ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("graph",        Box::new(crate::graph        ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-        ("point",        Box::new(crate::point        ::MyComponentDefinition) as Box<dyn ComponentDefinition>),
-    ])
+pub fn generate_component_definitions() -> HashMap<ComponentType, &'static ComponentDefinition> {
+    let mut defs: HashMap<ComponentType, &'static ComponentDefinition> = HashMap::new();
+    defs.insert("text",         &crate::text         ::MY_COMPONENT_DEFINITION);
+    defs.insert("number"   ,    &crate::number       ::MY_COMPONENT_DEFINITION);
+    defs.insert("textInput",    &crate::text_input   ::MY_COMPONENT_DEFINITION);
+    defs.insert("document",     &crate::document     ::MY_COMPONENT_DEFINITION);
+    defs.insert("boolean",      &crate::boolean      ::MY_COMPONENT_DEFINITION);
+    defs.insert("p",            &crate::p            ::MY_COMPONENT_DEFINITION);
+    defs.insert("numberInput",  &crate::number_input ::MY_COMPONENT_DEFINITION);
+    defs.insert("booleanInput", &crate::boolean_input::MY_COMPONENT_DEFINITION);
+    defs.insert("sequence",     &crate::sequence     ::MY_COMPONENT_DEFINITION);
+    defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
+    defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
+    defs
 }
 
 
+#[derive(Debug)]
 pub enum AttributeDefinition {
     Component(ComponentType),
     Primitive(StateVarValueType),
@@ -60,7 +61,7 @@ pub struct ComponentNode {
     // Flags
     pub copy_source: Option<CopySource>,
 
-    pub definition: Box<dyn ComponentDefinition>,
+    pub definition: &'static ComponentDefinition,
 }
 
 
@@ -103,54 +104,83 @@ pub enum ObjectTraitName {
     Graphical,
 }
 
-pub trait ComponentDefinition: CloneComponentDefinition {
-    fn attribute_definitions(&self) -> &'static HashMap<AttributeName, AttributeDefinition>;
-    fn state_var_definitions(&self) -> &'static HashMap<StateVarName, StateVarVariant>;
+pub struct ComponentDefinition {
+    pub attribute_definitions: &'static HashMap<AttributeName, AttributeDefinition>,
+    pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,
 
     //TODO: Do we really need this?
-    fn get_trait_names(&self) -> Vec<ObjectTraitName>;
+    pub get_trait_names: fn() -> Vec<ObjectTraitName>,
 
     /// Process an action and return the state variables to change.
-    fn on_action<'a>(
-        &'a self,
-        _action_name: &str,
-        _args: HashMap<String, StateVarValue>,
-        _resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue> {
-        HashMap::new()
-    }
+    pub on_action: for<'a> fn(
+        action_name: &str,
+        args: HashMap<String, StateVarValue>,
+        resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateVarReference) -> StateVarValue
+    ) -> HashMap<StateVarReference, StateVarValue>,
 
-    fn should_render_children(&self) -> bool;
+    pub should_render_children: bool,
 
     /// These have to match `on_action` and with what the renderers have
-    fn action_names(&self) -> Vec<&'static str> {
-        vec![]
-    }
+    pub action_names: fn() -> Vec<&'static str>,
 
 
     /// The primary input is a state variable, except it gets overridden if 
     /// the component is being copied from another state var
-    fn primary_input_state_var(&self) -> Option<StateVarName> {
-        None
-    }
+    pub primary_input_state_var: Option<StateVarName>,
 
-    fn renderer_type(&self) -> RendererType {
-        RendererType::Myself
-    }
-
+    pub renderer_type: RendererType,
 }
 
-impl Debug for dyn ComponentDefinition {
+
+
+use crate::lazy_static;
+lazy_static! {
+    static ref EMPTY_STATE_VARS: HashMap<StateVarName, StateVarVariant> = {
+        HashMap::new()
+    };
+}
+lazy_static! {
+    static ref EMPTY_ATTRIBUTES: HashMap<AttributeName, AttributeDefinition> = {
+        HashMap::new()
+    };
+}
+
+
+impl Default for ComponentDefinition {
+    fn default() -> Self {
+        ComponentDefinition {
+            attribute_definitions: &EMPTY_ATTRIBUTES,
+
+            state_var_definitions: &EMPTY_STATE_VARS,
+
+            should_render_children: false,
+
+            renderer_type: RendererType::Myself,
+
+            primary_input_state_var: None,
+
+            get_trait_names: || Vec::new(),
+
+            action_names: || Vec::new(),
+
+            on_action: |_, _, _| HashMap::new(),
+        }
+    }
+}
+
+impl Debug for ComponentDefinition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        // f.debug_struct("Point")
-        //  .field("x", &self.x)
-        //  .field("y", &self.y)
-        //  .finish()
-        f.debug_struct("").finish()
+        f.debug_struct("ComponentDefinition")
+            .field("attribute_definitions", &self.attribute_definitions)
+            .field("state_var_definitions", &self.state_var_definitions)
+            .field("should_render_children", &self.should_render_children)
+            .field("renderer_type", &self.renderer_type)
+            .field("primary_input_state_var", &self.primary_input_state_var)
+            .field("get_trait_names", &(self.get_trait_names)())
+            .field("action_names", &(self.action_names)())
+            .finish()
     }
 }
-
-
 
 pub type ComponentChild = ObjectName;
 
@@ -163,32 +193,10 @@ pub enum ObjectName {
 
 
 
+#[derive(Debug)]
 pub enum RendererType {
     Myself,
     Special(&'static str),
     // DoNotRender,
-}
-
-
-
-// Boiler plate to allow cloning of trait objects
-
-pub trait CloneComponentDefinition {
-    fn clone_comp_def<'a>(&self) -> Box<dyn ComponentDefinition>;
-}
-
-impl<T> CloneComponentDefinition for T
-where
-    T: ComponentDefinition + Clone + 'static,
-{
-    fn clone_comp_def<'a>(&self) -> Box<dyn ComponentDefinition> {
-        Box::new(self.clone())
-    }
-}
-
-impl Clone for Box<dyn ComponentDefinition> {
-    fn clone(&self) -> Self {
-        self.clone_comp_def()
-    }
 }
 
