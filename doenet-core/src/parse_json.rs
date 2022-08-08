@@ -64,6 +64,20 @@ enum ArgValue {
 }
 
 
+fn get_key_value_ignore_case<'a, K, V>(map: &'a HashMap<K, V>, key: &str) -> Option<(&'a K, &'a V)>
+where
+    K: ToString + std::cmp::Eq + std::hash::Hash,
+{
+    let lowercase_to_normalized: HashMap<String, &K> = map
+        .keys()
+        .into_iter()
+        .map(|k| (k.to_string().to_lowercase(), k))
+        .collect();
+
+    lowercase_to_normalized
+        .get(&key.to_string().to_lowercase())
+        .and_then(|k| map.get_key_value(k))
+}
 
 pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 
@@ -160,7 +174,6 @@ pub fn create_components_tree_from_json(program: &str)
 /// Recursive function
 /// The return is the name of the child, if it exists
 /// (it might not because of invalid doenet ml)
-
 fn add_component_from_json(
     component_nodes: &mut HashMap<String, ComponentNode>,
     component_tree: &ComponentTree,
@@ -175,8 +188,9 @@ fn add_component_from_json(
     let component_type: &str = &component_tree.component_type;
 
     let (&component_type, &component_definition) = {
-        if let Some(comp_def) = component_definitions.get_key_value(component_type) {
-            comp_def
+        if let Some(comp_type_def) = get_key_value_ignore_case(component_definitions, component_type) {
+            log!("match {} {}", component_type, comp_type_def.0);
+            comp_type_def
         } else {
             doenet_ml_errors.push(
                 DoenetMLError::InvalidComponentType { comp_type: component_type.to_string() }
@@ -224,28 +238,18 @@ fn add_component_from_json(
 
     let attribute_definitions = component_definition.attribute_definitions;
 
-    // Create a hashmap from lowercase valid names to normalized valid names
-    let attr_lowercase_to_normalized: HashMap<String, AttributeName> =
-        attribute_definitions.keys()
-        .into_iter()
-        .map(|k| (k.to_lowercase(), *k))
-        .collect();
-
     for (attr_name, attr_value) in component_tree.props.attributes.iter() {
 
-        let attribute_name = 
-        if let Some(valid_normalized_name) = attr_lowercase_to_normalized.get(&attr_name.to_lowercase()) {
+        let (attribute_name, attribute_def) =
+        if let Some((name, def)) = get_key_value_ignore_case(attribute_definitions, &attr_name.to_lowercase()) {
             // This component has an attribute that matches the input name
-            valid_normalized_name
+            (name, def)
         } else {
             doenet_ml_errors.push(DoenetMLError::AttributeDoesNotExist {
                 comp_name: component_name.clone(), attr_name: attr_name.to_string()
             });
             continue;
         };
-
-
-        let attribute_def = attribute_definitions.get(attribute_name).unwrap();
 
         match attribute_def {
             AttributeDefinition::Component(attr_comp_type) => {
