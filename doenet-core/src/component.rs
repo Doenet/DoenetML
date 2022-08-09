@@ -89,7 +89,6 @@ pub enum ComponentProfile {
     Number,
     Boolean,
     Math,
-    // ComponentLike,
     // Graphical,
 }
 

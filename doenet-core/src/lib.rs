@@ -11,9 +11,7 @@ use lazy_static::lazy_static;
 use state_var::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use std::{error::Error, fmt::Display};
 use regex::Regex;
-
 
 use state_var::{State, EssentialStateVar};
 use prelude::*;
@@ -117,50 +115,6 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 
-/// This error is caused by invalid DoenetML.
-/// It is thrown only on core creation.
-#[derive(Debug)]
-pub enum DoenetMLError {
-    ComponentDoesNotExist {
-        comp_name: String
-    },
-    StateVarDoesNotExist {
-        comp_name: String,
-        sv_name: String,
-    },
-    AttributeDoesNotExist {
-        comp_name: String,
-        attr_name: String,
-    },
-    InvalidComponentType {
-        comp_type: String,
-    },
-
-    ComponentCopiesAncestor {
-        comp_name: String,
-        ancestor_name: String,
-    }
-}
-
-impl Error for DoenetMLError {}
-impl Display for DoenetMLError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use DoenetMLError::*;
-
-        match self {
-            ComponentDoesNotExist { comp_name } => 
-                write!(f, "Component {} does not exist", comp_name),
-            StateVarDoesNotExist { comp_name, sv_name } =>
-                write!(f, "State variable {} does not exist on {}", sv_name, comp_name),
-            AttributeDoesNotExist { comp_name, attr_name } =>
-                write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
-            InvalidComponentType { comp_type } => 
-                write!(f, "Component type {} does not exist", comp_type),
-            ComponentCopiesAncestor { comp_name, ancestor_name } => 
-                write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
-        }
-    }
-}
 
 
 
@@ -210,6 +164,7 @@ pub fn create_doenet_core(program: &str) -> (DoenetCore, Vec<DoenetMLError>) {
             state_for_this_component,
         );
     }
+    
 
 
     log_json!("Components upon core creation",
@@ -770,14 +725,8 @@ fn create_dependencies_from_instruction(
 
         },
 
-        DependencyInstruction::Child {
-            desired_profiles
-            // desired_children,
-            // desired_state_vars
-         } => {
+        DependencyInstruction::Child { desired_profiles } => {
 
-        
-            // let mut depends_on_children: Vec<ObjectName> = vec![];
             for (child, _) in get_children_including_copy(components, component).iter() {
 
                 match child {

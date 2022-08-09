@@ -22,8 +22,6 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::Child {
                     desired_profiles: vec![ComponentProfile::Number, ComponentProfile::Text],
-                    // desired_children: vec![PrimaryOutputTrait::NumberLike],
-                    // desired_state_vars: vec!["value"],
                 };
             
                 HashMap::from([("children", instruction)]) 

@@ -1,7 +1,9 @@
 
 // #![cfg(target_arch = "wasm32")]
 
-use doenet_core::{DoenetCore, state_variables::StateVarValue, DoenetMLError, prelude::StateVarReference, state_var::{StateForStateVar, State}};
+use doenet_core::prelude::{DoenetMLError, StateVarReference};
+use doenet_core::{DoenetCore, state_variables::StateVarValue, state_var::{StateForStateVar, State}};
+use serde_json::Value;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
 // NOTE: These tests rely on a version of the parser that was compiled by babel
@@ -97,4 +99,21 @@ pub fn assert_state_var_array_size_is(
     size: usize,
 ) {
     assert_state_var_is(dc, comp_name, &StateVarReference::SizeOf(sv_name), StateVarValue::Integer(size as i64));
+}
+
+
+pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
+    
+    render_tree.as_array().unwrap().iter().find( |render_item| {
+        if let Some(render_obj) = render_item.as_object() {
+            if render_obj.get("componentName") == Some(&Value::String(component_name.to_string())) {
+                true
+            } else {
+                false
+            }
+        } else {
+            false
+        }
+
+    }).unwrap().as_object().unwrap()
 }

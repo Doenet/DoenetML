@@ -21,9 +21,7 @@ lazy_static! {
         state_var_definitions.insert("value",StateVarVariant::String(StateVarDefinition {
 
             return_dependency_instructions: |_| {
-                let instruction = DependencyInstruction::Child {                    
-                    // desired_children: vec![PrimaryOutputTrait::TextLike],
-                    // desired_state_vars: vec!["value"],
+                let instruction = DependencyInstruction::Child {
                     desired_profiles: vec![ComponentProfile::Text],
                 };
             

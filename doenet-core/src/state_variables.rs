@@ -552,7 +552,7 @@ macro_rules! string_definition_from_attribute {
 pub(crate) use string_definition_from_attribute;
 
 
-/// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
+/// Requires that the component has a parent with 'hidden' and a bool 'hide' attribute
 #[allow(non_snake_case)]
 pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
     use StateVarUpdateInstruction::*;
