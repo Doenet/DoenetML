@@ -17,7 +17,6 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
         
         state_var_definitions.insert("value", StateVarVariant::Boolean(StateVarDefinition {
-        
 
             return_dependency_instructions: |_| {
                 let child_instruct = DependencyInstruction::Child {
@@ -30,49 +29,15 @@ lazy_static! {
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
-
-                let bool_child_value = dependency_values.dep_value("all_my_children")?
-                    .filter_include_component_type("boolean")
-                    .has_zero_or_one_elements()?
-                    .is_bool_if_exists()?;
-
-                if let Some(bool_val) = bool_child_value {
-
-                    Ok(SetValue(bool_val))
-
-
-                } else {
-
-                    // This will break if there are more than one bool children
-                    let textlike_children = dependency_values.dep_value("all_my_children")?
-                    .are_strings_if_non_empty()?;
-
-                    let mut concatted_text = String::from("");
-                    for textlike_child in textlike_children {
-                        concatted_text.push_str(&textlike_child);
-                    }
-
-                    let trimmed_text = concatted_text.trim().to_lowercase();
-                    
-                    if trimmed_text == "true" {
-                        Ok(SetValue(true))
-                    } else {
-                        Ok(SetValue(false))
-                    }
-
-                }
-
-
-
+                let children = dependency_values.get("all_my_children").unwrap();
+                DETERMINE_BOOLEAN(children.clone()).map(|x| SetValue(x))
             },
             for_renderer: true,
             ..Default::default()
         }));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
-
         state_var_definitions.insert("text", TEXT_DEFAULT_DEFINITION());
-
 
         return state_var_definitions
     };
@@ -81,22 +46,12 @@ lazy_static! {
 
 
 lazy_static! {
-    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
-        let mut attribute_definitions = HashMap::new();
-
-        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions
-    };
-}
-
-
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
-
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
+
+        attribute_names: vec![
+            "hide",
+        ],
 
         primary_input_state_var: Some("value"),
 

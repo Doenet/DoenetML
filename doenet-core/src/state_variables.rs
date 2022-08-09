@@ -6,7 +6,6 @@ use crate::ComponentProfile;
 
 
 
-
 /// State variable functions core uses.
 /// The generics force component code to be consistent with the type of a state variable.
 #[derive(Debug)]
@@ -28,8 +27,8 @@ pub struct StateVarDefinition<T> {
 
     pub for_renderer: bool,
 
-    /// Not used much right now except for the default StateVarDefinition
-    pub initial_essential_value: T,
+    /// Determines whether to use essential data
+    pub initial_essential_value: Option<T>,
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
     /// values for the dependencies that would make this state variable return that value.
@@ -70,7 +69,7 @@ pub struct StateVarArrayDefinition<T> {
 
     pub for_renderer: bool,
 
-    pub initial_essential_element_value: T,
+    pub initial_essential_element_value: Option<T>,
 
 }
 
@@ -85,7 +84,7 @@ impl<T> Default for StateVarDefinition<T>
             determine_state_var_from_dependencies:
                 |_| Ok(StateVarUpdateInstruction::SetValue(T::default())),
             for_renderer: false,
-            initial_essential_value: T::default(),
+            initial_essential_value: None,
 
             request_dependencies_to_update_value: |_| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -117,7 +116,7 @@ impl<T> Default for StateVarArrayDefinition<T>
                 HashMap::new()
             },
             for_renderer: false, 
-            initial_essential_element_value: T::default(),
+            initial_essential_element_value: Some(T::default()),
 
         }
     }
@@ -208,7 +207,7 @@ pub enum StateVarUpdateInstruction<T> {
 
 /// Passed into determine_state_vars_from_dependencies
 /// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DependencyValue {
     /// For now, `component_type: "essential_data"` is used with essential data dependencies
     pub component_type: ComponentType,
@@ -422,84 +421,136 @@ pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T)
 
 /////////// State variable default definitions ///////////
 
-/// Attributes for the renderer
-/// Arguments: attribute name, StateVarVariant, default value
-/// Example: `definition_from_attribute!("disabled", Boolean, false)`
-macro_rules! definition_from_attribute {
-    ( $attribute:expr, $variant:ident, $default:expr) => {
+macro_rules! number_definition_from_attribute {
+    ( $attribute:expr, $default:expr, $has_essential:expr) => {
         {
-            use crate::state_variables::{StateVarVariant, DependencyInstruction,
-                StateVarUpdateInstruction};
-
-            StateVarVariant::$variant(StateVarDefinition {
+            StateVarVariant::Number(StateVarDefinition {
                 for_renderer: true,
-                initial_essential_value: $default.into(),
+
+                initial_essential_value: if $has_essential { Some($default) } else { None },
+
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
                     HashMap::from([("attribute", attribute)])
                 },
+
                 determine_state_var_from_dependencies: |dependency_values| {
-                    let attribute = dependency_values.dep_value("attribute")?
-                        .has_zero_or_one_elements()?
-                        .into_if_exists()?;
-                    Ok(StateVarUpdateInstruction::SetValue(attribute.unwrap_or($default.into())))
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        DETERMINE_NUMBER(attribute.clone())
+                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
+                    }
                 },
+
+                request_dependencies_to_update_value: |desired_value| {
+                    DETERMINE_NUMBER_DEPENDENCIES(desired_value)
+                },
+
                 ..Default::default()
             })
         }
     }
 }
-pub(crate) use definition_from_attribute;
+pub(crate) use number_definition_from_attribute;
 
 
-// macro_rules! definition_from_attribute_with_essential {
-//     ( $attribute:expr, $variant:ident, $default:expr) => {
-//         {
-//             use crate::state_variables::{StateVarVariant, DependencyInstruction,
-//                 StateVarUpdateInstruction};
-
-//             StateVarVariant::$variant(StateVarDefinition {
-//                 return_dependency_instructions: |_| HashMap::from([
-//                     ("essential", DependencyInstruction::Essential),
-//                     ("attribute", DependencyInstruction::Attribute{ attribute_name: $attribute }),
-
-//                 ]),
-//                 determine_state_var_from_dependencies:
-//                     determine_from_essential_or_attribute!( $default ),
-//                 request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
-//                 for_renderer: true,
-//                 ..Default::default()
-//             })
-//         }
-//     }
-// }
-// pub(crate) use definition_from_attribute_with_essential;
-
-/// Arguments: default
-/// Macro assumes instruction names are essential and attribute
-macro_rules! determine_from_essential_or_attribute {
-    ( $default:expr ) => {
+macro_rules! integer_definition_from_attribute {
+    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
         {
-            |dependency_values| {
-                let essential = dependency_values.dep_value("essential")?;
-                let essential = essential.has_zero_or_one_elements()?;
-                let set_value = match essential.0 {
-                    Some(dep_value) => {
-                        dep_value.value.clone().try_into().map_err(|e| format!("{:#?}", e))?
-                    },
-                    None => {
-                         dependency_values.dep_value("attribute")?
-                            .has_zero_or_one_elements()?
-                            .into_if_exists()?
-                            .unwrap_or($default.into())
-                    },
-                };
-                Ok( StateVarUpdateInstruction::SetValue( set_value ) )
-            }
+            StateVarVariant::Integer(StateVarDefinition {
+                for_renderer: true,
+
+                initial_essential_value: if $has_essential { Some($default) } else { None },
+
+                return_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    HashMap::from([("attribute", attribute)])
+                },
+
+                determine_state_var_from_dependencies: |dependency_values| {
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        DETERMINE_NUMBER(attribute.clone())
+                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x as i64))
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
+                    }
+                },
+
+                request_dependencies_to_update_value: |desired_value| {
+                    DETERMINE_INTEGER_DEPENDENCIES(desired_value)
+                },
+
+                ..Default::default()
+            })
         }
     }
 }
-pub(crate) use determine_from_essential_or_attribute;
+pub(crate) use integer_definition_from_attribute;
+
+macro_rules! boolean_definition_from_attribute {
+    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
+        {
+            StateVarVariant::Boolean(StateVarDefinition {
+                for_renderer: true,
+
+                initial_essential_value: if $has_essential { Some($default) } else { None },
+
+                return_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    HashMap::from([("attribute", attribute)])
+                },
+
+                determine_state_var_from_dependencies: |dependency_values| {
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        DETERMINE_BOOLEAN(attribute.clone())
+                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
+                    }
+                },
+
+                ..Default::default()
+            })
+        }
+    }
+}
+pub(crate) use boolean_definition_from_attribute;
+
+
+macro_rules! string_definition_from_attribute {
+    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
+        {
+            StateVarVariant::String(StateVarDefinition {
+                for_renderer: true,
+
+                initial_essential_value: if $has_essential { Some( $default.to_string() ) } else { None },
+
+                return_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    HashMap::from([("attribute", attribute)])
+                },
+
+                determine_state_var_from_dependencies: |dependency_values| {
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        DETERMINE_STRING(attribute.clone())
+                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default.to_string()) )
+                    }
+                },
+
+                ..Default::default()
+            })
+        }
+    }
+}
+pub(crate) use string_definition_from_attribute;
+
 
 /// Requires that the component has a parent with 'hidden' and a bool 'hide' state var
 #[allow(non_snake_case)]
@@ -577,7 +628,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
 
 #[allow(non_snake_case)]
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
-    definition_from_attribute!("disabled", Boolean, false)
+    boolean_definition_from_attribute!("disabled", false, false)
 }
 
 
@@ -591,6 +642,111 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 }
 
 
+#[allow(non_snake_case)]
+pub fn DETERMINE_BOOLEAN(dependency_values: Vec<DependencyValue>)
+    -> Result<bool, String> {
+
+    let bool_child_value = match dependency_values.len() {
+        1 => dependency_values.first(),
+        _ => None,
+    };
+
+    if let Some(DependencyValue { value: StateVarValue::Boolean(value), .. }) = bool_child_value {
+        return Ok(*value);
+    }
+
+    let textlike_children: Result<Vec<String>, &str> = dependency_values
+        .iter()
+        .map(|dep_value|
+            String::try_from(dep_value.value.clone())
+        ).collect();
+    let textlike_children = textlike_children.map_err(|e| "Not all boolean children were strings: ".to_owned() + e)?;
+
+    let mut concatted_text = String::from("");
+    for textlike_child in textlike_children {
+        concatted_text.push_str(&textlike_child);
+    }
+
+    let trimmed_text = concatted_text.trim().to_lowercase();
+
+    Ok(trimmed_text == "true")
+}
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_NUMBER(dependency_values: Vec<DependencyValue>)
+    -> Result<f64, String> {
+
+    let mut concatted_children = String::new();
+    for value in dependency_values {
+        let str_child_val = match &value.value {
+            StateVarValue::Number(num) => num.to_string(),
+            StateVarValue::String(str) => str.to_string(),
+            StateVarValue::Integer(num) => num.to_string(),
+            _ => return Err("Invalid value for number".to_string())
+        };
+
+        concatted_children.push_str(&str_child_val);
+    }
+
+    // log!("concatted children {}", concatted_children);
+
+    let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
+        num_result.as_number().unwrap_or(f64::NAN)
+    } else {
+        return Err("Can't parse number values as math".to_string())
+    };
+
+
+    Ok(num)
+}
+
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64)
+    -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("attribute", vec![
+            DependencyValue {
+                component_type: "number",
+                state_var_name: "",
+                value: desired_value.into(),
+            }
+        ])
+    ])
+}
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64)
+    -> HashMap<InstructionName, Vec<DependencyValue>> {
+    HashMap::from([
+        ("attribute", vec![
+            DependencyValue {
+                component_type: "number",
+                state_var_name: "",
+                value: desired_value.into(),
+            }
+        ])
+    ])
+}
+
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
+    -> Result<String, String> {
+
+    let mut val = String::new();
+    for textlike_value_sv in dependency_values {
+        
+        val.push_str(& match &textlike_value_sv.value {
+            StateVarValue::String(v)  => v.to_string(),
+            StateVarValue::Boolean(v) => v.to_string(),
+            StateVarValue::Integer(v) => v.to_string(),
+            StateVarValue::Number(v)  => v.to_string(),
+        });
+    }
+
+    Ok(val)
+}
 
 /////////// StateVarValue boilerplate ///////////
 
@@ -621,8 +777,8 @@ impl TryFrom<StateVarValue> for f64 {
     fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
         match v {
             StateVarValue::Number(x) => Ok( x ),
+            StateVarValue::Integer(x) => Ok( x as f64 ),
             StateVarValue::String(_) => Err("cannot convert StateVarValue::String to number"),
-            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to number"),
             StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to number"),
         }
     }
@@ -840,13 +996,13 @@ impl StateVarVariant {
         }       
     }
 
-    pub fn initial_essential_value(&self) -> StateVarValue {
+    pub fn initial_essential_value(&self) -> Option<StateVarValue> {
         match self {
-            Self::String(def) =>  StateVarValue::String( def.initial_essential_value.clone()),
-            Self::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
-            Self::Number(def) =>  StateVarValue::Number( def.initial_essential_value),
-            Self::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
-            Self::NumberArray(_) => StateVarValue::Number(f64::default()),
+            Self::String(def) =>  def.initial_essential_value.as_ref().map(|x| StateVarValue::String(x.clone())),
+            Self::Integer(def) => def.initial_essential_value.map(|x| StateVarValue::Integer(x)),
+            Self::Number(def) =>  def.initial_essential_value.map(|x| StateVarValue::Number(x)),
+            Self::Boolean(def) => def.initial_essential_value.map(|x| StateVarValue::Boolean(x)),
+            Self::NumberArray(_) => None,
         }
     }
 
@@ -926,9 +1082,9 @@ impl StateVarVariant {
     }
 
 
-    pub fn initial_essential_element_value(&self) -> StateVarValue {
+    pub fn initial_essential_element_value(&self) -> Option<StateVarValue> {
         match self {
-            Self::NumberArray(def) =>  StateVarValue::Number(def.initial_essential_element_value),
+            Self::NumberArray(def) =>  def.initial_essential_element_value.map(|x| StateVarValue::Number(x)),
             _ => unreachable!(),
         }
     }

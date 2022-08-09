@@ -25,24 +25,13 @@ lazy_static! {
 
 
 lazy_static! {
-    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
-        let mut attribute_definitions = HashMap::new();
-
-        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("disabled", AttributeDefinition::Component("boolean"));
-
-
-        attribute_definitions
-    };
-}
-
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
-
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
+
+        attribute_names: vec![
+            "hide",
+            "disabled",
+        ],
 
         should_render_children: true,
         

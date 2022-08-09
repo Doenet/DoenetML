@@ -12,12 +12,12 @@ use state_var::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::{error::Error, fmt::Display};
+use regex::Regex;
 
-
-use crate::prelude::*;
-use crate::component::*;
 
 use state_var::{State, EssentialStateVar};
+use prelude::*;
+use component::*;
 use state_variables::*;
 
 
@@ -76,14 +76,14 @@ pub enum DependencyKey {
     Attribute(ComponentName, AttributeName),
 }
 
-impl DependencyKey {
-    fn component_name(&self) -> &str {
-        match self {
-            DependencyKey::Attribute(name, _) => name,
-            DependencyKey::StateVar(name, _, _) => name,
-        }
-    }
-}
+// impl DependencyKey {
+//     fn component_name(&self) -> &str {
+//         match self {
+//             DependencyKey::Attribute(name, _) => name,
+//             DependencyKey::StateVar(name, _, _) => name,
+//         }
+//     }
+// }
 
 
 /// A collection of edges on the dependency tree
@@ -322,61 +322,176 @@ fn add_alias_for_children(
 }
 
 
+
+// One or two $ followed by either
+//   - the following combination without parenthesis:
+//     - a word (starting with a letter or underscore), capturing word as fourth group, 
+//     - optionally followed by anything in square brackets (6th group)
+//     - optionally followed by:
+//       - a period
+//       - followed by a word (9th group)
+//       - optionally followed by anything in square brackets (11th group)
+//   or
+//   - the following combination in parenthesis
+//     where the closing parenthesis could be replaced by an open brace,
+//     (capturing the open brace or closing parens as 21st group):
+//     - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
+//     - optionally followed by anything in square brackets (15th group)
+//     - optionally followed by:
+//       - a period
+//       - followed by a word (including hyphens) (18th group)
+//       - optionally followed by anything in square brackets (20th group)
+lazy_static! {
+
+    // NOTE: It took around ~100ms on a fast computer to create this regex (not including searching with it)
+    static ref MACRO_SEARCH: Regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
+
+    (\$) # for now, just one $
+    (
+        (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
+        |
+        \(
+            (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
+        ( \) | \{ )
+    )
+
+    ").unwrap();
+
+}
+
+lazy_static! {
+    static ref POSSIBLE_MACRO: Regex = Regex::new("$").unwrap();
+}
+
+fn apply_macro_to_string(
+    string: String,
+    component: &ComponentNode,
+    components: &HashMap<ComponentName, ComponentNode>,
+    macro_copy_counter: &mut HashMap<ComponentName, usize>,
+    components_to_add: &mut Vec<ComponentNode>,
+) -> Option<Vec<ObjectName>> {
+
+    let mut objects = Vec::new();
+    let mut previous_end = 0;
+
+    for capture in MACRO_SEARCH.captures_iter(&string) {
+
+        log_debug!("capture {:#?}", capture);
+
+        let start = capture.get(0).unwrap().start();
+        let end = capture.get(0).unwrap().end();
+
+        if start == 0 || string.chars().nth(start-1).unwrap_or_default() != '$' {
+
+            // Append the regular string from last endpoint up until start of macro
+            let before = &string[previous_end..start];
+            if !before.trim().is_empty() {
+                objects.push(ObjectName::String(before.to_string()));
+            }
+
+
+            let (macro_comp, macro_prop_option) =
+                match capture.get(12) {
+                    Some(comp) => (comp, capture.get(18)),
+                    None => (capture.get(4).unwrap(), capture.get(9)),
+                };
+
+            if let Some(ending_delim) = capture.get(21) {
+                if ending_delim.as_str() == "{" {
+                    panic!("Haven't implemented macros with curly braces");
+                }
+            }
+
+            let source_name = macro_comp.as_str();
+
+
+            let source_comp = components.get(source_name).expect(
+                &format!("Macro for {}, but this component does not exist", source_name));
+
+
+            let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
+
+                let (prop_name, _) = source_comp.definition.state_var_definitions
+                    .get_key_value(macro_prop.as_str())
+                    .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
+
+                let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
+
+                let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name)
+                    .expect(&format!("could not create component for state var copy macro"));
+                let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
+
+                let copy_name = name_macro_component(
+                    &source_comp_sv_name,
+                    &component.name,
+                    macro_copy_counter,
+                );
+
+                ComponentNode {
+                    name: copy_name,
+                    parent: Some(component.name.clone()),
+                    children: vec![],
+
+                    copy_source: Some(CopySource::StateVar(
+                        // TODO: non-basic copies
+                        source_comp.name.clone(), StateVarReference::Basic(prop_name))),
+
+                    attributes: HashMap::new(),
+                    component_type: copy_comp_type,
+                    definition: copy_def,
+                }
+
+            } else {
+
+                let copy_name = name_macro_component(
+                    source_name,
+                    &component.name,
+                    macro_copy_counter,
+                );
+
+                ComponentNode {
+                    name: copy_name,
+                    parent: Some(component.name.clone()),
+                    children: vec![],
+
+                    copy_source: Some(CopySource::Component(source_comp.name.clone())),
+                    attributes: HashMap::new(),
+
+                    .. source_comp.clone()
+                }
+            };
+
+            objects.push(ObjectName::Component(macro_copy.name.clone()));
+            components_to_add.push(macro_copy);
+
+            previous_end = end;
+        }
+
+    }
+    if previous_end > 0 {
+        // There was at least one macro
+        let last = &string[previous_end..];
+        if !last.trim().is_empty() {
+            objects.push(ComponentChild::String(last.to_string()));
+        }
+
+        Some(objects)
+    } else {
+        None
+    }
+}
+
+
 fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentNode>) {
 
-    use regex::Regex;
     use std::iter::repeat;
-
-
-    // One or two $ followed by either
-    //   - the following combination without parenthesis:
-    //     - a word (starting with a letter or underscore), capturing word as fourth group, 
-    //     - optionally followed by anything in square brackets (6th group)
-    //     - optionally followed by:
-    //       - a period
-    //       - followed by a word (9th group)
-    //       - optionally followed by anything in square brackets (11th group)
-    //   or
-    //   - the following combination in parenthesis
-    //     where the closing parenthesis could be replaced by an open brace,
-    //     (capturing the open brace or closing parens as 21st group):
-    //     - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
-    //     - optionally followed by anything in square brackets (15th group)
-    //     - optionally followed by:
-    //       - a period
-    //       - followed by a word (including hyphens) (18th group)
-    //       - optionally followed by anything in square brackets (20th group)
-
-    lazy_static! {
-
-        // NOTE: It took around ~100ms on a fast computer to create this regex (not including searching with it)
-        static ref MACRO_SEARCH: Regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
-  
-        (\$) # for now, just one $
-        (
-            (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
-            |
-            \(
-                (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
-            ( \) | \{ )
-        )
-    
-        ").unwrap();
-    
-    }
-
-    lazy_static! {
-        static ref POSSIBLE_MACRO: Regex = Regex::new("$").unwrap();
-    }
-
-
 
     // Keyed by the component name and by the original position of the child we are replacing
     let mut replacement_children: HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
+    let mut replacement_attributes: HashMap<ComponentName, HashMap<String, Vec<ObjectName>>> = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
-    // Keyed on the source component names, or the source (component name, state var)
     let mut macro_copy_counter: HashMap<ComponentName, usize> = HashMap::new();
     
 
@@ -384,133 +499,59 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
     // (original index of child, string value, component)
     let all_string_children = components.iter()
         .flat_map(|(_, comp)|
-            comp.children.iter()
-                .enumerate()
-                .filter_map(|(id, child)| {
-                    match child {
-                        ObjectName::String(string_val) => Some((id, string_val)),
-                        _ => None,
-                    }
-                })
-                .zip(repeat(comp))
-                .map(|((id, val), comp)| (id, val, comp))
+            comp.children
+            .iter()
+            .enumerate()
+            .filter_map(|(id, child)| {
+                match child {
+                    ObjectName::String(string_val) => Some((id, string_val)),
+                    _ => None,
+                }
+            })
+            .zip(repeat(comp))
+            .map(|((id, val), comp)| (id, val, comp))
+        );
+
+    let all_attributes = components.iter()
+        .flat_map(|(_, comp)|
+            comp.attributes
+            .iter()
+            .map(|(name, val)| (name, val.first().unwrap(), comp))
+            .collect::<Vec<(&String, &ObjectName, &ComponentNode)>>()
+        );
+
+    // Component string children
+    for (child_id, string_val, component) in all_string_children {
+
+        let objects = apply_macro_to_string(
+            string_val.clone(),
+            component,
+            components,
+            &mut macro_copy_counter,
+            &mut components_to_add
+        );
+
+        if let Some(objects) = objects {
+            replacement_children.entry(component.name.clone()).or_insert(HashMap::new())
+                .entry(child_id).or_insert(objects);
+        }
+    }
+
+    // Attributes
+    for (attribute_name, object_name, component) in all_attributes {
+        if let ObjectName::String(string_val) = object_name {
+            let objects = apply_macro_to_string(
+                string_val.clone(),
+                component,
+                components,
+                &mut macro_copy_counter,
+                &mut components_to_add
             );
 
-
-    for (child_id, string_val, component) in all_string_children {
-        let mut new_children = vec![];
-        let mut previous_end = 0;
-
-        if ! POSSIBLE_MACRO.is_match(string_val) {
-            continue;
-        }
-
-
-        for capture in MACRO_SEARCH.captures_iter(string_val) {
-
-            log_debug!("capture {:#?}", capture);
-
-            let start = capture.get(0).unwrap().start();
-            let end = capture.get(0).unwrap().end();
-
-            if start == 0 || string_val.chars().nth(start-1).unwrap_or_default() != '$' {
-
-                // Append the regular string from last endpoint up until start of macro
-                let before = &string_val[previous_end..start];
-                if !before.trim().is_empty() {
-                    new_children.push(ComponentChild::String(before.to_string()));
-                }
-
-
-                let (macro_comp, macro_prop_option) =
-                    match capture.get(12) {
-                        Some(comp) => (comp, capture.get(18)),
-                        None => (capture.get(4).unwrap(), capture.get(9)),
-                    };
-
-                if let Some(ending_delim) = capture.get(21) {
-                    if ending_delim.as_str() == "{" {
-                        panic!("Haven't implemented macros with curly braces");
-                    }
-                }
-
-                let source_name = macro_comp.as_str();
-
-
-                let source_comp = components.get(source_name).expect(
-                    &format!("Macro for {}, but this component does not exist", source_name));
-
-
-                let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
-
-                    let (prop_name, _) = source_comp.definition.state_var_definitions
-                        .get_key_value(macro_prop.as_str())
-                        .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
-
-                    let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
-
-                    let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name)
-                        .expect(&format!("could not create component for state var copy macro"));
-                    let copy_def = component::generate_component_definitions().get(copy_comp_type).unwrap().clone();
-
-                    let copy_name = name_macro_component(
-                        &source_comp_sv_name,
-                        &component.name,
-                        &mut macro_copy_counter,
-                    );
-
-                    ComponentNode {
-                        name: copy_name,
-                        parent: Some(component.name.clone()),
-                        children: vec![],
-    
-                        copy_source: Some(CopySource::StateVar(
-                            // TODO: non-basic copies
-                            source_comp.name.clone(), StateVarReference::Basic(prop_name))),
-
-                        attributes: HashMap::new(),
-                        component_type: copy_comp_type,
-                        definition: copy_def,
-                    }
-
-                } else {
-
-                    let copy_name = name_macro_component(
-                        source_name,
-                        &component.name,
-                        &mut macro_copy_counter,
-                    );
-    
-                    ComponentNode {
-                        name: copy_name,
-                        parent: Some(component.name.clone()),
-                        children: vec![],
-    
-                        copy_source: Some(CopySource::Component(source_comp.name.clone())),
-                        attributes: HashMap::new(),
-    
-                        .. source_comp.clone()
-                    }
-                };
-
-                new_children.push(ComponentChild::Component(macro_copy.name.clone()));
-                components_to_add.push(macro_copy);
-
-                previous_end = end;
+            if let Some(objects) = objects {
+                replacement_attributes.entry(component.name.clone()).or_insert(HashMap::new())
+                    .entry(attribute_name.clone()).or_insert(objects);
             }
-        }
-
-        if previous_end > 0 {
-
-            // There was at least one macro
-
-            let last = &string_val[previous_end..];
-            if !last.trim().is_empty() {
-                new_children.push(ComponentChild::String(last.to_string()));
-            }
-
-            replacement_children.entry(component.name.clone()).or_insert(HashMap::new())
-                .entry(child_id).or_insert(new_children);
         }
     }
 
@@ -537,6 +578,15 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
                 original_child_id..original_child_id + 1,
                 new_children
             );
+        }
+    }
+
+    log_debug!("Replacement attributes {:#?}", replacement_attributes);
+
+    for (component_name, new_children_hashmap) in replacement_attributes {
+        let component = components.get_mut(&component_name).unwrap();
+        for (attribute_name, new_attribute) in new_children_hashmap {
+            component.attributes.insert(attribute_name, new_attribute);
         }
     }
 
@@ -666,7 +716,17 @@ fn create_dependencies_from_instruction(
             let state_var_name = state_var_reference.name();
 
             let variant = component.definition.state_var_definitions.get(state_var_name).unwrap();
-            let essential_datum = EssentialStateVar::new(variant.initial_essential_value());
+
+            let initial_value = (match variant.is_array() {
+                false => variant.initial_essential_value(),
+                true => variant.initial_essential_element_value(),
+            })
+            .expect(&format!(
+                "essential dependency of {}:{} without initial essential value",
+                component_name,
+                state_var_name
+            ));
+
 
             // A copy uses the same essential data, so `insert` would be called twice
             // with the same key, but that's ok.
@@ -675,7 +735,7 @@ fn create_dependencies_from_instruction(
                 .or_insert(HashMap::new())
                 .insert(
                     state_var_name,
-                    essential_datum,
+                    EssentialStateVar::new(initial_value),
                 );
 
             dependencies.push(Dependency::Essential {
@@ -805,32 +865,92 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Attribute { attribute_name } => {
 
-            if let Some(attribute) = get_attribute_including_copy(components, component, attribute_name) {
-                match attribute {
-                    Attribute::Component(attr_comp_name) => {
+            let state_var_name = state_var_reference.name();
+            let variant = component.definition.state_var_definitions.get(state_var_name).unwrap();
 
-                        dependencies.push(Dependency::StateVar {
-                            component_name: attr_comp_name.to_string(),
+            let mut initial_value = None;
 
-                            // hard code this for now
-                            state_var_ref: StateVarReference::Basic("value"),
-                        });
-                    },
+            if let Some(attribute) = component.attributes.get(*attribute_name) {
 
-                    Attribute::Primitive(attr_primitive_value) => {
-                        dependencies.push(Dependency::String { value:
-                            // for now, convert it to a string
-                            match attr_primitive_value {
-                                StateVarValue::String(v) => v.to_string(),
-                                StateVarValue::Boolean(v) => v.to_string(),
-                                StateVarValue::Number(v) => v.to_string(),
-                                StateVarValue::Integer(v) => v.to_string(),
-                            }
-                        });
+                let attr_string =
+                    match attribute.first() {
+                        Some(ObjectName::String(s)) => Some(s),
+                        _ => None,
+                    };
 
-                    },
+                if attribute.len() > 1 || attr_string.is_none() {
+
+                    // attribute depends on other state vars
+                    for object_name in attribute {
+                        match object_name {
+                            ObjectName::String(s) => dependencies.push(Dependency::String {
+                                value: s.clone(),
+                            }),
+                            ObjectName::Component(s) => {
+                                let comp_def = components.get(s).unwrap().definition;
+                                let state_var_ref = StateVarReference::Basic(
+                                    comp_def.primary_input_state_var.unwrap());
+
+                                dependencies.push(Dependency::StateVar {
+                                    component_name: s.clone(),
+                                    state_var_ref,
+                                })
+                            },
+                        }
+                    }
+
+
+                } else if variant.initial_essential_value().is_some() {
+                    let attr_string = attr_string.unwrap();
+
+                    // initialize essential data with the attribute.
+                    initial_value = Some(match variant {
+                        StateVarVariant::String(_) => StateVarValue::String(attr_string.clone()),
+                        StateVarVariant::Boolean(_) => StateVarValue::Boolean(attr_string == "true"),
+                        StateVarVariant::Number(_) => match evalexpr::eval(attr_string) {
+                            Ok(num) => StateVarValue::Number(num.as_number().unwrap_or(f64::NAN)),
+                            Err(_) => panic!("Can't parse number in attribute"),
+                        },
+                        StateVarVariant::Integer(_) => match evalexpr::eval(&attr_string) {
+                            Ok(num) => StateVarValue::Integer(num.as_int().unwrap()),
+                            Err(_) => panic!("Can't parse integer in attribute"),
+                        },
+                        StateVarVariant::NumberArray(_) => todo!(),
+                    });
+                    log_debug!("essential value set by attribute: {}", initial_value.as_ref().unwrap());
+                } else {
+
+                    // without essential data, the dependency will not change
+                    dependencies.push(Dependency::String {
+                        value: attr_string.unwrap().clone()
+                    });
                 }
+            } else if let Some(CopySource::Component(c)) = &component.copy_source {
 
+                // inherit attribute from copy source
+                dependencies.push(Dependency::StateVar {
+                    component_name: c.clone(),
+                    state_var_ref: state_var_reference.clone(),
+                });
+            } else {
+
+                // use essential if applicable
+                initial_value = variant.initial_essential_value();
+            }
+
+            if let Some(initial_value) = initial_value {
+                essential_data
+                    .entry(component.name.clone())
+                    .or_insert(HashMap::new())
+                    .insert(
+                        state_var_name,
+                        EssentialStateVar::new(initial_value),
+                    );
+
+                dependencies.push(Dependency::Essential {
+                    component_name: component.name.clone(),
+                    state_var_name,
+                });
             }
 
         },
@@ -933,7 +1053,7 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    // log_debug!("Resolving {}:{}", component.name, state_var_ref);
+    log_debug!("Resolving {}:{}", component.name, state_var_ref);
 
     let my_dependencies = dependencies_of_state_var(core, component, state_var_ref);
 
@@ -1020,7 +1140,7 @@ fn resolve_state_variable(
     }
 
 
-    // log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
+    log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
@@ -1188,7 +1308,7 @@ fn handle_update_instruction<'a>(
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
-    // log_debug!("Updating state var {}:{}", component.name, state_var_ref);
+    log_debug!("Updating state var {}:{}", component.name, state_var_ref);
 
     let state_var = component_state_vars.get(state_var_ref.name()).unwrap();
 
@@ -1219,7 +1339,7 @@ fn handle_update_instruction<'a>(
 
     };
 
-    // log_debug!("Updated to {}", updated_value);
+    log_debug!("Updated to {}", updated_value);
 
     return updated_value;
 }
@@ -1524,31 +1644,6 @@ fn get_children_including_copy(
     children_vec
 }
 
-/// Get the specified attribute if it exists on this component.
-/// If not, and the component is a copy, then recursively search for one
-/// in the copy source.
-fn get_attribute_including_copy<'a>(
-    components: &'a HashMap<ComponentName, ComponentNode>,
-    component: &'a ComponentNode,
-    attribute_name: AttributeName
-)-> Option<&'a Attribute> {
-
-    if let Some(attribute) = component.attributes.get(attribute_name) {
-        Some(attribute)
-
-    } else if let Some(CopySource::Component(ref source_name)) = component.copy_source {
-
-        if attribute_name == "hide" {
-            // The hide attribute is an exception: copies do not inherit it
-            None
-        } else {
-            let source = components.get(source_name).unwrap();
-            get_attribute_including_copy(components, source, attribute_name)
-        }
-    } else {
-        None
-    }
-}
 
 /// Recurse until the name of the original source is found.
 /// This allows copies to share essential data.

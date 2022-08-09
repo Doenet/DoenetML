@@ -11,7 +11,7 @@ pub mod graph;
 pub mod point;
 
 use crate::prelude::*;
-use crate::state_variables::{StateVarValue, StateVarValueType, StateVarVariant};
+use crate::state_variables::{StateVarValue, StateVarVariant};
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
@@ -35,18 +35,6 @@ pub fn generate_component_definitions() -> HashMap<ComponentType, &'static Compo
 }
 
 
-#[derive(Debug)]
-pub enum AttributeDefinition {
-    Component(ComponentType),
-    Primitive(StateVarValueType),
-}
-
-#[derive(Debug, Clone)]
-pub enum Attribute {
-    Component(ComponentName), // attribute component
-    Primitive(StateVarValue)
-}
-
 #[derive(Debug, Clone)]
 pub struct ComponentNode {
 
@@ -55,8 +43,7 @@ pub struct ComponentNode {
     pub children: Vec<ComponentChild>,
     pub component_type: ComponentType,
 
-    // assuming the AttributeData type matches with the component_type
-    pub attributes: HashMap<AttributeName, Attribute>,
+    pub attributes: HashMap<String, Vec<ObjectName>>, // raw DoenetML
 
     // Flags
     pub copy_source: Option<CopySource>,
@@ -108,13 +95,14 @@ pub enum ComponentProfile {
 
 
 pub struct ComponentDefinition {
-    pub attribute_definitions: &'static HashMap<AttributeName, AttributeDefinition>,
     pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,
 
     /// An ordered list of which profiles this component fulfills, along with the name of the
     /// state variable that fulfills it.
     /// The first element in the list is the profile most preferred by this component
     pub component_profiles: Vec<(ComponentProfile, StateVarName)>,
+
+    pub attribute_names: Vec<AttributeName>,
 
     /// Process an action and return the state variables to change.
     pub on_action: for<'a> fn(
@@ -144,19 +132,14 @@ lazy_static! {
         HashMap::new()
     };
 }
-lazy_static! {
-    static ref EMPTY_ATTRIBUTES: HashMap<AttributeName, AttributeDefinition> = {
-        HashMap::new()
-    };
-}
 
 
 impl Default for ComponentDefinition {
     fn default() -> Self {
         ComponentDefinition {
-            attribute_definitions: &EMPTY_ATTRIBUTES,
-
             state_var_definitions: &EMPTY_STATE_VARS,
+
+            attribute_names: Vec::new(),
 
             should_render_children: false,
 
@@ -176,7 +159,6 @@ impl Default for ComponentDefinition {
 impl Debug for ComponentDefinition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("ComponentDefinition")
-            .field("attribute_definitions", &self.attribute_definitions)
             .field("state_var_definitions", &self.state_var_definitions)
             .field("should_render_children", &self.should_render_children)
             .field("renderer_type", &self.renderer_type)

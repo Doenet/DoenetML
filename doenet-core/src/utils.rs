@@ -52,32 +52,10 @@ pub fn package_subtree_as_json(
         )
         .collect();
 
-    let attributes: Map<String, Value> = component.definition.attribute_definitions.keys()
-        .into_iter()
-        .filter_map(|attribute_name|
-            match component.attributes.get(attribute_name) {
-                Some(attribute) => {
-                    let attribute_json = match attribute {
-                        Attribute::Component(component_name) => {
-                            Value::String(component_name.to_string())
-                        },
-                        Attribute::Primitive(state_var_value) => {
-                            state_var_value.clone().into()
-                        }
-                    };
-                    Some((attribute_name.to_string(), attribute_json))
-                }
-                None => None,
-            }
-        )
-        .collect();
 
-
-    
     let mut my_json_props: Map<String, Value> = Map::new();
 
     my_json_props.insert("children".to_owned(), json!(children));
-    my_json_props.insert("attributes".to_owned(), json!(attributes));
     my_json_props.insert("parent".to_owned(),
         match component.parent {
             Some(ref parent_name) => Value::String(parent_name.into()),
@@ -149,26 +127,12 @@ pub fn package_subtree_as_json(
 
 pub fn json_dependencies(
     dependencies: &HashMap<DependencyKey, Vec<Dependency>>,
-) -> HashMap<String, HashMap<String,Vec<Dependency>>> {
+) -> HashMap<String, Vec<Dependency>> {
 
-    let mut display_deps = HashMap::new();
-
-
-    for (key, deps) in dependencies {
-        let display_key = match key {
-            DependencyKey::Attribute(_, attr) => format!("[attr] {}", attr),
-            DependencyKey::StateVar(_, StateVarGroup::Single(single), instruct) => {
-                format!("{} {}", single, instruct)
-            },
-            DependencyKey::StateVar(_, StateVarGroup::Array(array), instruct) => {
-                format!("{} {}", array, instruct)
-            }
-        };
-
-        display_deps.entry(key.component_name().to_string()).or_insert(HashMap::new())
-            .entry(display_key).or_insert(deps.clone());
-
-    }
-
-    display_deps
+    dependencies
+        .iter()
+        .map(|(k, deps)| {
+            (format!("{:?}", k), deps.clone())
+        })
+        .collect()
 }

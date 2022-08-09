@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::{Action, DoenetMLError};
-use crate::component::{Attribute, AttributeDefinition, CopySource, generate_component_definitions};
+use crate::component::{CopySource, generate_component_definitions, ObjectName};
 use crate::prelude::*;
 
 use crate::ComponentDefinition;
@@ -234,87 +234,17 @@ fn add_component_from_json(
         }
     };
 
-    let mut attributes: HashMap<AttributeName, Attribute> = HashMap::new();
-
-    let attribute_definitions = component_definition.attribute_definitions;
-
-    for (attr_name, attr_value) in component_tree.props.attributes.iter() {
-
-        let (attribute_name, attribute_def) =
-        if let Some((name, def)) = get_key_value_ignore_case(attribute_definitions, &attr_name.to_lowercase()) {
-            // This component has an attribute that matches the input name
-            (name, def)
-        } else {
-            doenet_ml_errors.push(DoenetMLError::AttributeDoesNotExist {
-                comp_name: component_name.clone(), attr_name: attr_name.to_string()
-            });
-            continue;
-        };
-
-        match attribute_def {
-            AttributeDefinition::Component(attr_comp_type) => {
-
-                let attr_component_definition = component_definitions.get(attr_comp_type).expect(
-                    &format!("The definition of the {} component defined an attribute of type {}, but that type does not exist", component_type, attr_comp_type)
-                );
-
-                //String child
-                let string_child = ComponentChild::String(match attr_value {
-                    AttributeValue::Bool(v) => v.to_string(),
-                    AttributeValue::String(v) => v.to_string(),
-                });
-
-                // Make sure this is unique
-                let attr_comp_name = format!("__attr:{}:{}", component_name, attribute_name);
-
-
-                let attribute_component_node = ComponentNode {
-                    name: attr_comp_name.clone(),
-                    parent: Some(component_name.clone()),
-                    children: vec![string_child],
-            
-                    component_type: attr_comp_type,
-                    attributes: HashMap::new(),
-            
-                    copy_source: None,
-
-                    definition: attr_component_definition.clone(),
-                };
-
-
-                attributes.insert(attribute_name, Attribute::Component(attr_comp_name.clone()));
-                component_nodes.insert(attr_comp_name, attribute_component_node);
-
-            },
-
-            AttributeDefinition::Primitive(attr_primitive_type) => {
-
-                match attr_primitive_type {
-                    StateVarValueType::Boolean => {
-
-                        match attr_value {
-                            AttributeValue::Bool(bool_value) => {
-
-                                attributes.insert(attribute_name,                                Attribute::Primitive(StateVarValue::Boolean(*bool_value)));
-                            }
-
-                            _ => {
-                                panic!("Attribute {} has the wrong type", attribute_name)
-
-                            }
-                        }
-
-                    },
-
-                    _ => {
-                        log!("Primitive non-bool attribute definition does nothing right now");
-                    }
-                }
-
-            }
-        }
-
-    }
+    let attributes = component_tree.props.attributes
+        .iter()
+        .filter_map(|(attr_name, attr_value)| {
+            let val = match attr_value {
+                AttributeValue::String(v) => v.clone(),
+                AttributeValue::Bool(v) => v.to_string(),
+            };
+            // TODO: return none if no state var asks for this attribute
+            Some( (attr_name.clone(), vec![ObjectName::String(val)]) )
+        })
+        .collect();
 
 
     // Recurse the children

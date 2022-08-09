@@ -50,6 +50,8 @@ lazy_static! {
                 ])
             },
 
+            initial_essential_element_value: Some(0.0),
+
             ..Default::default()
         }));
 
@@ -147,22 +149,22 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("draggable", definition_from_attribute!("draggable", Boolean, true));
+        state_var_definitions.insert("draggable", boolean_definition_from_attribute!("draggable", true, false));
 
-        state_var_definitions.insert("labelPosition", definition_from_attribute!("labelPosition", String, "upperright"));
+        state_var_definitions.insert("labelPosition", string_definition_from_attribute!("labelPosition", "upperright", false));
 
-        state_var_definitions.insert("showCoordsWhenDragging", definition_from_attribute!("showCoordsWhenDragging", Boolean, true));
+        state_var_definitions.insert("showCoordsWhenDragging", boolean_definition_from_attribute!("showCoordsWhenDragging", true, false));
 
 
-        state_var_definitions.insert("showLabel", definition_from_attribute!("showLabel", Boolean, true));
+        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true, false));
 
-        state_var_definitions.insert("applyStyleToLabel", definition_from_attribute!("applyStyleToLabel", Boolean, false));
+        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true, false));
 
-        state_var_definitions.insert("layer", definition_from_attribute!("layer", Integer, 0));
+        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0, false));
 
-        state_var_definitions.insert("label", definition_from_attribute!("label", String, ""));
+        state_var_definitions.insert("label", string_definition_from_attribute!("label", "", false));
 
-        state_var_definitions.insert("labelHasLatex", definition_from_attribute!("layer", Boolean, false));
+        state_var_definitions.insert("labelHasLatex", boolean_definition_from_attribute!("layer", false, false));
 
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
@@ -176,45 +178,22 @@ lazy_static! {
 
 
 lazy_static! {
-    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
-        let mut attribute_definitions = HashMap::new();
-
-        attribute_definitions.insert("draggable", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("labelPosition", AttributeDefinition::Component("text"));
-
-        attribute_definitions.insert("showCoordsWhenDragging", AttributeDefinition::Component("boolean"));
-
-
-        attribute_definitions.insert("showLabel", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("applyStyleToLabel", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("layer", AttributeDefinition::Component("number"));
-
-        attribute_definitions.insert("label", AttributeDefinition::Component("text"));
-
-        attribute_definitions.insert("labelHasLatex", AttributeDefinition::Component("boolean"));
-
-
-        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("disabled", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions
-    };
-}
-
-
-
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
-
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        // primary_output_traits: || vec![PrimaryOutputTrait::Graphical],
+        attribute_names: vec![
+            "draggable",
+            "labelPosition",
+            "showCoordsWhenDragging",
+            "showLabel",
+            "applyStyleToLabel",
+            "layer",
+            "label",
+            "labelHasLatex",
+
+            "hide",
+            "disabled",
+        ],
 
         action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
 

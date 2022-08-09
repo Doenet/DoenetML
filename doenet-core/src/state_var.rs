@@ -219,7 +219,7 @@ impl EssentialStateVar {
 
     pub fn new(value: StateVarValue) -> Self {
         EssentialStateVar {
-            value: RefCell::new(vec![]),
+            value: RefCell::new(vec![value.clone()]),
             default: value,
         }
     }

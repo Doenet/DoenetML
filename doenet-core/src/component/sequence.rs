@@ -27,7 +27,7 @@ lazy_static! {
             },
 
             determine_element_from_dependencies: |index, dependency_values| {
-                let from: f64 = dependency_values.dep_value("sv_from")?
+                let from = dependency_values.dep_value("sv_from")?
                     .has_exactly_one_element()?
                     .into_number()?;
 
@@ -58,7 +58,8 @@ lazy_static! {
                     .has_exactly_one_element()?
                     .into_number()?;
 
-                Ok(SetValue((to - from + 1.0) as usize))
+                let size = std::cmp::max((to - from + 1.0) as i64, 0);
+                Ok(SetValue(size as usize))
             },
 
             ..Default::default()
@@ -97,9 +98,9 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("from", definition_from_attribute!("from", Number, 1.0));
+        state_var_definitions.insert("from", number_definition_from_attribute!("from", 1.0, false));
 
-        state_var_definitions.insert("to", definition_from_attribute!("to", Number, 1.0));
+        state_var_definitions.insert("to", number_definition_from_attribute!("to", 5.0, false));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 
@@ -112,27 +113,15 @@ lazy_static! {
 
 
 lazy_static! {
-    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
-        let mut attribute_definitions = HashMap::new();
-
-        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("disabled", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions.insert("to", AttributeDefinition::Component("number"));
-
-        attribute_definitions.insert("from", AttributeDefinition::Component("number"));
-
-        attribute_definitions
-    };
-}
-
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
-
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
+
+        attribute_names: vec![
+            "hide",
+            "disabled",
+            "to",
+            "from",
+        ],
 
         renderer_type: RendererType::Special("text"),
 

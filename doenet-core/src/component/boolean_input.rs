@@ -17,6 +17,7 @@ lazy_static! {
 
         state_var_definitions.insert("value", StateVarVariant::Boolean(StateVarDefinition {
         
+            initial_essential_value: Some(false),
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
@@ -37,21 +38,13 @@ lazy_static! {
 
 
 lazy_static! {
-    pub static ref MY_ATTRIBUTE_DEFINITIONS: HashMap<AttributeName, AttributeDefinition> = {
-        let mut attribute_definitions = HashMap::new();
-
-        attribute_definitions.insert("hide", AttributeDefinition::Component("boolean"));
-
-        attribute_definitions
-    };
-}
-
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        attribute_definitions: &MY_ATTRIBUTE_DEFINITIONS,
-
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
+
+        attribute_names: vec![
+            "hide",
+            "disabled",
+        ],
 
         primary_input_state_var: Some("value"),
 
