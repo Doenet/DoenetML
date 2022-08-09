@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::prelude::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
+
 use super::*;
 
 
@@ -21,7 +22,7 @@ lazy_static! {
                 HashMap::from([(
                     "sv_from", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Single(StateVarReference::Basic("from")),
+                        state_var: StateVarSlice::Single(StateRef::Basic("from")),
                     }
                 )])
             },
@@ -39,11 +40,11 @@ lazy_static! {
                 HashMap::from([
                     ("sv_from", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Single(StateVarReference::Basic("from")),
+                        state_var: StateVarSlice::Single(StateRef::Basic("from")),
                     }),
                     ("sv_to", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Single(StateVarReference::Basic("to")),
+                        state_var: StateVarSlice::Single(StateRef::Basic("to")),
                     })
                 ])
             },
@@ -74,7 +75,7 @@ lazy_static! {
                 HashMap::from([
                     ("sv_value", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Array("value"),
+                        state_var: StateVarSlice::Array("value"),
                     })
                 ])
             },

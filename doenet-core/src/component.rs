@@ -10,12 +10,21 @@ pub mod sequence;
 pub mod graph;
 pub mod point;
 
-use crate::prelude::*;
-use crate::state_variables::{StateVarValue, StateVarVariant};
+use crate::state_variables::*;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
 
+
+
+/// camelCase
+pub type ComponentType = &'static str;
+
+/// camelCase
+pub type AttributeName = &'static str;
+
+/// A ComponentName is not static because it cannot be known at compile time.
+pub type ComponentName = String;
 
 
 pub fn generate_component_definitions() -> HashMap<ComponentType, &'static ComponentDefinition> {
@@ -79,7 +88,7 @@ pub struct ComponentNode {
 #[derive(Debug, Clone)]
 pub enum CopySource {
     Component(ComponentName),
-    StateVar(ComponentName, StateVarReference),
+    StateVar(ComponentName, StateRef),
 }
 
 
@@ -107,8 +116,8 @@ pub struct ComponentDefinition {
     pub on_action: for<'a> fn(
         action_name: &str,
         args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateVarReference) -> StateVarValue
-    ) -> HashMap<StateVarReference, StateVarValue>,
+        resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> StateVarValue
+    ) -> HashMap<StateRef, StateVarValue>,
 
     pub should_render_children: bool,
 

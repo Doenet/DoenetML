@@ -1,16 +1,18 @@
 use serde::{Serialize, Deserialize};
 
-use crate::{Action, DoenetMLError};
-use crate::component::{CopySource, generate_component_definitions, ObjectName};
-use crate::prelude::*;
+use crate::utils::log_json;
+use crate::{Action};
+use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType};
 
 use crate::ComponentDefinition;
 use crate::ComponentChild;
 use crate::ComponentNode;
 
 use std::collections::HashMap;
+use std::fmt::Display;
 
 use crate::state_variables::*;
+
 
 // Structures for create_components_tree_from_json
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,6 +64,70 @@ enum ArgValue {
     Number(serde_json::Number),
     String(String),
 }
+
+
+
+
+
+
+
+
+/// This error is caused by invalid DoenetML.
+/// It is thrown only on core creation.
+#[derive(Debug)]
+pub enum DoenetMLError {
+    ComponentDoesNotExist {
+        comp_name: String
+    },
+    StateVarDoesNotExist {
+        comp_name: String,
+        sv_name: String,
+    },
+    AttributeDoesNotExist {
+        comp_name: String,
+        attr_name: String,
+    },
+    InvalidComponentType {
+        comp_type: String,
+    },
+
+    ComponentCopiesAncestor {
+        comp_name: String,
+        ancestor_name: String,
+    },
+
+//     CyclicalReference {
+//         comp_name: String,
+//         sv_name: String,
+//     },
+}
+
+impl std::error::Error for DoenetMLError {}
+impl Display for DoenetMLError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use DoenetMLError::*;
+
+        match self {
+            ComponentDoesNotExist { comp_name } => 
+                write!(f, "Component {} does not exist", comp_name),
+            StateVarDoesNotExist { comp_name, sv_name } =>
+                write!(f, "State variable {} does not exist on {}", sv_name, comp_name),
+            AttributeDoesNotExist { comp_name, attr_name } =>
+                write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
+            InvalidComponentType { comp_type } => 
+                write!(f, "Component type {} does not exist", comp_type),
+            ComponentCopiesAncestor { comp_name, ancestor_name } => 
+                write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
+            // CyclicalReference { comp_name, sv_name } => 
+                // write!(f, "State variable {} for {} references itself", comp_name, sv_name),
+
+        }
+    }
+}
+
+
+
+
 
 
 fn get_key_value_ignore_case<'a, K, V>(map: &'a HashMap<K, V>, key: &str) -> Option<(&'a K, &'a V)>
@@ -215,7 +281,7 @@ fn add_component_from_json(
 
                 if let Some(state_var_name) = all_state_var_names.get(source_state_var) {
                     // TODO: parse non-basic props
-                    Some(CopySource::StateVar(source_name.clone(), StateVarReference::Basic(state_var_name)))
+                    Some(CopySource::StateVar(source_name.clone(), StateRef::Basic(state_var_name)))
 
                 } else {
                     doenet_ml_errors.push(DoenetMLError::StateVarDoesNotExist {

@@ -1,8 +1,9 @@
 
 // #![cfg(target_arch = "wasm32")]
 
-use doenet_core::prelude::{DoenetMLError, StateVarReference};
-use doenet_core::{DoenetCore, state_variables::StateVarValue, state_var::{StateForStateVar, State}};
+use doenet_core::parse_json::DoenetMLError;
+use doenet_core::state_variables::StateRef;
+use doenet_core::{DoenetCore, state_variables::StateVarValue, state::{StateForStateVar, State}};
 use serde_json::Value;
 use wasm_bindgen::{prelude::wasm_bindgen, JsValue};
 
@@ -23,7 +24,7 @@ pub fn doenet_core_from(data: &str) -> (DoenetCore, Vec<DoenetMLError>) {
 }
 
 
-pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateVarReference, value: StateVarValue) {
+pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateRef, value: StateVarValue) {
 
     let state_value = dc.component_states.get(comp_name).expect(
         &format!("Component {} does not exist", comp_name)
@@ -32,21 +33,21 @@ pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &St
     );
 
     let state = match sv_ref {
-        StateVarReference::Basic(sv_name) => {
+        StateRef::Basic(sv_name) => {
             match state_value {
                 StateForStateVar::Single(sv) => sv.get_state(),
                 _ => panic!("State var [{}]:[{}] is basic but does not have single state", comp_name, sv_name)
             }
         },
 
-        StateVarReference::SizeOf(sv_name) => {
+        StateRef::SizeOf(sv_name) => {
             match state_value {
                 StateForStateVar::Array { size, elements: _ } => size.get_state(),
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
 
-        StateVarReference::ArrayElement(sv_name, id) => {
+        StateRef::ArrayElement(sv_name, id) => {
             match state_value {
                 StateForStateVar::Array { size: _, elements } => {
                     elements.borrow().get(*id).expect(
@@ -69,7 +70,7 @@ pub fn assert_state_var_basic_is_string(
     sv_name: &'static str,
     value: &'static str) {
 
-    assert_state_var_is(dc, comp_name, &StateVarReference::Basic(sv_name), StateVarValue::String(value.into()));
+    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::String(value.into()));
 }
 
 pub fn assert_state_var_basic_is_number(
@@ -78,7 +79,7 @@ pub fn assert_state_var_basic_is_number(
     sv_name: &'static str,
     value: f64) {
 
-    assert_state_var_is(dc, comp_name, &StateVarReference::Basic(sv_name), StateVarValue::Number(value));
+    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Number(value));
 }
 
 
@@ -89,7 +90,7 @@ pub fn assert_state_var_array_element_is_number(
     id: usize,
     value: f64) {
 
-    assert_state_var_is(dc, comp_name, &StateVarReference::ArrayElement(sv_name, id), StateVarValue::Number(value));
+    assert_state_var_is(dc, comp_name, &StateRef::ArrayElement(sv_name, id), StateVarValue::Number(value));
 }
 
 pub fn assert_state_var_array_size_is(
@@ -98,12 +99,12 @@ pub fn assert_state_var_array_size_is(
     sv_name: &'static str,
     size: usize,
 ) {
-    assert_state_var_is(dc, comp_name, &StateVarReference::SizeOf(sv_name), StateVarValue::Integer(size as i64));
+    assert_state_var_is(dc, comp_name, &StateRef::SizeOf(sv_name), StateVarValue::Integer(size as i64));
 }
 
 
 pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
-    
+
     render_tree.as_array().unwrap().iter().find( |render_item| {
         if let Some(render_obj) = render_item.as_object() {
             if render_obj.get("componentName") == Some(&Value::String(component_name.to_string())) {

@@ -3,11 +3,48 @@ use std::collections::HashMap;
 use crate::DependencyKey;
 use crate::StateForStateVar;
 use crate::Dependency;
-use crate::prelude::*;
 use crate::component::*;
-use crate::state_var::State;
+use crate::state::State;
+use crate::state_variables::StateVarName;
+use crate::state_variables::StateVarSlice;
 
 use serde_json::{Value, Map, json};
+
+
+
+/// Macros for logging.
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+
+        #[cfg(feature = "web")]
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+
+        #[cfg(not(feature = "web"))]
+        println!( $( $t )* )
+    }
+}
+macro_rules! log_json {
+    ( $label:expr, $a:expr ) => {
+
+        #[cfg(feature = "web")]
+        web_sys::console::log_2(&$label.into(), &wasm_bindgen::JsValue::from_serde(&$a).unwrap());
+    }
+}
+macro_rules! log_debug {
+    ( $( $t:tt )* ) => {
+
+        #[cfg(feature = "web")]
+        web_sys::console::debug_1(&format!( $( $t )* ).into());
+
+        #[cfg(not(feature = "web"))]
+        println!( $( $t )* )
+    }
+}
+
+pub(crate) use log;
+pub(crate) use log_json;
+pub(crate) use log_debug;
+
 
 
 /// List components and children in a JSON array
@@ -125,14 +162,40 @@ pub fn package_subtree_as_json(
 
 
 
+// pub fn json_dependencies(
+//     dependencies: &HashMap<DependencyKey, Vec<Dependency>>,
+// ) -> HashMap<String, Vec<Dependency>> {
+
+//     dependencies
+//         .iter()
+//         .map(|(k, deps)| {
+//             (format!("{:?}", k), deps.clone())
+//         })
+//         .collect()
+// }
+
+
 pub fn json_dependencies(
     dependencies: &HashMap<DependencyKey, Vec<Dependency>>,
-) -> HashMap<String, Vec<Dependency>> {
+) -> HashMap<String, HashMap<String,Vec<Dependency>>> {
 
-    dependencies
-        .iter()
-        .map(|(k, deps)| {
-            (format!("{:?}", k), deps.clone())
-        })
-        .collect()
+    let mut display_deps = HashMap::new();
+
+
+    for (key, deps) in dependencies {
+        let display_key = match key {
+            DependencyKey::StateVar(_, StateVarSlice::Single(single), instruct) => {
+                format!("{} {}", single, instruct)
+            },
+            DependencyKey::StateVar(_, StateVarSlice::Array(array), instruct) => {
+                format!("{} {}", array, instruct)
+            }
+        };
+
+        display_deps.entry(key.component_name().to_string()).or_insert(HashMap::new())
+            .entry(display_key).or_insert(deps.clone());
+
+    }
+
+    display_deps
 }

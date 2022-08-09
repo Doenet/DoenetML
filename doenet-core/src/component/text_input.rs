@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-
-use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
+
 
 
 lazy_static! {
@@ -92,18 +92,18 @@ lazy_static! {
                     let new_val = args.get("text").expect("No text argument");
 
                     HashMap::from([(
-                        StateVarReference::Basic("immediateValue"),
+                        StateRef::Basic("immediateValue"),
                         new_val.clone()
                     )])
                 },
 
                 "updateValue" => {
 
-                    let new_val = resolve_and_retrieve_state_var(&StateVarReference::Basic("immediateValue")).try_into().unwrap();
+                    let new_val = resolve_and_retrieve_state_var(&StateRef::Basic("immediateValue")).try_into().unwrap();
                     let new_val = StateVarValue::String(new_val);
 
                     HashMap::from([(
-                        StateVarReference::Basic("value"),
+                        StateRef::Basic("value"),
                         new_val
                     )])
 

@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::prelude::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
+
 use super::*;
 
 
@@ -63,7 +64,7 @@ lazy_static! {
                 HashMap::from([
                     ("coords", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Array("coords"),
+                        state_var: StateVarSlice::Array("coords"),
                     }),
                 ])
             },
@@ -80,7 +81,7 @@ lazy_static! {
                 HashMap::from([
                     ("dimensions", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarGroup::Single(StateVarReference::SizeOf("coords")),
+                        state_var: StateVarSlice::Single(StateRef::SizeOf("coords")),
                     }),
                 ])
             },
@@ -102,7 +103,7 @@ lazy_static! {
                 HashMap::from([
                     ("coords", DependencyInstruction::StateVar{
                         component_name: None,
-                        state_var: StateVarGroup::Array("coords"),
+                        state_var: StateVarSlice::Array("coords"),
                     }),
                 ])
             },
@@ -205,8 +206,8 @@ lazy_static! {
                     // let z = args.get("z").expect("No z argument");
 
                     HashMap::from([
-                        (StateVarReference::ArrayElement("coords", 0), x.clone()),
-                        (StateVarReference::ArrayElement("coords", 1), y.clone()),
+                        (StateRef::ArrayElement("coords", 0), x.clone()),
+                        (StateRef::ArrayElement("coords", 1), y.clone()),
                     ])
                 },
                 "switchPoint" => {

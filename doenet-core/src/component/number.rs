@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::prelude::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
+
 use super::*;
 
 use crate::ComponentProfile;
@@ -42,7 +43,7 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::StateVar {
                     component_name: None,
-                    state_var: StateVarGroup::Single(StateVarReference::Basic("value")),
+                    state_var: StateVarSlice::Single(StateRef::Basic("value")),
                 };
             
                 HashMap::from([("value_sv", instruction)]) 

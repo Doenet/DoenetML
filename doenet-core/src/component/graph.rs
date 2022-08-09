@@ -2,8 +2,9 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::prelude::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
+
 use super::*;
 
 
@@ -166,10 +167,10 @@ lazy_static! {
                     let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
 
                     HashMap::from([
-                        (StateVarReference::Basic("xmin"), xmin),
-                        (StateVarReference::Basic("xmax"), xmax),
-                        (StateVarReference::Basic("ymin"), ymin),
-                        (StateVarReference::Basic("ymax"), ymax),
+                        (StateRef::Basic("xmin"), xmin),
+                        (StateRef::Basic("xmax"), xmax),
+                        (StateRef::Basic("ymin"), ymin),
+                        (StateRef::Basic("ymax"), ymax),
                     ])
                 },
 

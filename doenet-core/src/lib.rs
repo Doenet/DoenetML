@@ -1,22 +1,24 @@
-pub mod prelude;
 
 pub mod state_variables;
 pub mod component;
 
-pub mod state_var;
+pub mod state;
 pub mod parse_json;
 pub mod utils;
+pub mod base_definitions;
 
 use lazy_static::lazy_static;
-use state_var::StateForStateVar;
+use parse_json::DoenetMLError;
+use state::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
 use regex::Regex;
 
-use state_var::{State, EssentialStateVar};
-use prelude::*;
+use state::{State, EssentialStateVar};
 use component::*;
 use state_variables::*;
+
+use crate::utils::{log_json, log_debug};
 
 
 /// A static DoenetCore is created from parsed DoenetML at the beginning.
@@ -70,18 +72,16 @@ pub struct DoenetCore {
 ///    dependecy values came from.
 #[derive(Debug, Hash, PartialEq, Eq, serde::Serialize)]
 pub enum DependencyKey {
-    StateVar(ComponentName, StateVarGroup, InstructionName),
-    Attribute(ComponentName, AttributeName),
+    StateVar(ComponentName, StateVarSlice, InstructionName),
 }
 
-// impl DependencyKey {
-//     fn component_name(&self) -> &str {
-//         match self {
-//             DependencyKey::Attribute(name, _) => name,
-//             DependencyKey::StateVar(name, _, _) => name,
-//         }
-//     }
-// }
+impl DependencyKey {
+    fn component_name(&self) -> &str {
+        match self {
+            DependencyKey::StateVar(name, _, _) => name,
+        }
+    }
+}
 
 
 /// A collection of edges on the dependency tree
@@ -89,7 +89,7 @@ pub enum DependencyKey {
 pub enum Dependency {
     StateVar {
         component_name: ComponentName,
-        state_var_ref: StateVarReference,
+        state_var_ref: StateRef,
     },
     Essential {
         component_name: ComponentName,
@@ -389,7 +389,7 @@ fn apply_macro_to_string(
 
                     copy_source: Some(CopySource::StateVar(
                         // TODO: non-basic copies
-                        source_comp.name.clone(), StateVarReference::Basic(prop_name))),
+                        source_comp.name.clone(), StateRef::Basic(prop_name))),
 
                     attributes: HashMap::new(),
                     component_type: copy_comp_type,
@@ -585,14 +585,14 @@ fn create_all_dependencies_for_component(
 
             for (instruct_name, ref dep_instruction) in size_dep_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
-                    &components, component, &&StateVarReference::SizeOf(state_var_name),
+                    &components, component, &&StateRef::SizeOf(state_var_name),
                     dep_instruction, instruct_name, essential_data,
                 );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
                         component.name.clone(),
-                        StateVarGroup::Single(StateVarReference::SizeOf(state_var_name)),
+                        StateVarSlice::Single(StateRef::SizeOf(state_var_name)),
                         instruct_name
                     ),
                     instruct_dependencies,
@@ -604,14 +604,14 @@ fn create_all_dependencies_for_component(
 
             for (instruct_name, ref dep_instruction) in array_dep_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
-                    &components, component, &&StateVarReference::SizeOf(state_var_name),
+                    &components, component, &&StateRef::SizeOf(state_var_name),
                     dep_instruction, instruct_name, essential_data
                 );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
                         component.name.clone(),
-                        StateVarGroup::Array(state_var_name),
+                        StateVarSlice::Array(state_var_name),
                         instruct_name,
                     ),
                     instruct_dependencies,
@@ -623,18 +623,18 @@ fn create_all_dependencies_for_component(
 
         } else {
 
-            let dependency_instructions = return_dependency_instruction_including_shadowing(component, &StateVarReference::Basic(state_var_name));
+            let dependency_instructions = return_dependency_instruction_including_shadowing(component, &StateRef::Basic(state_var_name));
 
             for (instruct_name, ref dep_instruction) in dependency_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
-                    &components, component, &StateVarReference::Basic(state_var_name),
+                    &components, component, &StateRef::Basic(state_var_name),
                     dep_instruction, instruct_name, essential_data
                 );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
                         component.name.clone(),
-                        StateVarGroup::Single(StateVarReference::Basic(state_var_name)),
+                        StateVarSlice::Single(StateRef::Basic(state_var_name)),
                         instruct_name,
                     ),
                     instruct_dependencies   
@@ -653,7 +653,7 @@ fn create_all_dependencies_for_component(
 fn create_dependencies_from_instruction(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
-    state_var_reference: &StateVarReference,
+    state_var_reference: &StateRef,
     instruction: &DependencyInstruction,
     instruction_name: InstructionName,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
@@ -709,13 +709,13 @@ fn create_dependencies_from_instruction(
 
             dependencies.push(match state_var {
 
-                StateVarGroup::Single(state_var_ref) => {
+                StateVarSlice::Single(state_var_ref) => {
                     Dependency::StateVar {
                         component_name,
                         state_var_ref: state_var_ref.clone()
                     }
                 },
-                StateVarGroup::Array(array_state_var_name) => {
+                StateVarSlice::Array(array_state_var_name) => {
                     Dependency::StateVarArray {
                         component_name,
                         array_state_var_name,
@@ -759,7 +759,7 @@ fn create_dependencies_from_instruction(
                             } else {
                                 dependencies.push(Dependency::StateVar {
                                     component_name: child_component_name.to_string(),
-                                    state_var_ref: StateVarReference::Basic(profile_state_var),
+                                    state_var_ref: StateRef::Basic(profile_state_var),
                                 });
 
                             }
@@ -804,7 +804,7 @@ fn create_dependencies_from_instruction(
             } else {
                 dependencies.push(Dependency::StateVar {
                     component_name: parent_name.to_string(),
-                    state_var_ref: StateVarReference::Basic(desired_state_var),
+                    state_var_ref: StateRef::Basic(desired_state_var),
                 });
 
             }
@@ -837,7 +837,7 @@ fn create_dependencies_from_instruction(
                             }),
                             ObjectName::Component(s) => {
                                 let comp_def = components.get(s).unwrap().definition;
-                                let state_var_ref = StateVarReference::Basic(
+                                let state_var_ref = StateRef::Basic(
                                     comp_def.primary_input_state_var.unwrap());
 
                                 dependencies.push(Dependency::StateVar {
@@ -914,8 +914,8 @@ fn create_dependencies_from_instruction(
 fn get_state_variables_depending_on_me<'a>(
     core: &'a DoenetCore,
     sv_component_name: &ComponentName,
-    sv_reference: &StateVarReference,
-) -> Vec<(&'a ComponentName, &'a StateVarGroup)> {
+    sv_reference: &StateRef,
+) -> Vec<(&'a ComponentName, &'a StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
@@ -928,9 +928,8 @@ fn get_state_variables_depending_on_me<'a>(
                     if component_name == sv_component_name
                     && state_var_ref == sv_reference {
 
-                        if let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key {
-                            depending_on_me.push((dependent_comp, dependent_group));
-                        }
+                        let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
+                        depending_on_me.push((dependent_comp, dependent_group));
                     }
                 },
 
@@ -939,9 +938,9 @@ fn get_state_variables_depending_on_me<'a>(
                     if component_name == sv_component_name
                     && *array_state_var_name == sv_reference.name() {
 
-                        if let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key {
-                            depending_on_me.push((dependent_comp, dependent_group));
-                        }                    }
+                        let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
+                        depending_on_me.push((dependent_comp, dependent_group));
+                    }
                 },
 
                 // Essential and String dependencies are endpoints
@@ -958,21 +957,21 @@ fn get_state_variables_depending_on_me<'a>(
 fn dependencies_of_state_var<'a>(
     core: &'a DoenetCore,
     component: &ComponentNode,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
 ) -> HashMap<InstructionName, &'a Vec<Dependency>> {
 
     core.dependencies.iter().filter_map(| (key, deps) |
 
         match key {
-            DependencyKey::StateVar(comp_name, StateVarGroup::Single(sv_ref), instruct_name) => {
+            DependencyKey::StateVar(comp_name, StateVarSlice::Single(sv_ref), instruct_name) => {
                 if comp_name == &component.name && sv_ref == state_var_ref {
                     Some((*instruct_name, deps))
                 } else {
                     None
                 }
             },
-            DependencyKey::StateVar(comp_name, StateVarGroup::Array(sv_array), instruct_name) => {
-                if let StateVarReference::ArrayElement(array_name, _) = state_var_ref {
+            DependencyKey::StateVar(comp_name, StateVarSlice::Array(sv_array), instruct_name) => {
+                if let StateRef::ArrayElement(array_name, _) = state_var_ref {
                     if comp_name == &component.name && array_name == sv_array {
                         Some((*instruct_name, deps))
                     } else {
@@ -982,7 +981,6 @@ fn dependencies_of_state_var<'a>(
                     None
                 }
             },
-            _ => None,
         }
     ).collect()
 
@@ -991,7 +989,7 @@ fn dependencies_of_state_var<'a>(
 fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
 ) -> StateVarValue {
 
     let state_vars = core.component_states.get(&component.name).unwrap();
@@ -1064,14 +1062,14 @@ fn resolve_state_variable(
                     let size_value = resolve_state_variable(
                         core,
                         depends_on_component,
-                        &StateVarReference::SizeOf(array_state_var_name)
+                        &StateRef::SizeOf(array_state_var_name)
                     );
                     
                     for id in 0 as usize..i64::try_from(size_value).unwrap() as usize {
                         let element_value = resolve_state_variable(
                             core,
                             depends_on_component,
-                            &StateVarReference::ArrayElement(array_state_var_name, id)
+                            &StateRef::ArrayElement(array_state_var_name, id)
                         );
 
                         values_for_this_dep.push(DependencyValue {
@@ -1105,11 +1103,11 @@ fn resolve_state_variable(
 
 }
 
-fn get_essential_datum_index(state_var_ref: &StateVarReference) -> usize {
+fn get_essential_datum_index(state_var_ref: &StateRef) -> usize {
     match state_var_ref {
-        StateVarReference::Basic(_) => 0,
-        StateVarReference::SizeOf(_) => 0,
-        StateVarReference::ArrayElement(_, i) => i + 1, // reserve 0 for SizeOf
+        StateRef::Basic(_) => 0,
+        StateRef::SizeOf(_) => 0,
+        StateRef::ArrayElement(_, i) => i + 1, // reserve 0 for SizeOf
     }
 }
 
@@ -1118,35 +1116,35 @@ fn elements_of_array(
     core: &DoenetCore,
     component: &ComponentNode,
     sv_name: &StateVarName,
-) -> Vec<StateVarReference> {
-    let size_ref = StateVarReference::SizeOf(sv_name);
+) -> Vec<StateRef> {
+    let size_ref = StateRef::SizeOf(sv_name);
     let size: i64 = resolve_state_variable(core, component, &size_ref)
         .try_into()
         .unwrap();
 
-    (0..(size as usize)).map(|i| StateVarReference::ArrayElement(sv_name, i)).collect()
+    (0..(size as usize)).map(|i| StateRef::ArrayElement(sv_name, i)).collect()
 }
 
 fn references_from_group(
     core: &DoenetCore,
     sv_component: &ComponentNode,
     sv_name: &StateVarName,
-) -> Vec<StateVarReference> {
+) -> Vec<StateRef> {
 
     let state_var = core.component_states.get(&sv_component.name).unwrap().get(sv_name).unwrap();
 
     let existing_elements = (0..state_var.elements_len())
         .map(|i|
-            StateVarReference::ArrayElement(sv_name, i)
+            StateRef::ArrayElement(sv_name, i)
         );
 
     let specific_deps = core.dependencies.iter().filter_map(| (key, _) | {
         match key {
-            DependencyKey::StateVar(_, StateVarGroup::Single(StateVarReference::SizeOf(s)), _) => {
-                Some(StateVarReference::SizeOf(s))
+            DependencyKey::StateVar(_, StateVarSlice::Single(StateRef::SizeOf(s)), _) => {
+                Some(StateRef::SizeOf(s))
             },
-            DependencyKey::StateVar(_, StateVarGroup::Single(StateVarReference::ArrayElement(s, i)), _) => {    
-                Some(StateVarReference::ArrayElement(s, *i))
+            DependencyKey::StateVar(_, StateVarSlice::Single(StateRef::ArrayElement(s, i)), _) => {    
+                Some(StateRef::ArrayElement(s, *i))
             }
             _ => None,
         }
@@ -1166,7 +1164,7 @@ fn references_from_group(
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
 ) {
     let component_state = core.component_states.get(&component.name).unwrap();
     let state_var = component_state.get(state_var_ref.name()).unwrap();
@@ -1186,10 +1184,10 @@ fn mark_stale_state_var_and_dependencies(
         let depending_comp = core.component_nodes.get(depending_comp_name).unwrap();
 
         match depending_group {
-            StateVarGroup::Single(sv_ref) => {
+            StateVarSlice::Single(sv_ref) => {
                 mark_stale_state_var_and_dependencies(core, depending_comp, &sv_ref);
             },
-            StateVarGroup::Array(sv_name) => {
+            StateVarSlice::Array(sv_name) => {
                 let members = references_from_group(core, component, &sv_name);
                 for member in members {
                     mark_stale_state_var_and_dependencies(core, depending_comp, &member);
@@ -1205,7 +1203,7 @@ fn mark_stale_state_var_and_dependencies(
 fn mark_stale_essential_datum_dependencies(
     core: &DoenetCore,
     component_name: ComponentName,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
 ) {
 
     // log_debug!("Marking stale essential {}:{}", component_name, state_var);
@@ -1219,21 +1217,20 @@ fn mark_stale_essential_datum_dependencies(
         if deps.contains(&search_dep) {
 
             match key {
-                DependencyKey::StateVar(comp_name, StateVarGroup::Single(s), _) => Some((comp_name, s.clone())),
-                DependencyKey::StateVar(comp_name, StateVarGroup::Array(array), _) => {
+                DependencyKey::StateVar(comp_name, StateVarSlice::Single(s), _) => Some((comp_name, s.clone())),
+                DependencyKey::StateVar(comp_name, StateVarSlice::Array(array), _) => {
 
                     match state_var_ref {
-                        StateVarReference::ArrayElement(_, i) =>
-                            Some((comp_name, StateVarReference::ArrayElement(array, *i))),
-                        StateVarReference::SizeOf(_) =>
-                            Some((comp_name, StateVarReference::SizeOf(array))),
-                        StateVarReference::Basic(_) =>
+                        StateRef::ArrayElement(_, i) =>
+                            Some((comp_name, StateRef::ArrayElement(array, *i))),
+                        StateRef::SizeOf(_) =>
+                            Some((comp_name, StateRef::SizeOf(array))),
+                        StateRef::Basic(_) =>
                             // Arrays cannot use essential data
                             // associated with a basic state var.
                             None,
                     }
-            }
-                _ => None,
+                }
             }
 
         } else {
@@ -1253,7 +1250,7 @@ fn mark_stale_essential_datum_dependencies(
 fn handle_update_instruction<'a>(
     component: &'a ComponentNode,
     component_state_vars: &HashMap<StateVarName, StateForStateVar>,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
     instruction: StateVarUpdateInstruction<StateVarValue>
 ) -> StateVarValue {
 
@@ -1311,8 +1308,8 @@ pub struct Action {
 /// Internal struct used to track changes
 #[derive(Debug, Clone)]
 enum UpdateRequest {
-    SetEssentialValue(ComponentName, StateVarReference, StateVarValue),
-    SetStateVar(ComponentName, StateVarReference, StateVarValue),
+    SetEssentialValue(ComponentName, StateRef, StateVarValue),
+    SetStateVar(ComponentName, StateRef, StateVarValue),
 }
 
 
@@ -1321,7 +1318,7 @@ enum UpdateRequest {
 fn convert_dependency_values_to_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var: &StateVarReference,
+    state_var: &StateRef,
     requests: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> Vec<UpdateRequest> {
 
@@ -1489,7 +1486,7 @@ fn generate_render_tree_internal(
             state_values.insert(name.to_string(), json!(values));
 
         } else {
-            let state_var_value = resolve_state_variable(core, component, &StateVarReference::Basic(name));
+            let state_var_value = resolve_state_variable(core, component, &StateRef::Basic(name));
 
             if *name == "selectedStyle" || *name == "graphicalDescendants" {
                 if let StateVarValue::String(v) = state_var_value {
@@ -1611,7 +1608,7 @@ fn get_essential_data_component_including_copy(
 
 fn return_dependency_instruction_including_shadowing(
     component: &ComponentNode,
-    state_var: &StateVarReference,
+    state_var: &StateRef,
 ) -> HashMap<InstructionName, DependencyInstruction> {
 
     if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
@@ -1619,7 +1616,7 @@ fn return_dependency_instruction_including_shadowing(
         HashMap::from([
             (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar {
                 component_name: Some(source_comp), //.clone(),
-                state_var: StateVarGroup::Single(source_state_var),
+                state_var: StateVarSlice::Single(source_state_var),
             })
         ])
 
@@ -1627,13 +1624,13 @@ fn return_dependency_instruction_including_shadowing(
         let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
         match state_var {
-            StateVarReference::Basic(_) => {
+            StateRef::Basic(_) => {
                 state_var_def.return_dependency_instructions(HashMap::new())
             },
-            StateVarReference::SizeOf(_) => {
+            StateRef::SizeOf(_) => {
                 state_var_def.return_size_dependency_instructions(HashMap::new())
             },
-            StateVarReference::ArrayElement(_, id) => {
+            StateRef::ArrayElement(_, id) => {
                 state_var_def.return_element_dependency_instructions(*id, HashMap::new())
             }
         }
@@ -1645,7 +1642,7 @@ fn return_dependency_instruction_including_shadowing(
 /// This determines the state var given its dependency values.
 fn generate_update_instruction_including_shadowing(
     component: &ComponentNode,
-    state_var: &StateVarReference,
+    state_var: &StateRef,
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 
 ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
@@ -1664,13 +1661,13 @@ fn generate_update_instruction_including_shadowing(
         let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
         match state_var {
-            StateVarReference::Basic(_) => {
+            StateRef::Basic(_) => {
                 state_var_def.determine_state_var_from_dependencies(dependency_values)
             },
-            StateVarReference::SizeOf(_) => {
+            StateRef::SizeOf(_) => {
                 state_var_def.determine_size_from_dependencies(dependency_values)
             },
-            StateVarReference::ArrayElement(_, id) => {
+            StateRef::ArrayElement(_, id) => {
                 state_var_def.determine_element_from_dependencies(*id, dependency_values)
             }
         }
@@ -1683,7 +1680,7 @@ fn generate_update_instruction_including_shadowing(
 fn request_dependencies_to_update_value_including_shadow(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_ref: &StateVarReference,
+    state_var_ref: &StateRef,
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest> {
 
@@ -1701,13 +1698,13 @@ fn request_dependencies_to_update_value_including_shadow(
 
 /// Detect if a state var is shadowing because of a CopySource
 /// and has a primary input state variable, which is needed.
-fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateVarReference)
-    -> Option<(ComponentName, StateVarReference)> {
+fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateRef)
+    -> Option<(ComponentName, StateRef)> {
 
     if let Some(CopySource::StateVar(ref source_comp, ref source_state_var)) = component.copy_source {
         if let Some(primary_input_state_var) = component.definition.primary_input_state_var {
 
-            if state_var == &StateVarReference::Basic(primary_input_state_var) {
+            if state_var == &StateRef::Basic(primary_input_state_var) {
                 Some((source_comp.to_string(), source_state_var.clone()))
             } else {
                 None

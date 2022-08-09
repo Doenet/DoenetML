@@ -1,4 +1,4 @@
-use crate::{state_variables::*, prelude::StateVarReference};
+use crate::{state_variables::*};
 use std::{cell::RefCell, fmt};
 use self::State::*;
 
@@ -76,18 +76,18 @@ impl StateForStateVar {
     }
 
 
-    pub fn get_single_state(&self, sv_ref: &StateVarReference) -> State<StateVarValue> {
+    pub fn get_single_state(&self, sv_ref: &StateRef) -> State<StateVarValue> {
         match self {
             Self::Single(sv) => {
                 match sv_ref {
-                    StateVarReference::Basic(_) => sv.get_state(),
+                    StateRef::Basic(_) => sv.get_state(),
                     _ => panic!(),
                 }
             },
             Self::Array { size, elements } => {
                 match sv_ref {
-                    StateVarReference::SizeOf(_) => size.get_state(),
-                    StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().get_state(),
+                    StateRef::SizeOf(_) => size.get_state(),
+                    StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().get_state(),
                     _ => panic!(),
                 }
             },
@@ -97,14 +97,14 @@ impl StateForStateVar {
     }
 
 
-    pub fn set_single_state(&self, state_var_ref: &StateVarReference, val: StateVarValue) -> Result<(), String> {
+    pub fn set_single_state(&self, state_var_ref: &StateRef, val: StateVarValue) -> Result<(), String> {
         match self {
             Self::Single(sv) => sv.set_value(val),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().set_value(val),
+                StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().set_value(val),
 
-                StateVarReference::SizeOf(_) => {
+                StateRef::SizeOf(_) => {
 
                     let new_size = size.set_value(val.clone());
                     
@@ -124,13 +124,13 @@ impl StateForStateVar {
         }
     }
 
-    pub fn mark_single_stale(&self, state_var_ref: &StateVarReference) {
+    pub fn mark_single_stale(&self, state_var_ref: &StateRef) {
         match self {
             Self::Single(sv) => sv.mark_stale(),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateVarReference::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().mark_stale(),
-                StateVarReference::SizeOf(_) => size.mark_stale(),
+                StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().mark_stale(),
+                StateRef::SizeOf(_) => size.mark_stale(),
                 _ => panic!()
             }
         }

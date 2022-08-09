@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::prelude::*;
 use crate::state_variables::*;
+use crate::base_definitions::*;
 use super::*;
 
 use crate::ComponentProfile;
@@ -61,7 +61,7 @@ lazy_static! {
                     let new_val = args.get("boolean").expect("No boolean argument");
 
                     HashMap::from([(
-                        StateVarReference::Basic("value"),
+                        StateRef::Basic("value"),
                         new_val.clone()
                     )])
                 }
