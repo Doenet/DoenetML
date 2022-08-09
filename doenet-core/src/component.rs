@@ -104,6 +104,7 @@ pub enum ObjectTraitName {
     Graphical,
 }
 
+
 pub struct ComponentDefinition {
     pub attribute_definitions: &'static HashMap<AttributeName, AttributeDefinition>,
     pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,

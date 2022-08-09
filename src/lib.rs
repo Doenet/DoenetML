@@ -61,6 +61,12 @@ impl PublicDoenetCore {
     }
 
 
+    pub fn display_all_state(&self) -> String {
+        serde_json::to_string(&doenet_core::utils::json_components(
+            &self.0.component_nodes,
+            &self.0.component_states
+        )).unwrap_or_default()
+    }
 
 
     pub fn update_renderers(&self) -> String {

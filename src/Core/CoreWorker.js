@@ -3,7 +3,6 @@ import { parseAndCompile } from "../Parser/parser";
 
 let doenetCore;
 
-
 onmessage = function (e) {
   console.log('received message', e);
 
@@ -17,12 +16,14 @@ onmessage = function (e) {
     // console.log(e.data.args);
     handleAction(e.data.args);
 
+    // For debugging only
+    this.debugStateValues = JSON.parse(doenetCore.display_all_state());
+
   }
 }
 
 
 async function createCore(args) {
-
 
   const DoenetTextJson = parseAndCompile(args.doenetML);
     
