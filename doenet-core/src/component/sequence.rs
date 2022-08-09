@@ -6,9 +6,6 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
-
-
 
 lazy_static! {
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
@@ -139,7 +136,7 @@ lazy_static! {
 
         renderer_type: RendererType::Special("text"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike, ObjectTraitName::NumberLike],
+        // primary_output_traits: || vec![PrimaryOutputTrait::TextLike, PrimaryOutputTrait::NumberLike],
         
         ..Default::default()
     };

@@ -7,7 +7,7 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
+use crate::ComponentProfile;
 
 
 
@@ -22,8 +22,9 @@ lazy_static! {
 
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::Child {
-                    desired_children: vec![ObjectTraitName::NumberLike],
-                    desired_state_vars: vec!["value"],
+                    desired_profiles: vec![ComponentProfile::Number, ComponentProfile::Text],
+                    // desired_children: vec![PrimaryOutputTrait::NumberLike],
+                    // desired_state_vars: vec!["value"],
                 };
             
                 HashMap::from([("children", instruction)]) 
@@ -116,8 +117,11 @@ lazy_static! {
 
         primary_input_state_var: Some("value"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike, ObjectTraitName::NumberLike],
-        
+        component_profiles: vec![
+            (ComponentProfile::Number, "value"),
+            (ComponentProfile::Text, "value"),
+        ],
+                
         ..Default::default()
     };
 }

@@ -96,12 +96,14 @@ pub enum CopySource {
 }
 
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum ObjectTraitName {
-    TextLike,
-    NumberLike,
-    ComponentLike,
-    Graphical,
+#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+pub enum ComponentProfile {
+    Text,
+    Number,
+    Boolean,
+    Math,
+    // ComponentLike,
+    // Graphical,
 }
 
 
@@ -109,8 +111,10 @@ pub struct ComponentDefinition {
     pub attribute_definitions: &'static HashMap<AttributeName, AttributeDefinition>,
     pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,
 
-    //TODO: Do we really need this?
-    pub get_trait_names: fn() -> Vec<ObjectTraitName>,
+    /// An ordered list of which profiles this component fulfills, along with the name of the
+    /// state variable that fulfills it.
+    /// The first element in the list is the profile most preferred by this component
+    pub component_profiles: Vec<(ComponentProfile, StateVarName)>,
 
     /// Process an action and return the state variables to change.
     pub on_action: for<'a> fn(
@@ -160,7 +164,7 @@ impl Default for ComponentDefinition {
 
             primary_input_state_var: None,
 
-            get_trait_names: || Vec::new(),
+            component_profiles: vec![],
 
             action_names: || Vec::new(),
 
@@ -177,7 +181,7 @@ impl Debug for ComponentDefinition {
             .field("should_render_children", &self.should_render_children)
             .field("renderer_type", &self.renderer_type)
             .field("primary_input_state_var", &self.primary_input_state_var)
-            .field("get_trait_names", &(self.get_trait_names)())
+            .field("primary_output_traits", &self.component_profiles)
             .field("action_names", &(self.action_names)())
             .finish()
     }

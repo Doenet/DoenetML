@@ -6,8 +6,6 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
-
 
 
 lazy_static! {
@@ -216,7 +214,7 @@ lazy_static! {
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        get_trait_names: || vec![ObjectTraitName::Graphical],
+        // primary_output_traits: || vec![PrimaryOutputTrait::Graphical],
 
         action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
 

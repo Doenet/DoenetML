@@ -189,7 +189,7 @@ fn add_component_from_json(
 
     let (&component_type, &component_definition) = {
         if let Some(comp_type_def) = get_key_value_ignore_case(component_definitions, component_type) {
-            log!("match {} {}", component_type, comp_type_def.0);
+            // log!("match {} {}", component_type, comp_type_def.0);
             comp_type_def
         } else {
             doenet_ml_errors.push(

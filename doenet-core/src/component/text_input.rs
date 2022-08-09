@@ -7,9 +7,6 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::ObjectTraitName;
-
-
 
 lazy_static! {
 
@@ -92,7 +89,7 @@ lazy_static! {
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        get_trait_names: || vec![ObjectTraitName::TextLike],
+        // primary_output_traits: || vec![PrimaryOutputTrait::TextLike],
 
         action_names: || vec!["updateImmediateValue", "updateValue"],
 

@@ -6,9 +6,6 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
-
-
 
 lazy_static! {
 
@@ -17,30 +14,30 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
         
-        state_var_definitions.insert("graphicalDescendants", StateVarVariant::String(StateVarDefinition {
-            return_dependency_instructions: |_| {
-                    HashMap::from([
-                    ("descendants", DependencyInstruction::Child {
-                        desired_children: vec![ObjectTraitName::Graphical],
-                        desired_state_vars: vec!["disabled"],
-                    })
-                ])
-            },
-            determine_state_var_from_dependencies: |dependency_values| {
-                let descendants = dependency_values.dep_value("descendants")?;
-                let descendants: Vec<serde_json::Value> = descendants.0
-                    .iter()
-                    .map(|dv|
-                        serde_json::json!({
-                            "component_type": dv.component_type,
-                        })
-                    )
-                    .collect();
-                Ok(SetValue(serde_json::to_string(&descendants).unwrap()))
-            },
-            for_renderer: true,
-            ..Default::default()
-        }));
+        // state_var_definitions.insert("graphicalDescendants", StateVarVariant::String(StateVarDefinition {
+        //     return_dependency_instructions: |_| {
+        //             HashMap::from([
+        //             ("descendants", DependencyInstruction::Child {
+        //                 // desired_children: vec![PrimaryOutputTrait::Graphical],
+        //                 // desired_state_vars: vec!["disabled"],
+        //             })
+        //         ])
+        //     },
+        //     determine_state_var_from_dependencies: |dependency_values| {
+        //         let descendants = dependency_values.dep_value("descendants")?;
+        //         let descendants: Vec<serde_json::Value> = descendants.0
+        //             .iter()
+        //             .map(|dv|
+        //                 serde_json::json!({
+        //                     "component_type": dv.component_type,
+        //                 })
+        //             )
+        //             .collect();
+        //         Ok(SetValue(serde_json::to_string(&descendants).unwrap()))
+        //     },
+        //     for_renderer: true,
+        //     ..Default::default()
+        // }));
 
         state_var_definitions.insert("width", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::prelude::*;
 
-use crate::ObjectTraitName;
+use crate::ComponentProfile;
 
 
 
@@ -180,8 +180,9 @@ pub enum StateVarValue {
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child {
-        desired_children: Vec<ObjectTraitName>,
-        desired_state_vars: Vec<StateVarName>,
+        desired_profiles: Vec<ComponentProfile>,
+        // desired_children: Vec<PrimaryOutputTrait>,
+        // desired_state_vars: Vec<StateVarName>,
     },
     StateVar {
         component_name: Option<ComponentName>,

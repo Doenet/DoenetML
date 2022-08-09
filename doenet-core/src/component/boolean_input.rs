@@ -6,7 +6,7 @@ use crate::prelude::*;
 use crate::state_variables::*;
 use super::*;
 
-use crate::ObjectTraitName;
+use crate::ComponentProfile;
 
 
 
@@ -55,7 +55,9 @@ lazy_static! {
 
         primary_input_state_var: Some("value"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike],
+        component_profiles: vec![
+            (ComponentProfile::Boolean, "value")
+        ],
 
         action_names: || vec!["updateBoolean"],
 

@@ -710,7 +710,11 @@ fn create_dependencies_from_instruction(
 
         },
 
-        DependencyInstruction::Child { desired_children, desired_state_vars } => {
+        DependencyInstruction::Child {
+            desired_profiles
+            // desired_children,
+            // desired_state_vars
+         } => {
 
         
             // let mut depends_on_children: Vec<ObjectName> = vec![];
@@ -720,45 +724,43 @@ fn create_dependencies_from_instruction(
                     ComponentChild::Component(child_component_name) => {
                         let child_component = components.get(child_component_name).unwrap();
 
-                        let child_is_in_desired_type = desired_children.iter().fold(
-                            false,
-                            |accum, desired_type| {
-                                accum || (child_component.definition.get_trait_names)().contains(desired_type)
-                        });
+                        let mut selected_child_state_var = None;
 
-                        if child_is_in_desired_type {
-                            for desired_state_var in desired_state_vars.iter() {
-
-                                let sv_def = child_component.definition
-                                    .state_var_definitions
-                                    .get(desired_state_var)
-                                    .unwrap();
-
-                                if sv_def.is_array() {
-                                    dependencies.push(Dependency::StateVarArray {
-                                        component_name: child_component_name.to_string(),
-                                        array_state_var_name: desired_state_var,
-                                    });
-
-                                } else {
-                                    dependencies.push(Dependency::StateVar {
-                                        component_name: child_component_name.to_string(),
-                                        state_var_ref: StateVarReference::Basic(desired_state_var),
-                                    });
-    
-                                }
+                        for child_profile in child_component.definition.component_profiles.iter() {
+                            if desired_profiles.contains(&child_profile.0) {
+                                selected_child_state_var = Some(child_profile.1);
+                                break;
+                            }
+                        }
 
 
+                        if let Some(profile_state_var) = selected_child_state_var {
+
+                            let sv_def = child_component.definition
+                                .state_var_definitions
+                                .get(profile_state_var)
+                                .unwrap();
+
+                            if sv_def.is_array() {
+                                dependencies.push(Dependency::StateVarArray {
+                                    component_name: child_component_name.to_string(),
+                                    array_state_var_name: profile_state_var,
+                                });
+
+                            } else {
+                                dependencies.push(Dependency::StateVar {
+                                    component_name: child_component_name.to_string(),
+                                    state_var_ref: StateVarReference::Basic(profile_state_var),
+                                });
 
                             }
+
                         }
 
                     },
 
                     ComponentChild::String(string_value) => {
-                        if desired_children.contains(&ObjectTraitName::TextLike)
-                        || desired_children.contains(&ObjectTraitName::NumberLike) {
-
+                        if desired_profiles.contains(&ComponentProfile::Text) {
                             dependencies.push(Dependency::String { value: string_value.to_string() });
                         }
                     },

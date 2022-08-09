@@ -6,7 +6,7 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::ObjectTraitName;
+use crate::ComponentProfile;
 
 use lazy_static::lazy_static;
 
@@ -23,8 +23,9 @@ lazy_static! {
 
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::Child {                    
-                    desired_children: vec![ObjectTraitName::TextLike],
-                    desired_state_vars: vec!["value"],
+                    // desired_children: vec![PrimaryOutputTrait::TextLike],
+                    // desired_state_vars: vec!["value"],
+                    desired_profiles: vec![ComponentProfile::Text],
                 };
             
                 HashMap::from([("children_value_svs", instruction)])
@@ -96,7 +97,9 @@ lazy_static! {
 
         primary_input_state_var: Some("value"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike],
+        component_profiles: vec![
+            (ComponentProfile::Text, "value")
+        ],
         
         ..Default::default()
     };

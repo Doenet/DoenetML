@@ -7,7 +7,7 @@ use crate::prelude::*;
 use super::*;
 use crate::state_variables::*;
 
-use crate::ObjectTraitName;
+use crate::ComponentProfile;
 
 
 
@@ -103,8 +103,11 @@ lazy_static! {
 
         renderer_type: RendererType::Special("textInput"),
 
-        get_trait_names: || vec![ObjectTraitName::TextLike],
-
+        component_profiles: vec![
+            (ComponentProfile::Number, "value"),
+            // (ComponentProfile::Text, "value"),
+        ],
+        
         action_names: || vec!["updateImmediateValue", "updateValue"],
 
         on_action: |action_name, args, resolve_and_retrieve_state_var| {

@@ -1,3 +1,6 @@
+// #![cfg(target_arch = "wasm32")]
+
+
 mod common_node;
 
 use common_node::*;
@@ -5,18 +8,41 @@ use wasm_bindgen_test::wasm_bindgen_test;
 
 
 #[wasm_bindgen_test]
-fn p_preserves_spaces_between_text_tags() {
+fn text_preserves_spaces_between_text_tags() {
 
     let data = r#"
-    <document><p><text>Hello</text> <text>there</text>!</p>
-    <p><text>We <text>could</text> be <text copySource="/_text2" />.</text></p></document>
+    <document>
+        <text name='a'><text>Hello</text> <text>there</text>!</text>
+        <text name='b'><text>We <text>could</text> be <text copySource="/_text3" />.</text></text>
+    </document>
     "#;
     let (dc, ml_errs) = doenet_core_from(data);
     assert_eq!(ml_errs.len(), 0);
     doenet_core::update_renderers(&dc);
 
-    assert_state_var_basic_is_string(&dc, "/_p1", "value", "Hello there!");
-    assert_state_var_basic_is_string(&dc, "/_p2", "value", "We could be there.");
+    // let get_render_data = |component_name: &'static str| {
+    //     render_tree.as_array().unwrap().iter().find( |render_item| {
+    //         if let Some(render_obj) = render_item.as_object() {
+    //             if render_obj.get("componentName") == Some(&Value::String(component_name.to_string())) {
+    //                 true
+    //             } else {
+    //                 false
+    //             }
+    //         } else {
+    //             false
+    //         }
+
+    //     }).unwrap().as_object().unwrap()
+    // };
+
+    // let p1_render_data = get_render_data("/_p1");
+    // let p1_children_instructions = p1_render_data.get("childrenInstructions").unwrap().as_array().unwrap();
+    // assert_eq!(p1_children_instructions.len(), 4, "Incorrect length of p1 render childrenInstructions");
+
+    // assert_eq!(p1_children_instructions, &vec![Value::String("Hello there!".to_string())]);
+
+    assert_state_var_basic_is_string(&dc, "a", "value", "Hello there!");
+    assert_state_var_basic_is_string(&dc, "b", "value", "We could be there.");
 }
 
 #[wasm_bindgen_test]
@@ -34,38 +60,37 @@ fn text_inside_text() {
     assert_state_var_basic_is_string(&dc, "/_text1", "value", "one two three three again three once more");
 }
 
-#[wasm_bindgen_test]
-fn p_copies_p_with_grandchildren() {
-    let data = r#"
-        <p><p><p><p>super grandchild</p></p></p></p>
-        <p name='c1' copySource='/_p1' />
-        <p name='c2' copySource="c1" />
-    "#;
+// #[wasm_bindgen_test]
+// fn p_copies_p_with_grandchildren() {
+//     let data = r#"
+//         <p><p><p><p>super grandchild</p></p></p></p>
+//         <p name='c1' copySource='/_p1' />
+//         <p name='c2' copySource="c1" />
+//     "#;
 
-    let (dc, ml_errs) = doenet_core_from(data);
-    assert_eq!(ml_errs.len(), 0);
-    doenet_core::update_renderers(&dc);
+//     let (dc, ml_errs) = doenet_core_from(data);
+//     assert_eq!(ml_errs.len(), 0);
+//     doenet_core::update_renderers(&dc);
 
-    assert_state_var_basic_is_string(&dc, "c2", "value", "super grandchild");
+//     assert_state_var_basic_is_string(&dc, "c2", "value", "super grandchild");
+// }
 
-}
 
+// #[wasm_bindgen_test]
+// fn multi_layered_component_copy() {
+//     let data = r#"
 
-#[wasm_bindgen_test]
-fn multi_layered_component_copy() {
-    let data = r#"
+//         <p name='a'><p><p>grandchild</p></p></p>
+//         <p name='b'>hello <p>there <p copySource='a' /></p></p>
+//         <p name='c'><p><p copySource='b' /></p></p>
+//     "#;
 
-        <p name='a'><p><p>grandchild</p></p></p>
-        <p name='b'>hello <p>there <p copySource='a' /></p></p>
-        <p name='c'><p><p copySource='b' /></p></p>
-    "#;
+//     let (dc, ml_errs) = doenet_core_from(data);
+//     assert_eq!(ml_errs.len(), 0);
+//     doenet_core::update_renderers(&dc);
 
-    let (dc, ml_errs) = doenet_core_from(data);
-    assert_eq!(ml_errs.len(), 0);
-    doenet_core::update_renderers(&dc);
-
-    assert_state_var_basic_is_string(&dc, "c", "value", "hello there grandchild");
-}
+//     assert_state_var_basic_is_string(&dc, "c", "value", "hello there grandchild");
+// }
 
 #[wasm_bindgen_test]
 fn sequence_copies_component() {
