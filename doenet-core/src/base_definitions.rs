@@ -73,6 +73,66 @@ macro_rules! integer_definition_from_attribute {
 }
 pub(crate) use integer_definition_from_attribute;
 
+macro_rules! number_array_definition_from_attribute {
+    ( $attribute:expr, $default:expr, $has_essential:expr, $default_size:expr) => {
+        {
+            StateVarVariant::NumberArray(StateVarArrayDefinition {
+
+                initial_essential_element_value: if $has_essential { Some($default) } else { None },
+
+                return_array_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    HashMap::from([("attribute", attribute)])
+                },
+
+                determine_element_from_dependencies: |_, dependency_values| {
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        DETERMINE_NUMBER(attribute.clone())
+                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
+                    }
+                },
+
+                return_size_dependency_instructions: |_| {
+                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    HashMap::from([("attribute", attribute)])
+                },
+
+                determine_size_from_dependencies: |dependency_values| {
+                    let attribute = dependency_values.get("attribute").unwrap();
+                    if attribute.len() > 0 {
+                        let num = DETERMINE_NUMBER(attribute.clone())?;
+                        if num > 0.0 {
+                            Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue(num as usize) )
+                        } else {
+                            Err("negative size from attribute dependency values".to_string())
+                        }
+                    } else {
+                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default_size) )
+                    }
+                },
+
+                request_element_dependencies_to_update_value: |_, desired_value| {
+                    HashMap::from([
+                        ("attribute", vec![
+                            DependencyValue {
+                                component_type: "",
+                                state_var_name: "",
+                                value: desired_value.into(),
+                            }
+                        ])
+                    ])
+                },
+
+                ..Default::default()
+            })
+        }
+    }
+}
+pub(crate) use number_array_definition_from_attribute;
+
 macro_rules! boolean_definition_from_attribute {
     ( $attribute:expr, $default:expr, $has_essential:expr ) => {
         {

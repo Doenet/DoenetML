@@ -95,6 +95,12 @@ pub enum StateRef {
     SizeOf(StateVarName),
 }
 
+pub enum StateIndex {
+    Basic,
+    Element(usize),
+    SizeOf,
+}
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
 pub enum StateVarSlice {
     Single(StateRef),
@@ -107,6 +113,14 @@ impl StateRef {
             Self::Basic(name) => name,
             Self::ArrayElement(name, _) => name,
             Self::SizeOf(name) => name,
+        }
+    }
+
+    pub fn index(&self) -> StateIndex {
+        match self {
+            Self::Basic(_) => StateIndex::Basic,
+            Self::ArrayElement(_, i) => StateIndex::Element(*i),
+            Self::SizeOf(_) => StateIndex::SizeOf,
         }
     }
 }
@@ -468,6 +482,20 @@ impl From<StateVarValue> for serde_json::Value {
         }
     }
 }
+impl TryFrom<StateVarValue> for usize {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::Integer(x) => match x >= 0 {
+                true => Ok(x as usize),
+                false => Err("cannot convert negative int to usize"),
+            },
+            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to usize"),
+            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to usize"),
+            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to usize"),
+        }
+    }
+}
 
 impl From<String> for StateVarValue {
     fn from(v: String) -> StateVarValue {
@@ -659,16 +687,6 @@ impl StateVarVariant {
         }       
     }
 
-    pub fn initial_essential_value(&self) -> Option<StateVarValue> {
-        match self {
-            Self::String(def) =>  def.initial_essential_value.as_ref().map(|x| StateVarValue::String(x.clone())),
-            Self::Integer(def) => def.initial_essential_value.map(|x| StateVarValue::Integer(x)),
-            Self::Number(def) =>  def.initial_essential_value.map(|x| StateVarValue::Number(x)),
-            Self::Boolean(def) => def.initial_essential_value.map(|x| StateVarValue::Boolean(x)),
-            Self::NumberArray(_) => None,
-        }
-    }
-
 
 
     // Array specific functions
@@ -745,19 +763,22 @@ impl StateVarVariant {
     }
 
 
-    pub fn initial_essential_element_value(&self) -> Option<StateVarValue> {
-        match self {
-            Self::NumberArray(def) =>  def.initial_essential_element_value.map(|x| StateVarValue::Number(x)),
-            _ => unreachable!(),
-        }
-    }
-
-
-
 
 
 
     // Both array and non-array functions
+
+
+
+    pub fn initial_essential_value(&self) -> Option<StateVarValue> {
+        match self {
+            Self::String(def) =>  def.initial_essential_value.as_ref().map(|x| StateVarValue::String(x.clone())),
+            Self::Integer(def) => def.initial_essential_value.map(|x| StateVarValue::Integer(x)),
+            Self::Number(def) =>  def.initial_essential_value.map(|x| StateVarValue::Number(x)),
+            Self::Boolean(def) => def.initial_essential_value.map(|x| StateVarValue::Boolean(x)),
+            Self::NumberArray(def) => def.initial_essential_element_value.map(|x| StateVarValue::Number(x)),
+        }
+    }
 
 
     pub fn for_renderer(&self) -> bool {
@@ -776,6 +797,10 @@ impl StateVarVariant {
             Self::NumberArray(_) => true,
             _ => false,
         }
+    }
+
+    pub fn has_essential(&self) -> bool {
+        self.initial_essential_value().is_some()
     }
 
 }

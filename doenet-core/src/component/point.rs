@@ -16,45 +16,7 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
 
-        state_var_definitions.insert("coords", StateVarVariant::NumberArray(StateVarArrayDefinition {
-
-            return_array_dependency_instructions: |_| {
-                HashMap::from([
-                    ("essential", DependencyInstruction::Essential),
-                ])
-            },
-
-            determine_element_from_dependencies: |_, dependency_values| {
-                let essential = dependency_values.dep_value("essential")?;
-                let essential = essential.has_zero_or_one_elements()?;
-                let set_value = match essential.0 {
-                    Some(dep_value) => {
-                        f64::try_from(dep_value.value.clone()).map_err(|e| format!("{:#?}", e))?
-                    },
-                    None => f64::default(),
-                };
-
-                Ok( SetValue( set_value ) )
-            },
-
-            determine_size_from_dependencies: |_| Ok(SetValue(2)),
-
-            request_element_dependencies_to_update_value: |_, desired_value| {
-                HashMap::from([
-                    ("essential", vec![
-                        DependencyValue {
-                            component_type: "essential_data",
-                            state_var_name: "",
-                            value: desired_value.into(),
-                        }
-                    ])
-                ])
-            },
-
-            initial_essential_element_value: Some(0.0),
-
-            ..Default::default()
-        }));
+        state_var_definitions.insert("coords", number_array_definition_from_attribute!("coords", 0.0, true, 2));
 
         state_var_definitions.insert("numericalXs", StateVarVariant::NumberArray(StateVarArrayDefinition {
 
@@ -191,6 +153,8 @@ lazy_static! {
             "layer",
             "label",
             "labelHasLatex",
+
+            "coords",
 
             "hide",
             "disabled",

@@ -1,8 +1,8 @@
 use serde::{Serialize, Deserialize};
 
-use crate::utils::{log_json};
-use crate::{Action};
-use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType, ComponentName};
+use crate::utils::log_json;
+use crate::Action;
+use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType, AttributeName, ComponentName};
 
 use crate::ComponentDefinition;
 use crate::ComponentChild;
@@ -77,19 +77,20 @@ enum ArgValue {
 #[derive(Debug, PartialEq)]
 pub enum DoenetMLError {
     ComponentDoesNotExist {
-        comp_name: String
+        comp_name: String,
     },
     StateVarDoesNotExist {
-        comp_name: String,
+        comp_name: ComponentName,
         sv_name: String,
     },
     AttributeDoesNotExist {
-        comp_name: String,
+        comp_name: ComponentName,
         attr_name: String,
     },
     InvalidComponentType {
         comp_type: String,
     },
+
     DuplicateName {
         name: String,
     },
@@ -112,11 +113,11 @@ impl Display for DoenetMLError {
 
         match self {
             ComponentDoesNotExist { comp_name } => 
-                write!(f, "Component {} does not exist", comp_name),
+                write!(f, "Component '{}' does not exist", comp_name),
             StateVarDoesNotExist { comp_name, sv_name } =>
-                write!(f, "State variable {} does not exist on {}", sv_name, comp_name),
+                write!(f, "State variable '{}' does not exist on {}", sv_name, comp_name),
             AttributeDoesNotExist { comp_name, attr_name } =>
-                write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
+                write!(f, "Attribute '{}' does not exist on {}", attr_name, comp_name),
             InvalidComponentType { comp_type } => 
                 write!(f, "Component type {} does not exist", comp_type),
             DuplicateName { name} =>
@@ -131,7 +132,6 @@ impl Display for DoenetMLError {
 
                 write!(f, "{}", msg)
             }
-
         }
     }
 }
@@ -261,7 +261,7 @@ fn add_component_from_json(
     component_definitions: &HashMap<ComponentType, &'static ComponentDefinition>,
     all_state_var_names: &HashMap<String, StateVarName>,
 
-) -> Result<Option<String>, DoenetMLError> {
+) -> Result<Option<ComponentName>, DoenetMLError> {
 
     let component_type: &str = &component_tree.component_type;
 
@@ -300,17 +300,28 @@ fn add_component_from_json(
         }
     };
 
-    let attributes = component_tree.props.attributes
+    let mut attributes = HashMap::new();
+    let lower_case_attributes: HashMap<String, AttributeName> = component_definition.attribute_names
         .iter()
-        .filter_map(|(attr_name, attr_value)| {
-            let val = match attr_value {
+        .map(|n| (n.to_lowercase(), *n))
+        .collect();
+
+    for (attr_name, attr_value) in component_tree.props.attributes.iter() {
+        
+        if let Some(&attribute_name) = lower_case_attributes.get(&attr_name.to_lowercase()) {
+            let attribute_string = match attr_value {
                 AttributeValue::String(v) => v.clone(),
                 AttributeValue::Bool(v) => v.to_string(),
             };
-            // TODO: return none if no state var asks for this attribute
-            Some( (attr_name.clone(), vec![ObjectName::String(val)]) )
-        })
-        .collect();
+            let object = ObjectName::String(attribute_string);
+            attributes.insert(attribute_name, HashMap::from([(0, vec![object])]));
+        } else {
+            return Err(DoenetMLError::AttributeDoesNotExist {
+                comp_name: component_name.clone(),
+                attr_name: attr_name.clone()
+            });
+        }
+    }
 
 
     // Recurse the children

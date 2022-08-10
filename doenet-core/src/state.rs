@@ -1,5 +1,5 @@
-use crate::{state_variables::*};
-use std::{cell::RefCell, fmt};
+use crate::state_variables::*;
+use std::{cell::RefCell, fmt, cmp::max};
 use self::State::*;
 
 
@@ -76,18 +76,18 @@ impl StateForStateVar {
     }
 
 
-    pub fn get_single_state(&self, sv_ref: &StateRef) -> State<StateVarValue> {
+    pub fn get_single_state(&self, sv_ref: StateIndex) -> State<StateVarValue> {
         match self {
             Self::Single(sv) => {
                 match sv_ref {
-                    StateRef::Basic(_) => sv.get_state(),
+                    StateIndex::Basic => sv.get_state(),
                     _ => panic!(),
                 }
             },
             Self::Array { size, elements } => {
                 match sv_ref {
-                    StateRef::SizeOf(_) => size.get_state(),
-                    StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().get_state(),
+                    StateIndex::SizeOf => size.get_state(),
+                    StateIndex::Element(id) => elements.borrow().get(id).unwrap().get_state(),
                     _ => panic!(),
                 }
             },
@@ -97,14 +97,14 @@ impl StateForStateVar {
     }
 
 
-    pub fn set_single_state(&self, state_var_ref: &StateRef, val: StateVarValue) -> Result<(), String> {
+    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue) -> Result<(), String> {
         match self {
             Self::Single(sv) => sv.set_value(val),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().set_value(val),
+                StateIndex::Element(id) => elements.borrow().get(*id).unwrap().set_value(val),
 
-                StateRef::SizeOf(_) => {
+                StateIndex::SizeOf => {
 
                     let new_size = size.set_value(val.clone());
                     
@@ -124,13 +124,13 @@ impl StateForStateVar {
         }
     }
 
-    pub fn mark_single_stale(&self, state_var_ref: &StateRef) {
+    pub fn mark_single_stale(&self, state_var_ref: &StateIndex) {
         match self {
             Self::Single(sv) => sv.mark_stale(),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateRef::ArrayElement(_, id) => elements.borrow().get(*id).unwrap().mark_stale(),
-                StateRef::SizeOf(_) => size.mark_stale(),
+                StateIndex::Element(id) => elements.borrow().get(*id).unwrap().mark_stale(),
+                StateIndex::SizeOf => size.mark_stale(),
                 _ => panic!()
             }
         }
@@ -209,36 +209,76 @@ impl StateVar {
 /// particular state var. Actions often update these.
 /// An EssentialStateVar cannot be stale so it does not need a ValueTypeProtector
 #[derive(serde::Serialize)]
-pub struct EssentialStateVar {
-    value: RefCell<Vec<StateVarValue>>,
-    default: StateVarValue, // used when extending `value`
+pub enum EssentialStateVar {
+    Single(RefCell<StateVarValue>),
+    Array {
+        size: RefCell<usize>,
+        elements:RefCell<Vec<StateVarValue>>,
+        extension: RefCell<StateVarValue>,
+    },
 }
 
 
 impl EssentialStateVar {
 
-    pub fn new(value: StateVarValue) -> Self {
-        EssentialStateVar {
-            value: RefCell::new(vec![value.clone()]),
-            default: value,
+    pub fn new(value_type: &StateVarVariant, value: Vec<StateVarValue>) -> Self {
+        match value_type {
+            StateVarVariant::Boolean(_) => Self::Single(RefCell::new(value.first().unwrap().clone())),
+            StateVarVariant::Integer(_) => Self::Single(RefCell::new(value.first().unwrap().clone())),
+            StateVarVariant::Number(_) =>  Self::Single(RefCell::new(value.first().unwrap().clone())),
+            StateVarVariant::String(_) =>  Self::Single(RefCell::new(value.first().unwrap().clone())),
+            StateVarVariant::NumberArray(_) => {
+                Self::Array {
+                    size: RefCell::new(value.len()),
+                    elements: RefCell::new(value),
+                    extension: RefCell::new(value_type.initial_essential_value()
+                        .unwrap_or(StateVarValue::Number(0.0))),
+                }
+            }
         }
     }
 
-    pub fn set_value(&self, index: usize, new_value: StateVarValue) -> Result<(), String> {
-        let mut v = self.value.borrow_mut();
-        let new_len = std::cmp::max(v.len(), index + 1);
+    pub fn set_value(&self, state_ref: StateIndex, new_value: StateVarValue) -> Result<(), String> {
+        match (self, state_ref) {
+            (Self::Single(v), StateIndex::Basic) => {
+                v.borrow_mut().set_protect_type(new_value)
+            },
 
-        v.resize(new_len, self.default.clone());
-        v.get_mut(index).unwrap().set_protect_type(new_value)?;
+            (Self::Array{size, elements, extension }, StateIndex::SizeOf) => {
+                let new_len = max(size.borrow().clone(), usize::try_from(new_value).unwrap());
+                elements.borrow_mut().resize(new_len, extension.borrow().clone());
 
-        Ok(())
+                let mut s = size.borrow_mut();
+                *s = new_len;
+                Ok(())
+            },
+
+            (Self::Array{elements, extension, ..}, StateIndex::Element(i)) => {
+                let mut v = elements.borrow_mut();
+
+                let new_len = max(v.len(), i + 1);
+                v.resize(new_len, extension.borrow().clone());
+
+                v.get_mut(i).unwrap().set_protect_type(new_value)?;
+                Ok(())
+            },
+            _ => panic!("state ref and essential value do not match"),
+        }
     }
 
 
-    pub fn get_value(&self, index: usize) -> Option<StateVarValue> {
-        match self.value.borrow().get(index) {
-            Some(x) => Some(x.clone()),
-            None => None,
+    pub fn get_value(&self, state_ref: StateIndex) -> Option<StateVarValue> {
+        match (self, state_ref) {
+            (Self::Single(v), StateIndex::Basic) => {
+                Some(v.borrow().clone())
+            },
+            (Self::Array{size, .. }, StateIndex::SizeOf) => {
+                Some(StateVarValue::Integer(size.borrow().clone() as i64))
+            },
+            (Self::Array{elements, ..}, StateIndex::Element(i)) => {
+                elements.borrow().get(i).cloned()
+            },
+            _ => panic!("state ref and essential value do not match"),
         }
     }
 }
@@ -255,7 +295,10 @@ impl fmt::Debug for StateVar {
 
 impl fmt::Debug for EssentialStateVar {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(&format!("{:?}", &self.value.borrow()))
+        f.write_str(&match self {
+            Self::Single(v) => format!("{:?}", v.borrow()),
+            Self::Array { elements, ..} => format!("{:?}", elements.borrow()),
+        })
     }
 }
 
