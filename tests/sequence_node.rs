@@ -26,8 +26,7 @@ fn sequence_copies_component() {
 
     "#;
 
-    let (dc, ml_errs) = doenet_core_from(data);
-    assert_eq!(ml_errs.len(), 0);
+    let dc = doenet_core_from(data).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_state_var_array_size_is(&dc, "/_sequence2", "value", 7);
@@ -78,8 +77,7 @@ fn sequence_from_and_to_can_be_copied_as_props() {
         <number>$s.to</number>
     "#;
 
-    let (dc, ml_errs) = doenet_core_from(data);
-    assert_eq!(ml_errs.len(), 0);
+    let dc = doenet_core_from(data).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_state_var_basic_is_number(&dc, "/_number3", "value", -1000.0);

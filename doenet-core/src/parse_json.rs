@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::utils::log_json;
 use crate::{Action};
-use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType};
+use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType, ComponentName};
 
 use crate::ComponentDefinition;
 use crate::ComponentChild;
@@ -74,7 +74,7 @@ enum ArgValue {
 
 /// This error is caused by invalid DoenetML.
 /// It is thrown only on core creation.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DoenetMLError {
     ComponentDoesNotExist {
         comp_name: String
@@ -90,16 +90,20 @@ pub enum DoenetMLError {
     InvalidComponentType {
         comp_type: String,
     },
-
-    ComponentCopiesAncestor {
-        comp_name: String,
-        ancestor_name: String,
+    DuplicateName {
+        name: String,
     },
 
-//     CyclicalReference {
-//         comp_name: String,
-//         sv_name: String,
-//     },
+    // ComponentCopiesAncestor {
+    //     comp_name: String,
+    //     ancestor_name: String,
+    // },
+
+    CyclicalDependency {
+        component_chain: Vec<ComponentName>,
+        // comp_name: String,
+        // sv_slice: StateVarSlice,
+    },
 }
 
 impl std::error::Error for DoenetMLError {}
@@ -116,10 +120,20 @@ impl Display for DoenetMLError {
                 write!(f, "Attribute {} does not exist on {}", attr_name, comp_name),
             InvalidComponentType { comp_type } => 
                 write!(f, "Component type {} does not exist", comp_type),
-            ComponentCopiesAncestor { comp_name, ancestor_name } => 
-                write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
-            // CyclicalReference { comp_name, sv_name } => 
-                // write!(f, "State variable {} for {} references itself", comp_name, sv_name),
+            DuplicateName { name} =>
+                write!(f, "The component name {} is used multiple times", name),
+            // ComponentCopiesAncestor { comp_name, ancestor_name } => 
+            //     write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
+            CyclicalDependency { component_chain } => {
+                let mut msg = String::from("Cyclical dependency through components: ");
+                for comp in component_chain {
+                    msg.push_str(&format!("{}, ", comp));
+                }
+                msg.pop();
+                msg.pop();
+
+                write!(f, "{}", msg)
+            }
 
         }
     }
@@ -171,7 +185,7 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 
 
 pub fn create_components_tree_from_json(program: &str)
-    -> (HashMap<String, ComponentNode>, String, Vec<DoenetMLError>) {
+    -> Result<(HashMap<String, ComponentNode>, String), DoenetMLError> {
 
     // log_debug!("Parsing string for component tree: {}", program);
 
@@ -219,8 +233,6 @@ pub fn create_components_tree_from_json(program: &str)
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
 
-    let mut doenet_ml_errors: Vec<DoenetMLError> = vec![];
-
     let root_component_name = add_component_from_json(
         &mut component_nodes,
         &component_tree,
@@ -228,12 +240,11 @@ pub fn create_components_tree_from_json(program: &str)
         &mut component_type_counter,
         &component_definitions,
         &all_state_var_names,
-        &mut doenet_ml_errors,
-    );
+    )?;
 
     let root_component_name = root_component_name.unwrap();
 
-    (component_nodes, root_component_name, doenet_ml_errors)
+    Ok((component_nodes, root_component_name))
 }
 
 
@@ -247,24 +258,16 @@ fn add_component_from_json(
     component_type_counter: &mut HashMap<String, u32>,
     component_definitions: &HashMap<ComponentType, &'static ComponentDefinition>,
     all_state_var_names: &HashMap<String, StateVarName>,
-    doenet_ml_errors: &mut Vec<DoenetMLError>,
 
-) -> Option<String> {
+) -> Result<Option<String>, DoenetMLError> {
 
     let component_type: &str = &component_tree.component_type;
 
-    let (&component_type, &component_definition) = {
-        if let Some(comp_type_def) = get_key_value_ignore_case(component_definitions, component_type) {
-            // log!("match {} {}", component_type, comp_type_def.0);
-            comp_type_def
-        } else {
-            doenet_ml_errors.push(
-                DoenetMLError::InvalidComponentType { comp_type: component_type.to_string() }
-            );
-            return None;
-        }
-    };
-
+    let (&component_type, &component_definition) =
+        get_key_value_ignore_case(component_definitions, component_type)
+        .ok_or(DoenetMLError::InvalidComponentType {
+            comp_type: component_type.to_string() }
+        )?;
 
     let count = *component_type_counter.get(component_type).unwrap_or(&0);
     component_type_counter.insert(component_type.to_string(), count + 1);
@@ -279,18 +282,13 @@ fn add_component_from_json(
         if let Some(ref source_name) = component_tree.props.copy_source {
             if let Some(ref source_state_var) = component_tree.props.prop {
 
-                if let Some(state_var_name) = all_state_var_names.get(source_state_var) {
-                    // TODO: parse non-basic props
-                    Some(CopySource::StateVar(source_name.clone(), StateRef::Basic(state_var_name)))
-
-                } else {
-                    doenet_ml_errors.push(DoenetMLError::StateVarDoesNotExist {
+                let state_var_name =  all_state_var_names.get(source_state_var)
+                    .ok_or(DoenetMLError::StateVarDoesNotExist {
                         comp_name: component_name.clone(),
                         sv_name: source_state_var.to_string() 
-                    });
+                    })?;
 
-                    None
-                }
+                Some(CopySource::StateVar(source_name.clone(), StateRef::Basic(state_var_name)))
 
             } else {
                 Some(CopySource::Component(source_name.clone()))
@@ -332,8 +330,7 @@ fn add_component_from_json(
                     component_type_counter,
                     component_definitions,
                     all_state_var_names,
-                    doenet_ml_errors
-                );
+                )?;
 
                 if let Some(child_name) = child_name_if_not_error {
                     children.push(ComponentChild::Component(child_name));
@@ -357,7 +354,11 @@ fn add_component_from_json(
         definition: component_definition.clone(),
     };
 
-    component_nodes.insert(component_name.clone(), component_node);
+    if component_nodes.contains_key(&component_name) {
+        return Err(DoenetMLError::DuplicateName { name: component_name.clone() });
+    } else {
+        component_nodes.insert(component_name.clone(), component_node);
+    }
 
-    return Some(component_name);
+    return Ok(Some(component_name));
 }

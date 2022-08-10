@@ -17,7 +17,7 @@ extern "C" {
     
 }
 
-pub fn doenet_core_from(data: &str) -> (DoenetCore, Vec<DoenetMLError>) {
+pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
     let parsed = parseAndCompile(data.to_string());
     let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();
     doenet_core::create_doenet_core(&program)

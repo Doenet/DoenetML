@@ -26,12 +26,19 @@ onmessage = function (e) {
 async function createCore(args) {
 
   const DoenetTextJson = parseAndCompile(args.doenetML);
-    
   // console.log("DoenetML as JSON\n", DoenetTextJson);
 
   await init();
 
-  doenetCore = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
+  try {
+    doenetCore = PublicDoenetCore.new(JSON.stringify(DoenetTextJson));
+
+  } catch(err) {
+    console.error(err);
+    return;
+  }
+
+
   
   const render_tree_string = doenetCore.update_renderers();
   const render_tree = JSON.parse(render_tree_string);

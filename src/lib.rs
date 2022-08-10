@@ -4,7 +4,7 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 
-use doenet_core::DoenetCore;
+use doenet_core::{DoenetCore};
 
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -43,21 +43,20 @@ pub struct PublicDoenetCore(DoenetCore);
 #[wasm_bindgen]
 impl PublicDoenetCore {
     /// Create components from JSON tree and create all dependencies.
-    pub fn new(program: &str) -> PublicDoenetCore {
+    pub fn new(program: &str) -> Result<PublicDoenetCore, String> {
 
         utils::set_panic_hook();
 
         web_sys::console::time_with_label("DoenetCore creation");
                 
-        let (core, doenet_ml_errors) = doenet_core::create_doenet_core(program);
-
-        for ml_error in doenet_ml_errors {
-            web_sys::console::error_1(&JsValue::from_str(&format!("DoenetML Error: {}", ml_error)));
-        }
+        let core_or_error = doenet_core::create_doenet_core(program);
 
         web_sys::console::time_end_with_label("DoenetCore creation");
-    
-        PublicDoenetCore(core)
+
+        match core_or_error {
+            Err(doenet_ml_error) => Err(doenet_ml_error.to_string()),
+            Ok(core) => Ok(PublicDoenetCore(core)),
+        }
     }
 
 
