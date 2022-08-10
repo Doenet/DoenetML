@@ -36,8 +36,8 @@ macro_rules! log_debug {
         #[cfg(feature = "web")]
         web_sys::console::debug_1(&format!( $( $t )* ).into());
 
-        #[cfg(not(feature = "web"))]
-        println!( $( $t )* )
+        // #[cfg(not(feature = "web"))]
+        // println!( $( $t )* )
     }
 }
 

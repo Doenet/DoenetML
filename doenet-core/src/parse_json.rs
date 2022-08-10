@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 
-use crate::utils::log_json;
+use crate::utils::{log_json};
 use crate::{Action};
 use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType, ComponentName};
 
@@ -94,16 +94,15 @@ pub enum DoenetMLError {
         name: String,
     },
 
-    // ComponentCopiesAncestor {
-    //     comp_name: String,
-    //     ancestor_name: String,
-    // },
-
     CyclicalDependency {
         component_chain: Vec<ComponentName>,
-        // comp_name: String,
-        // sv_slice: StateVarSlice,
     },
+
+    // ComponentTypeCannotCopyProp {
+    //     component_name: ComponentName,
+    //     component_type: ComponentType,
+    //     prop: StateVarName,
+    // },
 }
 
 impl std::error::Error for DoenetMLError {}
@@ -122,8 +121,6 @@ impl Display for DoenetMLError {
                 write!(f, "Component type {} does not exist", comp_type),
             DuplicateName { name} =>
                 write!(f, "The component name {} is used multiple times", name),
-            // ComponentCopiesAncestor { comp_name, ancestor_name } => 
-            //     write!(f, "Component {} copies ancestor {}", comp_name, ancestor_name),
             CyclicalDependency { component_chain } => {
                 let mut msg = String::from("Cyclical dependency through components: ");
                 for comp in component_chain {
@@ -187,7 +184,7 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 pub fn create_components_tree_from_json(program: &str)
     -> Result<(HashMap<String, ComponentNode>, String), DoenetMLError> {
 
-    // log_debug!("Parsing string for component tree: {}", program);
+    // log!("Parsing string for component tree: {}", program);
 
     let component_definitions = generate_component_definitions();
 

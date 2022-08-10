@@ -90,3 +90,26 @@ fn text_copy_itself_as_grandchild_gives_error() {
         _ => panic!("Wrong error type")
     };
 }
+
+
+#[wasm_bindgen_test]
+fn cyclic_dependency_through_children_indirectly() {
+    let data = r#"
+        <text name='a_parent'><text name='a' copySource='b'/></text>
+        <text name='b'><text name='b_child' copySource='a_parent'/></text>
+    "#;
+
+    let error = doenet_core_from(data).unwrap_err();
+    assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
+}
+
+
+#[wasm_bindgen_test]
+fn copy_unnamed_component_gives_error() {
+    let data = r#"
+        <text copySource='qwerty' />
+    "#;
+
+    let error = doenet_core_from(data).unwrap_err();
+    assert!(matches!(error, DoenetMLError::ComponentDoesNotExist { comp_name: _ }));
+}
