@@ -162,7 +162,8 @@ async function createCore(args) {
 function handleAction(args) {
 
 
-  doenetCore.handle_action(JSON.stringify(args));
+  let completedActionId = doenetCore.handle_action(JSON.stringify(args));
+  
 
   // Right now this returns every component
   const render_tree_string = doenetCore.update_renderers();

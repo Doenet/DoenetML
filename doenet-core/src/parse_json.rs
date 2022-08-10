@@ -156,7 +156,8 @@ where
         .and_then(|k| map.get_key_value(k))
 }
 
-pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
+/// Returns the Action as well as the action id which the renderer sent
+pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> {
 
     // log_debug!("Parsing string for action: {}", action);
 
@@ -164,7 +165,8 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
 
     let component_name = action_structure.component_name.clone();
     let action_name = action_structure.action_name.clone();
-    let args = action_structure.args.iter()
+
+    let mut args: HashMap<String, StateVarValue> = action_structure.args.iter()
         .map(|(k, v)| 
              match v {
                  ArgValue::Bool(v) => (k.clone(), StateVarValue::Boolean(*v)),
@@ -177,7 +179,10 @@ pub fn parse_action_from_json(action: &str) -> Result<Action, String> {
              })
         .collect();
 
-    Ok(Action { component_name, action_name, args})
+    let action_id: String = args.get("actionId").unwrap().clone().try_into().unwrap();
+    args.remove("actionId");
+
+    Ok((Action { component_name, action_name, args}, action_id))
 }
 
 

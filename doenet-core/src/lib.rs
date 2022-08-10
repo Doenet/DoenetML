@@ -1400,7 +1400,7 @@ pub struct Action {
     pub component_name: ComponentName,
     pub action_name: String,
 
-    /// The keys are not strictly state variable names.
+    /// The keys are not state variable names.
     /// They are whatever name the renderer calls the new value.
     pub args: HashMap<String, StateVarValue>,
 }
@@ -1455,12 +1455,20 @@ fn convert_dependency_values_to_update_request(
         ).collect()
 }
 
-pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
 
-    let action = parse_json::parse_action_from_json(action)
+pub fn handle_action_from_json(core: &DoenetCore, action: &str) -> String {
+
+    let (action, action_id) = parse_json::parse_action_from_json(action)
         .expect(&format!("Error parsing json action: {}", action));
 
-    // log_debug!("Handling action {:#?}", action);
+    handle_action(core, action);
+
+    action_id
+}
+
+pub fn handle_action(core: &DoenetCore, action: Action) {
+
+    log_debug!("Handling action {:#?}", action);
 
     // Apply alias to get the original component name
     let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
@@ -1484,7 +1492,7 @@ pub fn handle_action_from_json(core: &DoenetCore, action: &str) {
         process_update_request(core, &request);
     }
 
-    log_json!("Updated component tree", utils::json_components(&core.component_nodes, &core.component_states));
+    log_json!("Component tree after action", utils::json_components(&core.component_nodes, &core.component_states));
 }
 
 
@@ -1541,6 +1549,9 @@ fn process_update_request(
 
 pub fn update_renderers(core: &DoenetCore) -> String {
     let json_obj = generate_render_tree(core);
+
+    log_json!("Component tree after renderer update", utils::json_components(&core.component_nodes, &core.component_states));
+
     serde_json::to_string(&json_obj).unwrap()
 }
 
