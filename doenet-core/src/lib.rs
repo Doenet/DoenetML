@@ -124,17 +124,39 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
     // Parse macros and generate components from them
     replace_macros_with_copies(&mut component_nodes);
 
+
+
+    let copies: Vec<(&ComponentNode, &ComponentName)> = component_nodes.iter().filter_map(|(_, c)|
+        match c.copy_source {
+            Some(CopySource::Component(ref source)) => Some((c, source)),
+            _ => None,
+        }
+    ).collect();
+
+
+    // Check for invalid names in CopySource::Components here
+    for (_, source_comp_name) in copies.iter() {
+        if !component_nodes.contains_key(*source_comp_name) {
+            // The component tried to copy a non-existent component.
+            return Err(DoenetMLError::ComponentDoesNotExist {
+                comp_name: source_comp_name.to_string()
+            });
+        }
+    }
+
     // Check for cyclical dependencies due to CopySource::Component.
     // If we don't do this, then alias and dependency generation will crash.
-    for (_, component) in component_nodes.iter() {
-        if let Some(cyclic_error) = check_cyclic_copy_source_component(&component_nodes, component) {
+    for (copy_component, _) in copies.iter() {
+        if let Some(cyclic_error) = check_cyclic_copy_source_component(&component_nodes, copy_component) {
             return Err(cyclic_error);
         }
     }
 
+    // For every copy, add the necessary aliases for the renderers to use
     let mut aliases: HashMap<String, ComponentName> = HashMap::new();
-
-    copy_sources_add_aliases(&mut component_nodes, &mut aliases)?;
+    for (copy, _) in copies {
+        add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
+    }
 
 
     // Fill in component_states and dependencies HashMaps for every component
@@ -150,7 +172,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
             &component_nodes,
             component_node,
             &mut essential_data
-        )?;
+        );
 
         let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
             component_node.definition.state_var_definitions
@@ -167,6 +189,8 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
     }
 
 
+    // Now that the dependency graph has been created, use it to check for cyclical dependencies
+    // for all the components
     for (dep_key, _) in dependencies.iter() {
         let DependencyKey::StateVar(comp, sv_ref, _) = dep_key;
         let mut chain = vec![(comp.clone(), sv_ref.clone())];
@@ -201,63 +225,78 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 }
 
 
-/// For every copy, add the necessary aliases for the renderers to use
-fn copy_sources_add_aliases(
-    component_nodes: &mut HashMap<ComponentName, ComponentNode>,
-    aliases: &mut HashMap<String, ComponentName>,
-) -> Result<(), DoenetMLError> {
 
-    let copies = component_nodes.iter().filter_map(|(_, c)| match c.copy_source {
-        Some(CopySource::Component(ref source)) => Some((c, source)),
-        _ => None,
-    });
+fn check_cyclic_copy_source_component(
+    components: &HashMap<ComponentName, ComponentNode>,
+    component: &ComponentNode,
 
-    for (copy, source_name) in copies {
+) -> Option<DoenetMLError> {
 
-        // // Find all ancestors (parents)
-        // let mut ancestors: Vec<String> = vec![];
-        // let mut possible_parent = &copy.parent;
-        // while let Some(parent) = possible_parent {
-        //     ancestors.push(parent.clone());
-        //     possible_parent = &component_nodes.get(parent).unwrap().parent;
-        // }
+    let mut current_comp = component;
+    let mut chain = vec![];
+    while let Some(CopySource::Component(ref source)) = current_comp.copy_source {
 
-        if !component_nodes.contains_key(source_name) {
+        if chain.contains(&current_comp.name) {
+            // Cyclical dependency
+            chain.push(current_comp.name.clone());
 
-            // The component tried to copy a non-existent component.
-            return Err(DoenetMLError::ComponentDoesNotExist {
-                comp_name: source_name.to_string()
+            let start_index = chain.iter().enumerate().find_map(|(index, name)| {
+                if name == &current_comp.name {
+                    Some(index)
+                } else {
+                    None
+                }
+            }).unwrap();
+
+            let (_, relevant_chain) = chain.split_at(start_index);
+
+            return Some(DoenetMLError::CyclicalDependency {
+                component_chain: Vec::from(relevant_chain)
             });
 
-        // } else if ancestors.contains(source_name) {
-
-        //     log_debug!("ancestors {:?}", ancestors);
-
-        //     // The component tried to copy its ancestor.
-        //     let start_index = ancestors.iter().enumerate().find_map(|(index, name)| {
-        //         if name == source_name {
-        //             Some(index)
-        //         } else {
-        //             None
-        //         }
-        //     }).unwrap();
-
-        //     let mut component_chain = ancestors.split_off(start_index);
-        //     component_chain.push(source_name.clone());
-
-        //     log_debug!("Found cyclical dependency while adding aliases, component chain {:?}", component_chain);
-
-        //     return Err(DoenetMLError::CyclicalDependency {
-        //         component_chain
-        //     });
 
         } else {
-            add_alias_for_children(aliases, copy, &component_nodes, &copy.name)?;
+
+            chain.push(current_comp.name.clone());
+            current_comp = components.get(source).unwrap();
         }
     }
 
-    Ok(())
+    None
 }
+
+fn name_child_of_copy(child: &str, copy: &str) -> ComponentName {
+    format!("__cp:{}({})", child, copy)
+}
+
+fn name_macro_component(
+    source_name: &str,
+    component_name: &String,
+    copy_counter: &mut HashMap<ComponentName, usize>,
+) -> String {
+    let copy_num = copy_counter.entry(source_name.to_string()).or_insert(0);
+    *copy_num += 1;
+
+    format!("__mcr:{}({})_{}", source_name, component_name, copy_num)
+}
+
+fn add_alias_for_children(
+    aliases: &mut HashMap<String, ComponentName>,
+    component: &ComponentNode,
+    component_nodes: &HashMap<ComponentName, ComponentNode>,
+    copy: &String,
+) {
+    // log_debug!("Adding alias for children of {}", component.name);
+
+    let children = get_children_including_copy(component_nodes, component);
+
+    for (child, _) in children.iter() {
+        if let ComponentChild::Component(child_comp) = child {
+            aliases.insert(name_child_of_copy(child_comp, copy), child_comp.to_string());
+        }
+    }
+}
+
 
 /// Check for cyclical dependencies, assuming that we have already traversed through the
 /// given dependency chain. This function might become slow for larger documents with lots of copies
@@ -267,7 +306,6 @@ fn check_for_cyclical_dependencies(
 ) -> Option<DoenetMLError> {
 
     // log_debug!("Dependency chain {:?}", dependency_chain);
-
     let last_link = dependency_chain.last().unwrap().clone();
 
     let my_dependencies = dependencies.iter().filter(|(dep_key, _)| {
@@ -296,8 +334,7 @@ fn check_for_cyclical_dependencies(
                     // Cyclical dependency!!
 
                     dependency_chain.push(new_link.clone());
-
-                    log_debug!("cyclical dependency through {:?} with duplicate {:?}", dependency_chain, new_link);
+                    log_debug!("Cyclical dependency through {:?} with duplicate {:?}", dependency_chain, new_link);
 
                     let start_index = dependency_chain.iter().enumerate().find_map(|(index, item)| {
                         if item == &new_link {
@@ -308,10 +345,7 @@ fn check_for_cyclical_dependencies(
                     }).unwrap();
 
                     let (_, relevant_chain) = dependency_chain.split_at(start_index);
-                    // log_debug!("relevant chain {:?}", relevant_chain);
-
                     let mut component_chain = vec![];
-
                     for link in relevant_chain.into_iter() {
                         if component_chain.is_empty() || component_chain.last().unwrap() != &link.0 {
                             component_chain.push(link.0.clone());
@@ -338,39 +372,6 @@ fn check_for_cyclical_dependencies(
     None
 }
 
-fn name_child_of_copy(child: &str, copy: &str) -> ComponentName {
-    format!("__cp:{}({})", child, copy)
-}
-
-fn name_macro_component(
-    source_name: &str,
-    component_name: &String,
-    copy_counter: &mut HashMap<ComponentName, usize>,
-) -> String {
-    let copy_num = copy_counter.entry(source_name.to_string()).or_insert(0);
-    *copy_num += 1;
-
-    format!("__mcr:{}({})_{}", source_name, component_name, copy_num)
-}
-
-fn add_alias_for_children(
-    aliases: &mut HashMap<String, ComponentName>,
-    component: &ComponentNode,
-    component_nodes: &HashMap<ComponentName, ComponentNode>,
-    copy: &String,
-) -> Result<(), DoenetMLError> {
-    // log_debug!("Adding alias for children of {}", component.name);
-
-    let children = get_children_including_copy(component_nodes, component);
-
-    for (child, _) in children.iter() {
-        if let ComponentChild::Component(child_comp) = child {
-            aliases.insert(name_child_of_copy(child_comp, copy), child_comp.to_string());
-        }
-    }
-
-    Ok(())
-}
 
 
 
@@ -666,7 +667,7 @@ fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
-) -> Result<HashMap<DependencyKey, Vec<Dependency>>, DoenetMLError> {
+) -> HashMap<DependencyKey, Vec<Dependency>> {
 
     // log_debug!("Creating dependencies for {}", component.name);
     let mut dependencies: HashMap<DependencyKey, Vec<Dependency>> = HashMap::new();
@@ -683,7 +684,7 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components, component, &&StateRef::SizeOf(state_var_name),
                     dep_instruction, instruct_name, essential_data,
-                )?;
+                );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
@@ -702,7 +703,7 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components, component, &&StateRef::SizeOf(state_var_name),
                     dep_instruction, instruct_name, essential_data
-                )?;
+                );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
@@ -725,7 +726,7 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components, component, &StateRef::Basic(state_var_name),
                     dep_instruction, instruct_name, essential_data
-                )?;
+                );
 
                 dependencies.insert(
                     DependencyKey::StateVar(
@@ -740,7 +741,7 @@ fn create_all_dependencies_for_component(
         }
     }
 
-    Ok(dependencies)
+    dependencies
 
 }
 
@@ -753,7 +754,7 @@ fn create_dependencies_from_instruction(
     instruction: &DependencyInstruction,
     instruction_name: InstructionName,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
-) -> Result<Vec<Dependency>, DoenetMLError> {
+) -> Vec<Dependency> {
 
     // log_debug!("Creating dependency {}:{}:{}", component.name, state_var_reference, instruction_name);
 
@@ -1005,7 +1006,7 @@ fn create_dependencies_from_instruction(
         },
 
     }
-    Ok(dependencies)
+    dependencies
 }
 
 
@@ -1668,46 +1669,6 @@ fn generate_render_tree_internal(
 
 ////////////// Wrappers providing for CopySource and sequence component //////////////
 
-
-
-fn check_cyclic_copy_source_component(
-    components: &HashMap<ComponentName, ComponentNode>,
-    component: &ComponentNode,
-
-) -> Option<DoenetMLError> {
-
-    let mut current_comp = component;
-    let mut chain = vec![];
-    while let Some(CopySource::Component(ref source)) = current_comp.copy_source {
-
-        if chain.contains(&current_comp.name) {
-            // Cyclical dependency
-            chain.push(current_comp.name.clone());
-
-            let start_index = chain.iter().enumerate().find_map(|(index, name)| {
-                if name == &current_comp.name {
-                    Some(index)
-                } else {
-                    None
-                }
-            }).unwrap();
-
-            let (_, relevant_chain) = chain.split_at(start_index);
-
-            return Some(DoenetMLError::CyclicalDependency {
-                component_chain: Vec::from(relevant_chain)
-            });
-
-
-        } else {
-
-            chain.push(current_comp.name.clone());
-            current_comp = components.get(source).unwrap();
-        }
-    }
-
-    None
-}
 
 /// This includes the copy source's children. The flag is false when it is
 /// a copy source's child. Also skips sequence components.
