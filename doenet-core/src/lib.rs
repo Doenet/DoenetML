@@ -213,6 +213,8 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
     log_json!("Dependencies upon core creation",
         utils::json_dependencies(&dependencies));
 
+    // utils::log!("deps full {:#?}", &dependencies);
+
     log_debug!("Essential data upon core creation {:?}",
         essential_data);
 
@@ -596,17 +598,17 @@ fn parse_attributes_and_macros(
 
     // Attributes
     for (attribute_name, string_val, component) in all_attributes {
-        let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(',')
+        let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(' ')
             .enumerate()
-            .map(|(i, s)|
-                (i,
+            .map(|(index, string_element)|
+                (index,
                     apply_macro_to_string(
-                        s.trim().to_string(),
+                        string_element.trim().to_string(),
                         component,
                         components,
                         &mut macro_copy_counter,
                         &mut components_to_add,
-                    ).unwrap_or(vec![ObjectName::String(s.to_string())])
+                    ).unwrap_or(vec![ObjectName::String(string_element.to_string())])
                 )
             ).collect();
 
@@ -1092,11 +1094,15 @@ fn add_essential_for(
     value: Option<StateVarValue>,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) {
+    let initial_value = variant.initial_essential_value().expect(
+        &format!("Component type '{}' does not specify an initial_essential_value for state var '{}'", component.component_type, state_var_slice.name())
+    );
+
     let datum = essential_data
         .entry(component.name.clone())
         .or_insert(HashMap::new())
         .entry(state_var_slice.name())
-        .or_insert(EssentialStateVar::new(variant, vec![variant.initial_essential_value().unwrap()]));
+        .or_insert(EssentialStateVar::new(variant, vec![initial_value]));
 
     match (state_var_slice, value) {
         (StateVarSlice::Single(state_ref), Some(v)) => {
@@ -1151,37 +1157,40 @@ fn get_state_variables_depending_on_me<'a>(
 }
 
 
+// TODO: Use &Dependency instead of cloning
 fn dependencies_of_state_var(
     core: &DoenetCore,
     component: &ComponentNode,
-    state_var_ref: &StateRef,
+    state_var_slice: &StateVarSlice,
 ) -> HashMap<InstructionName, Vec<Dependency>> {
 
     let deps = core.dependencies.iter().filter_map(| (key, deps) |
 
         match key {
-            // direct dependency
-            DependencyKey::StateVar(comp_name, StateVarSlice::Single(sv_ref), instruct_name) => {
-                if comp_name == &component.name && sv_ref == state_var_ref {
+            DependencyKey::StateVar(comp_name, sv_slice, instruct_name) => {
+
+                // Check if the key is me
+                if comp_name == &component.name && sv_slice == state_var_slice {
                     Some((*instruct_name, deps))
                 } else {
-                    None
-                }
-            },
-            // indirect dependency
-            DependencyKey::StateVar(comp_name, StateVarSlice::Array(sv_array), instruct_name) => {
-                if let StateRef::ArrayElement(array_name, _) = state_var_ref {
-                    if comp_name == &component.name && array_name == sv_array {
-                        Some((*instruct_name, deps))
+
+                    // The key might also be an array who feeds into me
+                    if let StateVarSlice::Array(array_name) = sv_slice {
+                        if state_var_slice.state_var_name() == *array_name {
+                            Some((*instruct_name, deps))
+                        } else {
+                            None
+                        }
                     } else {
                         None
                     }
-                } else {
-                    None
                 }
             },
         }
     );
+
+    // log_debug!("Deps for {}:{} with possible duplicates {:?}", component.name, state_var_slice,
+    //     deps.clone().collect::<HashMap<InstructionName, &Vec<Dependency>>>());
 
     let mut combined: HashMap<InstructionName, Vec<Dependency>> = HashMap::new();
     for (k, v) in deps {
@@ -1193,6 +1202,65 @@ fn dependencies_of_state_var(
         }
     }
     combined
+}
+
+
+fn get_source_for_dependency(components: &HashMap<ComponentName, ComponentNode>, dependency: &Dependency) -> DependencySource {
+
+    match dependency {
+        Dependency::Essential { component_name: _, state_var_name: _ } => {
+            // We don't really need these fields in this case (?)
+            DependencySource {
+                component_type: "essential_data",
+                state_var_name: "",
+            }
+        },
+
+        Dependency::StateVar { component_name, state_var_ref } => {
+            let component_type = components.get(component_name).unwrap().component_type;
+            DependencySource {
+                component_type,
+                state_var_name: state_var_ref.name()
+            }
+        },
+
+        Dependency::StateVarArray { component_name, array_state_var_name } => {
+            let component_type = components.get(component_name).unwrap().component_type;
+            DependencySource {
+                component_type,
+                state_var_name: &array_state_var_name,
+            }
+        },
+
+        Dependency::String { value: _ } => {
+            DependencySource {
+                component_type: "string",
+                state_var_name: "value",
+            }
+        }
+
+    }
+}
+
+
+fn get_dependency_sources_for_state_var(
+    core: &DoenetCore,
+    component: &ComponentNode,
+    state_var_slice: &StateVarSlice,
+) -> HashMap<InstructionName, Vec<DependencySource>> {
+    
+    let my_dependencies = dependencies_of_state_var(core, component, state_var_slice);
+    let mut dependency_sources: HashMap<InstructionName, Vec<DependencySource>> = HashMap::new();
+
+    for (instruction_name, dependencies) in my_dependencies {
+        let instruction_sources: Vec<DependencySource> = dependencies.iter().map(|dependency| {
+            get_source_for_dependency(&core.component_nodes, &dependency)
+        }).collect();
+
+        dependency_sources.insert(instruction_name, instruction_sources);
+    }
+
+    dependency_sources
 }
 
 fn resolve_state_variable(
@@ -1209,9 +1277,11 @@ fn resolve_state_variable(
         return current_value;
     }
 
-    log_debug!("Resolving {}:{}", component.name, state_var_ref);
+    // log_debug!("Resolving {}:{}", component.name, state_var_ref);
 
-    let my_dependencies = dependencies_of_state_var(core, component, state_var_ref);
+    let my_dependencies = dependencies_of_state_var(core, component, &StateVarSlice::Single(state_var_ref.clone()));
+
+    // log_debug!("Dependencies of {}:{} {:?}", component.name, state_var_ref, my_dependencies);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
 
@@ -1220,6 +1290,9 @@ fn resolve_state_variable(
         let mut values_for_this_dep: Vec<DependencyValue> = Vec::new();
 
         for dep in deps {
+
+            let dependency_source = get_source_for_dependency(&core.component_nodes, &dep);
+
             match dep {
 
                 Dependency::StateVar { component_name, state_var_ref } => {
@@ -1228,16 +1301,14 @@ fn resolve_state_variable(
                     let depends_on_value = resolve_state_variable(core, depends_on_component, &state_var_ref);
 
                     values_for_this_dep.push(DependencyValue {
-                        component_type: depends_on_component.component_type,
-                        state_var_name: state_var_ref.name(),
+                        source: dependency_source,
                         value: depends_on_value.clone(),
                     });
                 },
                 Dependency::String { value } => {
 
                     values_for_this_dep.push(DependencyValue {
-                        component_type: "string",
-                        state_var_name: "value",
+                        source: dependency_source,
                         value: StateVarValue::String(value.to_string()),
                     });
 
@@ -1253,12 +1324,8 @@ fn resolve_state_variable(
     
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
-
+                            source: dependency_source,
                             value,
-
-                            // We don't really need these fields in this case (?)
-                            component_type: "essential_data",
-                            state_var_name: "",
                         })
                     }
                 },
@@ -1282,8 +1349,7 @@ fn resolve_state_variable(
                         );
 
                         values_for_this_dep.push(DependencyValue {
-                            component_type: depends_on_component.component_type,
-                            state_var_name: &array_state_var_name,
+                            source: dependency_source.clone(),
                             value: element_value.clone(),
                         });
     
@@ -1296,7 +1362,7 @@ fn resolve_state_variable(
     }
 
 
-    log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
+    // log_debug!("Dependency values for {}:{}: {:#?}", component.name, state_var_ref, dependency_values);
 
 
     let update_instruction = generate_update_instruction_including_shadowing(
@@ -1523,7 +1589,7 @@ fn convert_dependency_values_to_update_request(
     requests: HashMap<InstructionName, Vec<DependencyValue>>
 ) -> Vec<UpdateRequest> {
 
-    let my_dependencies = dependencies_of_state_var(core, component, state_var);
+    let my_dependencies = dependencies_of_state_var(core, component, &StateVarSlice::Single(state_var.clone()));
 
 
     requests.iter()
@@ -1592,7 +1658,7 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
         process_update_request(core, &request);
     }
 
-    log_json!("Component tree after action", utils::json_components(&core.component_nodes, &core.component_states));
+    // log_json!("Component tree after action", utils::json_components(&core.component_nodes, &core.component_states));
 }
 
 
@@ -1908,8 +1974,10 @@ fn request_dependencies_to_update_value_including_shadow(
         vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
     } else {
+        let dependency_sources = get_dependency_sources_for_state_var(core, component, &StateVarSlice::Single(state_var_ref.clone()));
+
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
-            .request_dependencies_to_update_value(state_var_ref, new_value);
+            .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources);
 
         convert_dependency_values_to_update_request(core, component, state_var_ref, requests)
     }

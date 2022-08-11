@@ -16,7 +16,7 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
 
-        state_var_definitions.insert("coords", number_array_definition_from_attribute!("coords", 0.0, true, 2));
+        state_var_definitions.insert("xs", number_array_definition_from_attribute!("xs", 0.0, true, 2));
 
         state_var_definitions.insert("numericalXs", StateVarVariant::NumberArray(StateVarArrayDefinition {
 
@@ -24,17 +24,17 @@ lazy_static! {
 
             return_array_dependency_instructions: |_| {
                 HashMap::from([
-                    ("coords", DependencyInstruction::StateVar {
+                    ("xs", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarSlice::Array("coords"),
+                        state_var: StateVarSlice::Array("xs"),
                     }),
                 ])
             },
 
             determine_element_from_dependencies: |index, dependency_values| {
-                let coords = dependency_values.dep_value("coords")?
+                let xs = dependency_values.dep_value("xs")?
                     .into_number_list()?;
-                let my_coord = *coords.get(index).unwrap();
+                let my_coord = *xs.get(index).unwrap();
 
                 Ok( SetValue( my_coord ) )
             },
@@ -43,7 +43,7 @@ lazy_static! {
                 HashMap::from([
                     ("dimensions", DependencyInstruction::StateVar {
                         component_name: None,
-                        state_var: StateVarSlice::Single(StateRef::SizeOf("coords")),
+                        state_var: StateVarSlice::Single(StateRef::SizeOf("xs")),
                     }),
                 ])
             },
@@ -63,19 +63,19 @@ lazy_static! {
 
             return_dependency_instructions: |_| {
                 HashMap::from([
-                    ("coords", DependencyInstruction::StateVar{
+                    ("xs", DependencyInstruction::StateVar{
                         component_name: None,
-                        state_var: StateVarSlice::Array("coords"),
+                        state_var: StateVarSlice::Array("xs"),
                     }),
                 ])
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let coords = dependency_values.dep_value("coords")?
+                let xs = dependency_values.dep_value("xs")?
                     .into_number_list()?;
-                let x = coords.get(0).unwrap();
-                let y = coords.get(0).unwrap();
+                let x = xs.get(0).unwrap();
+                let y = xs.get(0).unwrap();
                 let set_value = format!("({}, {})", x, y);
 
                 Ok( SetValue( set_value ) )
@@ -154,7 +154,7 @@ lazy_static! {
             "label",
             "labelHasLatex",
 
-            "coords",
+            "xs",
 
             "hide",
             "disabled",
@@ -170,8 +170,8 @@ lazy_static! {
                     // let z = args.get("z").expect("No z argument");
 
                     HashMap::from([
-                        (StateRef::ArrayElement("coords", 0), x.clone()),
-                        (StateRef::ArrayElement("coords", 1), y.clone()),
+                        (StateRef::ArrayElement("xs", 0), x.clone()),
+                        (StateRef::ArrayElement("xs", 1), y.clone()),
                     ])
                 },
                 "switchPoint" => {

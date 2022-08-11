@@ -30,7 +30,7 @@ macro_rules! number_definition_from_attribute {
                     }
                 },
 
-                request_dependencies_to_update_value: |desired_value| {
+                request_dependencies_to_update_value: |desired_value, _| {
                     DETERMINE_NUMBER_DEPENDENCIES(desired_value)
                 },
 
@@ -68,7 +68,7 @@ macro_rules! integer_definition_from_attribute {
                     }
                 },
 
-                request_dependencies_to_update_value: |desired_value| {
+                request_dependencies_to_update_value: |desired_value, _| {
                     DETERMINE_INTEGER_DEPENDENCIES(desired_value)
                 },
 
@@ -126,12 +126,14 @@ macro_rules! number_array_definition_from_attribute {
                     }
                 },
 
-                request_element_dependencies_to_update_value: |_, desired_value| {
+                request_element_dependencies_to_update_value: |_, desired_value, _| {
                     HashMap::from([
                         ("attribute", vec![
                             DependencyValue {
-                                component_type: "",
-                                state_var_name: "",
+                                source: DependencySource {
+                                    component_type: "",
+                                    state_var_name: "",    
+                                },
                                 value: desired_value.into(),
                             }
                         ])
@@ -246,13 +248,15 @@ where
 }
 
 #[allow(non_snake_case)]
-pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T)
+pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, _: HashMap<InstructionName, Vec<DependencySource>>)
     -> HashMap<InstructionName, Vec<DependencyValue>> {
     HashMap::from([
         ("essential", vec![
             DependencyValue {
-                component_type: "essential_data",
-                state_var_name: "",
+                source: DependencySource {
+                    component_type: "essential_data",
+                    state_var_name: "",    
+                },
                 value: desired_value.into(),
             }
         ])
@@ -401,7 +405,7 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<DependencyValue>)
     let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
         num_result.as_number().unwrap_or(f64::NAN)
     } else {
-        return Err("Can't parse number values as math".to_string())
+        return Err(format!("Can't parse number values '{}' as math", concatted_children));
     };
 
 
@@ -415,8 +419,10 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64)
     HashMap::from([
         ("attribute", vec![
             DependencyValue {
-                component_type: "number",
-                state_var_name: "",
+                source: DependencySource {
+                    component_type: "number",
+                    state_var_name: "",    
+                },
                 value: desired_value.into(),
             }
         ])
@@ -429,8 +435,10 @@ pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64)
     HashMap::from([
         ("attribute", vec![
             DependencyValue {
-                component_type: "number",
-                state_var_name: "",
+                source: DependencySource {
+                    component_type: "number",
+                    state_var_name: "",    
+                },
                 value: desired_value.into(),
             }
         ])

@@ -44,7 +44,7 @@ pub struct StateVarDefinition<T> {
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
     /// values for the dependencies that would make this state variable return that value.
-    pub request_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_dependencies_to_update_value: fn(T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
 }
 
 #[derive(Debug)]
@@ -66,7 +66,7 @@ pub struct StateVarArrayDefinition<T> {
         HashMap<InstructionName, Vec<DependencyValue>>
     ) -> Result<StateVarUpdateInstruction<T>, String>,
 
-    pub request_element_dependencies_to_update_value: fn(usize, T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_element_dependencies_to_update_value: fn(usize, T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
 
 
     pub return_size_dependency_instructions: fn(
@@ -77,7 +77,7 @@ pub struct StateVarArrayDefinition<T> {
         HashMap<InstructionName, Vec<DependencyValue>>
     ) -> Result<StateVarUpdateInstruction<usize>, String>,
 
-    pub request_size_dependencies_to_update_value: fn(T) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_size_dependencies_to_update_value: fn(T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
 
     pub for_renderer: bool,
 
@@ -142,6 +142,15 @@ impl StateRef {
     }
 }
 
+impl StateVarSlice {
+    pub fn state_var_name(&self) -> StateVarName {
+        match self {
+            Self::Array(name) => name,
+            Self::Single(sv_ref) => sv_ref.name()
+        }
+    }
+}
+
 
 
 
@@ -159,7 +168,7 @@ impl<T> Default for StateVarDefinition<T>
             for_renderer: false,
             initial_essential_value: None,
 
-            request_dependencies_to_update_value: |_| {
+            request_dependencies_to_update_value: |_, _| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
                 HashMap::new()
             },
@@ -177,14 +186,14 @@ impl<T> Default for StateVarArrayDefinition<T>
 
             return_element_dependency_instructions: |_, _| HashMap::new(),
             determine_element_from_dependencies: |_, _| Ok(StateVarUpdateInstruction::SetValue(T::default())),
-            request_element_dependencies_to_update_value: |_, _| {
+            request_element_dependencies_to_update_value: |_, _, _| {
                 log!("DEFAULT REQUEST_ELEMENT_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
                 HashMap::new()
             },
 
             return_size_dependency_instructions: |_| HashMap::new(),
             determine_size_from_dependencies: |_| Ok(StateVarUpdateInstruction::SetValue(0)),
-            request_size_dependencies_to_update_value: |_| {
+            request_size_dependencies_to_update_value: |_, _| {
                 log!("DEFAULT REQUEST_SIZE_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
                 HashMap::new()
             },
@@ -246,9 +255,8 @@ pub enum StateVarValue {
 #[derive(Clone, Debug)]
 pub enum DependencyInstruction {
     Child {
+        /// The dependency will only match child components that fulfill at least one of these profiles
         desired_profiles: Vec<ComponentProfile>,
-        // desired_children: Vec<PrimaryOutputTrait>,
-        // desired_state_vars: Vec<StateVarName>,
     },
     StateVar {
         component_name: Option<ComponentName>,
@@ -273,15 +281,23 @@ pub enum StateVarUpdateInstruction<T> {
 
 
 
+
+#[derive(Debug, Clone)]
+pub struct DependencySource {
+    /// For now, `component_type: "essential_data"` is used with essential data dependencies
+    pub component_type: ComponentType,
+    pub state_var_name: StateVarName,
+}
+
 /// Passed into determine_state_vars_from_dependencies
 /// TODO: This struct doesn't quite fit the result of an EssentialDependencyInstruction.
 #[derive(Debug, Clone)]
 pub struct DependencyValue {
-    /// For now, `component_type: "essential_data"` is used with essential data dependencies
-    pub component_type: ComponentType,
-    pub state_var_name: StateVarName,
+    pub source: DependencySource,
     pub value: StateVarValue,
 }
+
+
 
 
 
@@ -367,7 +383,7 @@ impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
         let (dep_values, name) = self;
 
         let filtered_dep_values = dep_values.iter()
-            .filter(|dep_value| dep_value.component_type == component_type)
+            .filter(|dep_value| dep_value.source.component_type == component_type)
             .map(|&dep_value| dep_value)
             .collect();
 
@@ -651,44 +667,54 @@ impl StateVarVariant {
 
     pub fn request_dependencies_to_update_value(
         &self,
-        state_var: &StateRef,
+        state_ref: &StateRef,
         desired_value: StateVarValue,
+        dependency_sources: HashMap<InstructionName, Vec<DependencySource>>
     ) -> HashMap<InstructionName, Vec<DependencyValue>> {
 
         match self {
             Self::String(def) =>  {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested String be updated to {:#?}", desired_value))
+                        &format!("Requested String be updated to {:#?}", desired_value)
+                    ),
+                    dependency_sources,
                 )
             },
             Self::Integer(def) => {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Integer be updated to {:#?}", desired_value))
+                        &format!("Requested Integer be updated to {:#?}", desired_value)
+                    ),
+                    dependency_sources,
                 )
             },
             Self::Number(def) =>  {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Number be updated to {:#?}", desired_value))
+                        &format!("Requested Number be updated to {:#?}", desired_value)
+                    ),
+                    dependency_sources,
                 )
             },
             Self::Boolean(def) => {
                 (def.request_dependencies_to_update_value)(
                     desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Boolean be updated to {:#?}", desired_value))
+                        &format!("Requested Boolean be updated to {:#?}", desired_value)
+                    ),
+                    dependency_sources,
                 )
             },
 
             Self::NumberArray(def) => {
-                match state_var {
+                match state_ref {
                     StateRef::ArrayElement(_, i) => {
                         (def.request_element_dependencies_to_update_value)(
                             *i,
                             desired_value.clone().try_into().expect( // only cloned for error msg
                                 &format!("Requested NumberArray element be updated to {:#?}", desired_value)
                             ),
+                            dependency_sources,
                         )
                     },
                     StateRef::SizeOf(_) => {
@@ -696,6 +722,7 @@ impl StateVarVariant {
                             desired_value.clone().try_into().expect( // only cloned for error msg
                                 &format!("Requested NumberArray size be updated to {:#?}", desired_value)
                             ),
+                            dependency_sources,
                         )
                     }
                     StateRef::Basic(_) => panic!("reference does not match definition"),

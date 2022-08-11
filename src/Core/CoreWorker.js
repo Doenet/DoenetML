@@ -17,7 +17,7 @@ onmessage = function (e) {
     handleAction(e.data.args);
 
     // For debugging only
-    this.debugStateValues = JSON.parse(doenetCore.display_all_state());
+    // this.debugStateValues = JSON.parse(doenetCore.display_all_state());
 
   }
 }
