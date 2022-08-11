@@ -95,6 +95,7 @@ pub enum StateRef {
     SizeOf(StateVarName),
 }
 
+#[derive(Debug, Clone, Copy)]
 pub enum StateIndex {
     Basic,
     Element(usize),
@@ -105,6 +106,15 @@ pub enum StateIndex {
 pub enum StateVarSlice {
     Single(StateRef),
     Array(StateVarName),
+}
+
+impl StateVarSlice {
+    pub fn name(&self) -> StateVarName {
+        match self {
+            Self::Single(state_ref) => state_ref.name(),
+            Self::Array(name) => name,
+        }
+    }
 }
 
 impl StateRef {
@@ -121,6 +131,13 @@ impl StateRef {
             Self::Basic(_) => StateIndex::Basic,
             Self::ArrayElement(_, i) => StateIndex::Element(*i),
             Self::SizeOf(_) => StateIndex::SizeOf,
+        }
+    }
+    pub fn from_name_and_index(name: StateVarName, index: StateIndex) -> StateRef {
+        match index {
+            StateIndex::Element(i) => StateRef::ArrayElement(name, i),
+            StateIndex::SizeOf => StateRef::SizeOf(name),
+            StateIndex::Basic => StateRef::Basic(name),
         }
     }
 }
@@ -242,6 +259,7 @@ pub enum DependencyInstruction {
     },
     Attribute {
         attribute_name: AttributeName,
+        index: StateIndex,
     },
     Essential,
 }

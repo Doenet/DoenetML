@@ -13,7 +13,10 @@ macro_rules! number_definition_from_attribute {
                 initial_essential_value: if $has_essential { Some($default) } else { None },
 
                 return_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::Basic,
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -48,7 +51,10 @@ macro_rules! integer_definition_from_attribute {
                 initial_essential_value: if $has_essential { Some($default) } else { None },
 
                 return_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::Basic,
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -80,8 +86,11 @@ macro_rules! number_array_definition_from_attribute {
 
                 initial_essential_element_value: if $has_essential { Some($default) } else { None },
 
-                return_array_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                return_element_dependency_instructions: |i, _| {
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::Element(i),
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -96,7 +105,10 @@ macro_rules! number_array_definition_from_attribute {
                 },
 
                 return_size_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::SizeOf,
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -142,7 +154,10 @@ macro_rules! boolean_definition_from_attribute {
                 initial_essential_value: if $has_essential { Some($default) } else { None },
 
                 return_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::Basic,
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -173,7 +188,10 @@ macro_rules! string_definition_from_attribute {
                 initial_essential_value: if $has_essential { Some( $default.to_string() ) } else { None },
 
                 return_dependency_instructions: |_| {
-                    let attribute = DependencyInstruction::Attribute{ attribute_name: $attribute };
+                    let attribute = DependencyInstruction::Attribute{
+                        attribute_name: $attribute,
+                        index: crate::state_variables::StateIndex::Basic,
+                    };
                     HashMap::from([("attribute", attribute)])
                 },
 
@@ -255,7 +273,8 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
                     state_var: "hidden",
                 }),
                 ("my_hide", DependencyInstruction::Attribute {
-                    attribute_name: "hide"
+                    attribute_name: "hide",
+                    index: crate::state_variables::StateIndex::Basic,
                 }),
             ])
         },
