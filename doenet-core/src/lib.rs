@@ -110,8 +110,6 @@ pub enum Dependency {
 
 
 
-const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
-
 
 
 
@@ -837,12 +835,15 @@ fn create_dependencies_from_instruction(
 
             let variant = component.definition.state_var_definitions.get(state_var_name).unwrap();
 
-            add_essential_for(variant, component, state_var_slice, None, essential_data);
+            let dep = add_essential_for(
+                variant,
+                &component_name,
+                state_var_slice,
+                None,
+                essential_data
+            );
 
-            dependencies.push(Dependency::Essential {
-                component_name,
-                state_var_name,
-            });
+            dependencies.push(dep);
 
         },
 
@@ -969,18 +970,15 @@ fn create_dependencies_from_instruction(
                 // attribute specified
 
                 if let StateIndex::SizeOf = index {
-                    add_essential_for(
+                    let dep = add_essential_for(
                         variant,
-                        component,
+                        &component.name,
                         state_var_slice,
                         Some(StateVarValue::Integer(attribute.len() as i64)),
                         essential_data,
                     );
 
-                    dependencies.push(Dependency::Essential {
-                        component_name: component.name.clone(),
-                        state_var_name,
-                    });
+                    dependencies.push(dep);
                 } else {
 
                     let attribute_index = match index {
@@ -1041,18 +1039,15 @@ fn create_dependencies_from_instruction(
                                 },
                             };
 
-                            add_essential_for(
+                            let dep = add_essential_for(
                                 variant,
-                                component,
+                                &component.name,
                                 &StateVarSlice::Single(state_var_ref),
                                 Some(set_essential),
                                 essential_data
                             );
 
-                            dependencies.push(Dependency::Essential {
-                                component_name: component.name.clone(),
-                                state_var_name,
-                            });
+                            dependencies.push(dep);
                         } else {
                             dependencies.push(Dependency::String {
                                 value: val.clone()
@@ -1071,12 +1066,15 @@ fn create_dependencies_from_instruction(
 
                 // use essential if applicable
                 if variant.has_essential() {
-                    add_essential_for(variant, component, state_var_slice, None, essential_data);
+                    let dep = add_essential_for(
+                        variant,
+                        &component.name,
+                        state_var_slice,
+                        None,
+                        essential_data
+                    );
 
-                    dependencies.push(Dependency::Essential {
-                        component_name: component.name.clone(),
-                        state_var_name,
-                    });
+                    dependencies.push(dep);
                 }
 
             }
@@ -1089,17 +1087,17 @@ fn create_dependencies_from_instruction(
 
 fn add_essential_for(
     variant: &StateVarVariant,
-    component: &ComponentNode,
+    component_name: &String,
     state_var_slice: &StateVarSlice,
     value: Option<StateVarValue>,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
-) {
+) -> Dependency {
     let initial_value = variant.initial_essential_value().expect(
-        &format!("Component type '{}' does not specify an initial_essential_value for state var '{}'", component.component_type, state_var_slice.name())
+        &format!("Component type of {} does not specify an initial_essential_value for state var '{}'", component_name, state_var_slice.name())
     );
 
     let datum = essential_data
-        .entry(component.name.clone())
+        .entry(component_name.clone())
         .or_insert(HashMap::new())
         .entry(state_var_slice.name())
         .or_insert(EssentialStateVar::new(variant, vec![initial_value]));
@@ -1109,6 +1107,11 @@ fn add_essential_for(
             datum.set_value(state_ref.index(), v).unwrap();
         }
         _ => (),
+    }
+
+    Dependency::Essential {
+        component_name: component_name.clone(),
+        state_var_name: state_var_slice.name(),
     }
 }
 
@@ -1889,6 +1892,8 @@ fn get_essential_data_component_including_copy(
     }
 }
 
+
+const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 fn return_dependency_instruction_including_shadowing(
