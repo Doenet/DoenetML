@@ -2,7 +2,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::utils::log_json;
 use crate::Action;
-use crate::component::{CopySource, generate_component_definitions, ObjectName, ComponentType, AttributeName, ComponentName};
+use crate::component::{CopySource, generate_component_definitions, ComponentType, AttributeName, ComponentName};
 
 use crate::ComponentDefinition;
 use crate::ComponentChild;
@@ -187,7 +187,11 @@ pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> 
 
 
 pub fn create_components_tree_from_json(program: &str)
-    -> Result<(HashMap<String, ComponentNode>, String), DoenetMLError> {
+    -> Result<(
+            HashMap<ComponentName, ComponentNode>,
+            HashMap<ComponentName, HashMap<AttributeName, String>>,
+            String
+        ), DoenetMLError> {
 
     // log!("Parsing string for component tree: {}", program);
 
@@ -233,10 +237,12 @@ pub fn create_components_tree_from_json(program: &str)
     log_json!(format!("Parsed JSON into tree"), component_tree);
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
-    let mut component_nodes: HashMap<String, ComponentNode> = HashMap::new();
+    let mut component_nodes: HashMap<ComponentName, ComponentNode> = HashMap::new();
+    let mut component_attributes = HashMap::new();
 
     let root_component_name = add_component_from_json(
         &mut component_nodes,
+        &mut component_attributes,
         &component_tree,
         None,
         &mut component_type_counter,
@@ -246,7 +252,7 @@ pub fn create_components_tree_from_json(program: &str)
 
     let root_component_name = root_component_name.unwrap();
 
-    Ok((component_nodes, root_component_name))
+    Ok((component_nodes, component_attributes, root_component_name))
 }
 
 
@@ -255,6 +261,7 @@ pub fn create_components_tree_from_json(program: &str)
 /// (it might not because of invalid doenet ml)
 fn add_component_from_json(
     component_nodes: &mut HashMap<String, ComponentNode>,
+    component_attributes: &mut HashMap<ComponentName, HashMap<AttributeName, String>>,
     component_tree: &ComponentTree,
     parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
@@ -313,8 +320,7 @@ fn add_component_from_json(
                 AttributeValue::String(v) => v.clone(),
                 AttributeValue::Bool(v) => v.to_string(),
             };
-            let object = ObjectName::String(attribute_string);
-            attributes.insert(attribute_name, HashMap::from([(0, vec![object])]));
+            attributes.insert(attribute_name, attribute_string);
         } else {
             return Err(DoenetMLError::AttributeDoesNotExist {
                 comp_name: component_name.clone(),
@@ -338,6 +344,7 @@ fn add_component_from_json(
             ComponentOrString::Component(child_tree) => {
                 let child_name_if_not_error = add_component_from_json(
                     component_nodes,
+                    component_attributes,
                     &child_tree,
                     Some(component_name.clone()),
                     component_type_counter,
@@ -360,7 +367,6 @@ fn add_component_from_json(
         children,
 
         component_type,
-        attributes,
 
         copy_source,
 
@@ -371,6 +377,7 @@ fn add_component_from_json(
         return Err(DoenetMLError::DuplicateName { name: component_name.clone() });
     } else {
         component_nodes.insert(component_name.clone(), component_node);
+        component_attributes.insert(component_name.clone(), attributes);
     }
 
     return Ok(Some(component_name));

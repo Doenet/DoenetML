@@ -59,7 +59,7 @@ pub struct DoenetCore {
 
 /// State variables are keyed by:
 /// 1. the name of the component
-/// 2. the name of a state variable group
+/// 2. the name of a state variable slice
 ///    which allows for two kinds of dependencies:
 ///      - direct dependency: when a single state var depends on something
 ///      - indirect dependency: when a group depends on something,
@@ -117,12 +117,14 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
-    // Create component nodes.
-    let (mut component_nodes, root_component_name) = 
+    // Create component nodes and attributes
+    let (mut component_nodes, component_attributes, root_component_name) = 
         parse_json::create_components_tree_from_json(program)?;
 
-    // Parse macros and generate components from them
-    replace_macros_with_copies(&mut component_nodes);
+    // Parse attrubte strings and generate components from strings
+    // in attributes and string children macros.
+    let component_attributes =
+        parse_attributes_and_macros(&mut component_nodes, component_attributes);
 
 
 
@@ -145,7 +147,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
     }
 
     // Check for cyclical dependencies due to CopySource::Component.
-    // If we don't do this, then alias and dependency generation will crash.
+    // Otherwise alias and dependency generation could crash.
     for (copy_component, _) in copies.iter() {
         if let Some(cyclic_error) = check_cyclic_copy_source_component(&component_nodes, copy_component) {
             return Err(cyclic_error);
@@ -160,7 +162,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
 
     // Fill in component_states and dependencies HashMaps for every component
-    // and supply essential_data required by any Essential Dependency.
+    // and supply any essential_data required by dependencies.
 
     let mut component_states = HashMap::new();
     let mut dependencies = HashMap::new();
@@ -171,6 +173,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         let dependencies_for_this_component = create_all_dependencies_for_component(
             &component_nodes,
             component_node,
+            component_attributes.get(component_name).unwrap_or(&HashMap::new()),
             &mut essential_data
         );
 
@@ -209,8 +212,6 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
     log_json!("Dependencies upon core creation",
         utils::json_dependencies(&dependencies));
-
-    utils::log!("deps full {:#?}", &dependencies);
 
     log_debug!("Essential data upon core creation {:?}",
         essential_data);
@@ -490,7 +491,6 @@ fn apply_macro_to_string(
                         // TODO: non-basic copies
                         source_comp.name.clone(), StateRef::Basic(prop_name))),
 
-                    attributes: HashMap::new(),
                     component_type: copy_comp_type,
                     definition: copy_def,
                 }
@@ -509,7 +509,6 @@ fn apply_macro_to_string(
                     children: vec![],
 
                     copy_source: Some(CopySource::Component(source_comp.name.clone())),
-                    attributes: HashMap::new(),
 
                     .. source_comp.clone()
                 }
@@ -536,13 +535,16 @@ fn apply_macro_to_string(
 }
 
 
-fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentNode>) {
+fn parse_attributes_and_macros(
+    components: &mut HashMap<ComponentName, ComponentNode>,
+    attributes: HashMap<ComponentName, HashMap<AttributeName, String>>,
+) -> HashMap<ComponentName, HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>> {
 
     use std::iter::repeat;
 
     // Keyed by the component name and by the original position of the child we are replacing
     let mut replacement_children: HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
-    let mut replacement_attributes = HashMap::new();
+    let mut attributes_parsed = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
@@ -566,12 +568,12 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
             .map(|((id, val), comp)| (id, val, comp))
         );
 
-    let all_attributes = components.iter()
-        .flat_map(|(_, comp)|
-            comp.attributes
+    let all_attributes = attributes.iter()
+        .flat_map(|(name, attrs)|
+            attrs
             .iter()
-            .map(|(name, val)| (*name, val.get(&0).unwrap().first().unwrap(), comp))
-            .collect::<Vec<(AttributeName, &ObjectName, &ComponentNode)>>()
+            .map(|(attr_name, val)| (*attr_name, val, components.get(name).unwrap()))
+            .collect::<Vec<(AttributeName, &String, &ComponentNode)>>()
         );
 
     // Component string children
@@ -586,29 +588,31 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
         );
 
         if let Some(objects) = objects {
-            replacement_children.entry(component.name.clone()).or_insert(HashMap::new())
+            replacement_children
+                .entry(component.name.clone()).or_insert(HashMap::new())
                 .entry(child_id).or_insert(objects);
         }
     }
 
     // Attributes
-    for (attribute_name, object_name, component) in all_attributes {
-        if let ObjectName::String(string_val) = object_name {
-            let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(',')
-                .enumerate()
-                .map(|(i, s)| {
-                    (i, apply_macro_to_string(
+    for (attribute_name, string_val, component) in all_attributes {
+        let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(',')
+            .enumerate()
+            .map(|(i, s)|
+                (i,
+                    apply_macro_to_string(
                         s.trim().to_string(),
                         component,
                         components,
                         &mut macro_copy_counter,
-                        &mut components_to_add
-                    ).unwrap_or(vec![ObjectName::String(s.to_string())]))
-                }).collect();
+                        &mut components_to_add,
+                    ).unwrap_or(vec![ObjectName::String(s.to_string())])
+                )
+            ).collect();
 
-            replacement_attributes.entry(component.name.clone()).or_insert(HashMap::new())
-                .entry(attribute_name.clone()).or_insert(objects);
-        }
+        attributes_parsed
+            .entry(component.name.clone()).or_insert(HashMap::new())
+            .entry(attribute_name.clone()).or_insert(objects);
     }
 
 
@@ -637,15 +641,9 @@ fn replace_macros_with_copies(components: &mut HashMap<ComponentName, ComponentN
         }
     }
 
-    log_debug!("Replacement attributes {:#?}", replacement_attributes);
+    log_debug!("Replacement attributes {:#?}", attributes_parsed);
 
-    for (component_name, new_children_hashmap) in replacement_attributes {
-        let component = components.get_mut(&component_name).unwrap();
-        for (attribute_name, new_attribute) in new_children_hashmap {
-            component.attributes.insert(attribute_name, new_attribute);
-        }
-    }
-
+    attributes_parsed
 }
 
 
@@ -670,6 +668,7 @@ fn default_component_type_for_state_var(component: &ComponentNode, state_var: St
 fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
+    component_attributes: &HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>,
     essential_data: &mut HashMap<ComponentName, HashMap<StateVarName, EssentialStateVar>>,
 ) -> HashMap<DependencyKey, Vec<Dependency>> {
 
@@ -689,6 +688,7 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components,
                     component,
+                    component_attributes,
                     &StateVarSlice::Single(StateRef::SizeOf(state_var_name)),
                     dep_instruction,
                     instruct_name,
@@ -714,6 +714,7 @@ fn create_all_dependencies_for_component(
                     create_dependencies_from_instruction(
                         &components,
                         component,
+                        component_attributes,
                         &StateVarSlice::Array(state_var_name),
                         dep_instruction,
                         instruct_name,
@@ -757,6 +758,7 @@ fn create_all_dependencies_for_component(
                         create_dependencies_from_instruction(
                             &components,
                             component,
+                            component_attributes,
                             &StateVarSlice::Array(state_var_name),
                             dep_instruction,
                             instruct_name,
@@ -783,6 +785,7 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components,
                     component,
+                    component_attributes,
                     &StateVarSlice::Single(StateRef::Basic(state_var_name)),
                     dep_instruction,
                     instruct_name,
@@ -812,6 +815,7 @@ fn create_all_dependencies_for_component(
 fn create_dependencies_from_instruction(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
+    component_attributes: &HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>,
     state_var_slice: &StateVarSlice,
     instruction: &DependencyInstruction,
     instruction_name: InstructionName,
@@ -959,7 +963,7 @@ fn create_dependencies_from_instruction(
             let state_var_ref = StateRef::from_name_and_index(state_var_name, *index);
             let variant = component.definition.state_var_definitions.get(state_var_name).unwrap();
 
-            if let Some(attribute) = component.attributes.get(*attribute_name) {
+            if let Some(attribute) = component_attributes.get(*attribute_name) {
                 // attribute specified
 
                 if let StateIndex::SizeOf = index {

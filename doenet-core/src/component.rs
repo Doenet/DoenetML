@@ -52,8 +52,6 @@ pub struct ComponentNode {
     pub children: Vec<ComponentChild>,
     pub component_type: ComponentType,
 
-    pub attributes: HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>, // raw DoenetML
-
     // Flags
     pub copy_source: Option<CopySource>,
 
