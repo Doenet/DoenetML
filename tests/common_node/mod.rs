@@ -1,5 +1,9 @@
 
+#![allow(dead_code)]
 // #![cfg(target_arch = "wasm32")]
+
+use std::borrow::Borrow;
+use std::convert::TryInto;
 
 use doenet_core::parse_json::DoenetMLError;
 use doenet_core::state_variables::StateRef;
@@ -23,8 +27,7 @@ pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
     doenet_core::create_doenet_core(&program)
 }
 
-
-pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateRef, value: StateVarValue) {
+fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateRef, value: StateVarValue) {
 
     let state_value = dc.component_states.get(comp_name).expect(
         &format!("Component {} does not exist", comp_name)
@@ -39,14 +42,12 @@ pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &St
                 _ => panic!("State var [{}]:[{}] is basic but does not have single state", comp_name, sv_name)
             }
         },
-
         StateRef::SizeOf(sv_name) => {
             match state_value {
                 StateForStateVar::Array { size, elements: _ } => size.get_state(),
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
-
         StateRef::ArrayElement(sv_name, id) => {
             match state_value {
                 StateForStateVar::Array { size: _, elements } => {
@@ -58,49 +59,90 @@ pub fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &St
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
-
     };
 
     assert_eq!(State::Resolved(value), state, "Incorrect value from [{}]:[{}]", comp_name, sv_ref);
 }
 
-pub fn assert_state_var_basic_is_string(
-    dc: &DoenetCore,
-    comp_name: &'static str,
-    sv_name: &'static str,
-    value: &'static str) {
-
+pub fn assert_sv_is_string(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: &'static str) {
     assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::String(value.into()));
 }
-
-pub fn assert_state_var_basic_is_number(
-    dc: &DoenetCore,
-    comp_name: &'static str,
-    sv_name: &'static str,
-    value: f64) {
-
+pub fn assert_sv_is_number(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: f64) {
     assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Number(value));
+}
+pub fn assert_sv_is_boolean(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: bool) {
+    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Boolean(value));
+}
+pub fn assert_sv_is_integer(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: i64) {
+    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Integer(value));
 }
 
 
-pub fn assert_state_var_array_element_is_number(
-    dc: &DoenetCore,
-    comp_name: &'static str,
-    sv_name: &'static str,
-    id: usize,
-    value: f64) {
 
+
+pub fn assert_sv_array_element_is_number(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, id: usize, value: f64) {
     assert_state_var_is(dc, comp_name, &StateRef::ArrayElement(sv_name, id), StateVarValue::Number(value));
 }
 
-pub fn assert_state_var_array_size_is(
-    dc: &DoenetCore,
-    comp_name: &'static str,
-    sv_name: &'static str,
-    size: usize,
-) {
+pub fn assert_sv_array_size_is(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, size: usize,) {
     assert_state_var_is(dc, comp_name, &StateRef::SizeOf(sv_name), StateVarValue::Integer(size as i64));
 }
+
+
+
+
+pub fn assert_sv_array_is_number_list(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, values: Vec<f64>) {
+    let (size, element_values) = get_array_state(dc, comp_name, sv_name);
+
+    let num_values: Vec<f64> = element_values.into_iter().map(|elem|
+        elem.try_into().expect(
+            &format!("Not all elements of [{}]:[{}] were numbers", comp_name, sv_name)
+        )
+    ).collect();
+
+    assert_eq!(values.len(), size);
+    assert_eq!(values, num_values);
+}
+
+fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str) -> (usize, Vec<StateVarValue>) {
+
+    let state_value = dc.component_states.get(comp_name).expect(
+        &format!("Component {} does not exist", comp_name)
+    ).get(sv_name).expect(
+        &format!("State var [{}]:[{}] does not exist", comp_name, sv_name)
+    );
+
+    match state_value {
+        StateForStateVar::Array { size, elements } => {
+
+            let size_value = if let State::Resolved(val) = size.borrow().get_state() {
+                let val: i64 = val.try_into().unwrap();
+                val as usize
+            } else {
+                panic!("Size of state var [{}]:[{}] is not resolved", comp_name, sv_name);
+            };
+
+            let state_values = elements.borrow().iter().map(|elem| {
+                if let State::Resolved(elem_val) = elem.get_state() {
+                    elem_val
+                } else {
+                    panic!()
+                }
+            }).collect();
+
+
+            (size_value, state_values)
+
+        },
+        _ => {
+            panic!("State for [{}]:[{}] is not an array", comp_name, sv_name)
+        },
+    }
+}
+
+
+
+
 
 
 pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
