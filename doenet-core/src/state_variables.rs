@@ -261,6 +261,13 @@ pub enum DependencyInstruction {
         index: StateIndex,
     },
     Essential,
+
+
+    // StateVarArrayDynamicElement {
+    //     component_name: ComponentName,
+    //     state_var: StateVarName,
+    //     index_state_var: StateRef,
+    // }
 }
 
 

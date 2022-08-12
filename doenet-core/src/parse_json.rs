@@ -1,10 +1,9 @@
 use serde::{Serialize, Deserialize};
 
-use crate::utils::log_json;
+use crate::utils::{log_json};
 use crate::Action;
-use crate::component::{CopySource, generate_component_definitions, ComponentType, AttributeName, ComponentName};
+use crate::component::{CopySource, AttributeName, ComponentName, COMPONENT_DEFINITIONS};
 
-use crate::ComponentDefinition;
 use crate::ComponentChild;
 use crate::ComponentNode;
 
@@ -29,6 +28,7 @@ struct Props {
     name: Option<String>,
     copy_source: Option<String>, //this will become copy_source
     prop: Option<String>,
+    prop_index: Option<String>,
     #[serde(flatten)]
     attributes: HashMap<String, AttributeValue>,
 }
@@ -76,6 +76,7 @@ enum ArgValue {
 /// It is thrown only on core creation.
 #[derive(Debug, PartialEq)]
 pub enum DoenetMLError {
+
     ComponentDoesNotExist {
         comp_name: String,
     },
@@ -89,6 +90,19 @@ pub enum DoenetMLError {
     },
     InvalidComponentType {
         comp_type: String,
+    },
+    NonIntegerPropIndex {
+        comp_name: ComponentName,
+        invalid_index: String,
+    },
+    CannotCopyArrayStateVar {
+        // copier_comp_name: ComponentName, 
+        source_comp_name: ComponentName,
+        source_sv_name: StateVarName,
+    },
+    CannotCopyIndexForStateVar {
+        source_comp_name: ComponentName,
+        source_sv_name: StateVarName,
     },
 
     DuplicateName {
@@ -120,6 +134,12 @@ impl Display for DoenetMLError {
                 write!(f, "Attribute '{}' does not exist on {}", attr_name, comp_name),
             InvalidComponentType { comp_type } => 
                 write!(f, "Component type {} does not exist", comp_type),
+            NonIntegerPropIndex { comp_name, invalid_index } =>
+                write!(f, "Component {} has non-integer propIndex '{}'", comp_name, invalid_index),
+            CannotCopyArrayStateVar { source_comp_name, source_sv_name } =>
+                write!(f, "Cannot copy array state variable '{}' from component {}", source_sv_name, source_comp_name),
+            CannotCopyIndexForStateVar { source_comp_name, source_sv_name } =>
+                write!(f, "Cannot use propIndex for state variable '{}' from component {} because this state variable is not an array", source_sv_name, source_comp_name),
             DuplicateName { name} =>
                 write!(f, "The component name {} is used multiple times", name),
             CyclicalDependency { component_chain } => {
@@ -190,14 +210,15 @@ pub fn create_components_tree_from_json(program: &str)
     -> Result<(
             HashMap<ComponentName, ComponentNode>,
             HashMap<ComponentName, HashMap<AttributeName, String>>,
+            HashMap<ComponentName, (ComponentName, StateVarName, String)>, //propIndexes
             String
         ), DoenetMLError> {
 
     // log!("Parsing string for component tree: {}", program);
 
-    let component_definitions = generate_component_definitions();
+    // let component_definitions = generate_component_definitions();
 
-    let all_state_var_names: HashMap<String, StateVarName> = component_definitions
+    let all_state_var_names: HashMap<String, StateVarName> = COMPONENT_DEFINITIONS
         .iter()
         .flat_map(|(_, &def)|
             def.state_var_definitions
@@ -219,7 +240,7 @@ pub fn create_components_tree_from_json(program: &str)
     
     let tree_wrapped_in_document = |orig_comp_tree | ComponentTree {
         component_type: String::from("document"),
-        props: Props { name: None, copy_source: None, prop: None, attributes: HashMap::new() },
+        props: Props { name: None, copy_source: None, prop: None, prop_index: None, attributes: HashMap::new() },
         children: orig_comp_tree,
     };
 
@@ -239,20 +260,21 @@ pub fn create_components_tree_from_json(program: &str)
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
     let mut component_nodes: HashMap<ComponentName, ComponentNode> = HashMap::new();
     let mut component_attributes = HashMap::new();
+    let mut copy_prop_index_instances = HashMap::new();
 
     let root_component_name = add_component_from_json(
         &mut component_nodes,
         &mut component_attributes,
+        &mut copy_prop_index_instances,
         &component_tree,
         None,
         &mut component_type_counter,
-        &component_definitions,
         &all_state_var_names,
     )?;
 
     let root_component_name = root_component_name.unwrap();
 
-    Ok((component_nodes, component_attributes, root_component_name))
+    Ok((component_nodes, component_attributes, copy_prop_index_instances, root_component_name))
 }
 
 
@@ -262,10 +284,10 @@ pub fn create_components_tree_from_json(program: &str)
 fn add_component_from_json(
     component_nodes: &mut HashMap<String, ComponentNode>,
     component_attributes: &mut HashMap<ComponentName, HashMap<AttributeName, String>>,
+    copy_prop_index_instances: &mut HashMap<ComponentName, (ComponentName, StateVarName, String)>,
     component_tree: &ComponentTree,
     parent_name: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
-    component_definitions: &HashMap<ComponentType, &'static ComponentDefinition>,
     all_state_var_names: &HashMap<String, StateVarName>,
 
 ) -> Result<Option<ComponentName>, DoenetMLError> {
@@ -273,7 +295,7 @@ fn add_component_from_json(
     let component_type: &str = &component_tree.component_type;
 
     let (&component_type, &component_definition) =
-        get_key_value_ignore_case(component_definitions, component_type)
+        get_key_value_ignore_case(&COMPONENT_DEFINITIONS, component_type)
         .ok_or(DoenetMLError::InvalidComponentType {
             comp_type: component_type.to_string() }
         )?;
@@ -288,19 +310,44 @@ fn add_component_from_json(
 
 
     let copy_source: Option<CopySource> = {
-        if let Some(ref source_name) = component_tree.props.copy_source {
+        if let Some(ref source_comp_name) = component_tree.props.copy_source {
             if let Some(ref source_state_var) = component_tree.props.prop {
 
-                let state_var_name =  all_state_var_names.get(source_state_var)
+                let source_sv_name =  all_state_var_names.get(source_state_var)
                     .ok_or(DoenetMLError::StateVarDoesNotExist {
                         comp_name: component_name.clone(),
                         sv_name: source_state_var.to_string() 
                     })?;
 
-                Some(CopySource::StateVar(source_name.clone(), StateRef::Basic(state_var_name)))
+                if let Some(ref source_sv_index_str) = component_tree.props.prop_index {
+
+                    // let index = if let Ok(id) = source_sv_index.parse::<usize>() {
+                    //     id - 1
+                    // } else {
+                    //     return Err(DoenetMLError::NonIntegerPropIndex {
+                    //         comp_name: component_name,
+                    //         invalid_index: source_sv_index.to_string(),
+                    //     });
+                    // };
+
+                    copy_prop_index_instances.insert(component_name.clone(), 
+                        (
+                            source_comp_name.to_string(),
+                            source_sv_name,
+                            source_sv_index_str.to_owned(),
+                        )
+                    );
+                    None
+
+                    // Some(CopySource::StateVar(source_name.clone(), StateRef::ArrayElement(state_var_name, index)))
+
+                } else {
+                    Some(CopySource::StateVar(source_comp_name.clone(), StateRef::Basic(source_sv_name)))
+
+                }
 
             } else {
-                Some(CopySource::Component(source_name.clone()))
+                Some(CopySource::Component(source_comp_name.clone()))
             }
         } else {
             None
@@ -345,10 +392,10 @@ fn add_component_from_json(
                 let child_name_if_not_error = add_component_from_json(
                     component_nodes,
                     component_attributes,
+                    copy_prop_index_instances,
                     &child_tree,
                     Some(component_name.clone()),
                     component_type_counter,
-                    component_definitions,
                     all_state_var_names,
                 )?;
 

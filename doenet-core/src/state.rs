@@ -76,19 +76,21 @@ impl StateForStateVar {
     }
 
 
-    pub fn get_single_state(&self, sv_ref: StateIndex) -> State<StateVarValue> {
+    pub fn get_single_state(&self, sv_ref: &StateIndex) -> Result<State<StateVarValue>, String> {
         match self {
             Self::Single(sv) => {
                 match sv_ref {
-                    StateIndex::Basic => sv.get_state(),
-                    _ => panic!(),
+                    StateIndex::Basic => Ok(sv.get_state()),
+                    _ => Err(format!("Tried to access a non-array State with an index or a size")),
                 }
             },
             Self::Array { size, elements } => {
                 match sv_ref {
-                    StateIndex::SizeOf => size.get_state(),
-                    StateIndex::Element(id) => elements.borrow().get(id).unwrap().get_state(),
-                    _ => panic!(),
+                    StateIndex::SizeOf => Ok(size.get_state()),
+                    StateIndex::Element(id) => {
+                        Ok(elements.borrow().get(*id).unwrap().get_state())
+                    },
+                    _ => Err(format!("Tried to access an array State without an index or a size")),
                 }
             },
 
@@ -102,7 +104,9 @@ impl StateForStateVar {
             Self::Single(sv) => sv.set_value(val),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateIndex::Element(id) => elements.borrow().get(*id).unwrap().set_value(val),
+                StateIndex::Element(id) => {
+                    elements.borrow().get(*id).unwrap().set_value(val)
+                }
 
                 StateIndex::SizeOf => {
 

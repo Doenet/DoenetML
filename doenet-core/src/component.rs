@@ -27,20 +27,24 @@ pub type AttributeName = &'static str;
 pub type ComponentName = String;
 
 
-pub fn generate_component_definitions() -> HashMap<ComponentType, &'static ComponentDefinition> {
-    let mut defs: HashMap<ComponentType, &'static ComponentDefinition> = HashMap::new();
-    defs.insert("text",         &crate::text         ::MY_COMPONENT_DEFINITION);
-    defs.insert("number"   ,    &crate::number       ::MY_COMPONENT_DEFINITION);
-    defs.insert("textInput",    &crate::text_input   ::MY_COMPONENT_DEFINITION);
-    defs.insert("document",     &crate::document     ::MY_COMPONENT_DEFINITION);
-    defs.insert("boolean",      &crate::boolean      ::MY_COMPONENT_DEFINITION);
-    defs.insert("p",            &crate::p            ::MY_COMPONENT_DEFINITION);
-    defs.insert("numberInput",  &crate::number_input ::MY_COMPONENT_DEFINITION);
-    defs.insert("booleanInput", &crate::boolean_input::MY_COMPONENT_DEFINITION);
-    defs.insert("sequence",     &crate::sequence     ::MY_COMPONENT_DEFINITION);
-    defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
-    defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
-    defs
+lazy_static! {
+    pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
+
+        let mut defs: HashMap<ComponentType, &'static ComponentDefinition> = HashMap::new();
+        defs.insert("text",         &crate::text         ::MY_COMPONENT_DEFINITION);
+        defs.insert("number"   ,    &crate::number       ::MY_COMPONENT_DEFINITION);
+        defs.insert("textInput",    &crate::text_input   ::MY_COMPONENT_DEFINITION);
+        defs.insert("document",     &crate::document     ::MY_COMPONENT_DEFINITION);
+        defs.insert("boolean",      &crate::boolean      ::MY_COMPONENT_DEFINITION);
+        defs.insert("p",            &crate::p            ::MY_COMPONENT_DEFINITION);
+        defs.insert("numberInput",  &crate::number_input ::MY_COMPONENT_DEFINITION);
+        defs.insert("booleanInput", &crate::boolean_input::MY_COMPONENT_DEFINITION);
+        defs.insert("sequence",     &crate::sequence     ::MY_COMPONENT_DEFINITION);
+        defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
+        defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
+        defs
+
+    };
 }
 
 
