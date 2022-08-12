@@ -19,7 +19,6 @@ lazy_static! {
         
         state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
             for_renderer: true,
-            initial_essential_value: Some(0.0),
 
             return_dependency_instructions: |_| {
 
@@ -27,34 +26,21 @@ lazy_static! {
                     ("children", DependencyInstruction::Child {
                         desired_profiles: vec![ComponentProfile::Number, ComponentProfile::Text],
                     }),
-                    ("essential", DependencyInstruction::Essential)
                 ])
             },
 
 
             determine_state_var_from_dependencies: |dependency_values| {
                 let children = dependency_values.get("children").unwrap();
-                let essential = dependency_values.get("essential").unwrap();
 
-                if !essential.is_empty() {
-                    DETERMINE_NUMBER(essential.clone()).map(|x| SetValue(x))
-                } else {
-                    DETERMINE_NUMBER(children.clone()).map(|x| SetValue(x))
-                }
+                DETERMINE_NUMBER(children.clone()).map(|x| SetValue(x))
 
             },
 
             request_dependencies_to_update_value: |desired_value, dependency_sources| {
-
-                let essential_source: Vec<DependencySource> = dependency_sources.get("essential").unwrap().to_vec();
-                assert_eq!(essential_source.len(), 1);
-                let essential_source: DependencySource = essential_source.get(0).unwrap().to_owned();
-
+                let children_sources: Vec<DependencySource> = dependency_sources.get("children").unwrap().to_vec();
                 HashMap::from([
-                    ("essential", vec![DependencyValue {
-                        source: essential_source,
-                        value: StateVarValue::from(desired_value),
-                    }])
+                    ("children", DETERMINE_NUMBER_DEPENDENCIES(desired_value, children_sources))
                 ])
             },
 

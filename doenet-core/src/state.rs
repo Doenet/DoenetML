@@ -208,7 +208,7 @@ impl StateVar {
 /// A special endpoint on the dependency graph which is associated with a
 /// particular state var. Actions often update these.
 /// An EssentialStateVar cannot be stale so it does not need a ValueTypeProtector
-#[derive(serde::Serialize)]
+#[derive(Clone, serde::Serialize)]
 pub enum EssentialStateVar {
     Single(RefCell<StateVarValue>),
     Array {
@@ -221,20 +221,19 @@ pub enum EssentialStateVar {
 
 impl EssentialStateVar {
 
-    pub fn new(value_type: &StateVarVariant, value: Vec<StateVarValue>) -> Self {
-        match value_type {
-            StateVarVariant::Boolean(_) => Self::Single(RefCell::new(value.first().unwrap().clone())),
-            StateVarVariant::Integer(_) => Self::Single(RefCell::new(value.first().unwrap().clone())),
-            StateVarVariant::Number(_) =>  Self::Single(RefCell::new(value.first().unwrap().clone())),
-            StateVarVariant::String(_) =>  Self::Single(RefCell::new(value.first().unwrap().clone())),
-            StateVarVariant::NumberArray(_) => {
+    pub fn new(value_type: Option<&StateVarVariant>) -> Self {
+        if let Some(value_type) = value_type {
+            if value_type.is_array() {
                 Self::Array {
-                    size: RefCell::new(value.len()),
-                    elements: RefCell::new(value),
-                    extension: RefCell::new(value_type.initial_essential_value()
-                        .unwrap_or(StateVarValue::Number(0.0))),
+                    size: RefCell::new(0),
+                    elements: RefCell::new(vec![]),
+                    extension: RefCell::new(value_type.initial_essential_value()),
                 }
+            } else {
+                Self::Single(RefCell::new(value_type.initial_essential_value()))
             }
+        } else {
+            Self::Single(RefCell::new(StateVarValue::String("".to_string())))
         }
     }
 
@@ -245,7 +244,9 @@ impl EssentialStateVar {
             },
 
             (Self::Array{size, elements, extension }, StateIndex::SizeOf) => {
-                let new_len = max(size.borrow().clone(), usize::try_from(new_value).unwrap());
+                let new_len = max(size.borrow().clone(), usize::try_from(new_value.clone()).expect(
+                    &format!("treid to set essential size to {}", new_value))
+                );
                 elements.borrow_mut().resize(new_len, extension.borrow().clone());
 
                 let mut s = size.borrow_mut();

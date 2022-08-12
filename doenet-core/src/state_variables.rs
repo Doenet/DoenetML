@@ -40,7 +40,7 @@ pub struct StateVarDefinition<T> {
     pub for_renderer: bool,
 
     /// Determines whether to use essential data
-    pub initial_essential_value: Option<T>,
+    pub initial_essential_value: T,
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
     /// values for the dependencies that would make this state variable return that value.
@@ -81,7 +81,7 @@ pub struct StateVarArrayDefinition<T> {
 
     pub for_renderer: bool,
 
-    pub initial_essential_element_value: Option<T>,
+    pub initial_essential_element_value: T,
 
 }
 
@@ -142,15 +142,6 @@ impl StateRef {
     }
 }
 
-impl StateVarSlice {
-    pub fn state_var_name(&self) -> StateVarName {
-        match self {
-            Self::Array(name) => name,
-            Self::Single(sv_ref) => sv_ref.name()
-        }
-    }
-}
-
 
 
 
@@ -166,7 +157,7 @@ impl<T> Default for StateVarDefinition<T>
             determine_state_var_from_dependencies:
                 |_| Ok(StateVarUpdateInstruction::SetValue(T::default())),
             for_renderer: false,
-            initial_essential_value: None,
+            initial_essential_value: T::default(),
 
             request_dependencies_to_update_value: |_, _| {
                 log!("DEFAULT REQUEST_DEPENDENCIES_TO_UPDATE_VALUE DOES NOTHING");
@@ -198,7 +189,7 @@ impl<T> Default for StateVarArrayDefinition<T>
                 HashMap::new()
             },
             for_renderer: false, 
-            initial_essential_element_value: Some(T::default()),
+            initial_essential_element_value: T::default(),
 
         }
     }
@@ -282,11 +273,15 @@ pub enum StateVarUpdateInstruction<T> {
 
 
 
-#[derive(Debug, Clone)]
-pub struct DependencySource {
-    /// For now, `component_type: "essential_data"` is used with essential data dependencies
-    pub component_type: ComponentType,
-    pub state_var_name: StateVarName,
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DependencySource {
+    StateVar {
+        component_type: ComponentType,
+        state_var_name: StateVarName,
+    },
+    Essential {
+        value_type: &'static str,
+    },
 }
 
 /// Passed into determine_state_vars_from_dependencies
@@ -383,7 +378,10 @@ impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
         let (dep_values, name) = self;
 
         let filtered_dep_values = dep_values.iter()
-            .filter(|dep_value| dep_value.source.component_type == component_type)
+            .filter(|dep_value| match dep_value.source {
+                DependencySource::StateVar { component_type: comp, ..} => comp == component_type,
+                _ => false,
+            })
             .map(|&dep_value| dep_value)
             .collect();
 
@@ -815,13 +813,13 @@ impl StateVarVariant {
 
 
 
-    pub fn initial_essential_value(&self) -> Option<StateVarValue> {
+    pub fn initial_essential_value(&self) -> StateVarValue {
         match self {
-            Self::String(def) =>  def.initial_essential_value.as_ref().map(|x| StateVarValue::String(x.clone())),
-            Self::Integer(def) => def.initial_essential_value.map(|x| StateVarValue::Integer(x)),
-            Self::Number(def) =>  def.initial_essential_value.map(|x| StateVarValue::Number(x)),
-            Self::Boolean(def) => def.initial_essential_value.map(|x| StateVarValue::Boolean(x)),
-            Self::NumberArray(def) => def.initial_essential_element_value.map(|x| StateVarValue::Number(x)),
+            Self::String(def) =>  StateVarValue::String(def.initial_essential_value.clone()),
+            Self::Integer(def) => StateVarValue::Integer(def.initial_essential_value),
+            Self::Number(def) =>  StateVarValue::Number(def.initial_essential_value),
+            Self::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
+            Self::NumberArray(def) => StateVarValue::Number(def.initial_essential_element_value),
         }
     }
 
@@ -842,10 +840,6 @@ impl StateVarVariant {
             Self::NumberArray(_) => true,
             _ => false,
         }
-    }
-
-    pub fn has_essential(&self) -> bool {
-        self.initial_essential_value().is_some()
     }
 
 }

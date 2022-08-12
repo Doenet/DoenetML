@@ -17,7 +17,6 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
-            initial_essential_value: Some(String::new()),
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
@@ -54,7 +53,6 @@ lazy_static! {
 
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             for_renderer: true,
-            initial_essential_value: Some(String::new()),
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,

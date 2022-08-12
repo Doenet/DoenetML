@@ -22,7 +22,6 @@ lazy_static! {
 
         state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
 
-            initial_essential_value: Some(0.0),
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
 
@@ -66,7 +65,6 @@ lazy_static! {
         // so that we can feed it into the textInput renderer.
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             for_renderer: true,
-            initial_essential_value: Some(String::new()),
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
 

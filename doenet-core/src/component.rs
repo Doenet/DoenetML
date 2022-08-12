@@ -99,7 +99,6 @@ pub enum ComponentProfile {
     // Graphical,
 }
 
-
 pub struct ComponentDefinition {
     pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,
 

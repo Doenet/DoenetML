@@ -10,7 +10,7 @@ macro_rules! number_definition_from_attribute {
             StateVarVariant::Number(StateVarDefinition {
                 for_renderer: true,
 
-                initial_essential_value: if $has_essential { Some($default) } else { None },
+                initial_essential_value: $default,
 
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{
@@ -30,8 +30,11 @@ macro_rules! number_definition_from_attribute {
                     }
                 },
 
-                request_dependencies_to_update_value: |desired_value, _| {
-                    DETERMINE_NUMBER_DEPENDENCIES(desired_value)
+                request_dependencies_to_update_value: |desired_value, sources| {
+                    let attribute_sources = sources.get("attribute").unwrap().clone();
+                    HashMap::from([
+                        ("attribute", DETERMINE_NUMBER_DEPENDENCIES(desired_value, attribute_sources))
+                    ])
                 },
 
                 ..Default::default()
@@ -48,7 +51,7 @@ macro_rules! integer_definition_from_attribute {
             StateVarVariant::Integer(StateVarDefinition {
                 for_renderer: true,
 
-                initial_essential_value: if $has_essential { Some($default) } else { None },
+                initial_essential_value:$default,
 
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{
@@ -68,8 +71,11 @@ macro_rules! integer_definition_from_attribute {
                     }
                 },
 
-                request_dependencies_to_update_value: |desired_value, _| {
-                    DETERMINE_INTEGER_DEPENDENCIES(desired_value)
+                request_dependencies_to_update_value: |desired_value, sources| {
+                    let attribute_sources = sources.get("attribute").unwrap().clone();
+                    HashMap::from([
+                        ("attribute", DETERMINE_INTEGER_DEPENDENCIES(desired_value, attribute_sources))
+                    ])
                 },
 
                 ..Default::default()
@@ -84,7 +90,7 @@ macro_rules! number_array_definition_from_attribute {
         {
             StateVarVariant::NumberArray(StateVarArrayDefinition {
 
-                initial_essential_element_value: if $has_essential { Some($default) } else { None },
+                initial_essential_element_value: $default,
 
                 return_element_dependency_instructions: |i, _| {
                     let attribute = DependencyInstruction::Attribute{
@@ -126,17 +132,10 @@ macro_rules! number_array_definition_from_attribute {
                     }
                 },
 
-                request_element_dependencies_to_update_value: |_, desired_value, _| {
+                request_element_dependencies_to_update_value: |_, desired_value, sources| {
+                    let attribute_sources = sources.get("attribute").unwrap().clone();
                     HashMap::from([
-                        ("attribute", vec![
-                            DependencyValue {
-                                source: DependencySource {
-                                    component_type: "",
-                                    state_var_name: "",    
-                                },
-                                value: desired_value.into(),
-                            }
-                        ])
+                        ("attribute", DETERMINE_NUMBER_DEPENDENCIES(desired_value, attribute_sources))
                     ])
                 },
 
@@ -153,7 +152,7 @@ macro_rules! boolean_definition_from_attribute {
             StateVarVariant::Boolean(StateVarDefinition {
                 for_renderer: true,
 
-                initial_essential_value: if $has_essential { Some($default) } else { None },
+                initial_essential_value: $default,
 
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{
@@ -187,7 +186,7 @@ macro_rules! string_definition_from_attribute {
             StateVarVariant::String(StateVarDefinition {
                 for_renderer: true,
 
-                initial_essential_value: if $has_essential { Some( $default.to_string() ) } else { None },
+                initial_essential_value: $default.to_string(),
 
                 return_dependency_instructions: |_| {
                     let attribute = DependencyInstruction::Attribute{
@@ -248,15 +247,12 @@ where
 }
 
 #[allow(non_snake_case)]
-pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, _: HashMap<InstructionName, Vec<DependencySource>>)
+pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, sources: HashMap<InstructionName, Vec<DependencySource>>)
     -> HashMap<InstructionName, Vec<DependencyValue>> {
     HashMap::from([
         ("essential", vec![
             DependencyValue {
-                source: DependencySource {
-                    component_type: "essential_data",
-                    state_var_name: "",    
-                },
+                source: sources.get("essential").unwrap().first().unwrap().clone(),
                 value: desired_value.into(),
             }
         ])
@@ -414,35 +410,47 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<DependencyValue>)
 
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64)
-    -> HashMap<InstructionName, Vec<DependencyValue>> {
-    HashMap::from([
-        ("attribute", vec![
-            DependencyValue {
-                source: DependencySource {
-                    component_type: "number",
-                    state_var_name: "",    
-                },
-                value: desired_value.into(),
-            }
-        ])
-    ])
+pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: Vec<DependencySource>)
+    -> Vec<DependencyValue> {
+
+    if sources.len() == 1 {
+        let source = sources.first().unwrap().clone();
+        let value = match source {
+            DependencySource::Essential { value_type: "string" } =>
+                StateVarValue::String(desired_value.to_string()),
+            DependencySource::Essential { value_type: "number" } |
+            DependencySource::StateVar { component_type: "number", .. } =>
+                StateVarValue::Number(desired_value),
+            _ => panic!("number did not expect component type"),
+        };
+        vec![DependencyValue {
+            source,
+            value,
+        }]
+    } else {
+        panic!("inverse for number not implemented with multiple children");
+    }
 }
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64)
-    -> HashMap<InstructionName, Vec<DependencyValue>> {
-    HashMap::from([
-        ("attribute", vec![
-            DependencyValue {
-                source: DependencySource {
-                    component_type: "number",
-                    state_var_name: "",    
-                },
-                value: desired_value.into(),
-            }
-        ])
-    ])
+pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64, sources: Vec<DependencySource>)
+    -> Vec<DependencyValue> {
+    if sources.len() == 1 {
+        let source = sources.first().unwrap().clone();
+        let value = match source {
+            DependencySource::Essential { value_type: "string" } =>
+                StateVarValue::String(desired_value.to_string()),
+            DependencySource::Essential { value_type: "integer" } =>
+                StateVarValue::Integer(desired_value),
+            _ => panic!("integer did not expect component type"),
+        };
+        vec![DependencyValue {
+            source,
+            value,
+        }]
+    } else {
+        panic!("inverse for number not implemented with multiple children");
+    }
 }
 
 
