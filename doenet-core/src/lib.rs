@@ -107,10 +107,12 @@ pub enum Dependency {
 /// - a state variable requesting it
 /// - a string child, converted into essential data
 ///   so that it can change when requested
+/// - a string in an attribute
 #[derive(Serialize, Debug, Clone, Eq, Hash, PartialEq)]
 pub enum EssentialDataOrigin {
     StateVar(StateVarName),
     ComponentChild(usize),
+    AttributeString(usize),
 }
 
 
@@ -138,8 +140,16 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
 
     // Check for invalid names in CopySource::Components here
-    for (_, source_comp_name) in copies.iter() {
-        if !component_nodes.contains_key(*source_comp_name) {
+    for (comp, source_comp_name) in copies.iter() {
+        if let Some(source_comp) = component_nodes.get(*source_comp_name) {
+            if comp.component_type != source_comp.component_type {
+                return Err(DoenetMLError::ComponentCannotCopyOtherType {
+                    component_name: comp.name.clone(),
+                    component_type: comp.component_type,
+                    source_type: source_comp.component_type,
+                });
+            }
+        } else {
             // The component tried to copy a non-existent component.
             return Err(DoenetMLError::ComponentDoesNotExist {
                 comp_name: source_comp_name.to_string()
@@ -1027,12 +1037,12 @@ fn create_dependencies_from_instruction(
                     if attr_objects.len() > 1 || attr_string.is_none() {
                         // depends on other state vars
 
-                        for object_name in attr_objects {
+                        for (piece, object_name) in attr_objects.into_iter().enumerate() {
                             match object_name {
                                 ObjectName::String(s) => {
                                     let dep = add_essential_for(
                                         component,
-                                        EssentialDataOrigin::StateVar(state_var_name),
+                                        EssentialDataOrigin::AttributeString(piece),
                                         &StateVarSlice::Single(state_var_ref.clone()),
                                         Some(s.clone()),
                                         essential_data,
@@ -1043,7 +1053,9 @@ fn create_dependencies_from_instruction(
                                 ObjectName::Component(s) => {
                                     let comp_def = components.get(s).unwrap().definition;
                                     let state_var_ref = StateRef::Basic(
-                                        comp_def.primary_input_state_var.unwrap());
+                                        comp_def.primary_input_state_var.expect(
+                                            &format!("An attribute cannot depend on a non-primitive component. Try adding '.value' to the macro.")
+                                        ));
 
                                     dependencies.push(Dependency::StateVar {
                                         component_name: s.clone(),
@@ -1110,7 +1122,7 @@ fn add_essential_for(
         EssentialDataOrigin::StateVar(name) => Some(component
             .definition.state_var_definitions
             .get(name).unwrap()),
-        EssentialDataOrigin::ComponentChild(_) => None,
+        _ => None,
     };
 
     let datum = essential_data
@@ -1129,12 +1141,12 @@ fn add_essential_for(
                 (StateVarVariant::NumberArray(_), StateIndex::SizeOf) |
                 (StateVarVariant::Integer(_), _) => match evalexpr::eval(&val) {
                     Ok(num) =>StateVarValue::Integer(num.as_int().unwrap()),
-                    Err(_) => panic!("Can't parse integer in attribute"),
+                    Err(_) => panic!("Can't parse attribute '{}' into integer", val),
                 },
                 (StateVarVariant::NumberArray(_), _) |
                 (StateVarVariant::Number(_), _) => match evalexpr::eval(&val) {
                     Ok(num) => StateVarValue::Number(num.as_number().unwrap_or(f64::NAN)),
-                    Err(_) => panic!("Can't parse number in attribute"),
+                    Err(_) => panic!("Can't parse attribute '{}' into number", val),
                 },
             };
 
@@ -1267,7 +1279,7 @@ fn get_source_for_dependency(components: &HashMap<ComponentName, ComponentNode>,
                         }
                     }
                 }
-                EssentialDataOrigin::ComponentChild(_) => DependencySource::Essential{
+                _ => DependencySource::Essential{
                     value_type: "string",
                 },
             

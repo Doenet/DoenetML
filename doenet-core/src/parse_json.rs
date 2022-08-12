@@ -90,20 +90,17 @@ pub enum DoenetMLError {
     InvalidComponentType {
         comp_type: String,
     },
-
     DuplicateName {
         name: String,
     },
-
     CyclicalDependency {
         component_chain: Vec<ComponentName>,
     },
-
-    // ComponentTypeCannotCopyProp {
-    //     component_name: ComponentName,
-    //     component_type: ComponentType,
-    //     prop: StateVarName,
-    // },
+    ComponentCannotCopyOtherType {
+        component_name: ComponentName,
+        component_type: ComponentType,
+        source_type: ComponentType,
+    },
 }
 
 impl std::error::Error for DoenetMLError {}
@@ -131,6 +128,9 @@ impl Display for DoenetMLError {
                 msg.pop();
 
                 write!(f, "{}", msg)
+            }
+            ComponentCannotCopyOtherType { component_name, component_type, source_type } => {
+                write!(f, "The {} component '{}' cannot copy a {} component.", component_type, component_name, source_type)
             }
         }
     }
