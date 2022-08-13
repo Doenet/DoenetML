@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::panic::set_hook;
 
 use common_node::*;
-use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue};
+use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue, Action};
 use wasm_bindgen_test::{wasm_bindgen_test, console_log};
 
 
@@ -261,3 +261,33 @@ fn sequence_from_and_to_can_be_copied_as_props() {
     assert_sv_is_number(&dc, "/_number6", "value", -993.0);
 }
 
+
+
+// ========= <point> ==============
+
+#[wasm_bindgen_test]
+fn point_moves_copy_number() {
+    static DATA: &str = r#"
+        <number name='num'>2</number>
+        <graph name='g'><point name='p' xs='3 $num'/></graph>
+    "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
+
+    let move_point = Action {
+        component_name: "p".to_string(),
+        action_name: "movePoint".to_string(),
+        args: HashMap::from([
+            ("x".to_string(), StateVarValue::Integer(5)),
+            ("y".to_string(), StateVarValue::Number(1.0)),
+        ]),
+    };
+    doenet_core::handle_action(&dc, move_point);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
+}
