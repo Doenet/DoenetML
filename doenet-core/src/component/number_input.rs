@@ -118,7 +118,7 @@ lazy_static! {
                 "updateValue" => {
 
                     let immediate_value: String =
-                        resolve_and_retrieve_state_var(&StateRef::Basic("immediateValue")).try_into()
+                        resolve_and_retrieve_state_var(&StateRef::Basic("immediateValue")).unwrap().try_into()
                         .expect("Immediate value should have been a string");
 
                     let value = immediate_value.parse().unwrap_or(0.0);

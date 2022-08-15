@@ -68,10 +68,10 @@ lazy_static! {
             ..Default::default()
         }));
 
-        state_var_definitions.insert("xmin", number_definition_from_attribute!("xmin", -10.0, true));
-        state_var_definitions.insert("ymin", number_definition_from_attribute!("ymin", -10.0, true));
-        state_var_definitions.insert("xmax", number_definition_from_attribute!("xmax", 10.0, true));
-        state_var_definitions.insert("ymax", number_definition_from_attribute!("xmax", 10.0, true));
+        state_var_definitions.insert("xmin", number_definition_from_attribute!("xmin", -10.0));
+        state_var_definitions.insert("ymin", number_definition_from_attribute!("ymin", -10.0));
+        state_var_definitions.insert("xmax", number_definition_from_attribute!("xmax", 10.0));
+        state_var_definitions.insert("ymax", number_definition_from_attribute!("xmax", 10.0));
         
         state_var_definitions.insert("grid", StateVarVariant::String(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([
@@ -82,35 +82,35 @@ lazy_static! {
             ..Default::default()
         }));
 
-        state_var_definitions.insert("displayMode", string_definition_from_attribute!("displayMode", "block", false));
+        state_var_definitions.insert("displayMode", string_definition_from_attribute!("displayMode", "block"));
 
-        state_var_definitions.insert("horizontalAlign", string_definition_from_attribute!("horizontalAlign", "center", false));
+        state_var_definitions.insert("horizontalAlign", string_definition_from_attribute!("horizontalAlign", "center"));
 
-        state_var_definitions.insert("displayXAxis", boolean_definition_from_attribute!("displayXAxis", true, false));
+        state_var_definitions.insert("displayXAxis", boolean_definition_from_attribute!("displayXAxis", true));
 
-        state_var_definitions.insert("displayYAxis", boolean_definition_from_attribute!("displayYAxis", true, false));
+        state_var_definitions.insert("displayYAxis", boolean_definition_from_attribute!("displayYAxis", true));
 
-        state_var_definitions.insert("displayXAxisTickLabels", boolean_definition_from_attribute!("displayXAxisTickLabels", true, false));
+        state_var_definitions.insert("displayXAxisTickLabels", boolean_definition_from_attribute!("displayXAxisTickLabels", true));
 
-        state_var_definitions.insert("displayYAxisTickLabels", boolean_definition_from_attribute!("displayYAxisTickLabels", true, false));
+        state_var_definitions.insert("displayYAxisTickLabels", boolean_definition_from_attribute!("displayYAxisTickLabels", true));
 
-        state_var_definitions.insert("xlabel", string_definition_from_attribute!("xlabel", "x", false));
+        state_var_definitions.insert("xlabel", string_definition_from_attribute!("xlabel", "x"));
 
-        state_var_definitions.insert("xlabelPosition", string_definition_from_attribute!("xlabelPosition", "right", false));
+        state_var_definitions.insert("xlabelPosition", string_definition_from_attribute!("xlabelPosition", "right"));
 
-        state_var_definitions.insert("xTickScaleFactor", number_definition_from_attribute!("xTickScaleFactor", 1.0, false));
+        state_var_definitions.insert("xTickScaleFactor", number_definition_from_attribute!("xTickScaleFactor", 1.0));
 
-        state_var_definitions.insert("ylabel", string_definition_from_attribute!("ylabel", "y", false));
+        state_var_definitions.insert("ylabel", string_definition_from_attribute!("ylabel", "y"));
 
-        state_var_definitions.insert("ylabelPosition", string_definition_from_attribute!("ylabelPosition", "top", false));
+        state_var_definitions.insert("ylabelPosition", string_definition_from_attribute!("ylabelPosition", "top"));
 
-        state_var_definitions.insert("ylabelAlignment", string_definition_from_attribute!("ylabelAlignment", "left", false));
+        state_var_definitions.insert("ylabelAlignment", string_definition_from_attribute!("ylabelAlignment", "left"));
 
-        state_var_definitions.insert("yTickScaleFactor", number_definition_from_attribute!("yTickScaleFactor", 1.0, false));
+        state_var_definitions.insert("yTickScaleFactor", number_definition_from_attribute!("yTickScaleFactor", 1.0));
 
-        state_var_definitions.insert("showNavigation", boolean_definition_from_attribute!("showNavigation", true, false));
+        state_var_definitions.insert("showNavigation", boolean_definition_from_attribute!("showNavigation", true));
 
-        state_var_definitions.insert("fixAxes", boolean_definition_from_attribute!("fixAxes", false, false));
+        state_var_definitions.insert("fixAxes", boolean_definition_from_attribute!("fixAxes", false));
 
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());

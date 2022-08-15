@@ -5,7 +5,7 @@ use crate::state_variables::*;
 
 
 macro_rules! number_definition_from_attribute {
-    ( $attribute:expr, $default:expr, $has_essential:expr) => {
+    ( $attribute:expr, $default:expr ) => {
         {
             StateVarVariant::Number(StateVarDefinition {
                 for_renderer: true,
@@ -21,7 +21,7 @@ macro_rules! number_definition_from_attribute {
                 },
 
                 determine_state_var_from_dependencies: |dependency_values| {
-                    let attribute = dependency_values.get("attribute").unwrap();
+                    let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
                         DETERMINE_NUMBER(attribute.clone())
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
@@ -46,7 +46,7 @@ pub(crate) use number_definition_from_attribute;
 
 
 macro_rules! integer_definition_from_attribute {
-    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
+    ( $attribute:expr, $default:expr ) => {
         {
             StateVarVariant::Integer(StateVarDefinition {
                 for_renderer: true,
@@ -62,7 +62,7 @@ macro_rules! integer_definition_from_attribute {
                 },
 
                 determine_state_var_from_dependencies: |dependency_values| {
-                    let attribute = dependency_values.get("attribute").unwrap();
+                    let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
                         DETERMINE_NUMBER(attribute.clone())
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x as i64))
@@ -86,7 +86,7 @@ macro_rules! integer_definition_from_attribute {
 pub(crate) use integer_definition_from_attribute;
 
 macro_rules! number_array_definition_from_attribute {
-    ( $attribute:expr, $default:expr, $has_essential:expr, $default_size:expr) => {
+    ( $attribute:expr, $default:expr, $default_size:expr) => {
         {
             StateVarVariant::NumberArray(StateVarArrayDefinition {
 
@@ -101,7 +101,7 @@ macro_rules! number_array_definition_from_attribute {
                 },
 
                 determine_element_from_dependencies: |_, dependency_values| {
-                    let attribute = dependency_values.get("attribute").unwrap();
+                    let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
                         DETERMINE_NUMBER(attribute.clone())
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
@@ -119,7 +119,7 @@ macro_rules! number_array_definition_from_attribute {
                 },
 
                 determine_size_from_dependencies: |dependency_values| {
-                    let attribute = dependency_values.get("attribute").unwrap();
+                    let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
                         let num = DETERMINE_NUMBER(attribute.clone())?;
                         if num > 0.0 {
@@ -147,7 +147,7 @@ macro_rules! number_array_definition_from_attribute {
 pub(crate) use number_array_definition_from_attribute;
 
 macro_rules! boolean_definition_from_attribute {
-    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
+    ( $attribute:expr, $default:expr ) => {
         {
             StateVarVariant::Boolean(StateVarDefinition {
                 for_renderer: true,
@@ -181,7 +181,7 @@ pub(crate) use boolean_definition_from_attribute;
 
 
 macro_rules! string_definition_from_attribute {
-    ( $attribute:expr, $default:expr, $has_essential:expr ) => {
+    ( $attribute:expr, $default:expr ) => {
         {
             StateVarVariant::String(StateVarDefinition {
                 for_renderer: true,
@@ -336,7 +336,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
 
 #[allow(non_snake_case)]
 pub fn DISABLED_DEFAULT_DEFINITION() -> StateVarVariant {
-    boolean_definition_from_attribute!("disabled", false, false)
+    boolean_definition_from_attribute!("disabled", false)
 }
 
 
@@ -381,7 +381,7 @@ pub fn DETERMINE_BOOLEAN(dependency_values: Vec<DependencyValue>)
 }
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_NUMBER(dependency_values: Vec<DependencyValue>)
+pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
     -> Result<f64, String> {
 
     let mut concatted_children = String::new();
@@ -430,6 +430,35 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: Vec<Dependency
     } else {
         panic!("inverse for number not implemented with multiple children");
     }
+}
+
+
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_INTEGER(dependency_values: Vec<&DependencyValue>)
+    -> Result<i64, String> {
+
+    let mut concatted_children = String::new();
+    for value in dependency_values {
+        let str_child_val = match &value.value {
+            StateVarValue::Number(num) => num.to_string(),
+            StateVarValue::String(str) => str.to_string(),
+            StateVarValue::Integer(num) => num.to_string(),
+            _ => return Err("Invalid value for number".to_string())
+        };
+
+        concatted_children.push_str(&str_child_val);
+    }
+
+    // log!("concatted children {}", concatted_children);
+
+    let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
+        num_result.as_int().unwrap_or(i64::default())
+    } else {
+        return Err(format!("Can't parse number values '{}' as math", concatted_children));
+    };
+
+    Ok(num)
 }
 
 #[allow(non_snake_case)]

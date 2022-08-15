@@ -140,7 +140,7 @@ fn text_input_update_immediate_value_and_update_value() {
         <text copySource='/_textInput3' prop='immediateValue' />
         <text copySource='/_textInput3' prop='value' />
     "#;
-    let dc = doenet_core_from(data).unwrap();
+    let dc = doenet_core_from(data).expect(&format!("DoenetML had an error"));
     doenet_core::update_renderers(&dc);
 
     doenet_core::handle_action(&dc, doenet_core::Action {

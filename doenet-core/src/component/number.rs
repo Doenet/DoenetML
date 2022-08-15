@@ -31,10 +31,9 @@ lazy_static! {
 
 
             determine_state_var_from_dependencies: |dependency_values| {
-                let children = dependency_values.get("children").unwrap();
+                let (children, _) = dependency_values.dep_value("children")?;
 
                 DETERMINE_NUMBER(children.clone()).map(|x| SetValue(x))
-
             },
 
             request_dependencies_to_update_value: |desired_value, dependency_sources| {
@@ -61,18 +60,33 @@ lazy_static! {
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let value = dependency_values.dep_value("value_sv")?
-                    .has_exactly_one_element()?
-                    .into_number()?;
+                let value: Option<f64> = dependency_values.dep_value("value_sv")?
+                    .has_zero_or_one_elements()?
+                    .into_if_exists()?;
 
-                Ok(SetValue(value.to_string()))
+                Ok(SetValue(
+                    value.map_or("".to_string(), |val| val.to_string())
+                ))
 
             },
 
             ..Default::default()
         }));
 
-        state_var_definitions.insert("propIndex", integer_definition_from_attribute!("propIndex", 0, true));
+        state_var_definitions.insert("propIndex", StateVarVariant::Integer(StateVarDefinition {
+            
+            return_dependency_instructions: |_| {
+                panic!("propIndex dependencyInstructions should never be called");
+            },
+
+            determine_state_var_from_dependencies: |dependency_values| {
+                let (values, _) = dependency_values.dep_value("values")?;
+
+                DETERMINE_INTEGER(values.clone()).map(|x| SetValue(x))
+            },
+
+            ..Default::default()
+        }));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());

@@ -99,9 +99,9 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("from", number_definition_from_attribute!("from", 1.0, false));
+        state_var_definitions.insert("from", number_definition_from_attribute!("from", 1.0));
 
-        state_var_definitions.insert("to", number_definition_from_attribute!("to", 5.0, false));
+        state_var_definitions.insert("to", number_definition_from_attribute!("to", 5.0));
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
 

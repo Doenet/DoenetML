@@ -76,19 +76,19 @@ impl StateForStateVar {
     }
 
 
-    pub fn get_single_state(&self, sv_ref: &StateIndex) -> Result<State<StateVarValue>, String> {
+    pub fn get_single_state(&self, sv_ref: &StateIndex) -> Result<Option<State<StateVarValue>>, String> {
         match self {
             Self::Single(sv) => {
                 match sv_ref {
-                    StateIndex::Basic => Ok(sv.get_state()),
+                    StateIndex::Basic => Ok(Some(sv.get_state())),
                     _ => Err(format!("Tried to access a non-array State with an index or a size")),
                 }
             },
             Self::Array { size, elements } => {
                 match sv_ref {
-                    StateIndex::SizeOf => Ok(size.get_state()),
+                    StateIndex::SizeOf => Ok(Some(size.get_state())),
                     StateIndex::Element(id) => {
-                        Ok(elements.borrow().get(*id).unwrap().get_state())
+                        Ok(elements.borrow().get(*id).map(|elem| elem.get_state()))
                     },
                     _ => Err(format!("Tried to access an array State without an index or a size")),
                 }
@@ -99,7 +99,7 @@ impl StateForStateVar {
     }
 
 
-    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue) -> Result<(), String> {
+    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue) -> Result<StateVarValue, String> {
         match self {
             Self::Single(sv) => sv.set_value(val),
 
@@ -154,7 +154,7 @@ impl StateForStateVar {
 impl StateVar {
 
 
-    pub fn set_value(&self, new_value: StateVarValue) -> Result<(), String> {
+    pub fn set_value(&self, new_value: StateVarValue) -> Result<StateVarValue, String> {
 
         self.value_type_protector.borrow_mut().set_value(new_value)
     }
@@ -332,23 +332,24 @@ impl StateVarValue {
 
 impl ValueTypeProtector {
 
-    fn set_value(&mut self, new_value: StateVarValue) -> Result<(), String> {
+    fn set_value(&mut self, new_value: StateVarValue) -> Result<StateVarValue, String> {
+
         match self {
             ValueTypeProtector::String(state) => {                
-                *state = Resolved(new_value.try_into()?);
+                *state = Resolved(new_value.clone().try_into()?);
             },
             ValueTypeProtector::Integer(state) => {
-                *state = Resolved(new_value.try_into()?);
+                *state = Resolved(new_value.clone().try_into()?);
             },
             ValueTypeProtector::Number(state) => {
-                *state = Resolved(new_value.try_into()?);
+                *state = Resolved(new_value.clone().try_into()?);
             },
             ValueTypeProtector::Boolean(state) => {
-                *state = Resolved(new_value.try_into()?);
+                *state = Resolved(new_value.clone().try_into()?);
             }
         }
 
-        Ok(())
+        Ok(new_value)
     }
 
 }

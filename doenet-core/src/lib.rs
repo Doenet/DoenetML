@@ -104,7 +104,7 @@ pub enum Dependency {
     StateVarArrayDynamicElement {
         component_name: ComponentName,
         array_state_var_name: StateVarName,
-        index_state_var: StateRef, // presumably an integer
+        index_state_var: StateRef, // presumably an integer from the component that carries this dependency
     }
 }
 
@@ -134,10 +134,66 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
     log_debug!("Copy prop index instances {:#?}", copy_prop_index_instances);
 
-    // Parse attrubte strings and generate components from strings
+    // Parse attribute strings and generate components from strings
     // in attributes and string children macros.
-    let component_attributes =
-        parse_attributes_and_macros(&mut component_nodes, component_attributes);
+    let (component_attributes, copy_index_flags) =
+        parse_attributes_and_macros(&mut component_nodes, component_attributes, copy_prop_index_instances);
+
+
+    // Check invalid component names for copy index
+    for (_, (source_name, _, _)) in copy_index_flags.iter() {
+        if !component_nodes.contains_key(source_name) {
+            // The component tried to copy a non-existent component.
+            return Err(DoenetMLError::ComponentDoesNotExist {
+                comp_name: source_name.to_owned()
+            });
+        }
+    }
+
+    // let mut dynamic_copy_index_flags: HashMap<ComponentName, (ComponentName, StateVarName, Vec<ObjectName>)>;
+    
+    for (component_name, copy_index_flag) in copy_index_flags {
+
+        let (copy_index_comp, copy_index_array_sv, copy_index_sources) = copy_index_flag;
+        let component = component_nodes.get_mut(&component_name).unwrap();
+
+        let first_string_source = copy_index_sources.iter().find_map(|source| {
+            if let ObjectName::String(string_source) = source {
+                Some(string_source)
+            } else {
+                None
+            }
+        });
+
+        if copy_index_sources.len() == 1 && first_string_source.is_some() {
+
+            let source = first_string_source.unwrap();
+
+            let index_number = evalexpr::eval(&source)
+                .expect("")
+                .as_number().unwrap();
+
+            let index_number = index_number as usize;
+            let index_number = index_number - 1;
+            
+            component.copy_source = Some(CopySource::StateVar(
+                copy_index_comp.to_string(),
+                StateRef::ArrayElement(copy_index_array_sv, index_number)
+            ));
+
+        } else {
+            component.copy_source = Some(CopySource::DynamicElement(
+                copy_index_comp.to_string(),
+                copy_index_array_sv,
+                copy_index_sources, 
+            ));
+        }
+    
+    }
+
+
+
+
 
 
     // Check for invalid names in both CopySource::Components and CopySource::StateVar
@@ -148,6 +204,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         let source_name = match copy_source {
             CopySource::Component(comp_name) => comp_name,
             CopySource::StateVar(comp_name, _) => comp_name,
+            CopySource::DynamicElement(comp_name, ..) => comp_name,
         };
 
         if !component_nodes.contains_key(source_name) {
@@ -230,7 +287,8 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
             &component_nodes,
             component_node,
             component_attributes.get(component_name).unwrap_or(&HashMap::new()),
-            &mut essential_data
+            // copy_index_flags.get(component_name).as_deref(),
+            &mut essential_data,
         );
 
         let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
@@ -474,11 +532,12 @@ lazy_static! {
 
 fn apply_macro_to_string(
     string: String,
-    component: &ComponentNode,
+    // component: &ComponentNode,
+    component_name: &ComponentName,
     components: &HashMap<ComponentName, ComponentNode>,
     macro_copy_counter: &mut HashMap<ComponentName, usize>,
     components_to_add: &mut Vec<ComponentNode>,
-) -> Option<Vec<ObjectName>> {
+) -> Vec<ObjectName> {
 
     let mut objects = Vec::new();
     let mut previous_end = 0;
@@ -532,13 +591,13 @@ fn apply_macro_to_string(
 
                 let copy_name = name_macro_component(
                     &source_comp_sv_name,
-                    &component.name,
+                    component_name,
                     macro_copy_counter,
                 );
 
                 ComponentNode {
                     name: copy_name,
-                    parent: Some(component.name.clone()),
+                    parent: Some(component_name.clone()),
                     children: vec![],
 
                     copy_source: Some(CopySource::StateVar(
@@ -553,13 +612,13 @@ fn apply_macro_to_string(
 
                 let copy_name = name_macro_component(
                     source_name,
-                    &component.name,
+                    component_name,
                     macro_copy_counter,
                 );
 
                 ComponentNode {
                     name: copy_name,
-                    parent: Some(component.name.clone()),
+                    parent: Some(component_name.clone()),
                     children: vec![],
 
                     copy_source: Some(CopySource::Component(source_comp.name.clone())),
@@ -582,23 +641,31 @@ fn apply_macro_to_string(
             objects.push(ComponentChild::String(last.to_string()));
         }
 
-        Some(objects)
     } else {
-        None
+        // No macros, just return the given string
+        assert_eq!(objects.len(), 0);
+        objects.push(ObjectName::String(string));
     }
-}
 
+    objects
+}
 
 fn parse_attributes_and_macros(
     components: &mut HashMap<ComponentName, ComponentNode>,
     attributes: HashMap<ComponentName, HashMap<AttributeName, String>>,
-) -> HashMap<ComponentName, HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>> {
+    copy_prop_index_instances: HashMap<ComponentName, (ComponentName, StateVarName, String)>,
+) -> (
+    HashMap<ComponentName, HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>>,
+    HashMap<ComponentName, (ComponentName, StateVarName, Vec<ObjectName>)>,
+    )
+{
 
     use std::iter::repeat;
 
     // Keyed by the component name and by the original position of the child we are replacing
     let mut replacement_children: HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
     let mut attributes_parsed = HashMap::new();
+    let mut copy_index_flags_parsed = HashMap::new();
 
     let mut components_to_add: Vec<ComponentNode> = vec![];
 
@@ -635,17 +702,16 @@ fn parse_attributes_and_macros(
 
         let objects = apply_macro_to_string(
             string_val.clone(),
-            component,
+            &component.name,
             components,
             &mut macro_copy_counter,
             &mut components_to_add
         );
 
-        if let Some(objects) = objects {
-            replacement_children
-                .entry(component.name.clone()).or_insert(HashMap::new())
-                .entry(child_id).or_insert(objects);
-        }
+        // For now, replace everything in the children field
+        replacement_children
+            .entry(component.name.clone()).or_insert(HashMap::new())
+            .entry(child_id).or_insert(objects);
     }
 
     // Attributes
@@ -657,16 +723,15 @@ fn parse_attributes_and_macros(
         let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(' ')
             .enumerate()
             .map(|(index, string_element)|
-                // DoenetML indices are 1-indexed, so we will mark the keys accordingly
-                (index + 1,
+                (index,
 
                     apply_macro_to_string(
                         string_element.trim().to_string(),
-                        component,
+                        &component.name,
                         components,
                         &mut macro_copy_counter,
                         &mut components_to_add,
-                    ).unwrap_or(vec![ObjectName::String(string_element.to_string())])
+                    )
                 )
             ).collect();
 
@@ -674,6 +739,23 @@ fn parse_attributes_and_macros(
             .entry(component.name.clone()).or_insert(HashMap::new())
             .entry(attribute_name.clone()).or_insert(objects);
     }
+
+
+    // Copy index flags
+    for (target_name, (source_comp_name, source_sv_name, source_index_str)) in copy_prop_index_instances {
+        
+        let index_objects = apply_macro_to_string(
+            source_index_str,
+            &target_name,
+            components,
+            &mut macro_copy_counter,
+            &mut components_to_add
+        );
+
+        copy_index_flags_parsed.insert(target_name, (source_comp_name, source_sv_name, index_objects));
+    }
+
+
 
 
     log_debug!("Components to add from macros: {:#?}", components_to_add);
@@ -703,7 +785,7 @@ fn parse_attributes_and_macros(
 
     log_debug!("Replacement attributes {:#?}", attributes_parsed);
 
-    attributes_parsed
+    (attributes_parsed, copy_index_flags_parsed)
 }
 
 
@@ -723,21 +805,81 @@ fn default_component_type_for_state_var(component: &ComponentNode, state_var: St
 }
 
 
-
-
 fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentNode,
     component_attributes: &HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>,
+    // copy_index_flag: Option<&(ComponentName, StateVarName, Vec<ObjectName>)>,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
 ) -> HashMap<DependencyKey, Vec<Dependency>> {
 
     // log_debug!("Creating dependencies for {}", component.name);
     let mut dependencies: HashMap<DependencyKey, Vec<Dependency>> = HashMap::new();
 
-
     let my_definitions = component.definition.state_var_definitions;
-    for (&state_var_name, state_var_variant) in my_definitions.iter() {
+    let mut unshadowing_definitions: HashMap<&StateVarName, &StateVarVariant>;
+
+    if let Some(CopySource::DynamicElement(ref copy_index_comp, copy_index_array_sv, ref copy_index_sources)) = component.copy_source {
+
+        let state_var_name = component.definition.primary_input_state_var.unwrap();
+
+        // We can't immediately figure out the index, so we need to use the state
+        // var propIndex
+
+        dependencies.insert(
+            DependencyKey::StateVar(
+                component.name.clone(),
+                StateVarSlice::Single(StateRef::Basic(state_var_name)),
+                SHADOW_INSTRUCTION_NAME
+            ),
+            vec![Dependency::StateVarArrayDynamicElement {
+                component_name: copy_index_comp.to_string(),
+                array_state_var_name: copy_index_array_sv,
+                index_state_var: StateRef::Basic("propIndex"),
+            }]
+        );
+
+        let index_dependencies: Vec<Dependency> = copy_index_sources.iter().map(|source| {
+            match source {
+                ObjectName::Component(comp_source) => {
+                    Dependency::StateVar {
+                        component_name: comp_source.to_string(),
+                        state_var_ref: StateRef::Basic("value"),
+                    }
+                },
+                ObjectName::String(string_source) => {
+                    add_essential_for(
+                        component,
+                        EssentialDataOrigin::StateVar("propIndex"),
+                        &StateVarSlice::Single(StateRef::Basic("propIndex")),
+                        Some(string_source.clone()),
+                        essential_data,
+                    )
+                }
+            }
+        }).collect();
+
+        dependencies.insert(
+            DependencyKey::StateVar(
+                component.name.clone(),
+                StateVarSlice::Single(StateRef::Basic("propIndex")),
+                "values"
+            ),
+            index_dependencies
+        );
+
+
+
+        unshadowing_definitions = my_definitions.iter().filter(|(key, _)| **key != state_var_name).collect();
+    } else {
+        unshadowing_definitions = my_definitions.iter().collect();
+    }
+
+    unshadowing_definitions.remove(&"propIndex");
+
+    // log_debug!("Unshadowing definitions for {} {:?}", component.name, unshadowing_definitions);
+
+    for (&state_var_name, state_var_variant) in unshadowing_definitions {
 
         if state_var_variant.is_array() {
 
@@ -1249,6 +1391,32 @@ fn get_state_variables_depending_on_me<'a>(
                     }
                 },
 
+                Dependency::StateVarArrayDynamicElement {
+                    component_name,
+                    array_state_var_name,
+                    ..
+                } => {
+
+                    let this_array_refers_to_me = 
+                        component_name == sv_component_name
+                        && *array_state_var_name == sv_reference.name();
+
+                    let i_am_prop_index_of_this_dependency = 
+                        // The key that this dependency is under is myself
+                        // Aka, the index is supposed to be in my component, not another component
+                        dependency_key.component_name() == sv_component_name
+                        // I am actually a propIndex, and not some other state var
+                        && sv_reference == &StateRef::Basic("propIndex");
+
+                    if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
+
+                        let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
+                        depending_on_me.push((dependent_comp, dependent_group));
+                    }
+    
+
+                }
+
                 // Essential and String dependencies are endpoints
                 _ => {},
 
@@ -1356,8 +1524,13 @@ fn get_source_for_dependency(components: &HashMap<ComponentName, ComponentNode>,
         },
 
 
-        Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, index_state_var } => {
-            panic!()
+        Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, .. } => {
+            let component_type = components.get(component_name).unwrap().component_type;
+            DependencySource::StateVar {
+                component_type,
+                state_var_name: &array_state_var_name
+            }
+            
         }
 
     }
@@ -1388,15 +1561,20 @@ fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentNode,
     state_var_ref: &StateRef,
-) -> StateVarValue {
+) -> Option<StateVarValue> {
 
     let state_vars = core.component_states.get(&component.name).unwrap();
 
-    // No need to continue if the state var is already resolved
+    // No need to continue if the state var is already resolved or if the element does not exist
     let current_state = state_vars.get(state_var_ref.name()).unwrap().get_single_state(&state_var_ref.index())
         .expect(&format!("Error accessing state of {}:{:?}", component.name, state_var_ref));
-    if let State::Resolved(current_value) = current_state {
-        return current_value;
+
+    if let Some(State::Resolved(current_value)) = current_state {
+        return Some(current_value);
+
+    } else if current_state.is_none() {
+        // There is nothing to resolve
+        return None
     }
 
     log_debug!("Resolving {}:{}", component.name, state_var_ref);
@@ -1422,10 +1600,13 @@ fn resolve_state_variable(
                     let depends_on_component = core.component_nodes.get(&component_name).unwrap();
                     let depends_on_value = resolve_state_variable(core, depends_on_component, &state_var_ref);
 
-                    values_for_this_dep.push(DependencyValue {
-                        source: dependency_source,
-                        value: depends_on_value.clone(),
-                    });
+                    if let Some(depends_on_value) = depends_on_value {
+                        values_for_this_dep.push(DependencyValue {
+                            source: dependency_source,
+                            value: depends_on_value.clone(),
+                        });    
+                    }
+
                 },
 
                 Dependency::Essential { component_name, origin } => {
@@ -1453,19 +1634,23 @@ fn resolve_state_variable(
                         core,
                         depends_on_component,
                         &StateRef::SizeOf(array_state_var_name)
-                    );
+                    ).expect("Array size should always resolve to a StateVarValue");
                     
                     for id in 0 as usize..i64::try_from(size_value).unwrap() as usize {
+
                         let element_value = resolve_state_variable(
                             core,
                             depends_on_component,
                             &StateRef::ArrayElement(array_state_var_name, id)
                         );
 
-                        values_for_this_dep.push(DependencyValue {
-                            source: dependency_source.clone(),
-                            value: element_value.clone(),
-                        });
+                        if let Some(element_value) = element_value {
+                            values_for_this_dep.push(DependencyValue {
+                                source: dependency_source.clone(),
+                                value: element_value.clone(),
+                            });
+    
+                        }
     
                     }
                 },
@@ -1473,7 +1658,46 @@ fn resolve_state_variable(
 
                 Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, index_state_var } => {
 
-                    panic!()
+                    let index_value = resolve_state_variable(
+                        core,
+                        component, // myself
+                        &index_state_var,
+                    );
+
+                    let index: Option<usize> = if let Some(index_value) = index_value {
+
+                        match index_value {
+                            StateVarValue::Integer(int_id) => {
+                                (int_id - 1).try_into().ok()
+                            }
+                            _ => None,
+                        }
+
+                    } else {
+                        None
+                    };
+
+                    if let Some(index) = index {
+
+                        let depends_on_component = core.component_nodes.get(&component_name).unwrap();
+
+                        let element_value = resolve_state_variable(
+                            core,
+                            depends_on_component,
+                            &StateRef::ArrayElement(array_state_var_name, index)
+                        );
+
+                        if let Some(element_value) = element_value {
+                            values_for_this_dep.push(DependencyValue {
+                                source: dependency_source,
+                                value: element_value.clone(),
+                            });
+                        }
+                    }
+
+
+
+
 
                 }
             }
@@ -1492,7 +1716,6 @@ fn resolve_state_variable(
         component.name, state_var_ref, component.component_type)
     );
 
-
     let new_value = handle_update_instruction(component, state_vars, state_var_ref, update_instruction);
 
     return new_value;
@@ -1507,6 +1730,7 @@ fn elements_of_array(
 ) -> Vec<StateRef> {
     let size_ref = StateRef::SizeOf(sv_name);
     let size: i64 = resolve_state_variable(core, component, &size_ref)
+        .unwrap()
         .try_into()
         .unwrap();
 
@@ -1561,11 +1785,11 @@ fn mark_stale_state_var_and_dependencies(
     let state = state_var.get_single_state(&state_var_ref.index())
         .expect(&format!("Error accessing state of {}:{:?}", component.name, state_var_ref));
 
-    if state == State::Stale {
+    if state == Some(State::Stale) {
         return;
     }
 
-    // log_debug!("Marking stale {}:{}", component.name, state_var_ref);
+    log_debug!("Marking stale {}:{}", component.name, state_var_ref);
 
     state_var.mark_single_stale(&state_var_ref.index());
 
@@ -1644,39 +1868,42 @@ fn handle_update_instruction<'a>(
     component_state_vars: &HashMap<StateVarName, StateForStateVar>,
     state_var_ref: &StateRef,
     instruction: StateVarUpdateInstruction<StateVarValue>
-) -> StateVarValue {
+) -> Option<StateVarValue> {
 
     let state_var = component_state_vars.get(state_var_ref.name()).unwrap();
 
-    let updated_value: StateVarValue;
+    let updated_value: Option<StateVarValue>;
 
     match instruction {
         StateVarUpdateInstruction::NoChange => {
             let current_value = component_state_vars.get(state_var_ref.name()).unwrap()
                 .get_single_state(&state_var_ref.index())
-                    .expect(&format!("Error accessing state of {}:{:?}", component.name, state_var_ref));
+                .expect(&format!("Error accessing state of {}:{:?}", component.name, state_var_ref));
 
-            if let State::Resolved(current_resolved_value) = current_value {
+            if let Some(State::Stale) = current_value {
+                panic!("Cannot use NoChange update instruction on a stale value");
+
+            } else if let Some(State::Resolved(current_resolved_value)) = current_value {
                 // Do nothing. It's resolved, so we can use it as is
-                updated_value = current_resolved_value;
+                updated_value = Some(current_resolved_value);
 
             } else {
-                panic!("Cannot use NoChange update instruction on a stale value");
-            }
+                updated_value = None;
+            };
 
         },
         StateVarUpdateInstruction::SetValue(new_value) => {
 
-            state_var.set_single_state(&state_var_ref.index(), new_value.clone()).expect(
-                &format!("Failed to set {}:{} while handling SetValue update instruction", component.name, state_var_ref)
-            );
+            updated_value = state_var.set_single_state(&state_var_ref.index(), new_value.clone())
+            .ok();
+            // .expect(&format!("Failed to set {}:{} while handling SetValue update instruction", component.name, state_var_ref)
+            // );
 
-            updated_value = new_value;
         }
 
     };
 
-    log_debug!("Updated {}:{} to {}", component.name, state_var_ref, updated_value);
+    log_debug!("Updated {}:{} to {:?}", component.name, state_var_ref, updated_value);
 
     return updated_value;
 }
@@ -1884,6 +2111,7 @@ fn generate_render_tree_internal(
             for sv_ref in sv_refs {
                 values.push(
                     resolve_state_variable(core, component, &sv_ref)
+                    .unwrap()
                     .try_into()
                     .unwrap()
                 );
@@ -1892,7 +2120,7 @@ fn generate_render_tree_internal(
             state_values.insert(name.to_string(), json!(values));
 
         } else {
-            let state_var_value = resolve_state_variable(core, component, &StateRef::Basic(name));
+            let state_var_value = resolve_state_variable(core, component, &StateRef::Basic(name)).unwrap();
 
             if *name == "selectedStyle" || *name == "graphicalDescendants" {
                 if let StateVarValue::String(v) = state_var_value {
@@ -2018,29 +2246,30 @@ const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
 
 
 fn return_dependency_instructions_including_shadowing(
-    // copy_prop_index_instances: &HashMap<ComponentName, (ComponentName, StateVarName, String)>,
+    // copy_index_flag: &Option<(ComponentName, StateVarName, String)>,
     component: &ComponentNode,
     state_var: &StateRef,
 ) -> HashMap<InstructionName, DependencyInstruction> {
 
-    // if let Some((source_comp_name, source_sv_name, source_index_str)) = copy_prop_index_instances.get(&component.name) {
+    if false {
+    // if let Some((source_comp_name, source_sv_name, source_index_str)) = copy_index_flag {
 
-    //     // HashMap::from([
-    //     //     (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVarArrayDynamicElement {
-    //     //         component_name: source_comp_name.to_string(),
-    //     //         state_var: &source_sv_name,
-    //     //         index_state_var: source_index_str.to_string(),
-    //     //     })
-    //     // ])
+        // HashMap::from([
+        //     (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVarArrayDynamicElement {
+        //         component_name: source_comp_name.to_string(),
+        //         state_var: &source_sv_name,
+        //         index_state_var: source_index_str.to_string(),
+        //     })
+        // ])
 
-    //     HashMap::new()
+        HashMap::new()
 
-    if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
+    } else if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
 
         HashMap::from([
             (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar {
                 component_name: Some(source_comp), //.clone(),
-                state_var: StateVarSlice::Single(source_state_var),
+                state_var: source_state_var,
             })
         ])
 
@@ -2075,10 +2304,20 @@ fn generate_update_instruction_including_shadowing(
 
         // Assuming that source state var is same type as this state var
         let source_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)?
-            .has_exactly_one_element()?
+            .has_zero_or_one_elements()?
             .value();
+        
+        let new_value = source_value.unwrap_or(
+            match component.definition.state_var_definitions.get(state_var.name()).unwrap() {
+                StateVarVariant::Integer(_) => StateVarValue::Integer(i64::default()),
+                StateVarVariant::Number(_) => StateVarValue::Number(f64::default()),
+                StateVarVariant::NumberArray(_) => StateVarValue::Number(f64::default()),
+                StateVarVariant::String(_) => StateVarValue::String(String::default()),
+                StateVarVariant::Boolean(_) => StateVarValue::Boolean(bool::default()),
+            }
+        );
 
-        Ok(StateVarUpdateInstruction::SetValue(source_value))
+        Ok(StateVarUpdateInstruction::SetValue(new_value))
 
     } else {
         // Otherwise, this state var is not shadowing, so proceed normally
@@ -2110,7 +2349,12 @@ fn request_dependencies_to_update_value_including_shadow(
 
     if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var_ref) {
 
-        vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
+        let source_ref = match source_state_var {
+            StateVarSlice::Single(sv_ref) => sv_ref,
+            StateVarSlice::Array(_) => panic!()
+        };
+
+        vec![UpdateRequest::SetStateVar(source_comp, source_ref, new_value)]
 
     } else {
         let dependency_sources = get_dependency_sources_for_state_var(core, component, &StateVarSlice::Single(state_var_ref.clone()));
@@ -2125,19 +2369,33 @@ fn request_dependencies_to_update_value_including_shadow(
 /// Detect if a state var is shadowing because of a CopySource
 /// and has a primary input state variable, which is needed.
 fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateRef)
-    -> Option<(ComponentName, StateRef)> {
+    -> Option<(ComponentName, StateVarSlice)> {
 
     if let Some(CopySource::StateVar(ref source_comp, ref source_state_var)) = component.copy_source {
         if let Some(primary_input_state_var) = component.definition.primary_input_state_var {
 
             if state_var == &StateRef::Basic(primary_input_state_var) {
-                Some((source_comp.to_string(), source_state_var.clone()))
+                Some((source_comp.to_string(), StateVarSlice::Single(source_state_var.clone())))
             } else {
                 None
             }
         } else {
             panic!("{} component type doesn't have a primary input state var", component.component_type);
         }
+
+    } else if let Some(CopySource::DynamicElement(ref source_comp, ref source_state_var, ..)) = component.copy_source {
+        if let Some(primary_input_state_var) = component.definition.primary_input_state_var {
+
+            if state_var == &StateRef::Basic(primary_input_state_var) {
+
+                Some((source_comp.to_string(), StateVarSlice::Array(source_state_var)))
+            } else {
+                None
+            }
+        } else {
+            panic!("{} component type doesn't have a primary input state var", component.component_type);
+        }
+
 
     } else {
         None

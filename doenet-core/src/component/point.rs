@@ -16,7 +16,7 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
 
-        state_var_definitions.insert("xs", number_array_definition_from_attribute!("xs", 0.0, true, 2));
+        state_var_definitions.insert("xs", number_array_definition_from_attribute!("xs", 0.0, 2));
 
         state_var_definitions.insert("numericalXs", StateVarVariant::NumberArray(StateVarArrayDefinition {
 
@@ -112,22 +112,22 @@ lazy_static! {
         }));
 
 
-        state_var_definitions.insert("draggable", boolean_definition_from_attribute!("draggable", true, false));
+        state_var_definitions.insert("draggable", boolean_definition_from_attribute!("draggable", true));
 
-        state_var_definitions.insert("labelPosition", string_definition_from_attribute!("labelPosition", "upperright", false));
+        state_var_definitions.insert("labelPosition", string_definition_from_attribute!("labelPosition", "upperright"));
 
-        state_var_definitions.insert("showCoordsWhenDragging", boolean_definition_from_attribute!("showCoordsWhenDragging", true, false));
+        state_var_definitions.insert("showCoordsWhenDragging", boolean_definition_from_attribute!("showCoordsWhenDragging", true));
 
 
-        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true, false));
+        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
 
-        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true, false));
+        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
 
-        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0, false));
+        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
 
-        state_var_definitions.insert("label", string_definition_from_attribute!("label", "", false));
+        state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
 
-        state_var_definitions.insert("labelHasLatex", boolean_definition_from_attribute!("layer", false, false));
+        state_var_definitions.insert("labelHasLatex", boolean_definition_from_attribute!("layer", false));
 
 
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());

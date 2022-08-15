@@ -91,6 +91,7 @@ pub struct ComponentNode {
 pub enum CopySource {
     Component(ComponentName),
     StateVar(ComponentName, StateRef),
+    DynamicElement(ComponentName, StateVarName, Vec<ObjectName>),
 }
 
 
@@ -117,7 +118,7 @@ pub struct ComponentDefinition {
     pub on_action: for<'a> fn(
         action_name: &str,
         args: HashMap<String, StateVarValue>,
-        resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> StateVarValue
+        resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
     ) -> HashMap<StateRef, StateVarValue>,
 
     pub should_render_children: bool,
