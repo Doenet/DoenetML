@@ -3,33 +3,36 @@
 mod common_node;
 
 use std::collections::HashMap;
+use std::panic::set_hook;
 
 use common_node::*;
-use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue};
-use wasm_bindgen_test::wasm_bindgen_test;
+use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue, Action};
+use wasm_bindgen_test::{wasm_bindgen_test, console_log};
 
 
 // ========= DoenetML errrors ============
 
 #[wasm_bindgen_test]
 fn doenet_ml_error_cyclic_dependency_through_children_indirectly() {
-    let data = r#"
+    static DATA: &str = r#"
         <text name='a_parent'><text name='a' copySource='b'/></text>
         <text name='b'><text name='b_child' copySource='a_parent'/></text>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let error = doenet_core_from(data).unwrap_err();
+    let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
 }
 
 
 #[wasm_bindgen_test]
 fn doenet_ml_error_copy_unnamed_component_gives_error() {
-    let data = r#"
+    static DATA: &str = r#"
         <text copySource='qwerty' />
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let error = doenet_core_from(data).unwrap_err();
+    let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::ComponentDoesNotExist { comp_name: _ }));
 }
 
@@ -38,14 +41,15 @@ fn doenet_ml_error_copy_unnamed_component_gives_error() {
 
 #[wasm_bindgen_test]
 fn text_preserves_spaces_between_text_tags() {
-
-    let data = r#"
-    <document>
+    static DATA: &str = r#"
         <text name='a'><text>Hello</text> <text>there</text>!</text>
         <text name='b'><text>We <text>could</text> be <text copySource="/_text3" />.</text></text>
-    </document>
     "#;
-    let dc = doenet_core_from(data).unwrap();
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(
+        DATA
+    ).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "a", "value", "Hello there!");
@@ -55,13 +59,12 @@ fn text_preserves_spaces_between_text_tags() {
 
 #[wasm_bindgen_test]
 fn text_inside_text() {
-    let data = r#"
-    <document>
-    <text>one<text> two <text name='t2' copySource='t' /> <text name='t'>three</text> again </text><text copySource="t2"/> once more</text>
-    </document>
+    static DATA: &str = r#"
+        <text>one<text> two <text name='t2' copySource='t' /> <text name='t'>three</text> again </text><text copySource="t2"/> once more</text>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let dc = doenet_core_from(data).unwrap();
+    let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "/_text1", "value", "one two three three again three once more");
@@ -70,13 +73,14 @@ fn text_inside_text() {
 
 #[wasm_bindgen_test]
 fn text_copy_component_of_copy_component() {
-    let data = r#"
+    static DATA: &str = r#"
         <text name='a'><text name='one'>one</text></text>
         <text name='b' copySource='a'><text name='two'>two</text></text>
         <text name='c' copySource='b'><text name='three'>three</text></text>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let dc = doenet_core_from(data).unwrap();
+    let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "a", "text", "one");
@@ -86,35 +90,38 @@ fn text_copy_component_of_copy_component() {
 
 #[wasm_bindgen_test]
 fn text_copy_component_cyclical_gives_error() {
-    let data = r#"
-    <text name='irrelevant' copySource='a' />
-    <text name='a' copySource='b' />
-    <text name='b' copySource='a' />
+    static DATA: &str = r#"
+        <text name='irrelevant' copySource='a' />
+        <text name='a' copySource='b' />
+        <text name='b' copySource='a' />
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let error = doenet_core_from(data).unwrap_err();
+    let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
 
 }
 
 #[wasm_bindgen_test]
 fn text_copy_itself_as_child_gives_error() {
-    let data = r#"
+    static DATA: &str = r#"
         <text name='t'> $t</text>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let error = doenet_core_from(data).unwrap_err();
+    let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
 }
 
 
 #[wasm_bindgen_test]
 fn text_copy_itself_as_grandchild_gives_error() {
-    let data = r#"
+    static DATA: &str = r#"
         <text name='t'><text>$t</text></text>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let error = doenet_core_from(data).unwrap_err();
+    let error = doenet_core_from(DATA).unwrap_err();
     match error {
         DoenetMLError::CyclicalDependency { component_chain } => assert_eq!(component_chain.len(), 3),
         _ => panic!("Wrong error type")
@@ -128,8 +135,7 @@ fn text_copy_itself_as_grandchild_gives_error() {
 
 #[wasm_bindgen_test]
 fn text_input_update_immediate_value_and_update_value() {
-
-    let data = r#"
+    static DATA: &str = r#"
         <textInput />
 
         <!-- Make sure this change also affects copies -->
@@ -140,7 +146,10 @@ fn text_input_update_immediate_value_and_update_value() {
         <text copySource='/_textInput3' prop='immediateValue' />
         <text copySource='/_textInput3' prop='value' />
     "#;
-    let dc = doenet_core_from(data).expect(&format!("DoenetML had an error"));
+
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(DATA).expect(&format!("DoenetML had an error"));
     doenet_core::update_renderers(&dc);
 
     doenet_core::handle_action(&dc, doenet_core::Action {
@@ -196,7 +205,7 @@ fn text_input_update_immediate_value_and_update_value() {
 
 #[wasm_bindgen_test]
 fn sequence_copies_component() {
-    let data = r#"
+    static DATA: &str = r#"
         <number name='f'>5</number>
         <number name='t'>11</number>
 
@@ -213,8 +222,9 @@ fn sequence_copies_component() {
         <sequence copySource='s' to='-10' />
 
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let dc = doenet_core_from(data).unwrap();
+    let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "/_sequence2", "value", vec![5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]);
@@ -230,7 +240,7 @@ fn sequence_copies_component() {
 
 #[wasm_bindgen_test]
 fn sequence_from_and_to_can_be_copied_as_props() {
-    let data = r#"
+    static DATA: &str = r#"
         <number name='f'>-1000</number>
         <number name='t'>-993</number>
 
@@ -241,8 +251,9 @@ fn sequence_from_and_to_can_be_copied_as_props() {
         <number>$s.from</number>
         <number>$s.to</number>
     "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
-    let dc = doenet_core_from(data).unwrap();
+    let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "/_number3", "value", -1000.0);
@@ -251,3 +262,33 @@ fn sequence_from_and_to_can_be_copied_as_props() {
     assert_sv_is_number(&dc, "/_number6", "value", -993.0);
 }
 
+
+
+// ========= <point> ==============
+
+#[wasm_bindgen_test]
+fn point_moves_copy_number() {
+    static DATA: &str = r#"
+        <number name='num'>2</number>
+        <graph name='g'><point name='p' xs='3 $num'/></graph>
+    "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
+
+    let move_point = Action {
+        component_name: "p".to_string(),
+        action_name: "movePoint".to_string(),
+        args: HashMap::from([
+            ("x".to_string(), StateVarValue::Integer(5)),
+            ("y".to_string(), StateVarValue::Number(1.0)),
+        ]),
+    };
+    doenet_core::handle_action(&dc, move_point);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
+}
