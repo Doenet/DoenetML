@@ -166,12 +166,12 @@ lazy_static! {
                     let ymin = args.get("ymin").expect("missing bound argument").clone().into_number().unwrap();
                     let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
 
-                    HashMap::from([
+                    vec![
                         (StateRef::Basic("xmin"), xmin),
                         (StateRef::Basic("xmax"), xmax),
                         (StateRef::Basic("ymin"), ymin),
                         (StateRef::Basic("ymax"), ymax),
-                    ])
+                    ]
                 },
 
                 _ => panic!("Unknown action '{}' called on graph", action_name)

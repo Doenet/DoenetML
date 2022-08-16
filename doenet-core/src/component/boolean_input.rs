@@ -59,10 +59,10 @@ lazy_static! {
 
                     let new_val = args.get("boolean").expect("No boolean argument");
 
-                    HashMap::from([(
+                    vec![(
                         StateRef::Basic("value"),
                         new_val.clone()
-                    )])
+                    )]
                 }
 
                 _ => panic!("Unknown action '{}' called on booleanInput", action_name)

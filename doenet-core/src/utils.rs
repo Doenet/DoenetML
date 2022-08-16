@@ -190,10 +190,10 @@ pub fn json_dependencies(
     for (key, deps) in dependencies {
         let display_key = match key {
             DependencyKey::StateVar(_, StateVarSlice::Single(single), instruct) => {
-                format!("{} {}", single, instruct)
+                format!("{} \"{}\"", single, instruct)
             },
             DependencyKey::StateVar(_, StateVarSlice::Array(array), instruct) => {
-                format!("{} {}", array, instruct)
+                format!("{} \"{}\"", array, instruct)
             }
         };
 

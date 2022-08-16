@@ -283,7 +283,7 @@ impl EssentialStateVar {
             (Self::Array{elements, ..}, StateIndex::Element(i)) => {
                 elements.borrow().get(i).cloned()
             },
-            _ => panic!("state ref and essential value do not match"),
+            _ => panic!("state index {:?} and essential value {:?} do not match", state_ref, &self),
         }
     }
 }

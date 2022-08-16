@@ -44,7 +44,10 @@ pub struct StateVarDefinition<T> {
 
     /// The inverse of `return_dependency_instructions`: For a desired value, return dependency
     /// values for the dependencies that would make this state variable return that value.
-    pub request_dependencies_to_update_value: fn(T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_dependencies_to_update_value: fn(
+        T,
+        HashMap<InstructionName, Vec<DependencySource>>
+    ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 }
 
 #[derive(Debug)]
@@ -66,7 +69,11 @@ pub struct StateVarArrayDefinition<T> {
         HashMap<InstructionName, Vec<DependencyValue>>
     ) -> Result<StateVarUpdateInstruction<T>, String>,
 
-    pub request_element_dependencies_to_update_value: fn(usize, T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_element_dependencies_to_update_value: fn(
+        usize,
+        T,
+        HashMap<InstructionName, Vec<DependencySource>>
+    ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 
 
     pub return_size_dependency_instructions: fn(
@@ -77,7 +84,11 @@ pub struct StateVarArrayDefinition<T> {
         HashMap<InstructionName, Vec<DependencyValue>>
     ) -> Result<StateVarUpdateInstruction<usize>, String>,
 
-    pub request_size_dependencies_to_update_value: fn(T, HashMap<InstructionName, Vec<DependencySource>>) -> HashMap<InstructionName, Vec<DependencyValue>>,
+    pub request_size_dependencies_to_update_value: fn(
+        T,
+        HashMap<InstructionName,
+        Vec<DependencySource>>
+    ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 
     pub for_renderer: bool,
 
@@ -675,7 +686,7 @@ impl StateVarVariant {
         state_ref: &StateRef,
         desired_value: StateVarValue,
         dependency_sources: HashMap<InstructionName, Vec<DependencySource>>
-    ) -> HashMap<InstructionName, Vec<DependencyValue>> {
+    ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>> {
 
         match self {
             Self::String(def) =>  {

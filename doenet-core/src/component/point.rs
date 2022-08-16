@@ -169,20 +169,19 @@ lazy_static! {
                     let y = args.get("y").expect("No y argument");
                     // let z = args.get("z").expect("No z argument");
 
-                    HashMap::from([
-                        (StateRef::ArrayElement("xs", 0), x.clone()),
+                    // order means that x will processed second
+                    vec![
                         (StateRef::ArrayElement("xs", 1), y.clone()),
-                    ])
+                        (StateRef::ArrayElement("xs", 0), x.clone()),
+                    ]
                 },
                 "switchPoint" => {
 
-                    HashMap::from([
-                    ])
+                    vec![]
                 }
                 "pointClicked" => {
 
-                    HashMap::from([
-                    ])
+                    vec![]
                 }
 
                 _ => panic!("Unknown action '{}' called on point", action_name)

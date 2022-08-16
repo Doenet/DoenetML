@@ -115,11 +115,12 @@ pub struct ComponentDefinition {
     pub attribute_names: Vec<AttributeName>,
 
     /// Process an action and return the state variables to change.
+    /// The update requests will be processed in the order returned.
     pub on_action: for<'a> fn(
         action_name: &str,
         args: HashMap<String, StateVarValue>,
         resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
-    ) -> HashMap<StateRef, StateVarValue>,
+    ) -> Vec<(StateRef, StateVarValue)>,
 
     pub should_render_children: bool,
 
@@ -161,7 +162,7 @@ impl Default for ComponentDefinition {
 
             action_names: || Vec::new(),
 
-            on_action: |_, _, _| HashMap::new(),
+            on_action: |_, _, _| vec![],
         }
     }
 }

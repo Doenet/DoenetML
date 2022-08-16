@@ -1628,11 +1628,16 @@ fn resolve_state_variable(
 
                 Dependency::Essential { component_name, origin } => {
 
+                    let index = match origin {
+                        EssentialDataOrigin::StateVar(_) => state_var_ref.index(),
+                        _ => StateIndex::Basic,
+                    };
+
                     let value = core.essential_data
                         .get(&component_name).unwrap()
                         .get(&origin).unwrap()
                         .clone()
-                        .get_value(state_var_ref.index());
+                        .get_value(index);
     
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
@@ -1954,7 +1959,7 @@ fn convert_dependency_values_to_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
     state_var: &StateRef,
-    requests: HashMap<InstructionName, Vec<DependencyValue>>
+    requests: HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 ) -> Vec<UpdateRequest> {
 
     let my_dependencies = dependencies_of_state_var(core, component, &StateVarSlice::Single(state_var.clone()));
@@ -1962,34 +1967,43 @@ fn convert_dependency_values_to_update_request(
 
     requests.iter()
         .flat_map(|(instruction_name, values)|
-            values.iter()
-            .flat_map(|value|
-                my_dependencies.get(instruction_name).expect(
-                    &format!("{}:{} has the wrong instruction name to determine dependencies",
-                        component.component_type, state_var)
-                )
-                .iter()
-                .filter_map(|instruction|
-                    match instruction {
-                        Dependency::Essential { component_name, origin } => {
-                            Some(UpdateRequest::SetEssentialValue(
-                                component_name.clone(),
-                                origin.clone(),
-                                state_var.index(),
-                                value.value.clone(),
-                            ))
-                        },
-                        Dependency::StateVar { component_name, state_var_ref } => {
-                            Some(UpdateRequest::SetStateVar(
-                                component_name.clone(),
-                                state_var_ref.clone(),
-                                value.value.clone(),
-                            ))
-                        },
-                        _ => None,
-                    }
-                ).collect::<Vec<UpdateRequest>>()
-            ).collect::<Vec<UpdateRequest>>()
+            match values {
+                Ok(values) => {
+
+                    values.iter()
+                    .flat_map(|value|
+                        my_dependencies.get(instruction_name).expect(
+                            &format!("{}:{} has the wrong instruction name to determine dependencies",
+                                component.component_type, state_var)
+                        )
+                        .iter()
+                        .filter_map(|instruction|
+                            match instruction {
+                                Dependency::Essential { component_name, origin } => {
+                                    Some(UpdateRequest::SetEssentialValue(
+                                        component_name.clone(),
+                                        origin.clone(),
+                                        state_var.index(),
+                                        value.value.clone(),
+                                    ))
+                                },
+                                Dependency::StateVar { component_name, state_var_ref } => {
+                                    Some(UpdateRequest::SetStateVar(
+                                        component_name.clone(),
+                                        state_var_ref.clone(),
+                                        value.value.clone(),
+                                    ))
+                                },
+                                _ => None,
+                            }
+                        ).collect::<Vec<UpdateRequest>>()
+                    ).collect::<Vec<UpdateRequest>>()
+                },
+                Err(e) => {
+                    log_debug!("Inverse definition for {}:{} failed with: {}", component.name, state_var, e);
+                    vec![]
+                },
+            }
         ).collect()
 }
 

@@ -109,10 +109,10 @@ lazy_static! {
                     // Note: the key here is whatever the renderers call the new value
                     let new_val = args.get("text").expect("No text argument");
 
-                    HashMap::from([(
+                    vec![(
                         StateRef::Basic("immediateValue"),
                         new_val.clone()
-                    )])
+                    )]
                 },
 
                 "updateValue" => {
@@ -125,10 +125,10 @@ lazy_static! {
 
                     let new_val = StateVarValue::Number(value);
 
-                    HashMap::from([(
+                    vec![(
                         StateRef::Basic("value"),
                         new_val
-                    )])
+                    )]
                 }
 
                 _ => panic!("Unknown action '{}' called on numberInput", action_name)

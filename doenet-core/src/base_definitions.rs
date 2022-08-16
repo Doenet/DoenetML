@@ -248,14 +248,14 @@ where
 
 #[allow(non_snake_case)]
 pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, sources: HashMap<InstructionName, Vec<DependencySource>>)
-    -> HashMap<InstructionName, Vec<DependencyValue>> {
+    -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>> {
     HashMap::from([
-        ("essential", vec![
+        ("essential", Ok(vec![
             DependencyValue {
                 source: sources.get("essential").unwrap().first().unwrap().clone(),
                 value: desired_value.into(),
             }
-        ])
+        ]))
     ])
 }
 
@@ -411,7 +411,7 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
 
 #[allow(non_snake_case)]
 pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: Vec<DependencySource>)
-    -> Vec<DependencyValue> {
+    -> Result<Vec<DependencyValue>, String> {
 
     if sources.len() == 1 {
         let source = sources.first().unwrap().clone();
@@ -423,12 +423,12 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: Vec<Dependency
                 StateVarValue::Number(desired_value),
             _ => panic!("number did not expect component type"),
         };
-        vec![DependencyValue {
+        Ok(vec![DependencyValue {
             source,
             value,
-        }]
+        }])
     } else {
-        panic!("inverse for number not implemented with multiple children");
+        Err("inverse for number not implemented with multiple children".to_string())
     }
 }
 
@@ -463,7 +463,7 @@ pub fn DETERMINE_INTEGER(dependency_values: Vec<&DependencyValue>)
 
 #[allow(non_snake_case)]
 pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64, sources: Vec<DependencySource>)
-    -> Vec<DependencyValue> {
+    -> Result<Vec<DependencyValue>, String> {
     if sources.len() == 1 {
         let source = sources.first().unwrap().clone();
         let value = match source {
@@ -473,12 +473,12 @@ pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64, sources: Vec<Dependenc
                 StateVarValue::Integer(desired_value),
             _ => panic!("integer did not expect component type"),
         };
-        vec![DependencyValue {
+        Ok(vec![DependencyValue {
             source,
             value,
-        }]
+        }])
     } else {
-        panic!("inverse for number not implemented with multiple children");
+        Err("inverse for number not implemented with multiple children".to_string())
     }
 }
 
