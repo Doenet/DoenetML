@@ -73,23 +73,10 @@ lazy_static! {
             ..Default::default()
         }));
 
-        state_var_definitions.insert("propIndex", StateVarVariant::Integer(StateVarDefinition {
-            
-            return_dependency_instructions: |_| {
-                panic!("propIndex dependencyInstructions should never be called");
-            },
-
-            determine_state_var_from_dependencies: |dependency_values| {
-                let (values, _) = dependency_values.dep_value("values")?;
-
-                DETERMINE_INTEGER(values.clone()).map(|x| SetValue(x))
-            },
-
-            ..Default::default()
-        }));
-
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
+
+        insert_prop_index_state_var_definitions(&mut state_var_definitions);
 
         return state_var_definitions
     };

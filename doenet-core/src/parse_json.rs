@@ -91,10 +91,18 @@ pub enum DoenetMLError {
     InvalidComponentType {
         comp_type: String,
     },
-    NonIntegerPropIndex {
+    NonNumericalPropIndex {
         comp_name: ComponentName,
         invalid_index: String,
     },
+
+    PropIndexIsNotPositiveInteger {
+        // Note that if there is a macro in the propIndex,
+        // we can't know if it is an integer or not, so we don't throw this error
+        comp_name: ComponentName,
+        invalid_index: String,
+    },
+
     CannotCopyArrayStateVar {
         // copier_comp_name: ComponentName, 
         source_comp_name: ComponentName,
@@ -132,8 +140,10 @@ impl Display for DoenetMLError {
                 write!(f, "Attribute '{}' does not exist on {}", attr_name, comp_name),
             InvalidComponentType { comp_type } => 
                 write!(f, "Component type {} does not exist", comp_type),
-            NonIntegerPropIndex { comp_name, invalid_index } =>
-                write!(f, "Component {} has non-integer propIndex '{}'", comp_name, invalid_index),
+            NonNumericalPropIndex { comp_name, invalid_index } =>
+                write!(f, "Component {} has non-numerical propIndex '{}'", comp_name, invalid_index),
+            PropIndexIsNotPositiveInteger { comp_name, invalid_index } =>
+                write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index),
             CannotCopyArrayStateVar { source_comp_name, source_sv_name } =>
                 write!(f, "Cannot copy array state variable '{}' from component {}", source_sv_name, source_comp_name),
             CannotCopyIndexForStateVar { source_comp_name, source_sv_name } =>
@@ -321,15 +331,6 @@ fn add_component_from_json(
                     })?;
 
                 if let Some(ref source_sv_index_str) = component_tree.props.prop_index {
-
-                    // let index = if let Ok(id) = source_sv_index.parse::<usize>() {
-                    //     id - 1
-                    // } else {
-                    //     return Err(DoenetMLError::NonIntegerPropIndex {
-                    //         comp_name: component_name,
-                    //         invalid_index: source_sv_index.to_string(),
-                    //     });
-                    // };
 
                     copy_prop_index_instances.insert(component_name.clone(), 
                         (

@@ -292,3 +292,74 @@ fn point_moves_copy_number() {
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
 }
+
+
+
+// =========== <number> ============
+
+#[wasm_bindgen_test]
+fn number_invalid_prop_index_does_not_crash() {
+    static DATA: &str = r#"
+    <sequence name='s' from='3' to='5' />   
+
+    <p><number name='num1' copySource='s' prop='value' propIndex = '100' /></p>
+    <p><number name='num2' copySource='s' prop='value' propIndex = '-23' /></p>
+    <p><number name='num3' copySource='s' prop='value' propIndex = 'asdf' /></p>
+    <p><number name='num4' copySource='s' prop='value' propIndex = '2.3' /></p>
+
+    <!-- This one should be valid -->
+    <p><number name='num5' copySource='s' prop='value' propIndex = '3.000' /></p>
+    "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "num1", "value", 0.0);
+    assert_sv_is_number(&dc, "num2", "value", 0.0);
+    assert_sv_is_number(&dc, "num3", "value", 0.0);
+    assert_sv_is_number(&dc, "num4", "value", 0.0);
+    assert_sv_is_number(&dc, "num5", "value", 5.0);
+
+}
+
+
+#[wasm_bindgen_test]
+fn number_invalid_dynamic_prop_index_does_not_crash() {
+    static DATA: &str = r#"
+    <sequence name='s' from='3' to='5' />
+
+    <number name='n1'>100</number>
+    <number name='n2'>-23</number>
+    <number name='n3'>asdf</number>
+    <number name='n4'>2.3</number>
+    <number name='n5'>3.0000</number>
+
+    <number name='num1' copySource='s' prop='value' propIndex = '$n1' />
+    <number name='num2' copySource='s' prop='value' propIndex = '$n2' />
+    <number name='num3' copySource='s' prop='value' propIndex = '$n3' />
+    <number name='num4' copySource='s' prop='value' propIndex = '$n4' />
+
+    <!-- This one should be valid -->
+    <number name='num5' copySource='s' prop='value' propIndex = '$n5' />
+    "#;
+    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "num1", "value", 0.0);
+    assert_sv_is_number(&dc, "num2", "value", 0.0);
+    assert_sv_is_number(&dc, "num3", "value", 0.0);
+    assert_sv_is_number(&dc, "num4", "value", 0.0);
+    assert_sv_is_number(&dc, "num5", "value", 5.0);
+
+}
+
+
+
+
+
+// Make sure that the $n variable name is not var0
+// <number name='n'>3.1</number>
+// <math name='m'>var + $n</math>

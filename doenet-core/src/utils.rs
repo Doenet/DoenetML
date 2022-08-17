@@ -107,8 +107,8 @@ pub fn package_subtree_as_json(
             Some(CopySource::StateVar(source_name, source_state_var)) => Value::String(
                 format!("{} {:?}", source_name, source_state_var)
             ),
-            Some(CopySource::DynamicElement(source_name, source_sv, sources)) => Value::String(
-                format!("{} {:?} {:?}", source_name, source_sv, sources)
+            Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
+                format!("{} {:?} {:?}", source_name, source_sv, math_expression)
             ),
             None => Value::Null,
         });

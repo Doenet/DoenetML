@@ -133,7 +133,9 @@ macro_rules! number_array_definition_from_attribute {
                 },
 
                 request_element_dependencies_to_update_value: |_, desired_value, sources| {
-                    let attribute_sources = sources.get("attribute").unwrap().clone();
+                    let attribute_sources = sources.get("attribute")
+                        .expect("No instruction named 'attribute'")
+                        .clone();
                     HashMap::from([
                         ("attribute", DETERMINE_NUMBER_DEPENDENCIES(desired_value, attribute_sources))
                     ])
@@ -326,6 +328,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
                 StateVarValue::Boolean(v) => Ok(SetValue(v.to_string())),
                 StateVarValue::Integer(v) => Ok(SetValue(v.to_string())),
                 StateVarValue::Number(v) => Ok(SetValue(v.to_string())),
+                StateVarValue::MathExpr(v) => unreachable!(),
             }
         },
 
@@ -401,7 +404,7 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
     let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
         num_result.as_number().unwrap_or(f64::NAN)
     } else {
-        return Err(format!("Can't parse number values '{}' as math", concatted_children));
+        f64::NAN
     };
 
 
@@ -495,8 +498,80 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
             StateVarValue::Boolean(v) => v.to_string(),
             StateVarValue::Integer(v) => v.to_string(),
             StateVarValue::Number(v)  => v.to_string(),
+            StateVarValue::MathExpr(v)  => unreachable!(),
         });
     }
 
     Ok(val)
+}
+
+
+
+
+
+
+
+// ========== Prop Index ============
+
+pub const PROP_INDEX_SV: StateVarName = "propIndex";
+// pub const PROP_INDEX_PREFIX_SV: StateVarName = "propIndexExpressionPrefix";
+pub const PROP_INDEX_EXPR_INSTRUCTION: InstructionName = "expression";
+pub const PROP_INDEX_VARS_INSTRUCTION: InstructionName = "expression_variables";
+// pub const PROP_INDEX_VAR_PREFIX_INSTRUCTION: InstructionName = "expression_prefix";
+
+pub fn insert_prop_index_state_var_definitions(state_var_definitions: &mut HashMap<StateVarName, StateVarVariant>) {
+    use StateVarUpdateInstruction::SetValue;
+    use evalexpr::{HashMapContext, ContextWithMutableVariables};
+
+    // state_var_definitions.insert(PROP_INDEX_PREFIX_SV, StateVarVariant::String(StateVarDefinition {
+    //     return_dependency_instructions: |_| {
+    //         panic!("{} dependencyInstructions should never be called", PROP_INDEX_PREFIX_SV);
+    //     },
+    //     determine_state_var_from_dependencies: |dependency_values| {
+    //         let expression_prefix = dependency_values.dep_value(PROP_INDEX_VAR_PREFIX_INSTRUCTION)?
+    //             .has_exactly_one_element()?
+    //             .into_string()?;
+    //         Ok(SetValue(expression_prefix))
+    //     },
+    //     ..Default::default()
+    // }));
+
+    // propIndex is a float instead of an integer so that we can use NaN
+    state_var_definitions.insert(PROP_INDEX_SV, StateVarVariant::Number(StateVarDefinition {
+
+        return_dependency_instructions: |_| {
+            panic!("{}, dependencyInstructions should never be called", PROP_INDEX_SV);
+        },
+
+        determine_state_var_from_dependencies: |dependency_values| {
+
+            let expression = dependency_values.dep_value(PROP_INDEX_EXPR_INSTRUCTION)?
+                .has_exactly_one_element()?
+                .into_math_expression()?;
+            // let expression_prefix = dependency_values.dep_value(PROP_INDEX_VAR_PREFIX_INSTRUCTION)?
+            //     .has_exactly_one_element()?
+            //     .into_string()?;
+            let expression_var_values = dependency_values.dep_value(PROP_INDEX_VARS_INSTRUCTION)?
+                .into_number_list()?;
+
+            let mut expr_context = HashMapContext::new();
+
+            // Setup expression context
+            for (id, var_value) in expression_var_values.into_iter().enumerate() {
+                let var_name = format!("{}{}", expression.variable_prefix, id);
+                expr_context.set_value(var_name.to_string(), var_value.into())
+                    .map_err(|err| err.to_string())?;
+            }
+
+            let value = expression.tree.eval_float_with_context(&expr_context)
+                .map_err(|err| err.to_string())?;
+
+            Ok(SetValue(value))
+
+        },
+
+        ..Default::default()
+    }));
+
+
 }

@@ -6,6 +6,7 @@ use crate::component::ComponentName;
 use crate::component::ComponentProfile;
 use crate::component::ComponentType;
 
+use crate::math_expression::MathExpression;
 use crate::utils::log;
 
 
@@ -247,8 +248,8 @@ pub enum StateVarValue {
     Number(f64),
     Integer(i64),
     Boolean(bool),
+    MathExpr(MathExpression),
 }
-
 
 
 
@@ -341,7 +342,7 @@ pub trait DepValueVec {
     fn has_zero_or_one_elements(&self) -> Result<(Option<&DependencyValue>, InstructionName), String>;
     fn has_exactly_one_element(&self) -> Result<(&DependencyValue, InstructionName), String>;
 
-    fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String>;
+    fn into_string_list(&self) -> Result<Vec<String>, String>;
 
     fn into_number_list(&self) -> Result<Vec<f64>, String>;
 
@@ -369,7 +370,7 @@ impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
         }
     }
 
-    fn are_strings_if_non_empty(&self) -> Result<Vec<String>, String> {
+    fn into_string_list(&self) -> Result<Vec<String>, String> {
         let (dep_values, name) = self;
 
         dep_values.iter().map(|dep_value|
@@ -413,6 +414,7 @@ pub trait DepValueSingle {
     fn into_string(&self) -> Result<String, String>;
     fn into_number(&self) -> Result<f64, String>;
     fn into_integer(&self) -> Result<i64, String>;
+    fn into_math_expression(&self) -> Result<MathExpression, String>;
     fn value(&self) -> StateVarValue;
 }
 
@@ -435,6 +437,11 @@ impl DepValueSingle for (&DependencyValue, InstructionName) {
     fn into_integer(&self) -> Result<i64, String> {
         self.0.value.clone().try_into().map_err(|_|
             format!("Instruction [{}] is a {}, expected an integer", self.1, self.0.value.type_as_str()))
+    }
+
+    fn into_math_expression(&self) -> Result<MathExpression, String> {
+        self.0.value.clone().try_into().map_err(|_|
+            format!("Instruction [{}] is a {}, expected a math expression", self.1, self.0.value.type_as_str()))
     }
 
     fn value(&self) -> StateVarValue {
@@ -485,6 +492,7 @@ impl TryFrom<StateVarValue> for String {
             StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to string"),
             StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to string"),
             StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to string"),
+            StateVarValue::MathExpr(_) => Err("cannot convert StateVarValue::MathExpr to string"),
         }
     }
 }
@@ -496,6 +504,7 @@ impl TryFrom<StateVarValue> for bool {
             StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to boolean"),
             StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to boolean"),
             StateVarValue::String(_) => Err("cannot convert StateVarValue::String to boolean"),
+            StateVarValue::MathExpr(_) => Err("cannot convert StateVarValue::MathExpr to boolean"),
         }
     }
 }
@@ -507,6 +516,8 @@ impl TryFrom<StateVarValue> for f64 {
             StateVarValue::Integer(x) => Ok( x as f64 ),
             StateVarValue::String(_) => Err("cannot convert StateVarValue::String to number"),
             StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to number"),
+            StateVarValue::MathExpr(_) => Err("cannot convert StateVarValue::MathExpr to number"),
+
         }
     }
 }
@@ -518,6 +529,20 @@ impl TryFrom<StateVarValue> for i64 {
             StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to integer"),
             StateVarValue::String(_) => Err("cannot convert StateVarValue::String to integer"),
             StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to integer"),
+            StateVarValue::MathExpr(_) => Err("cannot convert StateVarValue::MathExpr to integer"),
+        }
+    }
+}
+
+impl TryFrom<StateVarValue> for MathExpression {
+    type Error = &'static str;
+    fn try_from(v: StateVarValue) -> Result<Self, Self::Error> {
+        match v {
+            StateVarValue::MathExpr(x) => Ok ( x ),
+            StateVarValue::Integer(_) => Err("cannot convert StateVarValue::Integer to MathExpr"),
+            StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to MathExpr"),
+            StateVarValue::String(_) => Err("cannot convert StateVarValue::String to MathExpr"),
+            StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to MathExpr"),
         }
     }
 }
@@ -529,6 +554,7 @@ impl From<StateVarValue> for serde_json::Value {
             StateVarValue::Number(v) =>  serde_json::json!(v),
             StateVarValue::String(v) =>  serde_json::json!(v),
             StateVarValue::Boolean(v) => serde_json::json!(v),
+            StateVarValue::MathExpr(v) => serde_json::json!(v),
         }
     }
 }
@@ -543,6 +569,8 @@ impl TryFrom<StateVarValue> for usize {
             StateVarValue::Number(_) => Err("cannot convert StateVarValue::Number to usize"),
             StateVarValue::String(_) => Err("cannot convert StateVarValue::String to usize"),
             StateVarValue::Boolean(_) => Err("cannot convert StateVarValue::Boolean to usize"),
+            StateVarValue::MathExpr(_) => Err("cannot convert StateVarValue::MathExpr to usize"),
+
         }
     }
 }
@@ -577,6 +605,7 @@ impl StateVarValue {
             Self::Boolean(_) => "boolean",
             Self::Integer(_) => "integer",
             Self::Number(_) => "number",
+            Self::MathExpr(_) => panic!("No component marked for StateVarValue::MathExpr"),
         }
     }
 

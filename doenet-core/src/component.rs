@@ -10,6 +10,7 @@ pub mod sequence;
 pub mod graph;
 pub mod point;
 
+use crate::math_expression::MathExpression;
 use crate::state_variables::*;
 
 use std::collections::HashMap;
@@ -91,7 +92,7 @@ pub struct ComponentNode {
 pub enum CopySource {
     Component(ComponentName),
     StateVar(ComponentName, StateRef),
-    DynamicElement(ComponentName, StateVarName, Vec<ObjectName>),
+    DynamicElement(ComponentName, StateVarName, MathExpression, Vec<ComponentName>),
 }
 
 

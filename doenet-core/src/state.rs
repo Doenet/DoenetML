@@ -1,4 +1,4 @@
-use crate::state_variables::*;
+use crate::{state_variables::*, utils::log_debug};
 use std::{cell::RefCell, fmt, cmp::max};
 use self::State::*;
 
@@ -77,6 +77,9 @@ impl StateForStateVar {
 
 
     pub fn get_single_state(&self, sv_ref: &StateIndex) -> Result<Option<State<StateVarValue>>, String> {
+
+        log_debug!("Getting single state of {:?}, current value is {:?}", sv_ref, self);
+
         match self {
             Self::Single(sv) => {
                 match sv_ref {
@@ -88,7 +91,12 @@ impl StateForStateVar {
                 match sv_ref {
                     StateIndex::SizeOf => Ok(Some(size.get_state())),
                     StateIndex::Element(id) => {
-                        Ok(elements.borrow().get(*id).map(|elem| elem.get_state()))
+                        if *id == 0 {
+                            Ok(None)
+                        } else {
+                            let internal_id = id - 1;
+                            Ok(elements.borrow().get(internal_id).map(|elem| elem.get_state()))
+                        }
                     },
                     _ => Err(format!("Tried to access an array State without an index or a size")),
                 }
@@ -99,13 +107,22 @@ impl StateForStateVar {
     }
 
 
-    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue) -> Result<StateVarValue, String> {
+    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue) -> Result<Option<StateVarValue>, String> {
         match self {
-            Self::Single(sv) => sv.set_value(val),
+            Self::Single(sv) => sv.set_value(val).map(|new_val| Some(new_val)),
 
             Self::Array { size, elements } => match state_var_ref {
                 StateIndex::Element(id) => {
-                    elements.borrow().get(*id).unwrap().set_value(val)
+                    if *id == 0 {
+                        Ok(None)
+                    } else {
+                        let internal_id = id - 1;
+                        if let Some(element) = elements.borrow().get(internal_id) {
+                            element.set_value(val).map(|new_val| Some(new_val))
+                        } else {
+                            Ok(None)
+                        }
+                    }
                 }
 
                 StateIndex::SizeOf => {
@@ -121,7 +138,7 @@ impl StateForStateVar {
                         );
                     }
 
-                    new_size
+                    new_size.map(|val| Some(val))
                 },
                 _ => panic!()
             }
@@ -133,7 +150,13 @@ impl StateForStateVar {
             Self::Single(sv) => sv.mark_stale(),
 
             Self::Array { size, elements } => match state_var_ref {
-                StateIndex::Element(id) => elements.borrow().get(*id).unwrap().mark_stale(),
+                StateIndex::Element(id) => {
+                    if *id == 0 {
+                        panic!("Invalid index 0")
+                    }
+                    let internal_id = id - 1;
+                    elements.borrow().get(internal_id).unwrap().mark_stale()
+                }
                 StateIndex::SizeOf => size.mark_stale(),
                 _ => panic!()
             }
@@ -225,31 +248,54 @@ pub enum EssentialStateVar {
 
 impl EssentialStateVar {
 
-    pub fn new(value_type: Option<&StateVarVariant>) -> Self {
-        if let Some(value_type) = value_type {
-            if value_type.is_array() {
-                Self::Array {
-                    size: RefCell::new(0),
-                    elements: RefCell::new(vec![]),
-                    extension: RefCell::new(value_type.initial_essential_value()),
-                }
-            } else {
-                Self::Single(RefCell::new(value_type.initial_essential_value()))
-            }
-        } else {
-            Self::Single(RefCell::new(StateVarValue::String("".to_string())))
+    // pub fn new(value_type: Option<&StateVarVariant>) -> Self {
+    //     if let Some(value_type) = value_type {
+    //         if value_type.is_array() {
+    //             Self::Array {
+    //                 size: RefCell::new(0),
+    //                 elements: RefCell::new(vec![]),
+    //                 extension: RefCell::new(value_type.initial_essential_value()),
+    //             }
+    //         } else {
+    //             Self::Single(RefCell::new(value_type.initial_essential_value()))
+    //         }
+    //     } else {
+    //         Self::Single(RefCell::new(StateVarValue::String("".to_string())))
+    //     }
+    // }
+
+    pub fn new_array_with_state_var_values(values: Vec<StateVarValue>, default_fill_value: StateVarValue) -> Self {
+        log_debug!("Initializing essential state with elements {:?} and default value {:?}", values, default_fill_value);
+
+        let essential_data = Self::Array {
+            size: RefCell::new(0),
+            elements: RefCell::new(vec![]),
+            extension: RefCell::new(default_fill_value)
+        };
+
+        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64)).unwrap();
+        for (id, value) in values.into_iter().enumerate() {
+            essential_data.set_value(StateIndex::Element(id + 1), value.clone()).expect(
+                &format!("Tried to set to {:?}", value)
+            );
         }
+
+        essential_data
     }
 
-    pub fn set_value(&self, state_ref: StateIndex, new_value: StateVarValue) -> Result<(), String> {
-        match (self, state_ref) {
+    pub fn new_single_basic_with_state_var_value(value: StateVarValue) -> Self {
+        Self::Single(RefCell::new(value))
+    }
+
+    pub fn set_value(&self, state_index: StateIndex, new_value: StateVarValue) -> Result<(), String> {
+        match (self, state_index) {
             (Self::Single(v), StateIndex::Basic) => {
                 v.borrow_mut().set_protect_type(new_value)
             },
 
             (Self::Array{size, elements, extension }, StateIndex::SizeOf) => {
                 let new_len = max(size.borrow().clone(), usize::try_from(new_value.clone()).expect(
-                    &format!("treid to set essential size to {}", new_value))
+                    &format!("tried to set essential size to {}", new_value))
                 );
                 elements.borrow_mut().resize(new_len, extension.borrow().clone());
 
@@ -258,13 +304,20 @@ impl EssentialStateVar {
                 Ok(())
             },
 
-            (Self::Array{elements, extension, ..}, StateIndex::Element(i)) => {
+            (Self::Array{elements, extension, ..}, StateIndex::Element(id)) => {
+                
+                if id == 0 {
+                    return Err("Index out of range".into())
+                }
+
+                let internal_id = id - 1;
+
                 let mut v = elements.borrow_mut();
 
-                let new_len = max(v.len(), i + 1);
+                let new_len = max(v.len(), internal_id + 1);
                 v.resize(new_len, extension.borrow().clone());
 
-                v.get_mut(i).unwrap().set_protect_type(new_value)?;
+                v.get_mut(internal_id).unwrap().set_protect_type(new_value)?;
                 Ok(())
             },
             _ => panic!("state ref and essential value do not match"),
@@ -280,8 +333,15 @@ impl EssentialStateVar {
             (Self::Array{size, .. }, StateIndex::SizeOf) => {
                 Some(StateVarValue::Integer(size.borrow().clone() as i64))
             },
-            (Self::Array{elements, ..}, StateIndex::Element(i)) => {
-                elements.borrow().get(i).cloned()
+            (Self::Array{elements, ..}, StateIndex::Element(id)) => {
+
+                if id == 0 {
+                    return None
+                }
+
+                let internal_id = id - 1;
+
+                elements.borrow().get(internal_id).cloned()
             },
             _ => panic!("state index {:?} and essential value {:?} do not match", state_ref, &self),
         }
@@ -322,6 +382,9 @@ impl StateVarValue {
                 *state = new_value.try_into()?;
             },
             StateVarValue::Boolean(state) => {
+                *state = new_value.try_into()?;
+            },
+            StateVarValue::MathExpr(state) => {
                 *state = new_value.try_into()?;
             }
         }

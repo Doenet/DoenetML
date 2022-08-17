@@ -171,8 +171,8 @@ lazy_static! {
 
                     // order means that x will processed second
                     vec![
-                        (StateRef::ArrayElement("xs", 1), y.clone()),
-                        (StateRef::ArrayElement("xs", 0), x.clone()),
+                        (StateRef::ArrayElement("xs", 2), y.clone()),
+                        (StateRef::ArrayElement("xs", 1), x.clone()),
                     ]
                 },
                 "switchPoint" => {
