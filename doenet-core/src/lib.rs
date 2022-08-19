@@ -2182,7 +2182,7 @@ fn resolve_state_variable(
                                 .try_into()
                                 .unwrap();
                                 
-                                for id in 1..(size_value + 1) {
+                                for id in indices_for_size(size_value) {
 
                                     let element_value = resolve_state_variable(
                                         core,

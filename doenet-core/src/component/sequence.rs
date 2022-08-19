@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 use crate::GroupDependency;
+use crate::indices_for_size;
 use crate::state_variables::*;
 use crate::base_definitions::*;
 
@@ -148,7 +149,7 @@ fn all_members<'a>(
         resolver(&StateRef::SizeOf("value")).unwrap()
         .try_into().unwrap();
 
-    (1..(size + 1)).map(|i|
+    indices_for_size(size).map(|i|
         ComponentRef::GroupMember(name.clone(), i)
     ).collect()
 }
