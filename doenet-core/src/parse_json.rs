@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
-use crate::utils::{log_json};
-use crate::Action;
+use crate::utils::log_json;
+use crate::{Action, ComponentRef};
 use crate::component::{CopySource, AttributeName, ComponentName, COMPONENT_DEFINITIONS, ComponentType};
 
 use crate::ComponentChild;
@@ -95,14 +95,16 @@ pub enum DoenetMLError {
         comp_name: ComponentName,
         invalid_index: String,
     },
-
     PropIndexIsNotPositiveInteger {
         // Note that if there is a macro in the propIndex,
         // we can't know if it is an integer or not, so we don't throw this error
         comp_name: ComponentName,
         invalid_index: String,
     },
-
+    InvalidStaticAttribute {
+        comp_name: ComponentName,
+        attr_name: String,
+    },
     CannotCopyArrayStateVar {
         // copier_comp_name: ComponentName, 
         source_comp_name: ComponentName,
@@ -144,6 +146,8 @@ impl Display for DoenetMLError {
                 write!(f, "Component {} has non-numerical propIndex '{}'", comp_name, invalid_index),
             PropIndexIsNotPositiveInteger { comp_name, invalid_index } =>
                 write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index),
+            InvalidStaticAttribute { comp_name, attr_name } =>
+                write!(f, "Component {} attribute '{}' must be static", comp_name, attr_name),
             CannotCopyArrayStateVar { source_comp_name, source_sv_name } =>
                 write!(f, "Cannot copy array state variable '{}' from component {}", source_sv_name, source_comp_name),
             CannotCopyIndexForStateVar { source_comp_name, source_sv_name } =>
@@ -344,12 +348,12 @@ fn add_component_from_json(
                     // Some(CopySource::StateVar(source_name.clone(), StateRef::ArrayElement(state_var_name, index)))
 
                 } else {
-                    Some(CopySource::StateVar(source_comp_name.clone(), StateRef::Basic(source_sv_name)))
+                    Some(CopySource::StateVar(ComponentRef::Basic(source_comp_name.clone()), StateRef::Basic(source_sv_name)))
 
                 }
 
             } else {
-                Some(CopySource::Component(source_comp_name.clone()))
+                Some(CopySource::Component(ComponentRef::Basic(source_comp_name.clone())))
             }
         } else {
             None

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
+use crate::GroupDependency;
 use crate::state_variables::*;
 use crate::base_definitions::*;
 
@@ -21,7 +22,7 @@ lazy_static! {
             return_array_dependency_instructions: |_| {
                 HashMap::from([(
                     "sv_from", DependencyInstruction::StateVar {
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("from")),
                     }
                 )])
@@ -39,18 +40,17 @@ lazy_static! {
             return_size_dependency_instructions: |_| {
                 HashMap::from([
                     ("sv_from", DependencyInstruction::StateVar {
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("from")),
                     }),
                     ("sv_to", DependencyInstruction::StateVar {
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("to")),
                     })
                 ])
             },
 
             determine_size_from_dependencies: |dependency_values| {
-                // TODO: from and to should be integers
 
                 let from = dependency_values.dep_value("sv_from")?
                     .has_exactly_one_element()?
@@ -66,38 +66,51 @@ lazy_static! {
             ..Default::default()
         }));
 
+        state_var_definitions.insert("text", StateVarVariant::StringArray(StateVarArrayDefinition {
 
-        state_var_definitions.insert("text", StateVarVariant::String(StateVarDefinition {
-            // Text sv is just to be used by the renderer
-            for_renderer: true,
 
-            return_dependency_instructions: |_| {
-                HashMap::from([
-                    ("sv_value", DependencyInstruction::StateVar {
-                        component_name: None,
+            return_array_dependency_instructions: |_| {
+                HashMap::from([(
+                    "sv_value", DependencyInstruction::StateVar {
+                        component_ref: None,
                         state_var: StateVarSlice::Array("value"),
-                    })
+                    }
+                )])
+            },
+
+            determine_element_from_dependencies: |index, dependency_values| {
+                let values: Vec<f64> = dependency_values.dep_value("sv_value")?
+                    .into_number_list()?;
+                let my_value = values.get(index).unwrap();
+                let my_text = my_value.to_string();
+
+                Ok(SetValue(my_text))
+            },
+
+
+            return_size_dependency_instructions: |_| {
+                HashMap::from([
+                    ("sv_value_size", DependencyInstruction::StateVar {
+                        component_ref: None,
+                        state_var: StateVarSlice::Single(StateRef::SizeOf("value")),
+                    }),
                 ])
             },
 
-            determine_state_var_from_dependencies: |dependency_values| {
-                let value = dependency_values.dep_value("sv_value")?
-                    .into_number_list()?;
+            determine_size_from_dependencies: |dependency_values| {
+                let size = dependency_values.dep_value("sv_value_size")?
+                    .has_exactly_one_element()?
+                    .into_integer()?;
 
-                let mut text = String::new();
-                for element_val in value {
-                    text.push_str(&format!("{}, ", element_val));
-                }
-                // Remove the last ", "
-                text.pop();
-                text.pop();
-
-                Ok(SetValue(text))
+                Ok(SetValue(size as usize))
             },
 
             ..Default::default()
         }));
 
+        state_var_definitions.insert("propIndex", StateVarVariant::Integer(StateVarDefinition {
+            ..Default::default()
+        }));
 
         state_var_definitions.insert("from", number_definition_from_attribute!("from", 1.0));
 
@@ -111,11 +124,74 @@ lazy_static! {
     };
 }
 
+fn component_type(_: &HashMap<AttributeName, String>,) -> ComponentType {
+    "number"
+}
 
+fn group_dependencies(
+    _static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
+    node: &ComponentNode,
+    _component_nodes: &HashMap<ComponentName, ComponentNode>,
+) -> Vec<GroupDependency> {
+    vec![GroupDependency::StateVar(
+        ComponentRef::Basic(node.name.clone()),
+        StateVarSlice::Single(StateRef::SizeOf("value")),
+    )]
+}
+
+fn all_members<'a>(
+    name: &ComponentName,
+    resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+) -> Vec<ComponentRef> {
+
+    let size: usize =
+        resolver(&StateRef::SizeOf("value")).unwrap()
+        .try_into().unwrap();
+
+    (1..(size + 1)).map(|i|
+        ComponentRef::GroupMember(name.clone(), i)
+    ).collect()
+}
+
+fn member_state_var<'a>(
+    index: usize,
+    state_var_slice: &'a StateVarSlice,
+    name: &ComponentName,
+    resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+) -> Option<(ComponentRef, StateVarSlice)> {
+
+    let comp_ref = ComponentRef::Basic(name.clone());
+    let slice = match state_var_slice {
+        StateVarSlice::Single(StateRef::Basic("value")) => {
+            // reslove size before giving value
+            let _ = resolver(&StateRef::SizeOf("value"));
+            StateVarSlice::Single(StateRef::ArrayElement("value", index))
+        }
+        StateVarSlice::Single(StateRef::Basic("text")) => {
+            let _ = resolver(&StateRef::SizeOf("text"));
+            StateVarSlice::Single(StateRef::ArrayElement("text", index))
+        },
+        _ => state_var_slice.clone(),
+    };
+
+    Some((comp_ref, slice))
+}
+
+lazy_static! {
+    pub static ref MY_GROUP_DEFINITION: GroupComponent = GroupComponent {
+        group_dependencies,
+        component_type,
+        all_members: Some(all_members),
+        member_state_var: Some(member_state_var),
+        ..Default::default()
+    };
+}
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
+
+        group: Some(&MY_GROUP_DEFINITION),
 
         attribute_names: vec![
             "hide",
@@ -124,7 +200,10 @@ lazy_static! {
             "from",
         ],
 
-        renderer_type: RendererType::Special("text"),
+        component_profiles: vec![
+            (ComponentProfile::Number, "value"),
+            (ComponentProfile::Text, "value"),
+        ],
 
         // primary_output_traits: || vec![PrimaryOutputTrait::TextLike, PrimaryOutputTrait::NumberLike],
         

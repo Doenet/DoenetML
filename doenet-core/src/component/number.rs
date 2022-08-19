@@ -51,7 +51,7 @@ lazy_static! {
 
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::StateVar {
-                    component_name: None,
+                    component_ref: None,
                     state_var: StateVarSlice::Single(StateRef::Basic("value")),
                 };
             

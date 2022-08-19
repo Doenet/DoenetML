@@ -134,7 +134,7 @@ pub fn package_subtree_as_json(
             },
 
 
-            StateForStateVar::Array { size, elements } => {
+            StateForStateVar::Array { size, elements, .. } => {
                 my_json_props.insert(
 
                     format!("sv: {} size", state_var_name),

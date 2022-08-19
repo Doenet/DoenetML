@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 
 use crate::component::AttributeName;
-use crate::component::ComponentName;
+use crate::component::ComponentRef;
 use crate::component::ComponentProfile;
 use crate::component::ComponentType;
 
@@ -220,24 +220,25 @@ pub enum StateVarVariant {
     Boolean(StateVarDefinition<bool>),
     Number(StateVarDefinition<f64>),
     Integer(StateVarDefinition<i64>),
+    StringArray(StateVarArrayDefinition<String>),
     NumberArray(StateVarArrayDefinition<f64>),
     // Single(StateVarVariantSingle),
     // Array(StateVarVariantArray),
 }
 
-#[derive(Debug)]
-pub enum StateVarVariantSingle {
-    String(StateVarDefinition<String>),
-    Boolean(StateVarDefinition<bool>),
-    Number(StateVarDefinition<f64>),
-    Integer(StateVarDefinition<i64>),
-}
+// #[derive(Debug)]
+// pub enum StateVarVariantSingle {
+//     String(StateVarDefinition<String>),
+//     Boolean(StateVarDefinition<bool>),
+//     Number(StateVarDefinition<f64>),
+//     Integer(StateVarDefinition<i64>),
+// }
 
 
-#[derive(Debug)]
-pub enum StateVarVariantArray {
-    NumberArray(StateVarArrayDefinition<f64>),
-}
+// #[derive(Debug)]
+// pub enum StateVarVariantArray {
+//     NumberArray(StateVarArrayDefinition<f64>),
+// }
 
 
 /// This can contain the value of a state variable of any type,
@@ -262,7 +263,7 @@ pub enum DependencyInstruction {
         desired_profiles: Vec<ComponentProfile>,
     },
     StateVar {
-        component_name: Option<ComponentName>,
+        component_ref: Option<ComponentRef>,
         state_var: StateVarSlice,
     },
     Parent {
@@ -346,7 +347,7 @@ pub trait DepValueVec {
 
     fn into_number_list(&self) -> Result<Vec<f64>, String>;
 
-    fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName);
+    fn filter_include_component_type(&self, component_type: &ComponentType) -> (Vec<&DependencyValue>, InstructionName);
 }
 
 impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
@@ -393,11 +394,11 @@ impl DepValueVec for (Vec<&DependencyValue>, InstructionName) {
 
 
 
-    fn filter_include_component_type(&self, component_type: ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
+    fn filter_include_component_type(&self, component_type: &ComponentType) -> (Vec<&DependencyValue>, InstructionName) {
         let (dep_values, name) = self;
 
         let filtered_dep_values = dep_values.iter()
-            .filter(|dep_value| match dep_value.source {
+            .filter(|dep_value| match &dep_value.source {
                 DependencySource::StateVar { component_type: comp, ..} => comp == component_type,
                 _ => false,
             })
@@ -774,6 +775,29 @@ impl StateVarVariant {
                 }
             },
 
+            Self::StringArray(def) => {
+                match state_ref {
+                    StateRef::ArrayElement(_, i) => {
+                        (def.request_element_dependencies_to_update_value)(
+                            *i,
+                            desired_value.clone().try_into().expect( // only cloned for error msg
+                                &format!("Requested StringArray element be updated to {:#?}", desired_value)
+                            ),
+                            dependency_sources,
+                        )
+                    },
+                    StateRef::SizeOf(_) => {
+                        (def.request_size_dependencies_to_update_value)(
+                            desired_value.clone().try_into().expect( // only cloned for error msg
+                                &format!("Requested StringArray size be updated to {:#?}", desired_value)
+                            ),
+                            dependency_sources,
+                        )
+                    }
+                    StateRef::Basic(_) => panic!("reference does not match definition"),
+                }
+            },
+
         }       
     }
 
@@ -787,6 +811,7 @@ impl StateVarVariant {
 
         match self {
             Self::NumberArray(def) => (def.return_array_dependency_instructions)(prereq_state_values),
+            Self::StringArray(def) => (def.return_array_dependency_instructions)(prereq_state_values),
             _ => unreachable!(),
         }
     }
@@ -798,6 +823,7 @@ impl StateVarVariant {
 
         match self {
             Self::NumberArray(def) => (def.return_element_dependency_instructions)(index, prereq_state_values),
+            Self::StringArray(def) => (def.return_element_dependency_instructions)(index, prereq_state_values),
             _ => unreachable!(),
         }
     }
@@ -808,6 +834,7 @@ impl StateVarVariant {
 
         match self {
             Self::NumberArray(def) => (def.return_size_dependency_instructions)(prereq_state_values),
+            Self::StringArray(def) => (def.return_size_dependency_instructions)(prereq_state_values),
             _ => unreachable!(),
         }
     }
@@ -821,6 +848,13 @@ impl StateVarVariant {
 
         match self {
             Self::NumberArray(def) => {
+                let instruction = (def.determine_size_from_dependencies)(dependency_values)?;
+                Ok(match instruction {                    
+                    NoChange => NoChange,
+                    SetValue(val) => SetValue(StateVarValue::Integer(val as i64)),
+                })
+            },
+            Self::StringArray(def) => {
                 let instruction = (def.determine_size_from_dependencies)(dependency_values)?;
                 Ok(match instruction {                    
                     NoChange => NoChange,
@@ -847,6 +881,13 @@ impl StateVarVariant {
                     SetValue(val) => SetValue(StateVarValue::Number(val)),
                 })
             },
+            Self::StringArray(def) => {
+                let instruction = (def.determine_element_from_dependencies)(id, dependency_values)?;
+                Ok(match instruction {                    
+                    NoChange => NoChange,
+                    SetValue(val) => SetValue(StateVarValue::String(val)),
+                })
+            },
 
             _ => unreachable!(),
         }
@@ -867,6 +908,7 @@ impl StateVarVariant {
             Self::Number(def) =>  StateVarValue::Number(def.initial_essential_value),
             Self::Boolean(def) => StateVarValue::Boolean(def.initial_essential_value),
             Self::NumberArray(def) => StateVarValue::Number(def.initial_essential_element_value),
+            Self::StringArray(def) => StateVarValue::String(def.initial_essential_element_value.clone()),
         }
     }
 
@@ -878,13 +920,15 @@ impl StateVarVariant {
             Self::Number(def) =>  def.for_renderer,
             Self::Boolean(def) => def.for_renderer,
             Self::NumberArray(def) => def.for_renderer,
+            Self::StringArray(def) => def.for_renderer,
         }
     }
 
 
     pub fn is_array(&self) -> bool {
         match self {
-            Self::NumberArray(_) => true,
+            Self::NumberArray(_) |
+            Self::StringArray(_) => true,
             _ => false,
         }
     }

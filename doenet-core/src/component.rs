@@ -9,9 +9,12 @@ pub mod boolean_input;
 pub mod sequence;
 pub mod graph;
 pub mod point;
-
+pub mod collect;
 use crate::math_expression::MathExpression;
+use serde::Serialize;
+
 use crate::state_variables::*;
+use crate::GroupDependency;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
@@ -43,9 +46,19 @@ lazy_static! {
         defs.insert("sequence",     &crate::sequence     ::MY_COMPONENT_DEFINITION);
         defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
         defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
+        defs.insert("collect",      &crate::collect      ::MY_COMPONENT_DEFINITION);
         defs
 
     };
+}
+
+fn to_component_type(value: &String) -> Result<ComponentType, String> {
+    Ok(
+        COMPONENT_DEFINITIONS
+        .get_key_value(value.as_str())
+        .ok_or("no component type")?
+        .0
+    )
 }
 
 
@@ -90,8 +103,8 @@ pub struct ComponentNode {
 /// - If the component type has no primary input, a StateVar CopySource will not work.
 #[derive(Debug, Clone)]
 pub enum CopySource {
-    Component(ComponentName),
-    StateVar(ComponentName, StateRef),
+    Component(ComponentRef),
+    StateVar(ComponentRef, StateRef),
     DynamicElement(ComponentName, StateVarName, MathExpression, Vec<ComponentName>),
 }
 
@@ -134,9 +147,109 @@ pub struct ComponentDefinition {
     pub primary_input_state_var: Option<StateVarName>,
 
     pub renderer_type: RendererType,
+
+    pub group: Option<&'static GroupComponent>,
+
 }
 
 
+pub struct GroupComponent {
+
+    pub group_dependency_attributes: fn() -> Vec<AttributeName>,
+
+    pub group_dependencies: fn(
+        static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
+        component: &ComponentNode,
+        component_nodes: &HashMap<ComponentName, ComponentNode>,
+    ) -> Vec<GroupDependency>,
+
+    pub component_type: fn(&HashMap<AttributeName, String>) -> ComponentType,
+
+
+    // For groups that contain their members' state variables:
+    // ("generator" groups like sequence vs "pointer" groups like collect)
+
+    /// `None` means use the group dependencies
+    pub all_members: Option<
+        for<'a> fn(
+            component_name: &ComponentName,
+            state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+        ) -> Vec<ComponentRef>
+    >,
+
+    /// `None` means use the group dependencies
+    pub member_state_var: Option<
+        for<'a> fn(
+            index: usize,
+            state_var_slice: &'a StateVarSlice,
+            component_name: &ComponentName,
+            state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+        ) -> Option<(ComponentRef, StateVarSlice)>
+    >,
+}
+
+impl Default for GroupComponent {
+    fn default() -> Self {
+        GroupComponent {
+            group_dependency_attributes: || vec![],
+            group_dependencies: |_,_,_| vec![],
+            component_type: |_| "number",
+            all_members: None,
+            member_state_var: None
+        }
+    }
+}
+
+
+impl TryFrom<&ComponentDefinition> for &GroupComponent {
+    type Error = &'static str;
+    fn try_from(value: &ComponentDefinition) -> Result<Self, Self::Error> {
+        match value.group {
+            Some(ref group_def) => Ok(&group_def),
+            None => Err("not a group"),
+        }
+    }
+}
+
+
+/// A component or a member of a group.
+/// Note that a group can still be referenced as a basic component
+/// in addition to referencing its group members.
+#[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash)]
+pub enum ComponentRef {
+    Basic(ComponentName),
+    GroupMember(ComponentName, usize),
+}
+
+impl std::fmt::Display for ComponentRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+
+#[derive(PartialEq, Serialize, Eq, Clone, Debug)]
+pub enum ComponentGroup {
+    Single(ComponentRef),
+    Group(ComponentName),
+}
+
+impl ComponentRef {
+    pub fn name(&self) -> ComponentName {
+        match self {
+            Self::Basic(name) => name.clone(),
+            Self::GroupMember(name, _) => name.clone(),
+        }
+    }
+}
+impl ComponentGroup {
+    pub fn name(&self) -> ComponentName {
+        match self {
+            Self::Single(comp_ref) => comp_ref.name(),
+            Self::Group(name) => name.clone(),
+        }
+    }
+}
 
 use crate::lazy_static;
 lazy_static! {
@@ -164,6 +277,8 @@ impl Default for ComponentDefinition {
             action_names: || Vec::new(),
 
             on_action: |_, _, _| vec![],
+
+            group: None,
         }
     }
 }

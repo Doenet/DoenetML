@@ -44,13 +44,13 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
         },
         StateRef::SizeOf(sv_name) => {
             match state_value {
-                StateForStateVar::Array { size, elements: _ } => size.get_state(),
+                StateForStateVar::Array { size, .. } => size.get_state(),
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
         StateRef::ArrayElement(sv_name, id) => {
             match state_value {
-                StateForStateVar::Array { size: _, elements } => {
+                StateForStateVar::Array { elements, .. } => {
                     elements.borrow().get(*id).expect(
                         &format!("State var [{}]:[{}] does not have element index {}", comp_name, sv_name, id)
                     ).get_state()
@@ -113,7 +113,7 @@ fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static s
     );
 
     match state_value {
-        StateForStateVar::Array { size, elements } => {
+        StateForStateVar::Array { size, elements, .. } => {
 
             let size_value = if let State::Resolved(val) = size.borrow().get_state() {
                 let val: i64 = val.try_into().unwrap();

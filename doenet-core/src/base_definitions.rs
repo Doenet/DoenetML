@@ -312,7 +312,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
 
         return_dependency_instructions: |_| {        
             HashMap::from([("value_of_value", DependencyInstruction::StateVar {
-                component_name: None,
+                component_ref: None,
                 state_var: StateVarSlice::Single(StateRef::Basic("value"))
             })])
         },
@@ -328,7 +328,7 @@ pub fn TEXT_DEFAULT_DEFINITION() -> StateVarVariant {
                 StateVarValue::Boolean(v) => Ok(SetValue(v.to_string())),
                 StateVarValue::Integer(v) => Ok(SetValue(v.to_string())),
                 StateVarValue::Number(v) => Ok(SetValue(v.to_string())),
-                StateVarValue::MathExpr(v) => unreachable!(),
+                StateVarValue::MathExpr(_) => unreachable!(),
             }
         },
 
@@ -498,7 +498,7 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
             StateVarValue::Boolean(v) => v.to_string(),
             StateVarValue::Integer(v) => v.to_string(),
             StateVarValue::Number(v)  => v.to_string(),
-            StateVarValue::MathExpr(v)  => unreachable!(),
+            StateVarValue::MathExpr(_)  => unreachable!(),
         });
     }
 

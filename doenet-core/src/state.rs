@@ -18,7 +18,7 @@ pub struct StateVar {
 /// which protects state variables from changing type.
 /// We have to store the State enum *inside* each variant
 /// so that the type is retained even when the content is Stale.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 enum ValueTypeProtector {
     String(State<String>),
     Boolean(State<bool>),
@@ -40,6 +40,7 @@ pub enum StateForStateVar {
     Single(StateVar),
     Array {
         size: StateVar,
+        stale_resize: StateVar,
         elements: RefCell<Vec<StateVar>>,
     }
 }
@@ -67,6 +68,22 @@ impl StateForStateVar {
                     size: StateVar {
                         value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale)),
                     },
+                    stale_resize: StateVar {
+                        value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale)),
+                    },
+                    elements: RefCell::new(
+                        vec![]
+                    )
+                }
+            }
+            StateVarVariant::StringArray(_) => {
+                Self::Array {
+                    size: StateVar {
+                        value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale)),
+                    },
+                    stale_resize: StateVar {
+                        value_type_protector: RefCell::new(ValueTypeProtector::String(Stale)),
+                    },
                     elements: RefCell::new(
                         vec![]
                     )
@@ -87,7 +104,7 @@ impl StateForStateVar {
                     _ => Err(format!("Tried to access a non-array State with an index or a size")),
                 }
             },
-            Self::Array { size, elements } => {
+            Self::Array { size, elements, .. } => {
                 match sv_ref {
                     StateIndex::SizeOf => Ok(Some(size.get_state())),
                     StateIndex::Element(id) => {
@@ -111,7 +128,7 @@ impl StateForStateVar {
         match self {
             Self::Single(sv) => sv.set_value(val).map(|new_val| Some(new_val)),
 
-            Self::Array { size, elements } => match state_var_ref {
+            Self::Array { size, elements, stale_resize } => match state_var_ref {
                 StateIndex::Element(id) => {
                     if *id == 0 {
                         Ok(None)
@@ -127,14 +144,14 @@ impl StateForStateVar {
 
                 StateIndex::SizeOf => {
 
+                    // log_debug!("current array:
+
                     let new_size = size.set_value(val.clone());
                     
-                    if let Ok(_) = new_size {
+                    if new_size.is_ok() {
                         elements.borrow_mut().resize(
                             i64::try_from(val).unwrap() as usize,
-                            StateVar {
-                                value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale))
-                            }
+                            stale_resize.clone(),
                         );
                     }
 
@@ -149,7 +166,7 @@ impl StateForStateVar {
         match self {
             Self::Single(sv) => sv.mark_stale(),
 
-            Self::Array { size, elements } => match state_var_ref {
+            Self::Array { size, elements, .. } => match state_var_ref {
                 StateIndex::Element(id) => {
                     if *id == 0 {
                         panic!("Invalid index 0")
@@ -166,7 +183,7 @@ impl StateForStateVar {
     pub fn elements_len(&self) -> usize {
         match self {
             Self::Single(_) => panic!(),
-            Self::Array { size: _, elements } => elements.borrow().len(),
+            Self::Array { elements, .. } => elements.borrow().len(),
         }
     }
 

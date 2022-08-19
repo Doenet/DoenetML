@@ -25,7 +25,7 @@ lazy_static! {
             return_array_dependency_instructions: |_| {
                 HashMap::from([
                     ("xs", DependencyInstruction::StateVar {
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Array("xs"),
                     }),
                 ])
@@ -42,7 +42,7 @@ lazy_static! {
             return_size_dependency_instructions: |_| {
                 HashMap::from([
                     ("dimensions", DependencyInstruction::StateVar {
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::SizeOf("xs")),
                     }),
                 ])
@@ -64,7 +64,7 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 HashMap::from([
                     ("xs", DependencyInstruction::StateVar{
-                        component_name: None,
+                        component_ref: None,
                         state_var: StateVarSlice::Array("xs"),
                     }),
                 ])
