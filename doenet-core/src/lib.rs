@@ -1398,7 +1398,6 @@ fn create_dependencies_from_instruction(
 
                         let (child_def, _) = group_member_definition(
                             components,
-                            static_attributes,
                             &component_group
                         );
 
