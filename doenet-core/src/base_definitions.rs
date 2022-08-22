@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::state_variables::*;
+use crate::{state_variables::*, math_expression::MathExpression, utils::log_debug};
 
 
 
@@ -23,15 +23,17 @@ macro_rules! number_definition_from_attribute {
                 determine_state_var_from_dependencies: |dependency_values| {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
-                        DETERMINE_NUMBER(attribute.clone())
+
+                        DETERMINE_NUMBER(attribute)
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
                     }
                 },
 
                 request_dependencies_to_update_value: |desired_value, sources| {
-                    let attribute_sources = sources.get("attribute").unwrap().clone();
+                    let attribute_sources = sources.get("attribute").unwrap();
                     HashMap::from([
                         ("attribute", DETERMINE_NUMBER_DEPENDENCIES(desired_value, attribute_sources))
                     ])
@@ -42,6 +44,7 @@ macro_rules! number_definition_from_attribute {
         }
     }
 }
+use evalexpr::{HashMapContext, ContextWithMutableVariables, Operator};
 pub(crate) use number_definition_from_attribute;
 
 
@@ -64,7 +67,10 @@ macro_rules! integer_definition_from_attribute {
                 determine_state_var_from_dependencies: |dependency_values| {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
-                        DETERMINE_NUMBER(attribute.clone())
+
+                        // let (expression, numerical_values) = split_dependency_values_into_math_expression_and_values(attribute)?;
+
+                        DETERMINE_NUMBER(attribute)
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x as i64))
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
@@ -103,7 +109,8 @@ macro_rules! number_array_definition_from_attribute {
                 determine_element_from_dependencies: |_, dependency_values| {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
-                        DETERMINE_NUMBER(attribute.clone())
+
+                        DETERMINE_NUMBER(attribute)
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
@@ -119,23 +126,16 @@ macro_rules! number_array_definition_from_attribute {
                 },
 
                 determine_size_from_dependencies: |dependency_values| {
-                    let (attribute, _) = dependency_values.dep_value("attribute")?;
-                    if attribute.len() > 0 {
-                        let num = DETERMINE_NUMBER(attribute.clone())?;
-                        if num > 0.0 {
-                            Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue(num as usize) )
-                        } else {
-                            Err("negative size from attribute dependency values".to_string())
-                        }
-                    } else {
-                        Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default_size) )
-                    }
+                    let size_value = dependency_values.dep_value("attribute")?
+                        .has_exactly_one_element()?
+                        .into_number()?;
+
+                    Ok(SetValue(size_value as usize))
                 },
 
                 request_element_dependencies_to_update_value: |_, desired_value, sources| {
                     let attribute_sources = sources.get("attribute")
-                        .expect("No instruction named 'attribute'")
-                        .clone();
+                        .expect("No instruction named 'attribute'");
                     HashMap::from([
                         ("attribute", DETERMINE_NUMBER_DEPENDENCIES(desired_value, attribute_sources))
                     ])
@@ -217,6 +217,65 @@ pub(crate) use string_definition_from_attribute;
 
 
 
+pub fn split_dependency_values_into_math_expression_and_values(dependency_values: Vec<&DependencyValue>) -> Result<(MathExpression, Vec<StateVarValue>), String> {
+
+    let expression = dependency_values.iter().find_map(|attr_elem| {
+        if let StateVarValue::MathExpr(ref expr) = attr_elem.value {
+            Some(expr.clone())
+        } else {
+            None
+        }
+    }).ok_or("There should have been a math expression".to_string())?;
+
+    let values: Vec<StateVarValue> = dependency_values.iter().filter_map(|elem| {
+        match elem.value {
+            StateVarValue::Number(_) => Some(elem.value.clone()),
+            StateVarValue::Integer(_) => Some(elem.value.clone()),
+            _ => None,
+        }
+    }).collect();
+
+    if values.len() + 1 != dependency_values.len() {
+        return Err("Invalid dependency values for number attribute".to_string())
+    }
+
+    Ok((expression, values))
+}
+
+pub fn split_dependency_sources_into_expression_and_variables(dependency_sources: &Vec<(DependencySource, Option<StateVarValue>)>) -> Result<((DependencySource, MathExpression), Vec<(DependencySource, Option<StateVarValue>)>, usize), String> {
+
+    // For now, assume that any essential data source is the expression
+    let (expr_id, expression_source, expression) = dependency_sources.iter().enumerate().find_map(|(id, attr_elem)| {
+        if let DependencySource::Essential { .. } = attr_elem.0 {
+            if let StateVarValue::MathExpr(expr) = attr_elem.1.as_ref().unwrap() {
+                Some((id, attr_elem.0.clone(), expr.clone()))
+            } else {
+                unreachable!()
+            }
+        } else {
+            None
+        }
+    }).ok_or("There should have been a math expression".to_string())?;
+
+    let variables: Vec<(DependencySource, Option<StateVarValue>)> = dependency_sources.into_iter().enumerate().filter_map(|(id, elem)| {
+        if id == expr_id {
+            None
+        } else {
+            Some(elem.clone())
+        }
+    }).collect();
+
+    for variable in variables.iter() {
+        match variable.0 {
+            DependencySource::StateVar { .. } => {},
+            _ => return Err("Invalid dependency sources for splitting expression and variables".to_string()),
+        }
+    }
+
+    Ok(((expression_source, expression), variables, expr_id))
+}
+
+
 
 // Default functions for an essential depenency
 
@@ -249,12 +308,12 @@ where
 }
 
 #[allow(non_snake_case)]
-pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, sources: HashMap<InstructionName, Vec<DependencySource>>)
+pub fn REQUEST_ESSENTIAL_TO_UPDATE<T: Into<StateVarValue>>(desired_value: T, sources: HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>>)
     -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>> {
     HashMap::from([
         ("essential", Ok(vec![
             DependencyValue {
-                source: sources.get("essential").unwrap().first().unwrap().clone(),
+                source: sources.get("essential").unwrap().first().unwrap().0.clone(),
                 value: desired_value.into(),
             }
         ]))
@@ -387,52 +446,136 @@ pub fn DETERMINE_BOOLEAN(dependency_values: Vec<DependencyValue>)
 pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
     -> Result<f64, String> {
 
-    let mut concatted_children = String::new();
-    for value in dependency_values {
-        let str_child_val = match &value.value {
-            StateVarValue::Number(num) => num.to_string(),
-            StateVarValue::String(str) => str.to_string(),
-            StateVarValue::Integer(num) => num.to_string(),
-            _ => return Err("Invalid value for number".to_string())
+    if dependency_values.len() == 1 &&
+        ! matches!(dependency_values[0].source, DependencySource::Essential { ..})
+    {
+        
+        let value = match dependency_values[0].value {
+            StateVarValue::Number(val) => val,
+            StateVarValue::Integer(val) => val as f64,
+            _ => return Err(format!(
+                    "If determine number gets only one non-essential dependency value, that value must be either a number or an integer, received {:?}", dependency_values[0]
+                )),
         };
 
-        concatted_children.push_str(&str_child_val);
+        Ok(value)
+
+    } else {
+
+        let (expression, variable_values) = split_dependency_values_into_math_expression_and_values(dependency_values)?;
+
+        if variable_values.len() != expression.external_variables_count {
+            return Err("Tried to evalute expression with incorrect number of external variables".into());
+        }
+    
+        let mut context = HashMapContext::new();
+    
+        for (id, value) in variable_values.iter().enumerate() {
+    
+            let variable_num = match value {
+                StateVarValue::Number(num) => *num,
+                StateVarValue::Integer(num) => *num as f64,
+                _ => return Err("Can't determine number with non-numerical variable values".to_string()),
+            };
+    
+            let name = format!("{}{}", expression.variable_prefix, id);
+            context.set_value(name, variable_num.into()).map_err(|err| err.to_string())?;
+
+        }
+
+        let num = expression.tree.eval_number_with_context(&context).unwrap_or(f64::NAN);
+        Ok(num)
+
+
+
+        // let str_child_val = match &value.value {
+        //     StateVarValue::Number(num) => num.to_string(),
+        //     StateVarValue::String(str) => str.to_string(),
+        //     StateVarValue::Integer(num) => num.to_string(),
+        //     _ => return Err("Invalid value for number".to_string())
+        // };
     }
 
     // log!("concatted children {}", concatted_children);
 
-    let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
-        num_result.as_number().unwrap_or(f64::NAN)
-    } else {
-        f64::NAN
-    };
+    // let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
+    //     num_result.as_number().unwrap_or(f64::NAN)
+    // } else {
+    //     f64::NAN
+    // };
 
-
-    Ok(num)
 }
 
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: Vec<DependencySource>)
+pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(DependencySource, Option<StateVarValue>)>)
     -> Result<Vec<DependencyValue>, String> {
 
-    if sources.len() == 1 {
-        let source = sources.first().unwrap().clone();
+    // let (expression, variables) = 
+    //     split_dependency_sources_into_expression_and_variables(&sources)?;
+
+    if sources.len() == 1 &&
+        ! matches!(sources[0].0, DependencySource::Essential { ..})
+    {
+        let (source, _) = sources.first().unwrap().clone();
         let value = match source {
             DependencySource::Essential { value_type: "string" } =>
                 StateVarValue::String(desired_value.to_string()),
-            DependencySource::Essential { value_type: "number" } |
             DependencySource::StateVar { component_type: "number", .. } =>
                 StateVarValue::Number(desired_value),
-            _ => panic!("number did not expect component type"),
+            _ => panic!("Number did not expect dependency source {:?}", source),
         };
-        Ok(vec![DependencyValue {
+        return Ok(vec![DependencyValue {
             source,
             value,
         }])
-    } else {
-        Err("inverse for number not implemented with multiple children".to_string())
     }
+    
+    let (expression, variables, expression_id) = 
+        split_dependency_sources_into_expression_and_variables(sources)?;
+    
+    if variables.len() == 0 {
+        log_debug!("Math expression has only constants: {:?}", expression.1.tree);
+
+        return Ok(vec![
+            DependencyValue {
+                source: expression.0,
+                value: StateVarValue::MathExpr(MathExpression::from(desired_value))
+            }
+        ])
+
+    }  else if variables.len() == 1 {
+
+        let tree = &expression.1.tree;
+
+        if tree.children().len() == 1 {
+            let child = &tree.children()[0];
+            if child.children().is_empty() && matches!(child.operator(), Operator::VariableIdentifierRead { ..}) {
+                
+                // syntax tree is only the one variable
+                log_debug!("Math expression has one variable and no constants: {:?}", tree);
+
+                let sv_value = DependencyValue {
+                    source: variables[0].0.clone(),
+                    value: StateVarValue::Number(desired_value),
+                };
+
+                let expression_value = DependencyValue {
+                    source: expression.0,
+                    value: StateVarValue::MathExpr(expression.1),
+                };
+
+                if expression_id == 0 {
+                    return Ok(vec![expression_value, sv_value]);
+                } else {
+                    return Ok(vec![sv_value, expression_value]);
+                }
+            }
+        }
+    }
+        
+    return Err("inverse for number not implemented with multiple dependency values or non-constant math expression".to_string());
+
 }
 
 
@@ -465,10 +608,10 @@ pub fn DETERMINE_INTEGER(dependency_values: Vec<&DependencyValue>)
 }
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64, sources: Vec<DependencySource>)
+pub fn DETERMINE_INTEGER_DEPENDENCIES(desired_value: i64, sources: Vec<(DependencySource, Option<StateVarValue>)>)
     -> Result<Vec<DependencyValue>, String> {
     if sources.len() == 1 {
-        let source = sources.first().unwrap().clone();
+        let (source, _) = sources.first().unwrap().clone();
         let value = match source {
             DependencySource::Essential { value_type: "string" } =>
                 StateVarValue::String(desired_value.to_string()),
@@ -521,7 +664,6 @@ pub const PROP_INDEX_VARS_INSTRUCTION: InstructionName = "expression_variables";
 
 pub fn insert_prop_index_state_var_definitions(state_var_definitions: &mut HashMap<StateVarName, StateVarVariant>) {
     use StateVarUpdateInstruction::SetValue;
-    use evalexpr::{HashMapContext, ContextWithMutableVariables};
 
     // state_var_definitions.insert(PROP_INDEX_PREFIX_SV, StateVarVariant::String(StateVarDefinition {
     //     return_dependency_instructions: |_| {

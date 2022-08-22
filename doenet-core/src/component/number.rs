@@ -25,19 +25,21 @@ lazy_static! {
                 HashMap::from([
                     ("children", DependencyInstruction::Child {
                         desired_profiles: vec![ComponentProfile::Number, ComponentProfile::Text],
+                        parse_into_expression: true,
                     }),
                 ])
             },
 
-
             determine_state_var_from_dependencies: |dependency_values| {
                 let (children, _) = dependency_values.dep_value("children")?;
 
-                DETERMINE_NUMBER(children.clone()).map(|x| SetValue(x))
+                // let (expression, numerical_values) = split_dependency_values_into_math_expression_and_values(children)?;
+
+                DETERMINE_NUMBER(children).map(|x| SetValue(x))
             },
 
             request_dependencies_to_update_value: |desired_value, dependency_sources| {
-                let children_sources: Vec<DependencySource> = dependency_sources.get("children").unwrap().to_vec();
+                let children_sources = dependency_sources.get("children").unwrap();
                 HashMap::from([
                     ("children", DETERMINE_NUMBER_DEPENDENCIES(desired_value, children_sources))
                 ])

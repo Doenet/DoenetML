@@ -71,7 +71,7 @@ lazy_static! {
         state_var_definitions.insert("xmin", number_definition_from_attribute!("xmin", -10.0));
         state_var_definitions.insert("ymin", number_definition_from_attribute!("ymin", -10.0));
         state_var_definitions.insert("xmax", number_definition_from_attribute!("xmax", 10.0));
-        state_var_definitions.insert("ymax", number_definition_from_attribute!("xmax", 10.0));
+        state_var_definitions.insert("ymax", number_definition_from_attribute!("ymax", 10.0));
         
         state_var_definitions.insert("grid", StateVarVariant::String(StateVarDefinition {
             return_dependency_instructions: |_| HashMap::from([

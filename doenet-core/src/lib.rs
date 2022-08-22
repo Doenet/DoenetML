@@ -155,7 +155,7 @@ pub enum GroupDependency {
 pub enum EssentialDataOrigin {
     StateVar(StateVarName),
     ComponentChild(usize),
-    AttributeString(usize),
+    // AttributeString(usize),
 }
 
 
@@ -435,13 +435,24 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         }
     }
 
-    // This variable is used during core creation to remember the essential addresses of all the
-    // attribute data that is stored in essential data. Note that the StateIndex in the HashMap's
-    // value refers to the essential data's index, which is not the same as the StateRef's index
-    // let mut essential_attribute_lookup:
-        // HashMap<(ComponentName, StateRef), (EssentialDataOrigin, Vec<StateIndex>)> = HashMap::new();
-
     let mut essential_data = HashMap::new();
+
+
+    // for (target_comp_name, attributes_for_comp) in component_attributes.iter() {
+    //     for (target_sv_name, attributes) in attributes_for_comp {
+
+    // enum AttributeElementLookup {
+    //     StateVar(ComponentName, StateVarName),
+    //     Essential(EssentialDataOrigin, StateIndex),
+    // }
+
+    // // This variable is used during core creation to remember the essential addresses of all the
+    // // attribute data that is stored in essential data. Note that the StateIndex in the HashMap's
+    // // value refers to the essential data's index, which is not the same as the StateRef's index
+    // let mut attribute_lookup:
+    //     HashMap<(ComponentName, StateRef), Vec<AttributeElementLookup>> = HashMap::new();
+
+    // let mut essential_data = HashMap::new();
 
     // for (target_comp_name, attributes_for_comp) in component_attributes.iter() {
     //     for (target_sv_name, attributes) in attributes_for_comp {
@@ -551,22 +562,6 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         aliases,
     })
 }
-
-
-// fn generate_unused_variable_names(expression_string: &str, quantity_to_generate: usize) -> Vec<String> {
-
-//     let mut names = Vec::new();
-//     let mut counter = 0;
-//     while names.len() < quantity_to_generate {
-//         let possible_name = format!("_var{}", counter);
-//         if !expression_string.contains(&possible_name) {
-//             names.push(possible_name);
-//         }
-//         counter += 1;
-//     }
-
-//     names
-// }
 
 
 fn check_cyclic_copy_source_component(
@@ -1162,7 +1157,7 @@ fn create_all_dependencies_for_component(
                             static_attributes,
                             component,
                             component_attributes,
-                            &StateVarSlice::Array(state_var_name),
+                            &StateVarSlice::Single(StateRef::ArrayElement(state_var_name, index)),
                             dep_instruction,
                             instruct_name,
                             essential_data,
@@ -1282,34 +1277,21 @@ fn create_dependencies_from_instruction(
 
         },
 
-        DependencyInstruction::Child { desired_profiles } => {
+        DependencyInstruction::Child { desired_profiles, parse_into_expression } => {
 
             let children = get_children_including_copy(components, component);
 
-            // if children.is_empty() {
 
-            //     // With no children, this mirrors an essential data instruction.
-            //     // Right now the essential data type is set to the variant type.
-            //     // TODO: use profiles?
-            //     let essential_origin = EssentialDataOrigin::StateVar(state_var_slice.name());
 
-            //     create_essential_data_for(
-            //         &component.name,
-            //         essential_data
-            //     );
+            let mut relevant_children:
+                // (object name, actual parent, relevant profile state var)
+                Vec<(&ObjectName, &ComponentName, Option<StateVarName>)> = Vec::new();
 
-            //     dependencies.push(Dependency::Essential {
-            //         component_name: (), origin: ()
-            //     });
-            // }
-
-            // Stores how many string children added per parent.
-            let mut essential_data_numbering: HashMap<ComponentName, usize> = HashMap::new();
-
-            for (child, actual_parent) in children.iter() {
+            for child in children.iter() {
 
                 match child {
-                    ComponentChild::Component(child_name) => {
+                    (ComponentChild::Component(child_name), _) => {
+
                         let child_node = components.get(child_name).unwrap();
 
                         let component_group = match child_node.definition.group {
@@ -1321,60 +1303,142 @@ fn create_dependencies_from_instruction(
                             static_attributes,
                             &component_group
                         );
-
-                        let mut selected_child_state_var = None;
+            
 
                         for child_profile in child_def.component_profiles.iter() {
                             if desired_profiles.contains(&child_profile.0) {
-                                selected_child_state_var = Some(child_profile.1);
+
+                                relevant_children.push(
+                                    (&child.0, &child.1.name, Some(child_profile.1))
+                                );
                                 break;
                             }
                         }
-
-
-                        if let Some(profile_state_var) = selected_child_state_var {
-
-                            let sv_def = child_def
-                                .state_var_definitions
-                                .get(profile_state_var)
-                                .unwrap();
-
-                            dependencies.push(Dependency::StateVar {
-                                component_group,
-                                state_var_slice: if sv_def.is_array() {
-                                    StateVarSlice::Array(profile_state_var)
-                                } else {
-                                    StateVarSlice::Single(StateRef::Basic(profile_state_var))
-                                }
-                            });
-
-
+                    },
+                    (ComponentChild::String(_), actual_parent) => {
+                        if desired_profiles.contains(&ComponentProfile::Text) {
+                            relevant_children.push((&child.0, &actual_parent.name, None));
                         }
+                    },
+                }
+            }
 
+
+            if *parse_into_expression {
+
+                // Assuming for now that expression is math expression
+                let expression = MathExpression::new(
+                    &relevant_children.iter().map(|child| child.0.clone()).collect()
+                );
+
+                // Assuming that no other child instruction exists which has already filled
+                // up the child essential data
+                let essential_origin = EssentialDataOrigin::ComponentChild(0);
+
+                create_essential_data_for(
+                    &component.name,
+                    essential_origin.clone(),
+                    InitialEssentialData::Single(
+                        StateVarValue::MathExpr(expression),
+                    ),
+                    essential_data
+                );
+
+                dependencies.push(Dependency::Essential {
+                    component_name: component.name.clone(), origin: essential_origin,
+                });
+
+                // We already dealt with the essential data, so now only retain the component children
+                relevant_children.retain(|child| matches!(child.0, ObjectName::Component(_)));
+                
+            }
+
+            // Stores how many string children added per parent.
+            let mut essential_data_numbering: HashMap<ComponentName, usize> = HashMap::new();
+
+            for (child, actual_parent, profile_sv) in relevant_children {
+
+                match child {
+
+                    ComponentChild::Component(child_name) => {
+                        let child_node = components.get(child_name).unwrap();
+                        let profile_state_var = profile_sv.unwrap();
+
+                        let component_group = match child_node.definition.group {
+                            Some(_) => ComponentGroup::Group(child_name.clone()),
+                            None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
+                        };
+
+                        let (child_def, _) = group_member_definition(
+                            components,
+                            static_attributes,
+                            &component_group
+                        );
+
+                        let sv_def = child_def
+                            .state_var_definitions
+                            .get(profile_state_var)
+                            .unwrap();
+
+                        // for child_profile in child_def.component_profiles.iter() {
+                        //     if desired_profiles.contains(&child_profile.0) {
+                        //         selected_child_state_var = Some(child_profile.1);
+                        //         break;
+                        //     }
+                        // }
+
+
+                        // if let Some(profile_state_var) = selected_child_state_var {
+
+                        //     let sv_def = child_def
+                        //         .state_var_definitions
+                        //         .get(profile_state_var)
+                        //         .unwrap();
+
+                        //     dependencies.push(Dependency::StateVar {
+                        //         component_group,
+                        //         state_var_slice: if sv_def.is_array() {
+                        //             StateVarSlice::Array(profile_state_var)
+                        //         } else {
+                        //             StateVarSlice::Single(StateRef::Basic(profile_state_var))
+                        //         }
+                        //     });
+                        // }
+
+                        dependencies.push(Dependency::StateVar {
+                            component_group,
+                            // component_name: child_name.to_string(),
+                            state_var_slice: if sv_def.is_array() {
+                                StateVarSlice::Array(profile_state_var)
+                            } else {
+                                StateVarSlice::Single(StateRef::Basic(profile_state_var))
+                            }
+                        });
                     },
 
                     ComponentChild::String(string_value) => {
                         if desired_profiles.contains(&ComponentProfile::Text) {
 
                             let index = essential_data_numbering
-                                .entry(actual_parent.name.clone()).or_insert(0 as usize);
+                                .entry(actual_parent.clone()).or_insert(0 as usize);
 
                             let essential_origin = EssentialDataOrigin::ComponentChild(*index);
 
-                            if component.name == actual_parent.name {
+
+                            if &component.name == actual_parent {
                                 // Components create their own essential data
+
+                                let value = StateVarValue::String(string_value.clone());
                                 create_essential_data_for(
-                                    &actual_parent.name,
+                                    actual_parent,
                                     essential_origin.clone(),
-                                    InitialEssentialData::Single(
-                                        StateVarValue::String(string_value.clone()),
-                                    ),
+                                    InitialEssentialData::Single(value),
                                     essential_data
                                 );
                             }
 
                             dependencies.push(Dependency::Essential {
-                                component_name: actual_parent.name.clone(),
+                                component_name: actual_parent.clone(),
                                 origin: essential_origin,
                             });
 
@@ -1419,36 +1483,70 @@ fn create_dependencies_from_instruction(
         DependencyInstruction::Attribute { attribute_name, index } => {
 
             log_debug!("Getting attribute {} for {}:{}", attribute_name, component.name, state_var_slice);
-
             let state_var_name = state_var_slice.name();
             let state_var_ref = StateRef::from_name_and_index(state_var_name, *index);
             let sv_def = component.definition.state_var_definitions.get(state_var_name).unwrap();
             let essential_origin = EssentialDataOrigin::StateVar(state_var_name);
+
+
+            let default_value = if matches!(sv_def, 
+                StateVarVariant::NumberArray(_) | StateVarVariant::Number(_) | StateVarVariant::Integer(_)
+            ) {
+                StateVarValue::MathExpr(MathExpression::new(
+                    &vec![ObjectName::String(match sv_def.initial_essential_value() {
+                        StateVarValue::Number(v) => v.to_string(),
+                        StateVarValue::Integer(v) => v.to_string(),
+                        _ => unreachable!(),
+                    })]
+                ))
+            } else {
+                sv_def.initial_essential_value()
+            };
+
+
+            let get_value_from_object_list = |obj_list: &Vec<ObjectName>| -> StateVarValue {
+
+                if matches!(sv_def, StateVarVariant::Number(_)
+                    | StateVarVariant::NumberArray(_)
+                    | StateVarVariant::Integer(_)
+                ) {
+                    StateVarValue::MathExpr(
+                        MathExpression::new(obj_list)
+                    )
+                } else if obj_list.len() > 0 {
+
+                    let first_obj = obj_list.get(0).unwrap();
+                    if obj_list.len() > 1 {
+                        unimplemented!("Multiple objects for non number state var");
+                    }
+                    match first_obj {
+                        ObjectName::String(str_val) => {
+                            package_string_as_state_var_value(str_val.to_string(), sv_def).unwrap()
+                        }
+                        _ => default_value.clone()
+                    }
+                } else {
+                    default_value.clone()
+                }
+            };
 
             if let Some(attribute) = component_attributes.get(*attribute_name) {
                 // attribute specified
                 log_debug!("attribute {:?}", attribute);
 
                 // Create the essential data if it does not exist yet
-                if !essential_data_exists_for(&component.name, &essential_origin, essential_data) {
+                if !essential_data_exists_for(&component.name, &essential_origin, essential_data) {                   
 
                     if sv_def.is_array() {
 
                         let mut essential_attr_objs: Vec<StateVarValue> = Vec::new();
                         
                         for (id, obj_list) in attribute {
-                            let first_obj = obj_list.get(0).unwrap();
-                            // ignore the other objects for now
 
-                            let value = match first_obj {
-                                ObjectName::String(str_val) => {
-                                    package_string_as_state_var_value(str_val.to_string(), sv_def).unwrap()
-                                }
-                                _ => sv_def.initial_essential_value(),
-                            };
+                            let value = get_value_from_object_list(obj_list);
 
                             if *id > essential_attr_objs.len() {
-                                essential_attr_objs.resize(*id, sv_def.initial_essential_value());
+                                essential_attr_objs.resize(*id, default_value.clone());
                             }
                             essential_attr_objs[id - 1] = value;
 
@@ -1456,7 +1554,7 @@ fn create_dependencies_from_instruction(
 
                         log_debug!("essential attributes {:?}", essential_attr_objs);
 
-                        let initial_essential_data = InitialEssentialData::Array(essential_attr_objs, sv_def.initial_essential_value());
+                        let initial_essential_data = InitialEssentialData::Array(essential_attr_objs, default_value);
 
                         create_essential_data_for(
                             &component.name,
@@ -1468,23 +1566,21 @@ fn create_dependencies_from_instruction(
                     } else {
 
                         assert_eq!(attribute.keys().len(), 1);
+                        let obj_list = attribute.get(&1).unwrap();
 
-                        let initial_data = attribute.get(&1).unwrap().get(0).unwrap();
+                        log_debug!("Initializing non-array essential data for {}:{} from attribute data {:?}", component.name, state_var_name, obj_list);
 
-                        if let ObjectName::String(str) = initial_data {
-
-                            create_essential_data_for(
-                                &component.name,
-                                essential_origin.clone(),
-                                InitialEssentialData::Single(StateVarValue::String(str.to_string())),
-                                essential_data,
-                            );
-                        };
-
+                        let value = get_value_from_object_list(obj_list);
+                        
+                        create_essential_data_for(
+                            &component.name,
+                            essential_origin.clone(),
+                            InitialEssentialData::Single(value),
+                            essential_data,
+                        );
                     };
-
-
                 }
+
 
 
                 if let StateIndex::SizeOf = index {
@@ -1501,36 +1597,53 @@ fn create_dependencies_from_instruction(
                         _ => 1,
                     };
 
-                    // dependencies.push(Dependency::Essential {
-                    //     component_name: component.name.clone(),
-                    //     origin: essential_origin,
-                    // });
-
                     let attr_objects = attribute.get(&attribute_index)
                         .expect(&format!("attribute {}:{} does not have index {}. Attribute: {:?}",
                             &component.name, attribute_name, &attribute_index, attribute));
 
-                    let first_attr_object = attr_objects.get(0).unwrap();
-
-                    let dependency = match first_attr_object {
-                        ObjectName::String(_) => Dependency::Essential {
+                    let relevant_attr_objects = if matches!(sv_def,
+                        StateVarVariant::Number(_) | StateVarVariant::NumberArray(_) | StateVarVariant::Integer(_)
+                    ) {
+                        // First add an essential dependency to the expression
+                        dependencies.push(Dependency::Essential {
                             component_name: component.name.clone(),
-                            origin: essential_origin,
-                        },
-                        ObjectName::Component(comp_name) => {
-                            let comp = components.get(comp_name).unwrap();
-                            let primary_input_sv = comp.definition.primary_input_state_var.expect(
-                                &format!("An attribute cannot depend on a non-primitive component. Try adding '.value' to the macro.")
-                            );
+                            origin: essential_origin.clone(),
+                        });
 
-                            Dependency::StateVar {
-                                component_group: ComponentGroup::Single(ComponentRef::Basic(comp_name.clone())),
-                                state_var_slice: StateVarSlice::Single(StateRef::Basic(primary_input_sv)),
+                        attr_objects.into_iter().filter_map(
+                            |obj| if matches!(obj, ObjectName::Component(_)) {
+                                Some(obj.clone())
+                            } else {
+                                None
                             }
-                        }
+                        ).collect()
+                    } else {
+                        attr_objects.clone()
                     };
 
-                    dependencies.push(dependency);
+                    for attr_object in relevant_attr_objects {
+
+                        let dependency = match attr_object {
+                            ObjectName::String(_) => Dependency::Essential {
+                                component_name: component.name.clone(),
+                                origin: essential_origin.clone(),
+                            },
+                            ObjectName::Component(comp_name) => {
+                                let comp = components.get(&comp_name).unwrap();
+                                let primary_input_sv = comp.definition.primary_input_state_var.expect(
+                                    &format!("An attribute cannot depend on a non-primitive component. Try adding '.value' to the macro.")
+                                );
+    
+                                Dependency::StateVar {
+                                    component_group: ComponentGroup::Single(ComponentRef::Basic(comp_name.clone())),
+                                    state_var_slice: StateVarSlice::Single(StateRef::Basic(primary_input_sv)),
+                                }
+                            },
+                        };
+
+                        dependencies.push(dependency);
+                    }
+                    
 
                     // let attr_string =
                     //     match attr_objects.first() {
@@ -1608,10 +1721,12 @@ fn create_dependencies_from_instruction(
                 });
             } else {
 
+                // let value = get_value_from_object_list(&vec![]);
+
                 create_essential_data_for(
                     &component.name,
                     EssentialDataOrigin::StateVar(state_var_name),
-                    InitialEssentialData::Single(sv_def.initial_essential_value()),
+                    InitialEssentialData::Single(default_value),
                     essential_data
                 );
 
@@ -1672,6 +1787,15 @@ fn create_prop_index_dependencies(
         }).collect()
     );
 
+    let origin = EssentialDataOrigin::StateVar(PROP_INDEX_SV);
+
+    create_essential_data_for(
+        &component.name,
+        origin.clone(),
+        InitialEssentialData::Single(StateVarValue::MathExpr(math_expression.clone())),
+        essential_data,
+    );
+
     // Dependency on math expression for propIndex
     dependencies.insert(
         DependencyKey::StateVar(
@@ -1679,12 +1803,10 @@ fn create_prop_index_dependencies(
             StateVarSlice::Single(StateRef::Basic(PROP_INDEX_SV)),
             PROP_INDEX_EXPR_INSTRUCTION
         ),
-        vec![create_essential_data_for(
-            &component.name,
-            EssentialDataOrigin::StateVar(PROP_INDEX_SV),
-            InitialEssentialData::Single(StateVarValue::MathExpr(math_expression.clone())),
-            essential_data,
-        )]
+        vec![Dependency::Essential {
+            component_name: component.name.clone(),
+            origin,
+        }]
     );
 
     dependencies
@@ -1747,48 +1869,15 @@ enum InitialEssentialData {
 /// Add (or update) essential data for a state variable or string child.
 /// Returns the dependency.
 fn create_essential_data_for(
-    // component: &ComponentNode,
     component_name: &ComponentName,
     origin: EssentialDataOrigin,
-    // state_var_slice: &StateVarSlice,
-    // initialize_slice: Option<StateVarValue>,
     initial_values: InitialEssentialData,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
-) -> Dependency {
+) {
 
-    // log_debug!("adding essential data for {}:{}, setting to {:?}", component.name, state_var_slice, &initialize_slice);
-
-    // let variant = match origin {
-    //     EssentialDataOrigin::StateVar(name) => Some(component
-    //         .definition.state_var_definitions
-    //         .get(name).expect(
-    //             &format!("{}:{} did not have a state var definition", component.name, name)
-    //         )),
-    //     _ => None,
-    // };
-
-    // let essential_state = match (state_var_slice, initialize_slice, variant) {
-
-    //     (StateVarSlice::Single(StateRef::Basic(_)), Some(initial_val), _) => {
-    //         EssentialStateVar::new_single_basic_with_state_var_value(initial_val)
-    //     },
-
-    //     (StateVarSlice::Single(state_ref), Some(val), Some(variant)) => {
-    //         let essential = EssentialStateVar::new(Some(variant));
-    //         essential.set_value(state_ref.index(), val).unwrap();
-    //         essential
-    //     },
-
-    //     (StateVarSlice::Array(_), Some(initial_val), _) => {
-    //         let essential = EssentialStateVar::new(variant);
-    //         essential.set_value(StateIndex::Basic, initial_val).unwrap();
-    //         essential
-    //     },
-    //     (_, _, _) => {
-    //         let essential = EssentialStateVar::new(variant);
-    //         essential
-    //     },
-    // };
+    if let Some(comp_essential_data) = essential_data.get(component_name) {
+        assert!( !comp_essential_data.contains_key(&origin) );
+    }
 
     let essential_state = match initial_values {
         InitialEssentialData::Single(value) => EssentialStateVar::new_single_basic_with_state_var_value(value),
@@ -1802,11 +1891,6 @@ fn create_essential_data_for(
         .or_insert(HashMap::new())
         .entry(origin.clone())
         .or_insert(essential_state);
-
-    Dependency::Essential {
-        component_name: component_name.clone(),
-        origin,
-    }
 }
 
 fn essential_data_exists_for(
@@ -2039,31 +2123,30 @@ fn dependencies_of_state_var(
 }
 
 
-fn get_source_for_dependency(core: &DoenetCore, dependency: &Dependency) -> DependencySource {
+fn get_source_for_dependency(
+    core: &DoenetCore,
+    dependency: &Dependency,
+    essential_data: &HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>
+) -> DependencySource {
 
     match dependency {
         Dependency::Essential { component_name, origin } => {
-            // We don't really need these fields in this case (?)
             match origin {
-                EssentialDataOrigin::StateVar(sv_name) => {
-                    let variant = core.component_nodes
-                        .get(component_name).unwrap()
-                        .definition
-                        .state_var_definitions
-                        .get(sv_name).unwrap();
+
+                EssentialDataOrigin::StateVar(_) => {
+                    let data = essential_data.get(component_name).unwrap().get(origin).unwrap();
+                    // let variant = components
+                    //     .get(component_name).unwrap()
+                    //     .definition
+                    //     .state_var_definitions
+                    //     .get(sv_name).unwrap();
+
                     DependencySource::Essential {
-                        value_type: match variant {
-                            StateVarVariant::StringArray(_) |
-                            StateVarVariant::String(_) => "string",
-                            StateVarVariant::Boolean(_) => "boolean",
-                            StateVarVariant::Integer(_) => "integer",
-                            StateVarVariant::NumberArray(_) |
-                            StateVarVariant::Number(_) => "number",
-                        }
+                        value_type: data.get_type_as_str()
                     }
-                }
-                _ => DependencySource::Essential{
-                    value_type: "string",
+                },
+                _ => {
+                    DependencySource::Essential{ value_type: "string", }
                 },
             
             }
@@ -2088,25 +2171,37 @@ fn get_source_for_dependency(core: &DoenetCore, dependency: &Dependency) -> Depe
                 component_type,
                 state_var_name: &array_state_var_name
             }
-            
         }
 
     }
 }
 
-
+/// Also includes the values of essential data
 fn get_dependency_sources_for_state_var(
     core: &DoenetCore,
     component_name: &ComponentName,
-    state_var_slice: &StateVarSlice,
-) -> HashMap<InstructionName, Vec<DependencySource>> {
+    state_ref: &StateRef,
+) -> HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> {
     
-    let my_dependencies = dependencies_of_state_var(&core.dependencies, component_name, state_var_slice);
-    let mut dependency_sources: HashMap<InstructionName, Vec<DependencySource>> = HashMap::new();
+    let my_dependencies = dependencies_of_state_var(&core.dependencies, component_name, &StateVarSlice::Single(state_ref.clone()));
+    let mut dependency_sources: HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> = HashMap::new();
 
     for (instruction_name, dependencies) in my_dependencies {
-        let instruction_sources: Vec<DependencySource> = dependencies.iter().map(|dependency| {
-            get_source_for_dependency(core, &dependency)
+        let instruction_sources: Vec<(DependencySource, Option<StateVarValue>)> = dependencies.iter().map(|dependency| {
+            let source = get_source_for_dependency(core, &dependency, &core.essential_data);
+
+            let essential_value = if let Dependency::Essential { origin, .. } = dependency {
+                let data = core.essential_data
+                    .get(component_name).unwrap()
+                    .get(origin).unwrap();
+                let value = data.get_value(state_ref.index()).unwrap();
+                Some(value)
+
+            } else {
+                None
+            };
+
+            (source, essential_value)
         }).collect();
 
         dependency_sources.insert(instruction_name, instruction_sources);
@@ -2152,7 +2247,7 @@ fn resolve_state_variable(
 
         for dep in deps {
 
-            let dependency_source = get_source_for_dependency(core, &dep);
+            let dependency_source = get_source_for_dependency(core, &dep, &core.essential_data);
 
             match dep {
 
@@ -2581,71 +2676,76 @@ fn convert_dependency_values_to_update_request(
         &StateVarSlice::Single(state_var.clone())
     );
 
+    let mut update_requests = Vec::new();
 
-    requests.iter()
-        .flat_map(|(instruction_name, values)|
-            match values {
-                Ok(values) => {
-                    let mut update_requests = vec![];
+    for (instruction_name, instruction_requests) in requests {
 
-                    // stores (group name, index)
-                    let mut group_index = (None, 0);
+        let valid_requests = match instruction_requests {
+            Err(_e) => {
+                log_debug!("Inverse definition for {}:{} failed with: {}", component.name, state_var, _e);
+                break;
+            },
+            Ok(result) => result,
+        };
 
-                    for dep_value in values {
-                        let my_deps = my_dependencies.get(instruction_name).expect(
-                            &format!("{}:{} has the wrong instruction name to determine dependencies",
-                                component.component_type, state_var)
-                        );
-                        for dep in my_deps {
-                            match dep {
-                                Dependency::Essential { component_name, origin } => {
-                                    update_requests.push(UpdateRequest::SetEssentialValue(
-                                        component_name.clone(),
-                                        origin.clone(),
-                                        state_var.index(),
-                                        dep_value.value.clone(),
-                                    ))
-                                },
-                                Dependency::StateVar { component_group, state_var_slice } => {
-                                    let component_ref = match component_group {
-                                        ComponentGroup::Group(n) => {
+        // stores (group name, index)
+        let mut group_index = (None, 0);
 
-                                            // determine the group member this DepedencyValue corresponds to
-                                            if group_index.0 == Some(n) {
-                                                group_index.1 += 1;
-                                            } else {
-                                                group_index.0 = Some(n);
-                                                group_index.1 = 1;
-                                            }
-                                            ComponentRef::GroupMember(n.clone(), group_index.1 - 1)
-                                        },
-                                        ComponentGroup::Single(comp_ref) => {
-                                            comp_ref.clone()
-                                        },
-                                    };
 
-                                    if let Some((sv_comp, _)) = convert_component_ref_state_var(core, &component_ref, state_var_slice.clone()) {
-                                        if let StateVarSlice::Single(state_var_ref) = state_var_slice {
-                                            update_requests.push(UpdateRequest::SetStateVar(
-                                                sv_comp,
-                                                state_var_ref.clone(),
-                                                dep_value.value.clone(),
-                                            ))
-                                        }
-                                    }
-                                },
-                                _ => (),
+        let instruct_dependencies = my_dependencies.get(instruction_name).expect(
+            &format!("{}:{} has the wrong instruction name to determine dependencies",
+                component.component_type, state_var)
+        );
+
+        assert_eq!(valid_requests.len(), instruct_dependencies.len());
+
+        for (request, dependency) in valid_requests.into_iter().zip(instruct_dependencies.iter()) {
+
+            match dependency {
+                Dependency::Essential { component_name, origin } => {
+                    update_requests.push(UpdateRequest::SetEssentialValue(
+                        component_name.clone(),
+                        origin.clone(),
+                        state_var.index(),
+                        request.value.clone(),
+                    ))
+                },
+                Dependency::StateVar { component_group, state_var_slice } => {
+                    let component_ref = match component_group {
+                        ComponentGroup::Group(n) => {
+
+                            // determine the group member this DependencyValue corresponds to
+                            if group_index.0 == Some(n) {
+                                group_index.1 += 1;
+                            } else {
+                                group_index.0 = Some(n);
+                                group_index.1 = 1;
                             }
+                            ComponentRef::GroupMember(n.clone(), group_index.1 - 1)
+                        },
+                        ComponentGroup::Single(comp_ref) => {
+                            comp_ref.clone()
+                        },
+                    };
+
+                    if let Some((sv_comp, _)) = convert_component_ref_state_var(core, &component_ref, state_var_slice.clone()) {
+                        if let StateVarSlice::Single(state_var_ref) = state_var_slice {
+                            update_requests.push(UpdateRequest::SetStateVar(
+                                sv_comp,
+                                state_var_ref.clone(),
+                                request.value.clone(),
+                            ))
                         }
                     }
-                    update_requests
                 },
-                Err(e) => {
-                    log_debug!("Inverse definition for {}:{} failed with: {}", component.name, state_var, e);
-                    vec![]
-                },
+                _ => (),
             }
-        ).collect()
+        }
+
+    }
+
+    update_requests
+
 }
 
 
@@ -2694,7 +2794,7 @@ fn process_update_request(
     update_request: &UpdateRequest
 ) {
 
-    // log_debug!("Processing update request {:?}", update_request);
+    log_debug!("Processing update request {:?}", update_request);
 
     match update_request {
         UpdateRequest::SetEssentialValue(component_ref, origin, state_index, requested_value) => {
@@ -2707,7 +2807,7 @@ fn process_update_request(
                     state_index.clone(),
                     requested_value.clone()
                 ).expect(
-                    &format!("Failed to set essential value for {}, {:?}", component_ref, origin)
+                    &format!("Failed to set essential value for {}, {:?}, {:?}", component_ref, origin, state_index)
                 );
 
             // log_debug!("Updated essential data {:?}", core.essential_data);
@@ -3149,14 +3249,22 @@ fn request_dependencies_to_update_value_including_shadow(
         vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
 
     } else {
-        let dependency_sources = get_dependency_sources_for_state_var(core, &component.name, &StateVarSlice::Single(state_var_ref.clone()));
+
+        let dependency_sources = get_dependency_sources_for_state_var(core, &component.name, &state_var_ref.clone());
 
         log_debug!("Dependency sources for {}{}, {:?}", component.name, state_var_ref, dependency_sources);
 
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
-            .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources);
+            .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources)
+            .expect(&format!("Failed requesting dependencies for {}:{}", component.name, state_var_ref));
 
-        convert_dependency_values_to_update_request(core, component, state_var_ref, requests)
+        log_debug!("{}:{} wants its dependency to update to: {:?}", component.name, state_var_ref, requests);
+
+        let update_requests = convert_dependency_values_to_update_request(core, component, state_var_ref, requests);
+
+        log_debug!("{}:{} generated update requests: {:#?}", component.name, state_var_ref, update_requests);
+
+        update_requests
     }
 }
 

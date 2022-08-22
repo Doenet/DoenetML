@@ -342,8 +342,8 @@ impl EssentialStateVar {
     }
 
 
-    pub fn get_value(&self, state_ref: StateIndex) -> Option<StateVarValue> {
-        match (self, state_ref) {
+    pub fn get_value(&self, state_index: StateIndex) -> Option<StateVarValue> {
+        match (self, state_index) {
             (Self::Single(v), StateIndex::Basic) => {
                 Some(v.borrow().clone())
             },
@@ -360,7 +360,18 @@ impl EssentialStateVar {
 
                 elements.borrow().get(internal_id).cloned()
             },
-            _ => panic!("state index {:?} and essential value {:?} do not match", state_ref, &self),
+            _ => panic!("state index {:?} and essential value {:?} do not match", state_index, &self),
+        }
+    }
+
+    pub fn get_type_as_str(&self) -> &'static str {
+        match self {
+            Self::Array { extension, .. } => {
+                extension.borrow().type_as_str()
+            },
+            Self::Single(val) => {
+                val.borrow().type_as_str()
+            }
         }
     }
 }

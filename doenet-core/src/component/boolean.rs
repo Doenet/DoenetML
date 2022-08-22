@@ -22,6 +22,9 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 let child_instruct = DependencyInstruction::Child {
                     desired_profiles: vec![ComponentProfile::Boolean, ComponentProfile::Text],
+
+                    // change this to true when we use a boolean syntax tree
+                    parse_into_expression: false
                 };
 
                 HashMap::from([("all_my_children", child_instruct)])

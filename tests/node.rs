@@ -1,14 +1,14 @@
 // #![cfg(target_arch = "wasm32")]
 
+#[macro_use]
 mod common_node;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, thread};
 use std::panic::set_hook;
 
 use common_node::*;
 use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue, Action};
 use wasm_bindgen_test::{wasm_bindgen_test, console_log};
-
 
 // ========= DoenetML errrors ============
 
@@ -18,7 +18,7 @@ fn doenet_ml_error_cyclic_dependency_through_children_indirectly() {
         <text name='a_parent'><text name='a' copySource='b'/></text>
         <text name='b'><text name='b_child' copySource='a_parent'/></text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
 
     let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
@@ -30,7 +30,8 @@ fn doenet_ml_error_copy_unnamed_component_gives_error() {
     static DATA: &str = r#"
         <text copySource='qwerty' />
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::ComponentDoesNotExist { comp_name: _ }));
@@ -45,7 +46,8 @@ fn text_preserves_spaces_between_text_tags() {
         <text name='a'><text>Hello</text> <text>there</text>!</text>
         <text name='b'><text>We <text>could</text> be <text copySource="/_text3" />.</text></text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(
         DATA
@@ -62,7 +64,8 @@ fn text_inside_text() {
     static DATA: &str = r#"
         <text>one<text> two <text name='t2' copySource='t' /> <text name='t'>three</text> again </text><text copySource="t2"/> once more</text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -78,7 +81,8 @@ fn text_copy_component_of_copy_component() {
         <text name='b' copySource='a'><text name='two'>two</text></text>
         <text name='c' copySource='b'><text name='three'>three</text></text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -95,7 +99,7 @@ fn text_copy_component_cyclical_gives_error() {
         <text name='a' copySource='b' />
         <text name='b' copySource='a' />
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
 
     let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
@@ -107,7 +111,8 @@ fn text_copy_itself_as_child_gives_error() {
     static DATA: &str = r#"
         <text name='t'> $t</text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::CyclicalDependency { component_chain: _ }));
@@ -119,7 +124,8 @@ fn text_copy_itself_as_grandchild_gives_error() {
     static DATA: &str = r#"
         <text name='t'><text>$t</text></text>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let error = doenet_core_from(DATA).unwrap_err();
     match error {
@@ -146,8 +152,8 @@ fn text_input_update_immediate_value_and_update_value() {
         <text copySource='/_textInput3' prop='immediateValue' />
         <text copySource='/_textInput3' prop='value' />
     "#;
+    display_doenet_ml_on_failure!(DATA);
 
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
 
     let dc = doenet_core_from(DATA).expect(&format!("DoenetML had an error"));
     doenet_core::update_renderers(&dc);
@@ -222,7 +228,7 @@ fn sequence_copies_component() {
         <sequence copySource='s' to='-10' />
 
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -251,7 +257,7 @@ fn sequence_from_and_to_can_be_copied_as_props() {
         <number>$s.from</number>
         <number>$s.to</number>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -272,7 +278,8 @@ fn point_moves_copy_number() {
         <number name='num'>2</number>
         <graph name='g'><point name='p' xs='3 $num'/></graph>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -310,7 +317,8 @@ fn number_invalid_prop_index_does_not_crash() {
     <!-- This one should be valid -->
     <p><number name='num5' copySource='s' prop='value' propIndex = '3.000' /></p>
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);
@@ -343,7 +351,8 @@ fn number_invalid_dynamic_prop_index_does_not_crash() {
     <!-- This one should be valid -->
     <number name='num5' copySource='s' prop='value' propIndex = '$n5' />
     "#;
-    set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), DATA)));
+    display_doenet_ml_on_failure!(DATA);
+
 
     let dc = doenet_core_from(DATA).unwrap();
     doenet_core::update_renderers(&dc);

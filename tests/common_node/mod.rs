@@ -21,6 +21,16 @@ extern "C" {
     
 }
 
+macro_rules! display_doenet_ml_on_failure {
+    ($data:expr) => {
+        if !thread::panicking() {
+            set_hook(Box::new(|info| console_log!("{}\n{}", info.to_string(), $data)));
+        }
+    }
+}
+
+
+
 pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
     let parsed = parseAndCompile(data.to_string());
     let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();

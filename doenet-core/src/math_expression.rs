@@ -1,13 +1,13 @@
 use evalexpr::{build_operator_tree, HashMapContext, ContextWithMutableVariables};
 
-use crate::component::ObjectName;
+use crate::{component::ObjectName};
 
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MathExpression {
     pub tree: evalexpr::Node, // Expression
     pub variable_prefix: String, // Expression prefix
-    external_variables_count: usize,
+    pub external_variables_count: usize,
 }
 
 
@@ -62,8 +62,6 @@ impl MathExpression {
         MathExpression { tree, variable_prefix, external_variables_count }
 
         // log_debug!("Expression tree {:#?} \nwith variables {:#?}", expression, variable_components);
-
-
     }
 
 
@@ -79,6 +77,23 @@ impl MathExpression {
         match self.tree.eval_with_context(&sample_context) {
             Ok(_) => true,
             Err(_) => false
+        }
+    }
+
+    // pub fn evaluate_number_with_values(&self, values: &Vec<StateVarValue>) -> f64 {
+        
+    // }
+
+}
+
+
+
+impl From<f64> for MathExpression {
+    fn from(input: f64) -> Self {
+        MathExpression {
+            tree: build_operator_tree(&input.to_string()).unwrap(),
+            variable_prefix: String::new(),
+            external_variables_count: 0,
         }
     }
 }

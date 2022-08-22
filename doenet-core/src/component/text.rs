@@ -22,6 +22,7 @@ lazy_static! {
             return_dependency_instructions: |_| {
                 let instruction = DependencyInstruction::Child {
                     desired_profiles: vec![ComponentProfile::Text],
+                    parse_into_expression: false,
                 };
             
                 HashMap::from([("children_value_svs", instruction)])

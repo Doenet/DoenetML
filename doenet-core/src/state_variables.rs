@@ -47,7 +47,7 @@ pub struct StateVarDefinition<T> {
     /// values for the dependencies that would make this state variable return that value.
     pub request_dependencies_to_update_value: fn(
         T,
-        HashMap<InstructionName, Vec<DependencySource>>
+        HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>>
     ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 }
 
@@ -73,7 +73,7 @@ pub struct StateVarArrayDefinition<T> {
     pub request_element_dependencies_to_update_value: fn(
         usize,
         T,
-        HashMap<InstructionName, Vec<DependencySource>>
+        HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>>
     ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 
 
@@ -88,7 +88,7 @@ pub struct StateVarArrayDefinition<T> {
     pub request_size_dependencies_to_update_value: fn(
         T,
         HashMap<InstructionName,
-        Vec<DependencySource>>
+        Vec<(DependencySource, Option<StateVarValue>)>>
     ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 
     pub for_renderer: bool,
@@ -261,6 +261,11 @@ pub enum DependencyInstruction {
     Child {
         /// The dependency will only match child components that fulfill at least one of these profiles
         desired_profiles: Vec<ComponentProfile>,
+
+        /// Whether or not to parse children into an expression on core creation, store that expression
+        /// in essential data, and give that expression as one of the dependency values for this 
+        /// dependency instruction
+        parse_into_expression: bool,
     },
     StateVar {
         component_ref: Option<ComponentRef>,
@@ -600,13 +605,14 @@ impl From<i64> for StateVarValue {
 
 
 impl StateVarValue {
+    /// Not necessarily a component type
     pub fn type_as_str(&self) -> &'static str {
         match self {
             Self::String(_) => "string",
             Self::Boolean(_) => "boolean",
             Self::Integer(_) => "integer",
             Self::Number(_) => "number",
-            Self::MathExpr(_) => panic!("No component marked for StateVarValue::MathExpr"),
+            Self::MathExpr(_) => "mathExpression",
         }
     }
 
@@ -715,61 +721,61 @@ impl StateVarVariant {
         &self,
         state_ref: &StateRef,
         desired_value: StateVarValue,
-        dependency_sources: HashMap<InstructionName, Vec<DependencySource>>
-    ) -> HashMap<InstructionName, Result<Vec<DependencyValue>, String>> {
+        dependency_sources: HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>>
+    ) -> Result<HashMap<InstructionName, Result<Vec<DependencyValue>, String>>, String> {
 
         match self {
             Self::String(def) =>  {
-                (def.request_dependencies_to_update_value)(
-                    desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested String be updated to {:#?}", desired_value)
-                    ),
+                Ok((def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                        format!("Requested String be updated to {:#?}", desired_value)
+                    )?,
                     dependency_sources,
-                )
+                ))
             },
             Self::Integer(def) => {
-                (def.request_dependencies_to_update_value)(
-                    desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Integer be updated to {:#?}", desired_value)
-                    ),
+                Ok((def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                        format!("Requested Integer be updated to {:#?}", desired_value)
+                    )?,
                     dependency_sources,
-                )
+                ))
             },
             Self::Number(def) =>  {
-                (def.request_dependencies_to_update_value)(
-                    desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Number be updated to {:#?}", desired_value)
-                    ),
+                Ok((def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                        format!("Requested Number be updated to {:#?}", desired_value)
+                    )?,
                     dependency_sources,
-                )
+                ))
             },
             Self::Boolean(def) => {
-                (def.request_dependencies_to_update_value)(
-                    desired_value.clone().try_into().expect( // only cloned for error msg
-                        &format!("Requested Boolean be updated to {:#?}", desired_value)
-                    ),
+                Ok((def.request_dependencies_to_update_value)(
+                    desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                        format!("Requested Boolean be updated to {:#?}", desired_value)
+                    )?,
                     dependency_sources,
-                )
+                ))
             },
 
             Self::NumberArray(def) => {
                 match state_ref {
                     StateRef::ArrayElement(_, i) => {
-                        (def.request_element_dependencies_to_update_value)(
+                        Ok((def.request_element_dependencies_to_update_value)(
                             *i,
-                            desired_value.clone().try_into().expect( // only cloned for error msg
-                                &format!("Requested NumberArray element be updated to {:#?}", desired_value)
-                            ),
+                            desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                                format!("Requested NumberArray element be updated to {:#?}", desired_value)
+                            )?,
                             dependency_sources,
-                        )
+                        ))
                     },
                     StateRef::SizeOf(_) => {
-                        (def.request_size_dependencies_to_update_value)(
-                            desired_value.clone().try_into().expect( // only cloned for error msg
-                                &format!("Requested NumberArray size be updated to {:#?}", desired_value)
-                            ),
+                        Ok((def.request_size_dependencies_to_update_value)(
+                            desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                                format!("Requested NumberArray size be updated to {:#?}", desired_value)
+                            )?,
                             dependency_sources,
-                        )
+                        ))
                     }
                     StateRef::Basic(_) => panic!("reference does not match definition"),
                 }
@@ -778,21 +784,21 @@ impl StateVarVariant {
             Self::StringArray(def) => {
                 match state_ref {
                     StateRef::ArrayElement(_, i) => {
-                        (def.request_element_dependencies_to_update_value)(
+                        Ok((def.request_element_dependencies_to_update_value)(
                             *i,
-                            desired_value.clone().try_into().expect( // only cloned for error msg
-                                &format!("Requested StringArray element be updated to {:#?}", desired_value)
-                            ),
+                            desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                                format!("Requested StringArray element be updated to {:#?}", desired_value)
+                            )?,
                             dependency_sources,
-                        )
+                        ))
                     },
                     StateRef::SizeOf(_) => {
-                        (def.request_size_dependencies_to_update_value)(
-                            desired_value.clone().try_into().expect( // only cloned for error msg
-                                &format!("Requested StringArray size be updated to {:#?}", desired_value)
-                            ),
+                        Ok((def.request_size_dependencies_to_update_value)(
+                            desired_value.clone().try_into().map_err(|_| // only cloned for error msg
+                                format!("Requested StringArray size be updated to {:#?}", desired_value)
+                            )?,
                             dependency_sources,
-                        )
+                        ))
                     }
                     StateRef::Basic(_) => panic!("reference does not match definition"),
                 }

@@ -56,19 +56,19 @@ lazy_static! {
                 HashMap::from([
                     ("essential", Ok(vec![
                         DependencyValue {
-                            source: sources.get("essential").unwrap().first().unwrap().clone(),
+                            source: sources.get("essential").unwrap().first().unwrap().0.clone(),
                             value: desired_value.clone().into(),
                         }
                     ])),
                     ("sync", Ok(vec![
                         DependencyValue {
-                            source: sources.get("sync").unwrap().first().unwrap().clone(),
+                            source: sources.get("sync").unwrap().first().unwrap().0.clone(),
                             value: StateVarValue::Boolean(true),
                         }
                     ])),
                     ("immediate", Ok(vec![
                         DependencyValue {
-                            source: sources.get("immediate").unwrap().first().unwrap().clone(),
+                            source: sources.get("immediate").unwrap().first().unwrap().0.clone(),
                             value: desired_value.to_string().into(),
                         }
                     ])),
