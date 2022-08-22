@@ -11,7 +11,7 @@ use base_definitions::PROP_INDEX_SV;
 use lazy_static::lazy_static;
 use parse_json::DoenetMLError;
 use state::StateForStateVar;
-use std::{collections::HashMap};
+use std::collections::HashMap;
 use std::fmt::Debug;
 use regex::Regex;
 
@@ -51,10 +51,6 @@ pub struct DoenetCore {
     /// - producing values when determining a state variable
     /// - tracking when a change affects other state variables
     pub dependencies: HashMap<DependencyKey, Vec<Dependency>>,
-
-    /// Attributes that need to be evaluated before dependencies are created.
-    /// E.g. when collect must determine their component type
-    pub static_attributes: HashMap<ComponentName, HashMap<AttributeName, String>>,
 
     pub group_dependencies: HashMap<ComponentName, Vec<GroupDependency>>,
 
@@ -178,43 +174,11 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         parse_attributes_and_macros(&mut component_nodes, component_attributes, copy_prop_index_instances);
 
 
-    // Setup static attributes then group dependencies
-    let mut static_attributes = HashMap::new();
-    for (component_name, component) in component_nodes.iter() {
-        if let Some(group_def) = component.definition.group {
-
-            let mut dependency_attributes = HashMap::new();
-            for attr_name in (group_def.group_dependency_attributes)() {
-
-                let attribute = component_attributes
-                    .get(component_name).unwrap()
-                    .get(attr_name).unwrap()
-                    .get(&0).unwrap()
-                    .first().unwrap();
-
-                match attribute {
-                    ObjectName::String(string) => {
-                        dependency_attributes.insert(attr_name, string.clone());
-                    }
-                    ObjectName::Component(_) => {
-                        return Err(DoenetMLError::InvalidStaticAttribute {
-                            comp_name: component_name.clone(),
-                            attr_name: attr_name.to_string(),
-                        });
-                    }
-                }
-            }
-
-            static_attributes.insert(component_name.clone(), dependency_attributes);
-        }
-    }
-
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
         if let Some(group_def) = component.definition.group {
 
             let deps = (group_def.group_dependencies)(
-                &static_attributes,
                 &component,
                 &component_nodes,
             );
@@ -347,7 +311,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
 
         if let CopySource::StateVar(source_comp_name, source_state_ref) = copy_source {
-            let (source_comp_def, _) = component_ref_definition(&component_nodes, &static_attributes, &source_comp_name);
+            let (source_comp_def, _) = component_ref_definition(&component_nodes, &source_comp_name);
             let source_sv_def = source_comp_def.state_var_definitions.get(source_state_ref.name()).unwrap();
 
             if source_sv_def.is_array() {
@@ -390,7 +354,7 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
     // Make sure that the source and target components are the same type
     for (comp, source_comp_name) in copy_comp_targets.iter() {
-        let (_, source_comp_type) = component_ref_definition(&component_nodes, &static_attributes, source_comp_name);
+        let (_, source_comp_type) = component_ref_definition(&component_nodes, source_comp_name);
         if comp.component_type != source_comp_type {
             return Err(DoenetMLError::ComponentCannotCopyOtherType {
                 component_name: comp.name.clone(),
@@ -500,7 +464,6 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
 
         let dependencies_for_this_component = create_all_dependencies_for_component(
             &component_nodes,
-            &static_attributes,
             component_node,
             component_attributes.get(component_name).unwrap_or(&HashMap::new()),
             // copy_index_flags.get(component_name).as_deref(),
@@ -544,9 +507,6 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
     log_json!("Essential data upon core creation",
         utils::json_essential_data(&essential_data));
 
-    log_json!("Static attributes",
-        &static_attributes);
-
     log_json!("Group dependencies upon core creation",
         &group_dependencies);
 
@@ -557,7 +517,6 @@ pub fn create_doenet_core(program: &str) -> Result<DoenetCore, DoenetMLError> {
         root_component_name,
         dependencies,
         group_dependencies,
-        static_attributes,
         essential_data,
         aliases,
     })
@@ -714,49 +673,21 @@ fn check_for_cyclical_dependencies(
 
 
 
-// One or two $ followed by either
-//   - the following combination without parenthesis:
-//     - a word (starting with a letter or underscore), capturing word as fourth group, 
-//     - optionally followed by anything in square brackets (6th group)
-//     - optionally followed by:
-//       - a period
-//       - followed by a word (9th group)
-//       - optionally followed by anything in square brackets (11th group)
-//   or
-//   - the following combination in parenthesis
-//     where the closing parenthesis could be replaced by an open brace,
-//     (capturing the open brace or closing parens as 21st group):
-//     - an identifier (containing word characters, slash, hyphen, or "../") (12th group)
-//     - optionally followed by anything in square brackets (15th group)
-//     - optionally followed by:
-//       - a period
-//       - followed by a word (including hyphens) (18th group)
-//       - optionally followed by anything in square brackets (20th group)
 lazy_static! {
-
-    // NOTE: It took around ~100ms on a fast computer to create this regex (not including searching with it)
-    static ref MACRO_SEARCH: Regex = Regex::new(r"(?x) #flag that ignores whitespace and comments
-
-    (\$) # for now, just one $
-    (
-        (([a-zA-Z_]\w*)(\[([^\[^\]]+)\])?((\.([a-zA-Z]\w*))(\[([^\[^\]]+)\])?)?)
-        |
-        \(
-            (([\w/-]|\.\./)+)(\[([^\[^\]]+)\])?((\.([\w\-]+))(\[([^\[^\]]+)\])?)?\s*
-        ( \) | \{ )
-    )
-
-    ").unwrap();
-
+    static ref COMPONENT: Regex = Regex::new(r"[a-zA-Z_]\w*").unwrap();
 }
-
 lazy_static! {
-    static ref POSSIBLE_MACRO: Regex = Regex::new("$").unwrap();
+    static ref PROP: Regex = Regex::new(r"[a-zA-Z]\w*").unwrap();
+}
+lazy_static! {
+    static ref INDEX: Regex = Regex::new(r"\d+|\$").unwrap();
+}
+lazy_static! {
+    static ref MACRO_BEGIN: Regex = Regex::new(r"\$").unwrap();
 }
 
 fn apply_macro_to_string(
-    string: String,
-    // component: &ComponentNode,
+    string: &str,
     component_name: &ComponentName,
     components: &HashMap<ComponentName, ComponentNode>,
     macro_copy_counter: &mut HashMap<ComponentName, usize>,
@@ -766,115 +697,214 @@ fn apply_macro_to_string(
     let mut objects = Vec::new();
     let mut previous_end = 0;
 
-    for capture in MACRO_SEARCH.captures_iter(&string) {
+    loop {
+        if previous_end >= string.len() {
+            break;
+        }
+        let some_next_macro = MACRO_BEGIN.find_at(string, previous_end);
+        if some_next_macro.is_none() {
+            break;
+        }
+        let next_macro = some_next_macro.unwrap();
 
-        log_debug!("capture {:#?}", capture);
-
-        let start = capture.get(0).unwrap().start();
-        let end = capture.get(0).unwrap().end();
-
-        if start == 0 || string.chars().nth(start-1).unwrap_or_default() != '$' {
-
-            // Append the regular string from last endpoint up until start of macro
-            let before = &string[previous_end..start];
-            if !before.trim().is_empty() {
-                objects.push(ObjectName::String(before.to_string()));
-            }
-
-
-            let (macro_comp, macro_prop_option) =
-                match capture.get(12) {
-                    Some(comp) => (comp, capture.get(18)),
-                    None => (capture.get(4).unwrap(), capture.get(9)),
-                };
-
-            if let Some(ending_delim) = capture.get(21) {
-                if ending_delim.as_str() == "{" {
-                    panic!("Haven't implemented macros with curly braces");
-                }
-            }
-
-            let source_name = macro_comp.as_str();
-
-
-            let source_comp = components.get(source_name).expect(
-                &format!("Macro for {}, but this component does not exist", source_name));
-
-
-            let macro_copy: ComponentNode = if let Some(macro_prop) = macro_prop_option {
-
-                let (prop_name, _) = source_comp.definition.state_var_definitions
-                    .get_key_value(macro_prop.as_str())
-                    .expect(&format!("Macro asks for {} property, which does not exist", macro_prop.as_str()));
-
-                let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
-
-                let copy_comp_type = default_component_type_for_state_var(source_comp, prop_name)
-                    .expect(&format!("could not create component for state var copy macro"));
-                let copy_def = COMPONENT_DEFINITIONS.get(copy_comp_type).unwrap().clone();
-
-                let copy_name = name_macro_component(
-                    &source_comp_sv_name,
-                    component_name,
-                    macro_copy_counter,
-                );
-
-                ComponentNode {
-                    name: copy_name,
-                    parent: Some(component_name.clone()),
-                    children: vec![],
-
-                    copy_source: Some(CopySource::StateVar(
-                        // TODO: non-basic copies
-                        ComponentRef::Basic(source_comp.name.clone()),
-                        StateRef::Basic(prop_name))),
-
-                    component_type: copy_comp_type,
-                    definition: copy_def,
-                }
-
-            } else {
-
-                let copy_name = name_macro_component(
-                    source_name,
-                    component_name,
-                    macro_copy_counter,
-                );
-
-                ComponentNode {
-                    name: copy_name,
-                    parent: Some(component_name.clone()),
-                    children: vec![],
-
-                    copy_source: Some(CopySource::Component(
-                        ComponentRef::Basic(source_comp.name.clone())
-                    )),
-
-                    .. source_comp.clone()
-                }
-            };
-
-            objects.push(ObjectName::Component(macro_copy.name.clone()));
-            components_to_add.push(macro_copy);
-
-            previous_end = end;
+        // Append the regular string until start of macro
+        let before = &string[previous_end..next_macro.start()];
+        if !before.trim().is_empty() {
+            objects.push(ObjectName::String(before.to_string()));
         }
 
+        match macro_comp_ref(string,
+            next_macro.end(),
+            component_name,
+            components,
+            macro_copy_counter,
+            components_to_add
+        ) {
+            Ok((macro_name, macro_end)) => {
+                previous_end = macro_end;
+                objects.push(ObjectName::Component(macro_name));
+            },
+            Err(msg) => {
+                utils::log!("macro failed: {}", msg);
+                break;
+            }
+        }
     }
-    if previous_end > 0 {
-        // There was at least one macro
-        let last = &string[previous_end..];
-        if !last.trim().is_empty() {
-            objects.push(ComponentChild::String(last.to_string()));
-        }
 
-    } else {
-        // No macros, just return the given string
-        assert_eq!(objects.len(), 0);
-        objects.push(ObjectName::String(string));
+    // Append until the end
+    let last = &string[previous_end..];
+    if !last.trim().is_empty() {
+        objects.push(ComponentChild::String(last.to_string()));
     }
 
     objects
+}
+
+fn regex_at<'a>(regex: &Regex, string: &'a str, at: usize) -> Result<regex::Match<'a>, String> {
+    regex.find_at(string, at)
+        .and_then(|m| {
+            if m.start() == at {Some(m)} else {None}
+        })
+        .ok_or(format!("regex {:?} not found at index {} of {}", regex, at, string))
+}
+
+fn macro_comp_ref(
+    string: &str,
+    start: usize,
+    macro_parent: &ComponentName,
+    components: &HashMap<ComponentName, ComponentNode>,
+    macro_copy_counter: &mut HashMap<ComponentName, usize>,
+    components_to_add: &mut Vec<ComponentNode>,
+) -> Result<(ComponentName, usize), String> {
+
+    let comp_match = regex_at(&COMPONENT, string, start)?;
+
+    let source_name = comp_match.as_str().to_string();
+    let source_node = components.get(&source_name).expect(
+        &format!("Macro for {}, but this component does not exist", source_name));
+
+    let character_is_byte = |c: usize, b: u8| string.as_bytes().get(c) == Some(&b);
+
+    // Handle possible component index: brackets after the component name
+    let (source_comp_ref, comp_end);
+    if character_is_byte(comp_match.end(), b'[') {
+        let index_match = regex_at(&INDEX, string, comp_match.end() + 1)?;
+        let index_str = index_match.as_str();
+        if index_str == "$" {
+            // dynamic component index
+            panic!("dynamic component index not implemented");
+        } else {
+            // static component index
+            let index: usize = index_str.parse().unwrap();
+            comp_end = comp_match.end();
+            source_comp_ref = ComponentRef::GroupMember(source_name.clone(), index);
+        }
+        if !character_is_byte(comp_end - 1, b']') {
+            return Err("missing closing bracket".to_string())
+        }
+    } else {
+        // no component index
+        comp_end = comp_match.end();
+        source_comp_ref = ComponentRef::Basic(source_name.clone());
+    };
+
+    let (source_def, source_component_type) = component_ref_definition(components, &source_comp_ref);
+
+    let macro_copy: ComponentNode;
+    let macro_end;
+    if character_is_byte(comp_end, b'.') {
+        let prop_match = regex_at(&PROP, string, comp_end + 1)?;
+
+        let (prop_name, _) = source_node
+            .definition
+            .state_var_definitions
+            .get_key_value(prop_match.as_str())
+            .expect(&format!("Macro asks for non-existent property {}", prop_match.as_str()));
+
+        let copy_source: CopySource;
+        // Handle possible prop index: brackets after the prop name
+        if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
+            let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
+            let index_str = index_match.as_str();
+            if index_str == "$" {
+                // dynamic index
+                let (index_name, index_macro_end) = macro_comp_ref(string,
+                    prop_match.end() + 1,
+                    &source_name,
+                    components,
+                    macro_copy_counter,
+                    components_to_add,
+                )?;
+
+                macro_end = index_macro_end + 1;
+                copy_source = CopySource::DynamicElement(
+                    source_name.clone(),
+                    prop_name,
+                    MathExpression::new(&vec![ObjectName::Component(index_name.clone())]),
+                    vec![index_name],
+                );
+            } else {
+                // static index
+                let index: usize = index_str.parse().unwrap();
+                macro_end = index_match.end() + 1;
+                copy_source = CopySource::StateVar(
+                    source_comp_ref,
+                    StateRef::ArrayElement(prop_name, index),
+                );
+            }
+            if !character_is_byte(macro_end - 1, b']') {
+                return Err("missing closing bracket".to_string())
+            }
+        } else {
+            // no index
+            macro_end = prop_match.end();
+            copy_source = CopySource::StateVar(
+                source_comp_ref,
+                StateRef::Basic(prop_name),
+            );
+        }
+
+        let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
+
+        let prop_ref = match &copy_source {
+            CopySource::StateVar(_, sv) => sv.clone(),
+            CopySource::DynamicElement(_, sv_name, _, _) => StateRef::ArrayElement(sv_name, 0),
+            _ => unreachable!(),
+        };
+        let copy_comp_type = default_component_type_for_state_var(source_def, prop_ref)
+            .expect(&format!("could not create component for state var copy macro"));
+
+        let copy_def = COMPONENT_DEFINITIONS.get(copy_comp_type).unwrap().clone();
+
+        let copy_name = name_macro_component(
+            &source_comp_sv_name,
+            macro_parent,
+            macro_copy_counter,
+        );
+
+        macro_copy = ComponentNode {
+            name: copy_name,
+            parent: Some(macro_parent.clone()),
+            children: vec![],
+
+            copy_source: Some(copy_source),
+            component_type: copy_comp_type,
+            static_attributes: HashMap::new(),
+            definition: copy_def,
+        }
+
+    } else {
+
+        let copy_name = name_macro_component(
+            &source_name,
+            macro_parent,
+            macro_copy_counter,
+        );
+
+        let static_attributes = match source_comp_ref {
+            ComponentRef::Basic(_) => source_node.static_attributes.clone(),
+            ComponentRef::GroupMember(_, _) => HashMap::new(),
+        };
+
+        macro_end = comp_end;
+        macro_copy = ComponentNode {
+            name: copy_name,
+            parent: Some(macro_parent.clone()),
+            children: vec![],
+
+            copy_source: Some(CopySource::Component(
+                source_comp_ref,
+            )),
+            static_attributes,
+
+            component_type: source_component_type,
+            definition: source_def,
+        }
+    };
+    let macro_name = macro_copy.name.clone();
+    components_to_add.push(macro_copy);
+
+    Ok((macro_name, macro_end))
 }
 
 fn parse_attributes_and_macros(
@@ -928,7 +958,7 @@ fn parse_attributes_and_macros(
     for (child_id, string_val, component) in all_string_children {
 
         let objects = apply_macro_to_string(
-            string_val.clone(),
+            string_val,
             &component.name,
             components,
             &mut macro_copy_counter,
@@ -955,7 +985,7 @@ fn parse_attributes_and_macros(
                 (index + 1,
 
                     apply_macro_to_string(
-                        string_element.trim().to_string(),
+                        string_element.trim(),
                         &component.name,
                         components,
                         &mut macro_copy_counter,
@@ -974,7 +1004,7 @@ fn parse_attributes_and_macros(
     for (target_name, (source_comp_name, source_sv_name, source_index_str)) in copy_prop_index_instances {
         
         let index_objects = apply_macro_to_string(
-            source_index_str,
+            &source_index_str,
             &target_name,
             components,
             &mut macro_copy_counter,
@@ -1002,11 +1032,18 @@ fn parse_attributes_and_macros(
         
         let component = components.get_mut(&component_name).unwrap();
 
-        for (original_child_id, new_children) in new_children_hashmap {
+        let mut new_children_vec: Vec<(usize, Vec<ObjectName>)> = new_children_hashmap
+            .into_iter()
+            .collect();
+
+        // sort by decending order so that splicing does not affect next iteration
+        new_children_vec.sort_by(|(a,_),(b,_)| b.cmp(a));
+
+        for (original_child_id, new_children) in new_children_vec.into_iter() {
 
             // Remove the original element, and add the new children (in order) in its place
             component.children.splice(
-                original_child_id..original_child_id + 1,
+                original_child_id..=original_child_id,
                 new_children
             );
         }
@@ -1018,28 +1055,24 @@ fn parse_attributes_and_macros(
 }
 
 
-fn default_component_type_for_state_var(component: &ComponentNode, state_var: StateVarName)
+fn default_component_type_for_state_var(component: &ComponentDefinition, state_var: StateRef)
     -> Result<ComponentType, String> {
 
-    let state_var_def = component.definition.state_var_definitions.get(state_var).unwrap();
-    match state_var_def {
-        StateVarVariant::Boolean(_) => Ok("boolean"),
-        StateVarVariant::Integer(_) => Ok("number"),
-        StateVarVariant::Number(_) => Ok("number"),
-        StateVarVariant::String(_) => Ok("text"),
-        StateVarVariant::NumberArray(_) => Err(
-            format!("no component for NumberArray state variable")
-        ),
-        StateVarVariant::StringArray(_) => Err(
-            format!("no component for StringArray state variable")
-        ),
+    let state_var_def = component.state_var_definitions.get(&state_var.name()).unwrap();
+    match (state_var_def, state_var.index()) {
+        (StateVarVariant::Boolean(_), StateIndex::Basic) => Ok("boolean"),
+        (StateVarVariant::Integer(_), StateIndex::Basic) => Ok("number"),
+        (StateVarVariant::NumberArray(_), StateIndex::Element(_)) |
+        (StateVarVariant::Number(_), StateIndex::Basic) => Ok("number"),
+        (StateVarVariant::StringArray(_), StateIndex::Element(_)) |
+        (StateVarVariant::String(_), StateIndex::Basic) => Ok("text"),
+        (v, i) => Err(format!("variant {:?} and index {:?} cannot make a component", v, i)),
     }
 }
 
 
 fn create_all_dependencies_for_component(
     components: &HashMap<ComponentName, ComponentNode>,
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     component: &ComponentNode,
     component_attributes: &HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>,
     // copy_index_flag: Option<&(ComponentName, StateVarName, Vec<ObjectName>)>,
@@ -1081,7 +1114,6 @@ fn create_all_dependencies_for_component(
             for (instruct_name, ref dep_instruction) in size_dep_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components,
-                    static_attributes,
                     component,
                     component_attributes,
                     &StateVarSlice::Single(StateRef::SizeOf(state_var_name)),
@@ -1108,7 +1140,6 @@ fn create_all_dependencies_for_component(
                 let instruct_dependencies =
                     create_dependencies_from_instruction(
                         &components,
-                        static_attributes,
                         component,
                         component_attributes,
                         &StateVarSlice::Array(state_var_name),
@@ -1154,7 +1185,6 @@ fn create_all_dependencies_for_component(
                     let instruct_dependencies =
                         create_dependencies_from_instruction(
                             &components,
-                            static_attributes,
                             component,
                             component_attributes,
                             &StateVarSlice::Single(StateRef::ArrayElement(state_var_name, index)),
@@ -1182,7 +1212,6 @@ fn create_all_dependencies_for_component(
             for (instruct_name, ref dep_instruction) in dependency_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
                     &components,
-                    static_attributes,
                     component,
                     component_attributes,
                     &StateVarSlice::Single(StateRef::Basic(state_var_name)),
@@ -1213,7 +1242,6 @@ fn create_all_dependencies_for_component(
 /// The second return is element specific dependencies.
 fn create_dependencies_from_instruction(
     components: &HashMap<ComponentName, ComponentNode>,
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     component: &ComponentNode,
     component_attributes: &HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>,
     state_var_slice: &StateVarSlice,
@@ -1300,7 +1328,6 @@ fn create_dependencies_from_instruction(
                         };
                         let (child_def, _) = group_member_definition(
                             components,
-                            static_attributes,
                             &component_group
                         );
             
@@ -2155,7 +2182,6 @@ fn get_source_for_dependency(
         Dependency::StateVar { component_group, state_var_slice } => {
             let (_, component_type) = group_member_definition(
                 &core.component_nodes,
-                &core.static_attributes,
                 component_group,
             );
 
@@ -2873,7 +2899,6 @@ fn generate_render_tree_internal(
 
     let (component_definition, component_type) = component_ref_definition(
         &core.component_nodes,
-        &core.static_attributes,
         &component
     );
 
@@ -2962,7 +2987,7 @@ fn generate_render_tree_internal(
 
                     generate_render_tree_internal(core, &comp_ref, json_obj, child_came_from_copy); 
 
-                    let (child_definition, child_type) = component_ref_definition(&core.component_nodes, &core.static_attributes, &comp_ref);
+                    let (child_definition, child_type) = component_ref_definition(&core.component_nodes, &comp_ref);
 
                     let mut child_actions = serde_json::Map::new();
 
@@ -3010,17 +3035,16 @@ fn generate_render_tree_internal(
 /// Returns component definition and component type.
 fn group_member_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     component_group: &ComponentGroup,
 ) -> (&'static ComponentDefinition, ComponentType) {
 
     match component_group {
         ComponentGroup::Group(group_name) => {
             let component_ref = &ComponentRef::GroupMember(group_name.clone(), 0);
-            component_ref_definition(component_nodes, static_attributes, component_ref)
+            component_ref_definition(component_nodes, component_ref)
         },
         ComponentGroup::Single(component_ref) => {
-            component_ref_definition(component_nodes, static_attributes, component_ref)
+            component_ref_definition(component_nodes, component_ref)
         }
     }
 }
@@ -3029,7 +3053,6 @@ fn group_member_definition(
 /// Returns component definition and component type.
 fn component_ref_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     component_ref: &ComponentRef,
 ) -> (&'static ComponentDefinition, ComponentType) {
 
@@ -3040,7 +3063,7 @@ fn component_ref_definition(
                 component_nodes.get(n).unwrap()
                 .definition.group.unwrap();
 
-            (group_def.component_type)(static_attributes.get(&name).unwrap())
+            (group_def.component_type)(&component_nodes.get(&name).unwrap().static_attributes)
         },
         _ => component_nodes.get(&name).expect(
                 &format!("no component named {}", name)

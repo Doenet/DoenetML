@@ -70,8 +70,8 @@ pub struct ComponentNode {
     pub children: Vec<ComponentChild>,
     pub component_type: ComponentType,
 
-    // Flags
     pub copy_source: Option<CopySource>,
+    pub static_attributes: HashMap<AttributeName, String>,
 
     pub definition: &'static ComponentDefinition,
 }
@@ -128,6 +128,8 @@ pub struct ComponentDefinition {
 
     pub attribute_names: Vec<AttributeName>,
 
+    pub static_attribute_names: Vec<AttributeName>,
+
     /// Process an action and return the state variables to change.
     /// The update requests will be processed in the order returned.
     pub on_action: for<'a> fn(
@@ -155,11 +157,8 @@ pub struct ComponentDefinition {
 
 pub struct GroupComponent {
 
-    pub group_dependency_attributes: fn() -> Vec<AttributeName>,
-
     pub group_dependencies: fn(
-        static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
-        component: &ComponentNode,
+        node: &ComponentNode,
         component_nodes: &HashMap<ComponentName, ComponentNode>,
     ) -> Vec<GroupDependency>,
 
@@ -191,8 +190,7 @@ pub struct GroupComponent {
 impl Default for GroupComponent {
     fn default() -> Self {
         GroupComponent {
-            group_dependency_attributes: || vec![],
-            group_dependencies: |_,_,_| vec![],
+            group_dependencies: |_,_| vec![],
             component_type: |_| "number",
             all_members: None,
             member_state_var: None
@@ -263,21 +261,14 @@ impl Default for ComponentDefinition {
     fn default() -> Self {
         ComponentDefinition {
             state_var_definitions: &EMPTY_STATE_VARS,
-
             attribute_names: Vec::new(),
-
+            static_attribute_names: Vec::new(),
             should_render_children: false,
-
             renderer_type: RendererType::Myself,
-
             primary_input_state_var: None,
-
             component_profiles: vec![],
-
             action_names: || Vec::new(),
-
             on_action: |_, _, _| vec![],
-
             group: None,
         }
     }

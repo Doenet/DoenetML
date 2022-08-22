@@ -22,13 +22,14 @@ struct ComponentTree {
     children: Vec<ComponentOrString>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct Props {
     name: Option<String>,
     copy_source: Option<String>, //this will become copy_source
     prop: Option<String>,
     prop_index: Option<String>,
+    component_index: Option<String>,
     #[serde(flatten)]
     attributes: HashMap<String, AttributeValue>,
 }
@@ -255,7 +256,7 @@ pub fn create_components_tree_from_json(program: &str)
     
     let tree_wrapped_in_document = |orig_comp_tree | ComponentTree {
         component_type: String::from("document"),
-        props: Props { name: None, copy_source: None, prop: None, prop_index: None, attributes: HashMap::new() },
+        props: Props::default(),
         children: orig_comp_tree,
     };
 
@@ -326,6 +327,11 @@ fn add_component_from_json(
 
     let copy_source: Option<CopySource> = {
         if let Some(ref source_comp_name) = component_tree.props.copy_source {
+            let comp_ref = match &component_tree.props.component_index {
+                Some(i) => ComponentRef::GroupMember(source_comp_name.clone(), i.parse().unwrap()),
+                None => ComponentRef::Basic(source_comp_name.clone()),
+            };
+
             if let Some(ref source_state_var) = component_tree.props.prop {
 
                 let source_sv_name =  all_state_var_names.get(source_state_var)
@@ -348,12 +354,12 @@ fn add_component_from_json(
                     // Some(CopySource::StateVar(source_name.clone(), StateRef::ArrayElement(state_var_name, index)))
 
                 } else {
-                    Some(CopySource::StateVar(ComponentRef::Basic(source_comp_name.clone()), StateRef::Basic(source_sv_name)))
+                    Some(CopySource::StateVar(comp_ref, StateRef::Basic(source_sv_name)))
 
                 }
 
             } else {
-                Some(CopySource::Component(ComponentRef::Basic(source_comp_name.clone())))
+                Some(CopySource::Component(comp_ref))
             }
         } else {
             None
@@ -366,6 +372,12 @@ fn add_component_from_json(
         .map(|n| (n.to_lowercase(), *n))
         .collect();
 
+    let mut static_attributes = HashMap::new();
+    let lower_case_static_attributes: HashMap<String, AttributeName> = component_definition.static_attribute_names
+        .iter()
+        .map(|n| (n.to_lowercase(), *n))
+        .collect();
+
     for (attr_name, attr_value) in component_tree.props.attributes.iter() {
         
         if let Some(&attribute_name) = lower_case_attributes.get(&attr_name.to_lowercase()) {
@@ -374,6 +386,12 @@ fn add_component_from_json(
                 AttributeValue::Bool(v) => v.to_string(),
             };
             attributes.insert(attribute_name, attribute_string);
+        } else if let Some(&attribute_name) = lower_case_static_attributes.get(&attr_name.to_lowercase()) {
+            let attribute_string = match attr_value {
+                AttributeValue::String(v) => v.clone(),
+                AttributeValue::Bool(v) => v.to_string(),
+            };
+            static_attributes.insert(attribute_name, attribute_string);
         } else {
             return Err(DoenetMLError::AttributeDoesNotExist {
                 comp_name: component_name.clone(),
@@ -422,6 +440,7 @@ fn add_component_from_json(
         component_type,
 
         copy_source,
+        static_attributes,
 
         definition: component_definition.clone(),
     };

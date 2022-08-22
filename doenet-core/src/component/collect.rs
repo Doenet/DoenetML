@@ -30,28 +30,22 @@ fn component_type(
     to_component_type(component_type).unwrap()
 }
 
-fn group_dependency_attributes() -> Vec<AttributeName> {
-    vec!["source", "componentType"]
-}
-
 fn group_dependencies(
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<GroupDependency> {
 
-    let my_attributes = static_attributes.get(&node.name).unwrap();
+    let my_attributes = &node.static_attributes;
     let source: &String = my_attributes.get("source").unwrap();
     let desired_type: String = my_attributes.get("componentType").unwrap().clone();
     let source_node = component_nodes.get(source).unwrap();
-    depend_on_children_of_type(source_node, desired_type, component_nodes, static_attributes)
+    depend_on_children_of_type(source_node, desired_type, component_nodes)
 }
 
 fn depend_on_children_of_type(
     node: &ComponentNode,
     component_type: String,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-    static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
 ) -> Vec<GroupDependency> {
 
     node
@@ -62,7 +56,7 @@ fn depend_on_children_of_type(
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
                 let child_type = match comp.definition.group {
-                    Some(def) => (def.component_type)(static_attributes.get(c).unwrap()),
+                    Some(def) => (def.component_type)(&node.static_attributes),
                     None => comp.component_type,
                 };
                 if child_type == component_type {
@@ -82,7 +76,6 @@ fn depend_on_children_of_type(
 
 lazy_static! {
     pub static ref MY_GROUP_DEFINITION: GroupComponent = GroupComponent {
-        group_dependency_attributes,
         component_type,
         group_dependencies,
         ..Default::default()
@@ -97,8 +90,9 @@ lazy_static! {
         attribute_names: vec![
             "hidden",
             "disabled",
+        ],
 
-            // static attributes
+        static_attribute_names: vec![
             "source",
             "componentType",
         ],

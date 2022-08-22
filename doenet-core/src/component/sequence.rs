@@ -130,7 +130,6 @@ fn component_type(_: &HashMap<AttributeName, String>,) -> ComponentType {
 }
 
 fn group_dependencies(
-    _static_attributes: &HashMap<ComponentName, HashMap<AttributeName, String>>,
     node: &ComponentNode,
     _component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<GroupDependency> {
