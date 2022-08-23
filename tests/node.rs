@@ -542,11 +542,36 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
 
 }
 
+// ========= Macros ===========
 
-// Make sure that the $n variable name is not var0
-// <number name='n'>3.1</number>
-// <math name='m'>var + $n</math>
+// This test takes a long time to run
+#[wasm_bindgen_test]
+fn macro_prop_index_inside_prop_index_with_whitespace() {
+    static DATA: &str = r#"
+    <sequence hide name='s1' from='11' to='30' />
+    <sequence hide name='s2' from='51' to='100' />
+    <sequence hide name='s3' from='101' to='500' />
+    
+    <text>$s1.value[1]</text>
+    <text>$s2.value[$s1.value[3]]</text>
+    <text>$s2.value[   $s1.value[3]    ]</text>
+    <text>$s2.value[$s1.value[3]    ]</text>
+    <text>$s2.value[ $s1.value[3]]</text>
+    <text>$s3.value[ $s2.value[$s1.value[5]] ]</text>
+    <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
 
+    assert_sv_is_string(&dc, "/_text1", "value", "11");
+    assert_sv_is_string(&dc, "/_text2", "value", "63");
+    assert_sv_is_string(&dc, "/_text3", "value", "63");
+    assert_sv_is_string(&dc, "/_text4", "value", "63");
+    assert_sv_is_string(&dc, "/_text5", "value", "63");
+    assert_sv_is_string(&dc, "/_text6", "value", "165");
+    assert_sv_is_number(&dc, "/_number1", "value", 172.0);
+}
 
 
 // ========= Reloading essential data ============
@@ -586,3 +611,9 @@ fn reload_essential_data_after_point_moves() {
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
 }
+
+
+
+// Make sure that the $n variable name is not var0
+// <number name='n'>3.1</number>
+// <math name='m'>var + $n</math>

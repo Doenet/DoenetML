@@ -784,7 +784,7 @@ fn macro_comp_ref(
         source_comp_ref = ComponentRef::Basic(source_name.clone());
     };
 
-    log_debug!("Getting component definition for {}", source_comp_ref);
+    // log_debug!("Getting component definition for {}", source_comp_ref);
 
     if let ComponentRef::GroupMember(_, _) = source_comp_ref {
         if components.get(&source_comp_ref.name()).unwrap().definition.group.is_none() {
@@ -818,7 +818,8 @@ fn macro_comp_ref(
             // Handle possible prop index: brackets after the prop name
             if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
                 let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
-                let index_str = index_match.as_str();
+                let index_str = index_match.as_str().trim();
+                // log_debug!("index_str is {}", index_str);
                 let index_end: usize;
                 if index_str == "$" {
                     // dynamic index
@@ -839,7 +840,7 @@ fn macro_comp_ref(
                     );
                 } else {
                     // static index
-                    let index: usize = index_str.trim().parse().unwrap();
+                    let index: usize = index_str.parse().unwrap();
                     index_end = index_match.end();
                     copy_source = CopySource::StateVar(
                         source_comp_ref,
