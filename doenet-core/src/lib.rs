@@ -747,55 +747,66 @@ fn macro_comp_ref(
     let macro_end;
     if char_at(comp_end) == Some('.') {
         let prop_match = regex_at(&PROP, string, comp_end + 1)?;
-
-        let (prop_name, _) = source_node
-            .definition
-            .state_var_definitions
-            .get_key_value(prop_match.as_str())
-            .expect(&format!("Macro asks for non-existent property {}", prop_match.as_str()));
+        let prop_name = prop_match.as_str();
 
         let copy_source: CopySource;
-        // Handle possible prop index: brackets after the prop name
-        if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
-            let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
-            let index_str = index_match.as_str();
-            if index_str == "$" {
-                // dynamic index
-                let (index_name, index_macro_end) = macro_comp_ref(string,
-                    index_match.end(),
-                    &source_name,
-                    components,
-                    macro_copy_counter,
-                    components_to_add,
-                )?;
-
-                macro_end = index_macro_end + 1;
-                copy_source = CopySource::DynamicElement(
-                    source_name.clone(),
-                    prop_name,
-                    MathExpression::new(&vec![ObjectName::Component(index_name.clone())]),
-                    vec![index_name],
-                );
-            } else {
-                // static index
-                let index: usize = index_str.parse().unwrap();
-                macro_end = index_match.end() + 1;
-                copy_source = CopySource::StateVar(
-                    source_comp_ref,
-                    StateRef::ArrayElement(prop_name, index),
-                );
-            }
-            if char_at(macro_end - 1) != Some(']') {
-                return Err(format!("expected ']' but found {:?} at {} of {}",
-                        char_at(macro_end - 1), macro_end - 1, string))
-            }
-        } else {
-            // no index
+        if let Some(state_ref) = source_def.array_aliases.get(prop_name) {
+            // static index from alias
             macro_end = prop_match.end();
             copy_source = CopySource::StateVar(
                 source_comp_ref,
-                StateRef::Basic(prop_name),
+                state_ref.clone(),
             );
+        } else {
+
+            let (prop_name, _) = source_node
+                .definition
+                .state_var_definitions
+                .get_key_value(prop_name)
+                .expect(&format!("Macro asks for non-existent property {}", prop_name));
+
+            // Handle possible prop index: brackets after the prop name
+            if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
+                let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
+                let index_str = index_match.as_str();
+                if index_str == "$" {
+                    // dynamic index
+                    let (index_name, index_macro_end) = macro_comp_ref(string,
+                        index_match.end(),
+                        &source_name,
+                        components,
+                        macro_copy_counter,
+                        components_to_add,
+                    )?;
+
+                    macro_end = index_macro_end + 1;
+                    copy_source = CopySource::DynamicElement(
+                        source_name.clone(),
+                        prop_name,
+                        MathExpression::new(&vec![ObjectName::Component(index_name.clone())]),
+                        vec![index_name],
+                    );
+                } else {
+                    // static index
+                    let index: usize = index_str.parse().unwrap();
+                    macro_end = index_match.end() + 1;
+                    copy_source = CopySource::StateVar(
+                        source_comp_ref,
+                        StateRef::ArrayElement(prop_name, index),
+                    );
+                }
+                if char_at(macro_end - 1) != Some(']') {
+                    return Err(format!("expected ']' but found {:?} at {} of {}",
+                            char_at(macro_end - 1), macro_end - 1, string))
+                }
+            } else {
+                // no index
+                macro_end = prop_match.end();
+                copy_source = CopySource::StateVar(
+                    source_comp_ref,
+                    StateRef::Basic(prop_name),
+                );
+            }
         }
 
         let source_comp_sv_name = format!("{}:{}", source_name, prop_name);

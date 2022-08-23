@@ -133,6 +133,8 @@ pub struct ComponentDefinition {
 
     pub static_attribute_names: Vec<AttributeName>,
 
+    pub array_aliases: HashMap<&'static str, StateRef>,
+
     /// Process an action and return the state variables to change.
     /// The update requests will be processed in the order returned.
     pub on_action: for<'a> fn(
@@ -266,6 +268,7 @@ impl Default for ComponentDefinition {
             state_var_definitions: &EMPTY_STATE_VARS,
             attribute_names: Vec::new(),
             static_attribute_names: Vec::new(),
+            array_aliases: HashMap::new(),
             should_render_children: false,
             renderer_type: RendererType::Myself,
             primary_input_state_var: None,

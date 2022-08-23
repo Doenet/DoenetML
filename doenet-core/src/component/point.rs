@@ -160,6 +160,13 @@ lazy_static! {
             "disabled",
         ],
 
+        array_aliases: HashMap::from([
+            ("x", StateRef::ArrayElement("xs", 1)),
+            ("y", StateRef::ArrayElement("xs", 2)),
+            ("z", StateRef::ArrayElement("xs", 3)),
+            ("w", StateRef::ArrayElement("xs", 4)),
+        ]),
+
         action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
 
         on_action: |action_name, args, _| {
