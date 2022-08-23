@@ -762,7 +762,7 @@ fn macro_comp_ref(
             if index_str == "$" {
                 // dynamic index
                 let (index_name, index_macro_end) = macro_comp_ref(string,
-                    prop_match.end() + 1,
+                    index_match.end(),
                     &source_name,
                     components,
                     macro_copy_counter,

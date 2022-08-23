@@ -339,6 +339,52 @@ fn point_moves_copy_number() {
 // =========== <number> ============
 
 #[wasm_bindgen_test]
+fn number_can_do_arithmetic_on_strings_and_number_children() {
+    static DATA: &str = r#"
+    <p>
+    <number>3 + 2 - 4 * 5</number>
+    <number copySource='/_number1'/>
+    <number copySource='/_number2'/>
+    <number copySource='/_number3'/>
+    </p>
+    
+    <!-- Arithmetic in nested number -->
+    <p>
+    <number name='nested1'><number copySource='/_number1' copyProp='value'/></number>
+    <number name='nested2'>$nested1.value - 6</number>
+    <number name='nested3'>1.5 * $nested2.value</number>
+    <number name='nested4'>$nested3.value + $nested2.value + 1</number>
+    </p>
+    
+    <!-- Arithmetic in nested numbers combined with copyProp value -->
+    <p>
+    <number name='combined1'>$nested1 + 3 * <number copySource='nested1' copyProp='value'/> + 1</number>
+    <number name='combined2'>$combined1 + 1</number>
+    <number name='combined3'>$combined2 / $combined2</number>
+    </p>
+    
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_from(DATA).unwrap();
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", -15.0);
+    assert_sv_is_number(&dc, "/_number2", "value", -15.0);
+    assert_sv_is_number(&dc, "/_number3", "value", -15.0);
+    assert_sv_is_number(&dc, "/_number4", "value", -15.0);
+
+    assert_sv_is_number(&dc, "nested1", "value", -15.0);
+    assert_sv_is_number(&dc, "nested2", "value", -21.0);
+    assert_sv_is_number(&dc, "nested3", "value", -31.5);
+    assert_sv_is_number(&dc, "nested4", "value", -51.5);
+
+    assert_sv_is_number(&dc, "combined1", "value", -59.0);
+    assert_sv_is_number(&dc, "combined2", "value", -58.0);
+    assert_sv_is_number(&dc, "combined3", "value", 1.0);
+}
+
+#[wasm_bindgen_test]
 fn number_invalid_prop_index_does_not_crash() {
     static DATA: &str = r#"
     <sequence name='s' from='3' to='5' />   
