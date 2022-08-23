@@ -19,7 +19,7 @@ lazy_static! {
         state_var_definitions.insert("value", StateVarVariant::String(StateVarDefinition {
             return_dependency_instructions: |_|
                 HashMap::from([
-                    ("essential", DependencyInstruction::Essential),
+                    ("essential", DependencyInstruction::Essential { prefill: None }),
                     ("immediate", DependencyInstruction::StateVar {
                         component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("immediateValue")),
@@ -75,7 +75,10 @@ lazy_static! {
 
         state_var_definitions.insert("immediateValue", StateVarVariant::String(StateVarDefinition {
             for_renderer: true,
-            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            return_dependency_instructions: |_|
+                HashMap::from([
+                    ("essential", DependencyInstruction::Essential { prefill: Some("prefill") }),
+                ]),
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
             ..Default::default()
@@ -85,6 +88,7 @@ lazy_static! {
             return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
             determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
             request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: true,
             ..Default::default()
         }));
 
@@ -130,6 +134,7 @@ lazy_static! {
         attribute_names: vec![
             "hide",
             "disabled",
+            "prefill",
         ],
 
         action_names: || vec!["updateImmediateValue", "updateValue"],

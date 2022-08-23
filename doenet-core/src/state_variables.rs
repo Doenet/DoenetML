@@ -278,7 +278,10 @@ pub enum DependencyInstruction {
         attribute_name: AttributeName,
         index: StateIndex,
     },
-    Essential,
+    Essential {
+        /// Use the string of this attribute
+        prefill: Option<AttributeName>,
+    },
 
 
     // StateVarArrayDynamicElement {

@@ -284,7 +284,7 @@ pub fn USE_ESSENTIAL_DEPENDENCY_INSTRUCTION(
     _: HashMap<StateVarName, StateVarValue>
 ) -> HashMap<InstructionName, DependencyInstruction> {
     HashMap::from([
-        ("essential", DependencyInstruction::Essential)
+        ("essential", DependencyInstruction::Essential { prefill: None })
     ])
 }
 

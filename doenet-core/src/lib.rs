@@ -1261,7 +1261,7 @@ fn create_dependencies_from_instruction(
 
     match &instruction {
 
-        DependencyInstruction::Essential => {
+        DependencyInstruction::Essential { prefill } => {
 
             let source_comp_name = get_essential_data_component_including_copy(components, component);
             let essential_origin = EssentialDataOrigin::StateVar(state_var_slice.name());
@@ -1271,10 +1271,25 @@ fn create_dependencies_from_instruction(
 
                 let sv_def = component.definition.state_var_definitions.get(state_var_slice.name()).unwrap();
 
+                let initial_data = match prefill {
+                    Some(string) => {
+                        let attribute = component_attributes
+                            .get(string)
+                            .map(|x| match x.get(&1).unwrap().first().unwrap() {
+                                ObjectName::String(attr_string) => attr_string.clone(),
+                                _ => String::new(),
+                            })
+                            .unwrap_or(String::new());
+
+                        StateVarValue::String(attribute)
+                    },
+                    None => sv_def.initial_essential_value(),
+                };
+
                 let initial_data = if sv_def.is_array() {
-                    InitialEssentialData::Array(Vec::new(), sv_def.initial_essential_value())
+                    InitialEssentialData::Array(Vec::new(), initial_data)
                 } else {
-                    InitialEssentialData::Single(sv_def.initial_essential_value())
+                    InitialEssentialData::Single(initial_data)
                 };
     
                 create_essential_data_for(
@@ -2919,6 +2934,11 @@ fn generate_render_tree_internal(
             }
         });
 
+    let state_var_aliases = match &component_definition.renderer_type {
+        RendererType::Special { state_var_aliases, .. } => state_var_aliases.clone(),
+        RendererType::Myself => HashMap::new(),
+    };
+
     let mut state_values = serde_json::Map::new();
     for state_var_slice in renderered_state_vars {
         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component, state_var_slice).unwrap();
@@ -2939,22 +2959,29 @@ fn generate_render_tree_internal(
                     );
                 }
 
-                state_values.insert(sv_slice.name().to_string(), json!(values));
+                let sv_renderer_name = state_var_aliases
+                    .get(&sv_slice.name())
+                    .map(|x| *x)
+                    .unwrap_or(sv_slice.name());
+                state_values.insert(sv_renderer_name.to_string(), json!(values));
             },
 
             StateVarSlice::Single(state_ref) => {
                 let state_var_value = resolve_state_variable(core, &sv_comp, &state_ref)
                     .expect(&format!("state var {}:{} cannot be resolved", &sv_comp, &state_ref));
 
-                let name = state_ref.name().clone();
-                if name == "selectedStyle" || name == "graphicalDescendants" {
+                let sv_renderer_name = state_var_aliases
+                    .get(&state_ref.name())
+                    .map(|x| *x)
+                    .unwrap_or(state_ref.name());
+                if sv_renderer_name == "selectedStyle" || sv_renderer_name == "graphicalDescendants" {
                     if let StateVarValue::String(v) = state_var_value {
                         // log_debug!("deserializing for renderer: {}", v);
                         let value = serde_json::from_str(&v).unwrap();
-                        state_values.insert(name.to_string(), value);
+                        state_values.insert(sv_renderer_name.to_string(), value);
                     }
                 } else {
-                    state_values.insert(name.to_string(), state_var_value.into());
+                    state_values.insert(sv_renderer_name.to_string(), state_var_value.into());
                 }
             },
         }
@@ -2988,8 +3015,6 @@ fn generate_render_tree_internal(
                                 Some(&component_name)
                             });
 
-                    generate_render_tree_internal(core, &comp_ref, json_obj, child_came_from_copy); 
-
                     let (child_definition, child_type) = component_ref_definition(&core.component_nodes, &comp_ref);
 
                     let mut child_actions = serde_json::Map::new();
@@ -3001,8 +3026,8 @@ fn generate_render_tree_internal(
                         }));
                     }
 
-                    let renderer_type = match child_definition.renderer_type {
-                        RendererType::Special(name) => name,
+                    let renderer_type = match &child_definition.renderer_type {
+                        RendererType::Special{ component_type, .. } => *component_type,
                         RendererType::Myself => child_type,
                     };
 
@@ -3018,6 +3043,8 @@ fn generate_render_tree_internal(
                         "effectiveName": comp.name,
                         "rendererType": renderer_type,
                     }));
+
+                    generate_render_tree_internal(core, &comp_ref, json_obj, child_came_from_copy); 
                 },
                 ObjectRefName::String(string) => {
                     children_instructions.push(json!(string));

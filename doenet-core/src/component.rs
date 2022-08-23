@@ -301,7 +301,10 @@ pub enum ObjectName {
 #[derive(Debug)]
 pub enum RendererType {
     Myself,
-    Special(&'static str),
+    Special {
+        component_type: &'static str,
+        state_var_aliases: HashMap<StateVarName, StateVarName>,
+    },
     // DoNotRender,
 }
 

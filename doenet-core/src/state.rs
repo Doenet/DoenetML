@@ -95,7 +95,7 @@ impl StateForStateVar {
 
     pub fn get_single_state(&self, sv_ref: &StateIndex) -> Result<Option<State<StateVarValue>>, String> {
 
-        log_debug!("Getting single state of {:?}, current value is {:?}", sv_ref, self);
+        // log_debug!("Getting single state of {:?}, current value is {:?}", sv_ref, self);
 
         match self {
             Self::Single(sv) => {
