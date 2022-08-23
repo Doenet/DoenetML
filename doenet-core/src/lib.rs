@@ -757,17 +757,19 @@ fn macro_comp_ref(
     components_to_add: &mut Vec<ComponentNode>,
 ) -> Result<(ComponentName, usize), String> {
 
+    // log_debug!("macro at {} of {}", start, string);
+
     let comp_match = regex_at(&COMPONENT, string, start)?;
 
     let source_name = comp_match.as_str().to_string();
     let source_node = components.get(&source_name).expect(
         &format!("Macro for {}, but this component does not exist", source_name));
 
-    let character_is_byte = |c: usize, b: u8| string.as_bytes().get(c) == Some(&b);
+    let char_at = |c: usize| string.as_bytes().get(c).map(|c| *c as char);
 
     // Handle possible component index: brackets after the component name
     let (source_comp_ref, comp_end);
-    if character_is_byte(comp_match.end(), b'[') {
+    if char_at(comp_match.end()) == Some('[') {
         let index_match = regex_at(&INDEX, string, comp_match.end() + 1)?;
         let index_str = index_match.as_str();
         if index_str == "$" {
@@ -776,11 +778,12 @@ fn macro_comp_ref(
         } else {
             // static component index
             let index: usize = index_str.parse().unwrap();
-            comp_end = comp_match.end();
+            comp_end = index_match.end() + 1;
             source_comp_ref = ComponentRef::GroupMember(source_name.clone(), index);
         }
-        if !character_is_byte(comp_end - 1, b']') {
-            return Err("missing closing bracket".to_string())
+        if char_at(comp_match.end()) != Some('[') {
+                return Err(format!("expected ']' but found {:?} at {} of {}",
+                        char_at(comp_end - 1), comp_end - 1, string))
         }
     } else {
         // no component index
@@ -792,7 +795,7 @@ fn macro_comp_ref(
 
     let macro_copy: ComponentNode;
     let macro_end;
-    if character_is_byte(comp_end, b'.') {
+    if char_at(comp_end) == Some('.') {
         let prop_match = regex_at(&PROP, string, comp_end + 1)?;
 
         let (prop_name, _) = source_node
@@ -832,8 +835,9 @@ fn macro_comp_ref(
                     StateRef::ArrayElement(prop_name, index),
                 );
             }
-            if !character_is_byte(macro_end - 1, b']') {
-                return Err("missing closing bracket".to_string())
+            if char_at(macro_end - 1) != Some(']') {
+                return Err(format!("expected ']' but found {:?} at {} of {}",
+                        char_at(macro_end - 1), macro_end - 1, string))
             }
         } else {
             // no index
