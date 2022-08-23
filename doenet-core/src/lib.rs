@@ -683,7 +683,7 @@ fn apply_macro_to_string(
 
     // Append until the end
     let last = &string[previous_end..];
-    if !last.trim().is_empty() {
+    if !last.is_empty() {
         objects.push(ComponentChild::String(last.to_string()));
     }
 
@@ -707,7 +707,7 @@ fn macro_comp_ref(
     components_to_add: &mut Vec<ComponentNode>,
 ) -> Result<(ComponentName, usize), String> {
 
-    // log_debug!("macro at {} of {}", start, string);
+    log_debug!("macro at {} of {}", start, string);
 
     let comp_match = regex_at(&COMPONENT, string, start)?;
 

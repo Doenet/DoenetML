@@ -150,8 +150,8 @@ fn text_input_update_immediate_value_and_update_value() {
         <textInput copySource='/_textInput1' />
         <textInput copySource='/_textInput2' />
 
-        <text copySource='/_textInput3' prop='immediateValue' />
-        <text copySource='/_textInput3' prop='value' />
+        <text copySource='/_textInput3' copyProp='immediateValue' />
+        <text copySource='/_textInput3' copyProp='value' />
     "#;
     display_doenet_ml_on_failure!(DATA);
 
@@ -214,7 +214,7 @@ fn text_input_update_immediate_value_and_update_value() {
 //     <graph name="g">
 //         <point name='myPoint' xs='$the_number_input.value 3-2' />
 //     </graph>
-//     <number name='myNum' copySource='the_number_input' prop='immediateValue' />
+//     <number name='myNum' copySource='the_number_input' copyProp='immediateValue' />
 //     "#;
 //     display_doenet_ml_on_failure!(DATA);
 
@@ -287,8 +287,8 @@ fn sequence_from_and_to_can_be_copied_as_props() {
 
         <sequence name='s' from="$f" to="$t" />
 
-        <number copySource='s' prop='from' />
-        <number copySource='s' prop='to' />
+        <number copySource='s' copyProp='from' />
+        <number copySource='s' copyProp='to' />
         <number>$s.from</number>
         <number>$s.to</number>
     "#;
@@ -343,13 +343,13 @@ fn number_invalid_prop_index_does_not_crash() {
     static DATA: &str = r#"
     <sequence name='s' from='3' to='5' />   
 
-    <p><number name='num1' copySource='s' prop='value' propIndex = '100' /></p>
-    <p><number name='num2' copySource='s' prop='value' propIndex = '-23' /></p>
-    <p><number name='num3' copySource='s' prop='value' propIndex = 'asdf' /></p>
-    <p><number name='num4' copySource='s' prop='value' propIndex = '2.3' /></p>
+    <p><number name='num1' copySource='s' copyProp='value' propIndex = '100' /></p>
+    <p><number name='num2' copySource='s' copyProp='value' propIndex = '-23' /></p>
+    <p><number name='num3' copySource='s' copyProp='value' propIndex = 'asdf' /></p>
+    <p><number name='num4' copySource='s' copyProp='value' propIndex = '2.3' /></p>
 
     <!-- This one should be valid -->
-    <p><number name='num5' copySource='s' prop='value' propIndex = '3.000' /></p>
+    <p><number name='num5' copySource='s' copyProp='value' propIndex = '3.000' /></p>
     "#;
     display_doenet_ml_on_failure!(DATA);
 
@@ -377,13 +377,13 @@ fn number_invalid_dynamic_prop_index_does_not_crash() {
     <number name='n4'>2.3</number>
     <number name='n5'>3.0000</number>
 
-    <number name='num1' copySource='s' prop='value' propIndex = '$n1' />
-    <number name='num2' copySource='s' prop='value' propIndex = '$n2' />
-    <number name='num3' copySource='s' prop='value' propIndex = '$n3' />
-    <number name='num4' copySource='s' prop='value' propIndex = '$n4' />
+    <number name='num1' copySource='s' copyProp='value' propIndex = '$n1' />
+    <number name='num2' copySource='s' copyProp='value' propIndex = '$n2' />
+    <number name='num3' copySource='s' copyProp='value' propIndex = '$n3' />
+    <number name='num4' copySource='s' copyProp='value' propIndex = '$n4' />
 
     <!-- This one should be valid -->
-    <number name='num5' copySource='s' prop='value' propIndex = '$n5' />
+    <number name='num5' copySource='s' copyProp='value' propIndex = '$n5' />
     "#;
     display_doenet_ml_on_failure!(DATA);
 
@@ -411,20 +411,23 @@ fn number_invalid_dynamic_prop_index_does_not_crash() {
 
 //     <number name='n2' copySource='n1' />
 //     <number name='n3' copySource='n2' />
-    
-//     <number>3</number>
-//     <number name='n4'>$/_number1 + 1</number>
 //     "#;
 //     display_doenet_ml_on_failure!(DATA);
 
 //     let dc = doenet_core_from(DATA).unwrap();
 //     doenet_core::update_renderers(&dc);
 
-//     assert_sv_is_number(&dc, "num1", "value", 0.0);
-//     assert_sv_is_number(&dc, "num2", "value", 0.0);
-//     assert_sv_is_number(&dc, "num3", "value", 0.0);
-//     assert_sv_is_number(&dc, "num4", "value", 0.0);
-//     assert_sv_is_number(&dc, "num5", "value", 5.0);
+//     assert_sv_is_number(&dc, "n1", "value", 0.0);
+//     assert_sv_is_number(&dc, "n2", "value", 0.0);
+//     assert_sv_is_number(&dc, "n3", "value", 0.0);
+
+//     let type_in_number_input = Action {
+//         component_name: "ni".to_string(),
+//         action_name: "updateImmediateValue".to_string(),
+//         args: HashMap::from([
+//             ("text".to_string(), StateVarValue::Integer(5)),
+//         ]),
+//     };
 // }
 
 

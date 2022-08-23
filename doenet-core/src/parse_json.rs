@@ -27,7 +27,7 @@ struct ComponentTree {
 struct Props {
     name: Option<String>,
     copy_source: Option<String>, //this will become copy_source
-    prop: Option<String>,
+    copy_prop: Option<String>,
     prop_index: Option<String>,
     component_index: Option<String>,
     #[serde(flatten)]
@@ -332,7 +332,7 @@ fn add_component_from_json(
                 None => ComponentRef::Basic(source_comp_name.clone()),
             };
 
-            if let Some(ref source_state_var) = component_tree.props.prop {
+            if let Some(ref source_state_var) = component_tree.props.copy_prop {
 
                 let source_sv_name =  all_state_var_names.get(source_state_var)
                     .ok_or(DoenetMLError::StateVarDoesNotExist {
