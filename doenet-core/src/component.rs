@@ -10,6 +10,8 @@ pub mod sequence;
 pub mod graph;
 pub mod point;
 pub mod collect;
+pub mod section;
+
 use crate::math_expression::MathExpression;
 use serde::Serialize;
 
@@ -47,6 +49,7 @@ lazy_static! {
         defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
         defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
         defs.insert("collect",      &crate::collect      ::MY_COMPONENT_DEFINITION);
+        defs.insert("section",      &crate::section      ::MY_COMPONENT_DEFINITION);
         defs
 
     };
