@@ -49,7 +49,7 @@ impl PublicDoenetCore {
 
         web_sys::console::time_with_label("DoenetCore creation");
                 
-        let core_or_error = doenet_core::create_doenet_core(program);
+        let core_or_error = doenet_core::create_doenet_core(program, None);
 
         web_sys::console::time_end_with_label("DoenetCore creation");
 

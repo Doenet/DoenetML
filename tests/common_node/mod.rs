@@ -3,9 +3,13 @@
 // #![cfg(target_arch = "wasm32")]
 
 use std::borrow::Borrow;
+use std::collections::HashMap;
 use std::convert::TryInto;
 
+use doenet_core::EssentialDataOrigin;
+use doenet_core::component::ComponentName;
 use doenet_core::parse_json::DoenetMLError;
+use doenet_core::state::EssentialStateVar;
 use doenet_core::state_variables::StateRef;
 use doenet_core::{DoenetCore, state_variables::StateVarValue, state::{StateForStateVar, State}};
 use serde_json::Value;
@@ -34,7 +38,17 @@ macro_rules! display_doenet_ml_on_failure {
 pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
     let parsed = parseAndCompile(data.to_string());
     let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();
-    doenet_core::create_doenet_core(&program)
+    doenet_core::create_doenet_core(&program, None)
+}
+
+pub fn doenet_core_with_essential_data(
+    program_str: &str,
+    essential_data: HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
+) -> Result<DoenetCore, DoenetMLError> {
+    
+    let parsed = parseAndCompile(program_str.to_string());
+    let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();
+    doenet_core::create_doenet_core(&program, Some(essential_data))
 }
 
 fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateRef, value: StateVarValue) {
@@ -156,7 +170,6 @@ fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static s
 
 
 pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
-
     render_tree.as_array().unwrap().iter().find( |render_item| {
         if let Some(render_obj) = render_item.as_object() {
             if render_obj.get("componentName") == Some(&Value::String(component_name.to_string())) {

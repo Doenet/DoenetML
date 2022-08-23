@@ -236,7 +236,7 @@ pub fn split_dependency_values_into_math_expression_and_values(dependency_values
     }).collect();
 
     if values.len() + 1 != dependency_values.len() {
-        return Err("Invalid dependency values for number attribute".to_string())
+        return Err(format!("Invalid dependency values for number attribute, {:?}", dependency_values));
     }
 
     Ok((expression, values))
