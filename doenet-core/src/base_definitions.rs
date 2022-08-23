@@ -521,9 +521,9 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(Dependen
         let value = match source {
             DependencySource::Essential { value_type: "string" } =>
                 StateVarValue::String(desired_value.to_string()),
-            DependencySource::StateVar { component_type: "number", .. } =>
+            DependencySource::StateVar { .. } =>
                 StateVarValue::Number(desired_value),
-            _ => panic!("Number did not expect dependency source {:?}", source),
+            _ => panic!("Base definition 'determine number' function did not expect dependency source {:?}", source),
         };
         return Ok(vec![DependencyValue {
             source,

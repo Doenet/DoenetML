@@ -343,7 +343,6 @@ pub fn create_doenet_core(
                 }
             }
         }
-
     }
 
 
@@ -400,6 +399,47 @@ pub fn create_doenet_core(
         }
     }
 
+    let mut all_state_var_defs: Vec<(&ComponentName, StateVarName, &StateVarVariant)> = Vec::new();
+    for (_, comp) in component_nodes.iter() {
+        for (sv_name, sv_def) in comp.definition.state_var_definitions {
+            all_state_var_defs.push((&comp.name, sv_name, sv_def));
+        }
+    }
+
+    // let all_state_var_defs = component_nodes.iter()
+    //     .flat_map(|(comp_name, comp)| comp.definition.state_var_definitions.iter()
+    //         .map(|(sv_name, sv_def)| (comp_name, sv_name, sv_def))
+    //     );
+
+    let mut element_specific_dependencies: HashMap<(ComponentRef, StateVarName), Vec<usize>> = HashMap::new();
+
+    for (comp_name, sv_name, sv_def) in all_state_var_defs {
+        if sv_def.is_array() {
+            let comp = component_nodes.get(comp_name).unwrap();
+
+            let possible_attributes = if let Some(my_own_comp_attrs) = component_attributes.get(comp_name) {
+                Some(my_own_comp_attrs)
+            } else if let Some(CopySource::Component(_)) = comp.copy_source {
+                let final_source = get_recursive_copy_source_component_if_exists(&component_nodes, comp);
+                component_attributes.get(final_source)
+            } else {
+                None
+            };
+
+            if let Some(attribute_for_comp) = possible_attributes {
+                if let Some(attribute_for_sv) = attribute_for_comp.get(sv_name) {
+                    let element_dep_flags: Vec<usize> = attribute_for_sv.iter().map(|(id, _)| *id).collect();
+                    element_specific_dependencies.insert(
+                        (ComponentRef::Basic(comp_name.to_string()), sv_name),
+                        element_dep_flags
+                    );
+                }
+            }
+    
+        }        
+    }
+    
+
     // Fill in component_states and dependencies HashMaps for every component
     // and supply any essential_data required by dependencies.
 
@@ -418,6 +458,7 @@ pub fn create_doenet_core(
             // copy_index_flags.get(component_name).as_deref(),
             &mut essential_data,
             should_initialize_essential_data,
+            &element_specific_dependencies,
         );
 
         let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
@@ -743,6 +784,13 @@ fn macro_comp_ref(
         source_comp_ref = ComponentRef::Basic(source_name.clone());
     };
 
+    log_debug!("Getting component definition for {}", source_comp_ref);
+
+    if let ComponentRef::GroupMember(_, _) = source_comp_ref {
+        if components.get(&source_comp_ref.name()).unwrap().definition.group.is_none() {
+            return Err(format!("Component {} is not a group component", source_comp_ref.name()));
+        }    
+    }
     let (source_def, source_component_type) = component_ref_definition(components, &source_comp_ref);
 
     let macro_copy: ComponentNode;
@@ -1044,6 +1092,7 @@ fn create_all_dependencies_for_component(
     // copy_index_flag: Option<&(ComponentName, StateVarName, Vec<ObjectName>)>,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
     should_initialize_essential_data: bool,
+    element_specific_dependencies: &HashMap<(ComponentRef, StateVarName), Vec<usize>>,
 ) -> HashMap<DependencyKey, Vec<Dependency>> {
 
     // log_debug!("Creating dependencies for {}", component.name);
@@ -1128,24 +1177,30 @@ fn create_all_dependencies_for_component(
             }
 
             // make dependencies for elements when size has an essential value
-            let elements = {
-                let size = essential_data
-                    .get(&component.name)
-                    .and_then(|c| c
-                        .get(&EssentialDataOrigin::StateVar(state_var_name))
-                        .and_then(|s| s
-                            .get_value(StateIndex::SizeOf)
-                            .and_then(|v|
-                                usize::try_from(v).ok()
-                            )
-                        )
-                    ).unwrap_or(0);
+            // let elements = {
+                // let source_comp_name = get_essential_data_component_including_copy(components, component);
 
-                indices_for_size(size)
-            };
+                // let size = essential_data
+                //     .get(source_comp_name)
+                //     .and_then(|c| c
+                //         .get(&EssentialDataOrigin::StateVar(state_var_name))
+                //         .and_then(|s| s
+                //             .get_value(StateIndex::SizeOf)
+                //             .and_then(|v|
+                //                 usize::try_from(v).ok()
+                //             )
+                //         )
+                //     ).unwrap_or(0);
 
+                // indices_for_size(size)
+            // };
+            let empty = &Vec::new();
 
-            for index in elements {
+            let elements = element_specific_dependencies.get(&(ComponentRef::Basic(component.name.clone()), state_var_name)).unwrap_or(empty);
+
+            log_debug!("Will make dependencies for elements {:?} of {}:{}", elements, component.name, state_var_name);
+
+            for &index in elements {
 
                 let element_dep_instructions = state_var_variant
                     .return_element_dependency_instructions(index, HashMap::new());
@@ -1222,8 +1277,7 @@ fn create_dependencies_from_instruction(
     should_initialize_essential_data: bool,
 ) -> Vec<Dependency> {
 
-    // log_debug!("Creating dependency {}:{}:{} from instruction {:?}",
-    //     component.name, state_var_slice, instruction_name, instruction);
+    log_debug!("Creating dependency {}:{}:{} from instruction {:?}", component.name, state_var_slice, instruction_name, instruction);
 
     let mut dependencies: Vec<Dependency> = Vec::new();
 
@@ -1231,10 +1285,10 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Essential { prefill } => {
 
-            let source_comp_name = get_essential_data_component_including_copy(components, component);
+            let source_comp_name = get_recursive_copy_source_component_if_exists(components, component);
             let essential_origin = EssentialDataOrigin::StateVar(state_var_slice.name());
 
-            if should_initialize_essential_data && source_comp_name == component.name {
+            if should_initialize_essential_data && source_comp_name == &component.name {
                 // Components only create their own essential data
 
                 let sv_def = component.definition.state_var_definitions.get(state_var_slice.name()).unwrap();
@@ -1270,7 +1324,7 @@ fn create_dependencies_from_instruction(
             }
 
             dependencies.push(Dependency::Essential {
-                component_name: source_comp_name,
+                component_name: source_comp_name.clone(),
                 origin: essential_origin,
             });
 
@@ -2767,6 +2821,9 @@ pub fn update_renderers(core: &DoenetCore) -> String {
 
     log_json!("Component tree after renderer update", utils::json_components(&core.component_nodes, &core.component_states));
 
+    log_json!("Essential data after renderer update",
+    utils::json_essential_data(&core.essential_data));
+
     serde_json::to_string(&json_obj).unwrap()
 }
 
@@ -2965,12 +3022,16 @@ fn component_ref_definition(
     component_ref: &ComponentRef,
 ) -> (&'static ComponentDefinition, ComponentType) {
 
+    // log_debug!("Getting component ref definition for {:?}", component_ref);
+
     let name = component_ref.name();
     let child_type = match &component_ref {
         ComponentRef::GroupMember(n, _) => {
             let group_def =
                 component_nodes.get(n).unwrap()
-                .definition.group.unwrap();
+                .definition.group.expect(
+                    &format!("Component {} does not have a group definition", n)
+                );
 
             (group_def.component_type)(&component_nodes.get(&name).unwrap().static_attributes)
         },
@@ -3049,14 +3110,14 @@ fn get_children_including_copy<'a>(
 
 /// Recurse until the name of the original source is found.
 /// This allows copies to share essential data.
-fn get_essential_data_component_including_copy(
-    components: &HashMap<ComponentName, ComponentNode>,
-    component: &ComponentNode,
-) -> ComponentName {
+fn get_recursive_copy_source_component_if_exists<'a>(
+    components: &'a HashMap<ComponentName, ComponentNode>,
+    component: &'a ComponentNode,
+) -> &'a ComponentName {
     match &component.copy_source {
         Some(CopySource::Component(ComponentRef::Basic(ref source))) =>
-            get_essential_data_component_including_copy(components, components.get(source).unwrap()),
-        _ => component.name.clone(),
+            get_recursive_copy_source_component_if_exists(components, components.get(source).unwrap()),
+        _ => &component.name,
     }
 }
 
