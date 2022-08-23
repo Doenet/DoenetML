@@ -630,7 +630,10 @@ lazy_static! {
     static ref PROP: Regex = Regex::new(r"[a-zA-Z]\w*").unwrap();
 }
 lazy_static! {
-    static ref INDEX: Regex = Regex::new(r"\d+|\$").unwrap();
+    static ref INDEX: Regex = Regex::new(r" *(\d+|\$)").unwrap();
+}
+lazy_static! {
+    static ref INDEX_END: Regex = Regex::new(r" *]").unwrap();
 }
 lazy_static! {
     static ref MACRO_BEGIN: Regex = Regex::new(r"\$").unwrap();
@@ -722,19 +725,18 @@ fn macro_comp_ref(
     if char_at(comp_match.end()) == Some('[') {
         let index_match = regex_at(&INDEX, string, comp_match.end() + 1)?;
         let index_str = index_match.as_str();
+        let index_end: usize;
         if index_str == "$" {
             // dynamic component index
             panic!("dynamic component index not implemented");
         } else {
             // static component index
-            let index: usize = index_str.parse().unwrap();
-            comp_end = index_match.end() + 1;
+            let index: usize = index_str.trim().parse().unwrap();
+            index_end = index_match.end() + 1;
             source_comp_ref = ComponentRef::GroupMember(source_name.clone(), index);
         }
-        if char_at(comp_match.end()) != Some('[') {
-                return Err(format!("expected ']' but found {:?} at {} of {}",
-                        char_at(comp_end - 1), comp_end - 1, string))
-        }
+        let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
+        comp_end = close_bracket_match.end();
     } else {
         // no component index
         comp_end = comp_match.end();
@@ -769,6 +771,7 @@ fn macro_comp_ref(
             if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
                 let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
                 let index_str = index_match.as_str();
+                let index_end: usize;
                 if index_str == "$" {
                     // dynamic index
                     let (index_name, index_macro_end) = macro_comp_ref(string,
@@ -779,7 +782,7 @@ fn macro_comp_ref(
                         components_to_add,
                     )?;
 
-                    macro_end = index_macro_end + 1;
+                    index_end = index_macro_end;
                     copy_source = CopySource::DynamicElement(
                         source_name.clone(),
                         prop_name,
@@ -788,17 +791,15 @@ fn macro_comp_ref(
                     );
                 } else {
                     // static index
-                    let index: usize = index_str.parse().unwrap();
-                    macro_end = index_match.end() + 1;
+                    let index: usize = index_str.trim().parse().unwrap();
+                    index_end = index_match.end();
                     copy_source = CopySource::StateVar(
                         source_comp_ref,
                         StateRef::ArrayElement(prop_name, index),
                     );
                 }
-                if char_at(macro_end - 1) != Some(']') {
-                    return Err(format!("expected ']' but found {:?} at {} of {}",
-                            char_at(macro_end - 1), macro_end - 1, string))
-                }
+                let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
+                macro_end = close_bracket_match.end();
             } else {
                 // no index
                 macro_end = prop_match.end();
