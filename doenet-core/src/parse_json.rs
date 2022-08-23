@@ -177,7 +177,7 @@ impl Display for DoenetMLError {
 
 
 
-fn get_key_value_ignore_case<'a, K, V>(map: &'a HashMap<K, V>, key: &str) -> Option<(&'a K, &'a V)>
+pub fn get_key_value_ignore_case<'a, K, V>(map: &'a HashMap<K, V>, key: &str) -> Option<(&'a K, &'a V)>
 where
     K: ToString + std::cmp::Eq + std::hash::Hash,
 {

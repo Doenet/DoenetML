@@ -5,6 +5,7 @@ mod common_node;
 
 use std::{collections::HashMap, thread};
 use std::panic::set_hook;
+use serde_json;
 
 use common_node::*;
 use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue, Action};
@@ -240,6 +241,63 @@ fn number_input_immediate_value_syncs_with_value_on_update_request() {
     assert_sv_is_number(&dc, "myNum", "value", -5.11);
 }
 
+
+
+#[wasm_bindgen_test]
+fn collect_and_copy_number_input_changes_original() {
+    static DATA: &str = r#"
+        <section name="inputs">
+                <textinput name="input1" prefill="yolo"/>
+                <textinput name="input2" prefill="3"/>
+        </section>
+
+        <collect componentType="textinput" source="inputs"/>
+
+        <section copySource="inputs"/>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_from(DATA).unwrap();
+    let render_tree_string = doenet_core::update_renderers(&dc);
+    let render_tree = serde_json::from_str(&render_tree_string).unwrap();
+
+    let collect1 = child_instructions_for(&render_tree, "/_document1", "textInput_from_(/_collect1[1])")
+        .get("actions").unwrap()
+        .as_object().unwrap()
+        .get("updateValue").unwrap()
+        .as_object().unwrap()
+        .get("componentName").unwrap()
+        .as_str().unwrap();
+    let collect2 = child_instructions_for(&render_tree, "/_document1", "textInput_from_(/_collect1[2])")
+        .get("actions").unwrap()
+        .as_object().unwrap()
+        .get("updateImmediateValue").unwrap()
+        .as_object().unwrap()
+        .get("componentName").unwrap()
+        .as_str().unwrap();
+    let copy1 = child_instructions_for(&render_tree, "/_section2", "input1")
+        .get("actions").unwrap()
+        .as_object().unwrap()
+        .get("updateImmediateValue").unwrap()
+        .as_object().unwrap()
+        .get("componentName").unwrap()
+        .as_str().unwrap();
+    let copy2 = child_instructions_for(&render_tree, "/_section2", "input2")
+        .get("actions").unwrap()
+        .as_object().unwrap()
+        .get("updateValue").unwrap()
+        .as_object().unwrap()
+        .get("componentName").unwrap()
+        .as_str().unwrap();
+
+    assert_eq!(collect1, "input1");
+    assert_eq!(collect2, "input2");
+    assert_eq!(copy1, "input1");
+    assert_eq!(copy2, "input2");
+
+    assert_sv_is_string(&dc, "input1", "immediateValue", "yolo");
+    assert_sv_is_string(&dc, "input2", "immediateValue", "3");
+}
 
 
 // ========= <sequence> ==============

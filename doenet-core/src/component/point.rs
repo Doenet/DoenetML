@@ -75,7 +75,7 @@ lazy_static! {
                 let xs = dependency_values.dep_value("xs")?
                     .into_number_list()?;
                 let x = xs.get(0).unwrap();
-                let y = xs.get(0).unwrap();
+                let y = xs.get(1).unwrap();
                 let set_value = format!("({}, {})", x, y);
 
                 Ok( SetValue( set_value ) )
@@ -166,6 +166,10 @@ lazy_static! {
             ("z", StateRef::ArrayElement("xs", 3)),
             ("w", StateRef::ArrayElement("xs", 4)),
         ]),
+
+        component_profiles: vec![
+            (ComponentProfile::Text, "latex")
+        ],
 
         action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
 

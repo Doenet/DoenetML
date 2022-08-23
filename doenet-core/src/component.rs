@@ -17,6 +17,7 @@ use serde::Serialize;
 
 use crate::state_variables::*;
 use crate::GroupDependency;
+use crate::parse_json::get_key_value_ignore_case;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
@@ -57,8 +58,7 @@ lazy_static! {
 
 fn to_component_type(value: &String) -> Result<ComponentType, String> {
     Ok(
-        COMPONENT_DEFINITIONS
-        .get_key_value(value.as_str())
+        get_key_value_ignore_case(&COMPONENT_DEFINITIONS, value.as_str())
         .ok_or("no component type")?
         .0
     )
@@ -174,22 +174,32 @@ pub struct GroupComponent {
     // ("generator" groups like sequence vs "pointer" groups like collect)
 
     /// `None` means use the group dependencies
-    pub all_members: Option<
-        for<'a> fn(
-            component_name: &ComponentName,
-            state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
-        ) -> Vec<ComponentRef>
-    >,
+    pub group_size: Option<StateRef>,
 
     /// `None` means use the group dependencies
     pub member_state_var: Option<
         for<'a> fn(
             index: usize,
             state_var_slice: &'a StateVarSlice,
-            component_name: &ComponentName,
             state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
-        ) -> Option<(ComponentRef, StateVarSlice)>
+        ) -> Option<StateVarSlice>
     >,
+}
+
+impl GroupComponent {
+    pub fn generator(&self) -> Option<(
+            StateRef, 
+            for<'a> fn(
+                usize,
+                &'a StateVarSlice,
+                &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
+            ) -> Option<StateVarSlice>,
+    )> {
+        match (&self.group_size, &self.member_state_var) {
+            (Some(a), Some(b)) => Some((a.clone(), *b)),
+            (_, _) => None,
+        }
+    }
 }
 
 impl Default for GroupComponent {
@@ -197,7 +207,7 @@ impl Default for GroupComponent {
         GroupComponent {
             group_dependencies: |_,_| vec![],
             component_type: |_| "number",
-            all_members: None,
+            group_size: None,
             member_state_var: None
         }
     }

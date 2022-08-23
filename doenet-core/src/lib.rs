@@ -57,13 +57,6 @@ pub struct DoenetCore {
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
     pub essential_data: HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
-
-    /// We send components to the renderer that do not exists:
-    /// - the inherited children of a copy
-    ///
-    /// The renderer needs to recognize these as a different component so we alias its name.
-    /// This maps the name the renderer is given to the actual name.
-    pub aliases: HashMap<String, ComponentName>,
 }
 
 
@@ -118,7 +111,8 @@ pub enum Dependency {
 
 #[derive(Debug, Serialize)]
 pub enum GroupDependency {
-    Group(ComponentGroup),
+    Group(ComponentName),
+    Component(ComponentName),
     StateVar(ComponentRef, StateVarSlice),
 }
 
@@ -374,12 +368,6 @@ pub fn create_doenet_core(
         }
     }
 
-    // For every copy, add the necessary aliases for the renderers to use
-    let mut aliases: HashMap<String, ComponentName> = HashMap::new();
-    for (copy, _) in copy_comp_targets {
-        add_alias_for_children(&mut aliases, copy, &component_nodes, &copy.name);
-    }
-
     // Check invalid component names for attributes
     for attributes_for_comp in component_attributes.values() {
         for attributes in attributes_for_comp.values() {
@@ -509,7 +497,6 @@ pub fn create_doenet_core(
         dependencies,
         group_dependencies,
         essential_data,
-        aliases,
     })
 }
 
@@ -570,23 +557,6 @@ fn name_macro_component(
 
 fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
     format!("{}_from_({}[{}])", name, group, index)
-}
-
-fn add_alias_for_children(
-    aliases: &mut HashMap<String, ComponentName>,
-    component: &ComponentNode,
-    component_nodes: &HashMap<ComponentName, ComponentNode>,
-    copy: &String,
-) {
-    // log_debug!("Adding alias for children of {}", component.name);
-
-    let children = get_children_including_copy(component_nodes, component);
-
-    for (child, _) in children.iter() {
-        if let ComponentChild::Component(child_comp) = child {
-            aliases.insert(name_child_of_copy(child_comp, copy), child_comp.to_string());
-        }
-    }
 }
 
 
@@ -1971,8 +1941,9 @@ fn groups_depending_on_state_var(
                 GroupDependency::StateVar(comp, name) => {
                     &comp.name() == sv_component && name.name() == sv_reference.name()
                 },
-                GroupDependency::Group(comp_group) => {
-                    comp_group.name() == *sv_component
+                GroupDependency::Component(comp_name) |
+                GroupDependency::Group(comp_name) => {
+                    comp_name == sv_component
                 },
             };
             if depends_on {
@@ -1995,7 +1966,8 @@ fn group_and_groups_depending_on_it(
     for (comp_name, group_deps) in core.group_dependencies.iter() {
         for group_dep in group_deps {
             let depends_on = match group_dep {
-                GroupDependency::Group(comp_group) => comp_group.name() == *group_name,
+                GroupDependency::Component(comp_name) |
+                GroupDependency::Group(comp_name) => comp_name == group_name,
                 _ => false,
             };
             if depends_on {
@@ -2525,25 +2497,29 @@ fn component_group_members<'a>(
         ComponentGroup::Single(comp_ref) => vec![comp_ref.clone()],
         ComponentGroup::Group(name) => {
             let group_def = core.component_nodes.get(name).unwrap().definition.group.unwrap();
-            if let Some(member_function) = group_def.all_members {
-                let state_var_resolver = | state_var_ref | {
-                    resolve_state_variable(core, name, state_var_ref)
+            let size: usize =
+                if let Some((group_size_ref, _)) = group_def.generator() {
+                    resolve_state_variable(core, name, &group_size_ref).unwrap()
+                        .try_into().unwrap()
+                } else {
+                    // use group dependencies
+                    core.group_dependencies.get(name).unwrap()
+                        .iter()
+                        .map(|dep|
+                            match dep {
+                                GroupDependency::Group(n) => component_group_members(
+                                        core,
+                                        &ComponentGroup::Group(n.clone())
+                                    ).len(),
+                                GroupDependency::Component(_) => 1,
+                                GroupDependency::StateVar(_, _) => 0,
+                            }
+                        ).sum()
                 };
-                member_function(
-                    &name,
-                    &state_var_resolver,
-                )
-            } else {
-                core.group_dependencies.get(name).unwrap().iter().flat_map(|dep|
-                    match dep {
-                        GroupDependency::Group(g) => {
-                            component_group_members(core, g)
-                        },
-                        GroupDependency::StateVar(_, _) => vec![],
-                    }
-                ).collect()
-            }
-        }
+            indices_for_size(size)
+                .map(|i| ComponentRef::GroupMember(name.clone(), i))
+                .collect()
+        },
     }
 }
 
@@ -2556,13 +2532,7 @@ fn convert_component_ref_state_var(
 ) -> Option<(ComponentName, StateVarSlice)> {
     match name {
         ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::GroupMember(n, i) => {
-            if let Some((comp_ref, slice)) = group_member_state_var(core, &n, state_var, *i) {
-                convert_component_ref_state_var(core, &comp_ref, slice)
-            } else {
-                None
-            }
-        },
+        ComponentRef::GroupMember(n, i) => group_member_state_var(core, &n, state_var, *i)
     }
 }
 
@@ -2572,48 +2542,56 @@ fn group_member_state_var(
     name: &ComponentName,
     state_var: StateVarSlice,
     index: usize,
-) -> Option<(ComponentRef, StateVarSlice)> {
+) -> Option<(ComponentName, StateVarSlice)> {
     let group_def = core.component_nodes.get(name).unwrap().definition.group.unwrap();
 
-    if let Some(member_state_var) = group_def.member_state_var {
+    if let Some((_, member_state_var)) = group_def.generator() {
         let state_var_resolver = | state_var_ref | {
             resolve_state_variable(core, name, state_var_ref)
         };
-        member_state_var(index, &state_var, name, &state_var_resolver)
+        member_state_var(index, &state_var, &state_var_resolver)
+            .map(|sv| (name.clone(), sv))
     } else {
         // if the component does not specify a member_state_var function,
         // use the group_dependencies to find the ComponentRef
-        let mut index = index;
-        nth_group_dependency(&mut index, name, &core.component_nodes, &core.group_dependencies)
+        log_debug!("from member sv");
+        nth_group_dependence(core, name, index)
             .map(|c| (c, state_var))
     }
 }
 
+fn nth_group_dependence(
+    core: &DoenetCore,
+    group_name: &ComponentName,
+    index: usize,
+) -> Option<ComponentName> {
+    let mut index = index;
+    log_debug!("callin it {index}");
+    nth_group_dependence_internal(&mut index, group_name, &core.group_dependencies)
+}
 
-fn nth_group_dependency(
+fn nth_group_dependence_internal(
     index: &mut usize,
     group_name: &ComponentName,
-    component_nodes: &HashMap<ComponentName, ComponentNode>,
     group_dependencies: &HashMap<ComponentName, Vec<GroupDependency>>,
-) -> Option<ComponentRef> {
+) -> Option<ComponentName> {
     for group_dep in group_dependencies.get(group_name).unwrap() {
-        if let GroupDependency::Group(comp_group) = group_dep {
-
-            match comp_group {
-                ComponentGroup::Group(n) => {
-                    match nth_group_dependency(index, n, component_nodes, group_dependencies) {
-                        Some(c) => return Some(c),
-                        None => (),
-                    }
-                },
-                ComponentGroup::Single(n) => {
-                    if *index == 0 {
-                        return Some(n.clone());
-                    } else {
-                        *index -= 1;
-                    }
+        log_debug!("gd {:?} {}", &group_dep, index);
+        match group_dep {
+            GroupDependency::Group(n) => {
+                match nth_group_dependence_internal(index, n, group_dependencies) {
+                    Some(c) => return Some(c),
+                    None => (),
                 }
-            }
+            },
+            GroupDependency::Component(n) => {
+                if *index > 1 {
+                    *index -= 1;
+                } else {
+                    return Some(n.clone());
+                }
+            },
+            _ => (),
         }
     }
     None
@@ -2741,8 +2719,7 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
 
     log_debug!("Handling action {:#?}", action);
 
-    // Apply alias to get the original component name
-    let component_name = core.aliases.get(&action.component_name).unwrap_or(&action.component_name);
+    let component_name = &action.component_name;
 
     let component = core.component_nodes.get(component_name)
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
@@ -2832,29 +2809,38 @@ pub fn update_renderers(core: &DoenetCore) -> String {
 fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 
     let root_node = core.component_nodes.get(&core.root_component_name).unwrap();
-    let root_comp_ref = ComponentRef::Basic(root_node.name.clone());
+    let root_comp_rendered = RenderedComponent {
+        component_ref: ComponentRef::Basic(root_node.name.clone()),
+        child_of_copy: None
+    };
     let mut json_obj: Vec<serde_json::Value> = vec![];
 
-    generate_render_tree_internal(core, &root_comp_ref, &mut json_obj, None);
+    generate_render_tree_internal(core, root_comp_rendered, &mut json_obj);
 
     serde_json::Value::Array(json_obj)
 }
 
+#[derive(Debug)]
+struct RenderedComponent {
+    component_ref: ComponentRef,
+    child_of_copy: Option<ComponentName>,
+}
+
+
 fn generate_render_tree_internal(
     core: &DoenetCore,
-    component: &ComponentRef,
+    component: RenderedComponent,
     json_obj: &mut Vec<serde_json::Value>,
-    came_from_copy: Option<&ComponentName>,
 ) {
-    use serde_json::json;
+    use serde_json::{Map, Value, json};
 
-    let component_name = component.name().clone();
+    let component_name = component.component_ref.name().clone();
 
-    // log_debug!("generating render tree for {}", component);
+    log_debug!("generating render tree for {:?}", component);
 
     let (component_definition, component_type) = component_ref_definition(
         &core.component_nodes,
-        &component
+        &component.component_ref,
     );
 
     let renderered_state_vars = component_definition
@@ -2878,7 +2864,11 @@ fn generate_render_tree_internal(
 
     let mut state_values = serde_json::Map::new();
     for state_var_slice in renderered_state_vars {
-        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component, state_var_slice).unwrap();
+        let (sv_comp, sv_slice) = convert_component_ref_state_var(
+            core,
+            &component.component_ref,
+            state_var_slice
+        ).unwrap();
 
         match sv_slice {
             StateVarSlice::Array(sv_name) => {
@@ -2924,11 +2914,11 @@ fn generate_render_tree_internal(
         }
     }
 
-    let name_to_render = match component {
+    let name_to_render = match &component.component_ref {
         ComponentRef::GroupMember(n, i) => name_member_of_group(&component_type, n, *i),
         _ => component_name.clone(),
     };
-    let name_to_render = match &came_from_copy {
+    let name_to_render = match &component.child_of_copy {
         Some(copy_name) => name_child_of_copy(&name_to_render, &copy_name),
         None => name_to_render,
     };
@@ -2937,51 +2927,71 @@ fn generate_render_tree_internal(
     let node = core.component_nodes.get(&component_name).unwrap();
     if node.definition.should_render_children {
 
-        for (child, actual_parent) in get_children_and_members(core, component) {
+        for (child, actual_parent) in get_children_and_members(core, &component.component_ref) {
             match child {
                 ObjectRefName::Component(comp_ref) => {
                     // recurse for children
-                    let child_name = comp_ref.name();
-                    let comp = core.component_nodes.get(&child_name).unwrap();
-                    
-                    let child_came_from_copy =
-                        came_from_copy.or(
+
+                    let child_component = RenderedComponent {
+                        component_ref: comp_ref,
+                        child_of_copy: component.child_of_copy.clone().or(
                             if std::ptr::eq(actual_parent, node) {
                                 None
                             } else {
-                                Some(&component_name)
-                            });
+                                Some(component_name.clone())
+                            }
+                        ),
+                    };
 
-                    let (child_definition, child_type) = component_ref_definition(&core.component_nodes, &comp_ref);
+                    let (child_definition, child_type) =
+                        component_ref_definition(&core.component_nodes, &child_component.component_ref);
 
-                    let mut child_actions = serde_json::Map::new();
+                    let child_name = match &child_component.component_ref {
+                        ComponentRef::GroupMember(n, i) => name_member_of_group(&child_type, n, *i),
+                        ComponentRef::Basic(n) => n.clone(),
+                    };
 
-                    for action_name in (child_definition.action_names)() {
-                        child_actions.insert(action_name.to_string(), json!({
-                            "actionName": action_name,
-                            "componentName": comp.name,
-                        }));
-                    }
+                    let exact_copy_of_component: Option<ComponentName> =
+                        match &child_component.component_ref {
+                            ComponentRef::Basic(n) => Some(n.clone()),
+                            ComponentRef::GroupMember(n, i) => {
+                                let group_node = core.component_nodes.get(n).unwrap();
+                                log_debug!("from gen");
+                                if group_node.definition.group.unwrap().generator().is_none() {
+                                    Some(nth_group_dependence(core, n, *i).unwrap())
+                                } else {
+                                    None
+                                }
+                            },
+                        };
+
+                    let action_component_name = exact_copy_of_component
+                        .unwrap_or(child_name.clone());
+
+                    let child_actions: Map<String, Value> =
+                        (child_definition.action_names)()
+                        .iter()
+                        .map(|action_name| 
+                            (action_name.to_string(), json!({
+                                "actionName": action_name,
+                                "componentName": action_component_name,
+                            }))
+                        ).collect();
 
                     let renderer_type = match &child_definition.renderer_type {
                         RendererType::Special{ component_type, .. } => *component_type,
                         RendererType::Myself => child_type,
                     };
 
-                    let child_name = match &comp_ref {
-                        ComponentRef::GroupMember(n, i) => name_member_of_group(&child_type, n, *i),
-                        _ => comp.name.clone(),
-                    };
-
                     children_instructions.push(json!({
                         "actions": child_actions,
                         "componentName": child_name,
-                        "componentType": comp.component_type,
-                        "effectiveName": comp.name,
+                        "componentType": child_type,
+                        "effectiveName": child_name,
                         "rendererType": renderer_type,
                     }));
 
-                    generate_render_tree_internal(core, &comp_ref, json_obj, child_came_from_copy); 
+                    generate_render_tree_internal(core, child_component, json_obj); 
                 },
                 ObjectRefName::String(string) => {
                     children_instructions.push(json!(string));

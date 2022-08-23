@@ -3,7 +3,6 @@ use std::collections::HashMap;
 use lazy_static::lazy_static;
 
 use crate::GroupDependency;
-use crate::indices_for_size;
 use crate::state_variables::*;
 use crate::base_definitions::*;
 
@@ -139,28 +138,12 @@ fn group_dependencies(
     )]
 }
 
-fn all_members<'a>(
-    name: &ComponentName,
-    resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
-) -> Vec<ComponentRef> {
-
-    let size: usize =
-        resolver(&StateRef::SizeOf("value")).unwrap()
-        .try_into().unwrap();
-
-    indices_for_size(size).map(|i|
-        ComponentRef::GroupMember(name.clone(), i)
-    ).collect()
-}
-
 fn member_state_var<'a>(
     index: usize,
     state_var_slice: &'a StateVarSlice,
-    name: &ComponentName,
     resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
-) -> Option<(ComponentRef, StateVarSlice)> {
+) -> Option<StateVarSlice> {
 
-    let comp_ref = ComponentRef::Basic(name.clone());
     let slice = match state_var_slice {
         StateVarSlice::Single(StateRef::Basic("value")) => {
             // reslove size before giving value
@@ -174,14 +157,14 @@ fn member_state_var<'a>(
         _ => state_var_slice.clone(),
     };
 
-    Some((comp_ref, slice))
+    Some(slice)
 }
 
 lazy_static! {
     pub static ref MY_GROUP_DEFINITION: GroupComponent = GroupComponent {
         group_dependencies,
         component_type,
-        all_members: Some(all_members),
+        group_size: Some(StateRef::SizeOf("value")),
         member_state_var: Some(member_state_var),
         ..Default::default()
     };

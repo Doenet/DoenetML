@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::ComponentGroup;
 use crate::GroupDependency;
 use crate::state_variables::*;
 use crate::base_definitions::*;
@@ -59,12 +58,11 @@ fn depend_on_children_of_type(
                     Some(def) => (def.component_type)(&node.static_attributes),
                     None => comp.component_type,
                 };
-                if child_type == component_type {
-                    let group = match comp.definition.group {
-                        Some(_) => ComponentGroup::Group(c.clone()),
-                        None => ComponentGroup::Single(ComponentRef::Basic(c.clone())),
-                    };
-                    Some(GroupDependency::Group(group))
+                if child_type.to_lowercase() == component_type.to_lowercase() {
+                    Some(match comp.definition.group {
+                        Some(_) => GroupDependency::Group(c.clone()),
+                        None => GroupDependency::Component(c.clone()),
+                    })
                 } else {
                     None
                 }

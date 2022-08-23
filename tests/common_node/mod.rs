@@ -169,8 +169,8 @@ fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static s
 
 
 
-pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
-    render_tree.as_array().unwrap().iter().find( |render_item| {
+pub fn render_data_of_component<'a>(render_tree: &'a Value, component_name: &'static str) -> &'a serde_json::Map<String, Value> {
+    render_tree.as_array().unwrap().iter().find(|render_item| {
         if let Some(render_obj) = render_item.as_object() {
             if render_obj.get("componentName") == Some(&Value::String(component_name.to_string())) {
                 true
@@ -182,4 +182,27 @@ pub fn get_render_data<'a>(render_tree: &'a Value, component_name: &'static str)
         }
 
     }).unwrap().as_object().unwrap()
+}
+
+
+pub fn child_instructions_for<'a>(render_tree: &'a Value, parent: &'static str, child: &'static str) -> &'a serde_json::Map<String, Value> {
+    let children_instructions = render_data_of_component(&render_tree, parent)
+        .get("childrenInstructions").unwrap()
+        .as_array().unwrap();
+
+    children_instructions.iter().find(|render_item| {
+            if let Some(render_obj) = render_item.as_object() {
+                if render_obj.get("componentName") == Some(&Value::String(child.to_string())) {
+                    true
+                } else {
+                    false
+                }
+            } else {
+                false
+            }
+
+        })
+        .expect(
+            &format!("none with name {child} in {:?}", children_instructions)
+        ).as_object().unwrap()
 }
