@@ -6,7 +6,6 @@ use wasm_bindgen::prelude::*;
 
 use doenet_core::{DoenetCore};
 
-
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -34,9 +33,9 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 
-#[wasm_bindgen]
+#[wasm_bindgen(getter_with_clone)]
 #[derive(Debug)]
-pub struct PublicDoenetCore(DoenetCore);
+pub struct PublicDoenetCore(DoenetCore, pub js_sys::Array);
 
 
 
@@ -55,9 +54,15 @@ impl PublicDoenetCore {
 
         match core_or_error {
             Err(doenet_ml_error) => Err(doenet_ml_error.to_string()),
-            Ok(core) => Ok(PublicDoenetCore(core)),
+            Ok((core, ml_warnings)) => {
+                let warnings_array = js_sys::Array::new();
+                for (i, warning) in ml_warnings.iter().enumerate() {
+                    warnings_array.set(i as u32, JsValue::from(warning.to_string()));
+                }
+                Ok(PublicDoenetCore(core, warnings_array))
+            }
         }
-    }
+    }   
 
 
     // pub fn display_all_state(&self) -> String {

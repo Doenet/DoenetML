@@ -5,6 +5,7 @@ mod common_node;
 
 use std::{collections::HashMap, thread};
 use std::panic::set_hook;
+use doenet_core::parse_json::DoenetMLWarning;
 use serde_json;
 
 use common_node::*;
@@ -51,9 +52,7 @@ fn text_preserves_spaces_between_text_tags() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(
-        DATA
-    ).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "a", "value", "Hello there!");
@@ -69,7 +68,7 @@ fn text_inside_text() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "/_text1", "value", "one two three three again three once more");
@@ -86,7 +85,7 @@ fn text_copy_component_of_copy_component() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "a", "text", "one");
@@ -157,7 +156,7 @@ fn text_input_update_immediate_value_and_update_value() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(DATA).expect(&format!("DoenetML had an error"));
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     doenet_core::handle_action(&dc, doenet_core::Action {
@@ -219,7 +218,7 @@ fn number_input_immediate_value_syncs_with_value_on_update_request() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     // assert_sv_array_is_number_list(&dc, "myPoint", "xs", vec![0.0, 1.0]);
@@ -257,7 +256,7 @@ fn collect_and_copy_number_input_changes_original() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     let render_tree_string = doenet_core::update_renderers(&dc);
     let render_tree = serde_json::from_str(&render_tree_string).unwrap();
 
@@ -323,7 +322,7 @@ fn sequence_copies_component() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "/_sequence2", "value", vec![5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0]);
@@ -352,7 +351,7 @@ fn sequence_from_and_to_can_be_copied_as_props() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "/_number3", "value", -1000.0);
@@ -372,7 +371,7 @@ fn point_moves_copy_number() {
         <graph name='g'><point name='p' xs='3 $num'/></graph>
     "#;
     display_doenet_ml_on_failure!(DATA);
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
@@ -400,7 +399,7 @@ fn point_copies_coords_of_another_point() {
     </graph>
     "#;
     display_doenet_ml_on_failure!(DATA);
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "a", "xs", vec![1.0, 2.0]);
@@ -430,7 +429,7 @@ fn point_copies_another_point_component() {
     <graph><point name='p4' copySource='p3' /></graph>
     "#;
     display_doenet_ml_on_failure!(DATA);
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p1", "xs", vec![1.0, 2.0]);
@@ -485,7 +484,7 @@ fn number_can_do_arithmetic_on_strings_and_number_children() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "/_number1", "value", -15.0);
@@ -520,7 +519,12 @@ fn number_invalid_prop_index_does_not_crash() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let (dc, doenet_ml_warnings) = doenet_core_from(DATA).unwrap();
+    assert_eq!(doenet_ml_warnings.len(), 3);
+    for warning in doenet_ml_warnings {
+        assert!(matches!(warning, DoenetMLWarning::PropIndexIsNotPositiveInteger { .. }));
+    }
+
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "num1", "value", 0.0);
@@ -554,7 +558,7 @@ fn number_invalid_dynamic_prop_index_does_not_crash() {
     display_doenet_ml_on_failure!(DATA);
 
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "num1", "value", 0.0);
@@ -580,7 +584,7 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     let type_in_number_input = Action {
@@ -619,7 +623,7 @@ fn macro_prop_index_inside_prop_index_with_whitespace() {
     <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
     "#;
     display_doenet_ml_on_failure!(DATA);
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "/_text1", "value", "11");
@@ -645,7 +649,7 @@ fn reload_essential_data_after_point_moves() {
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-    let dc = doenet_core_from(DATA).unwrap();
+    let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
@@ -664,7 +668,9 @@ fn reload_essential_data_after_point_moves() {
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
 
 
-    let dc = doenet_core_with_essential_data(DATA, dc.essential_data).unwrap();
+    let (dc, possible_warnings) = doenet_core_with_essential_data(DATA, dc.essential_data).unwrap();
+    assert_eq!(possible_warnings.len(), 0);
+
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);

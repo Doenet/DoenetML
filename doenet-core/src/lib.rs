@@ -9,7 +9,7 @@ pub mod math_expression;
 
 use base_definitions::PROP_INDEX_SV;
 use lazy_static::lazy_static;
-use parse_json::DoenetMLError;
+use parse_json::{DoenetMLError, DoenetMLWarning};
 use state::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
@@ -153,7 +153,7 @@ pub enum EssentialDataOrigin {
 pub fn create_doenet_core(
     program: &str,
     existing_essential_data: Option<HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>>,
-) -> Result<DoenetCore, DoenetMLError> {
+) -> Result<(DoenetCore, Vec<DoenetMLWarning>), DoenetMLError> {
 
     // Create component nodes and attributes
     let (
@@ -162,6 +162,8 @@ pub fn create_doenet_core(
         copy_prop_index_instances,
         root_component_name
     ) = parse_json::create_components_tree_from_json(program)?;
+
+    let mut doenet_ml_warnings = vec![];
 
     log_debug!("Copy prop index instances {:#?}", copy_prop_index_instances);
 
@@ -233,10 +235,11 @@ pub fn create_doenet_core(
             let index_number: usize = match index_number {
                 Some(valid_index) =>  valid_index,
                 None => {
-                    // return Err(DoenetMLError::PropIndexIsNotPositiveInteger {
-                    //     comp_name: component_name,
-                    //     invalid_index: source.to_string()
-                    // })
+                    doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
+                        comp_name: component_name,
+                        invalid_index: source.to_string()
+                    });
+
                     0
                 },
             };
@@ -489,15 +492,17 @@ pub fn create_doenet_core(
     log_json!("Group dependencies upon core creation",
         &group_dependencies);
 
+    // log_debug!("DoenetCore creation warnings, {:?}", doenet_ml_warnings);
 
-    Ok(DoenetCore {
+
+    Ok((DoenetCore {
         component_nodes,
         component_states,
         root_component_name,
         dependencies,
         group_dependencies,
         essential_data,
-    })
+    }, doenet_ml_warnings))
 }
 
 

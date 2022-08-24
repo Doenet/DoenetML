@@ -38,6 +38,13 @@ async function createCore(args) {
     return;
   }
 
+  // console.log("received doenet core warnings", doenetCore[1]);
+
+  for(let warning of doenetCore[1]) {
+    console.warn(warning);
+  }
+
+
 
   
   const render_tree_string = doenetCore.update_renderers();

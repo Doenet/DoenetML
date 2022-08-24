@@ -8,7 +8,7 @@ use std::convert::TryInto;
 
 use doenet_core::EssentialDataOrigin;
 use doenet_core::component::ComponentName;
-use doenet_core::parse_json::DoenetMLError;
+use doenet_core::parse_json::{DoenetMLError, DoenetMLWarning};
 use doenet_core::state::EssentialStateVar;
 use doenet_core::state_variables::StateRef;
 use doenet_core::{DoenetCore, state_variables::StateVarValue, state::{StateForStateVar, State}};
@@ -34,8 +34,13 @@ macro_rules! display_doenet_ml_on_failure {
 }
 
 
+pub fn doenet_core_with_no_warnings(data: &str) -> DoenetCore {
+    let (core, warnings) = doenet_core_from(data).expect("DoenetCore creation threw an error");
+    assert_eq!(warnings.len(), 0, "There were DoenetML warning(s)");
+    core
+}
 
-pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
+pub fn doenet_core_from(data: &str) -> Result<(DoenetCore, Vec<DoenetMLWarning>), DoenetMLError> {
     let parsed = parseAndCompile(data.to_string());
     let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();
     doenet_core::create_doenet_core(&program, None)
@@ -44,7 +49,7 @@ pub fn doenet_core_from(data: &str) -> Result<DoenetCore, DoenetMLError> {
 pub fn doenet_core_with_essential_data(
     program_str: &str,
     essential_data: HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
-) -> Result<DoenetCore, DoenetMLError> {
+) -> Result<(DoenetCore, Vec<DoenetMLWarning>), DoenetMLError> {
     
     let parsed = parseAndCompile(program_str.to_string());
     let program: String = js_sys::JSON::stringify(&parsed).unwrap().into();

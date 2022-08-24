@@ -96,12 +96,7 @@ pub enum DoenetMLError {
         comp_name: ComponentName,
         invalid_index: String,
     },
-    PropIndexIsNotPositiveInteger {
-        // Note that if there is a macro in the propIndex,
-        // we can't know if it is an integer or not, so we don't throw this error
-        comp_name: ComponentName,
-        invalid_index: String,
-    },
+
     InvalidStaticAttribute {
         comp_name: ComponentName,
         attr_name: String,
@@ -145,8 +140,6 @@ impl Display for DoenetMLError {
                 write!(f, "Component type {} does not exist", comp_type),
             NonNumericalPropIndex { comp_name, invalid_index } =>
                 write!(f, "Component {} has non-numerical propIndex '{}'", comp_name, invalid_index),
-            PropIndexIsNotPositiveInteger { comp_name, invalid_index } =>
-                write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index),
             InvalidStaticAttribute { comp_name, attr_name } =>
                 write!(f, "Component {} attribute '{}' must be static", comp_name, attr_name),
             CannotCopyArrayStateVar { source_comp_name, source_sv_name } =>
@@ -173,6 +166,30 @@ impl Display for DoenetMLError {
 }
 
 
+
+/// This warning is caused by invalid DoenetML.
+/// It is thrown only on core creation, but does not stop core from being created.
+#[derive(Debug, PartialEq)]
+pub enum DoenetMLWarning {
+    PropIndexIsNotPositiveInteger {
+        // Note that if there is a macro in the propIndex,
+        // we can't know if it is an integer or not, so we don't throw this warning
+        comp_name: ComponentName,
+        invalid_index: String,
+    },
+}
+
+impl std::error::Error for DoenetMLWarning {}
+impl Display for DoenetMLWarning {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use DoenetMLWarning::*;
+        match self {
+            PropIndexIsNotPositiveInteger { comp_name, invalid_index } =>
+            write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index),
+        }
+
+    }
+}
 
 
 
