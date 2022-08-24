@@ -787,7 +787,6 @@ fn reload_essential_data_after_point_moves() {
 }
 
 
-
 // Make sure that the $n variable name is not var0
 // <number name='n'>3.1</number>
 // <math name='m'>var + $n</math>

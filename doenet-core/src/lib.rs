@@ -1588,7 +1588,7 @@ fn state_vars_depending_on_group<'a>(
 fn dependencies_of_state_var(
     dependencies: &HashMap<DependencyKey, Vec<Dependency>>,
     component_name: &ComponentName,
-    state_var_slice: &StateVarSlice,
+    state_ref: &StateRef,
 ) -> HashMap<InstructionName, Vec<Dependency>> {
 
     let deps = dependencies.iter().filter_map(| (key, deps) |
@@ -1598,14 +1598,14 @@ fn dependencies_of_state_var(
 
                 // Check if the key is me
                 if comp_name == component_name {
-                    if sv_slice == state_var_slice {
+                    if sv_slice.as_single() == Some(state_ref) {
                         Some((*instruct_name, deps))
 
-                    } else if let StateVarSlice::Single(StateRef::ArrayElement(..)) = state_var_slice {
+                    } else if let StateRef::ArrayElement(..) = state_ref {
 
                         // The key might also be an array who feeds into me
                         if let StateVarSlice::Array(array_name) = sv_slice {
-                            if state_var_slice.name() == *array_name {
+                            if state_ref.name() == *array_name {
                                 Some((*instruct_name, deps))
                             } else {
                                 None
@@ -1700,7 +1700,7 @@ fn get_dependency_sources_for_state_var(
     state_ref: &StateRef,
 ) -> HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> {
     
-    let my_dependencies = dependencies_of_state_var(&core.dependencies, component_name, &StateVarSlice::Single(state_ref.clone()));
+    let my_dependencies = dependencies_of_state_var(&core.dependencies, component_name, state_ref);
     let mut dependency_sources: HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> = HashMap::new();
 
     for (instruction_name, dependencies) in my_dependencies {
@@ -1752,7 +1752,7 @@ fn resolve_state_variable(
 
     log_debug!("Resolving {}:{}", component, state_var_ref);
 
-    let my_dependencies = dependencies_of_state_var(&core.dependencies, component, &StateVarSlice::Single(state_var_ref.clone()));
+    let my_dependencies = dependencies_of_state_var(&core.dependencies, component, state_var_ref);
 
     log_debug!("Dependencies of {}:{} {:?}", component, state_var_ref, my_dependencies);
 
@@ -1781,7 +1781,7 @@ fn resolve_state_variable(
                                 if let Some(depends_on_value) = depends_on_value {
                                     values_for_this_dep.push(DependencyValue {
                                         source: dependency_source.clone(),
-                                        value: depends_on_value.clone(),
+                                        value: depends_on_value,
                                     });    
                                 }
                             }
@@ -1805,7 +1805,7 @@ fn resolve_state_variable(
                                     if let Some(element_value) = element_value {
                                         values_for_this_dep.push(DependencyValue {
                                             source: dependency_source.clone(),
-                                            value: element_value.clone(),
+                                            value: element_value,
                                         });
                 
                                     }
@@ -1833,7 +1833,7 @@ fn resolve_state_variable(
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
                             source: dependency_source,
-                            value,
+                            value: value,
                         })
                     }
                 },
@@ -1870,7 +1870,7 @@ fn resolve_state_variable(
                         if let Some(element_value) = element_value {
                             values_for_this_dep.push(DependencyValue {
                                 source: dependency_source,
-                                value: element_value.clone(),
+                                value: element_value,
                             });
                         }
                     }
@@ -2041,7 +2041,7 @@ fn handle_update_instruction(
         },
         StateVarUpdateInstruction::SetValue(new_value) => {
 
-            updated_value = state_var.set_single_state(&state_var_ref.index(), new_value.clone()).unwrap();
+            updated_value = state_var.set_single_state(&state_var_ref.index(), new_value).unwrap();
             // .expect(&format!("Failed to set {}:{} while handling SetValue update instruction", component.name, state_var_ref)
             // );
         }
@@ -2195,7 +2195,7 @@ fn convert_dependency_values_to_update_request(
     let my_dependencies = dependencies_of_state_var(
         &core.dependencies,
         &component.name,
-        &StateVarSlice::Single(state_var.clone())
+        state_var
     );
 
     let mut update_requests = Vec::new();
@@ -2411,7 +2411,7 @@ fn generate_render_tree_internal(
 
     let component_name = component.component_ref.name().clone();
 
-    log_debug!("generating render tree for {:?}", component);
+    // log_debug!("generating render tree for {:?}", component);
 
     let (component_definition, component_type) = component_ref_definition(
         &core.component_nodes,

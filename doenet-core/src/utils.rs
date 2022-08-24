@@ -35,7 +35,7 @@ macro_rules! log_json {
 macro_rules! log_debug {
     ( $( $t:tt )* ) => {
 
-        #[cfg(feature = "web")]
+        #[cfg(all(feature = "web", feature = "web-debug-log"))]
         web_sys::console::debug_1(&format!( $( $t )* ).into());
 
         // #[cfg(not(feature = "web"))]

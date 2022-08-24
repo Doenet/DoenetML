@@ -114,7 +114,7 @@ pub enum StateIndex {
     SizeOf,
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize, enum_as_inner::EnumAsInner)]
 pub enum StateVarSlice {
     Single(StateRef),
     Array(StateVarName),

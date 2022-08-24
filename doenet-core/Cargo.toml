@@ -32,3 +32,4 @@ harness = false
 [features]
 # The web feature makes the log! macro additionally go to web-sys:console
 web = ["dep:web-sys", "dep:wasm-bindgen"]
+web-debug-log = []

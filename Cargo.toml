@@ -10,6 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["console_error_panic_hook"]
+web-debug-log = []
 
 web-logging = ['doenet-core/web']
 
@@ -53,3 +54,5 @@ wasm-bindgen-test = "0.3.13"
 [profile.release]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+
+
