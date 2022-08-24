@@ -13,7 +13,6 @@ use parse_json::{DoenetMLError, DoenetMLWarning};
 use state::StateForStateVar;
 use std::collections::HashMap;
 use std::fmt::Debug;
-use regex::Regex;
 
 use state::{State, EssentialStateVar};
 use component::*;
@@ -156,34 +155,167 @@ pub fn create_doenet_core(
 ) -> Result<(DoenetCore, Vec<DoenetMLWarning>), DoenetMLError> {
 
     // Create component nodes and attributes
-    let (
-        mut component_nodes,
-        component_attributes,
-        copy_prop_index_instances,
-        root_component_name
-    ) = parse_json::create_components_tree_from_json(program)?;
+    let (ml_components, component_attributes, root_component_name) =
+        parse_json::create_components_tree_from_json(program)?;
 
     let mut doenet_ml_warnings = vec![];
 
-    log_debug!("Copy prop index instances {:#?}", copy_prop_index_instances);
+    // Convert to MLComponents into component nodes
 
-    // Parse attribute strings and generate components from strings
-    // in attributes and string children macros.
-    let (component_attributes, copy_index_flags) =
-        parse_attributes_and_macros(&mut component_nodes, component_attributes, copy_prop_index_instances);
+    let mut component_nodes: HashMap<ComponentName, ComponentNode> = HashMap::new();
+    for (name, c) in ml_components.iter() {
 
+        let copy_source: Option<CopySource> =
+            if let Some(ref source_comp_name) = c.copy_source {
 
-    let mut group_dependencies = HashMap::new();
-    for (component_name, component) in component_nodes.iter() {
-        if let Some(group_def) = component.definition.group {
+                let source_comp = ml_components
+                    .get(source_comp_name)
+                    .ok_or(DoenetMLError::ComponentDoesNotExist {
+                        comp_name: source_comp_name.clone()
+                    })?;
 
-            let deps = (group_def.group_dependencies)(
-                &component,
-                &component_nodes,
-            );
+                let first_string = c.component_index.iter().find_map(|source| {
+                    if let ObjectName::String(string_source) = source {
+                        Some(string_source)
+                    } else {
+                        None
+                    }
+                });
 
-            group_dependencies.insert(component_name.clone(), deps);
-        }
+                let (comp_ref, source_type, source_def);
+                if c.component_index.len() == 1 && first_string.is_some() {
+                    // static index
+                    let string_value = first_string.unwrap().parse().unwrap_or(0.0);
+                    let index: usize = convert_float_to_usize(string_value)
+                        .unwrap_or(0);
+
+                    if index <= 0 {
+                        doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
+                            comp_name: c.name.clone(),
+                            invalid_index: string_value.to_string()
+                        });
+                    }
+
+                    let group_def = source_comp.definition.group.unwrap();
+
+                    comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), index);
+                    source_type = (group_def.component_type)(&source_comp.static_attributes);
+                    source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
+                } else if c.component_index.len() > 0 {
+                    // dynamic index
+                    panic!("dynamic component index")
+                    // let group_def = source_comp.definition.group.unwrap();
+                    // source_type = (group_def.component_type)(&source_comp.static_attributes);
+                    // source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
+                } else {
+                    // no index
+                    comp_ref = ComponentRef::Basic(source_comp_name.clone());
+                    source_type = source_comp.component_type;
+                    source_def = source_comp.definition;
+                }
+
+                if let Some(ref copy_prop) = c.copy_prop {
+                    if let Some(state_ref) = source_def.array_aliases.get(copy_prop.as_str()) {
+                        Some(CopySource::StateVar(comp_ref, state_ref.clone()))
+                    } else {
+
+                        let source_sv_name: StateVarName = source_def
+                            .state_var_definitions
+                            .get_key_value_ignore_case(copy_prop.as_str())
+                            .ok_or(DoenetMLError::StateVarDoesNotExist {
+                                comp_name: source_comp.name.clone(),
+                                sv_name: copy_prop.clone(),
+                            })?
+                            .0;
+
+                        let source_sv_def = source_def
+                            .state_var_definitions
+                            .get(source_sv_name)
+                            .unwrap();
+
+                        let first_string = c.prop_index.iter().find_map(|source| {
+                            if let ObjectName::String(string_source) = source {
+                                Some(string_source)
+                            } else {
+                                None
+                            }
+                        });
+
+                        if c.prop_index.len() == 1 && first_string.is_some() {
+                            // static index
+                            let string_value = first_string.unwrap().parse().unwrap_or(0.0);
+                            let index: usize = convert_float_to_usize(string_value)
+                                .unwrap_or(0);
+
+                            if index <= 0 {
+                                doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
+                                    comp_name: c.name.clone(),
+                                    invalid_index: string_value.to_string()
+                                });
+                            }
+
+                            if !source_sv_def.is_array() {
+                                return Err(DoenetMLError::CannotCopyIndexForStateVar {
+                                    source_comp_name: comp_ref.name(),
+                                    source_sv_name,
+                                });
+                            }
+
+                            Some(CopySource::StateVar(comp_ref, StateRef::ArrayElement(source_sv_name, index)))
+                        } else if c.prop_index.len() > 0 {
+                            // dynamic index
+                            let variable_components = c.prop_index.iter().filter_map(|obj| {
+                                if let ObjectName::Component(comp_name) = obj {
+                                    Some(comp_name.clone())
+                                } else {
+                                    None
+                                }
+                            }).collect();
+
+                            Some(CopySource::DynamicElement(
+                                comp_ref.name(),
+                                source_sv_name,
+                                MathExpression::new(&c.prop_index),
+                                variable_components,
+                            ))
+                        } else {
+                            // no index
+                            if source_sv_def.is_array() {
+                                return Err(DoenetMLError::CannotCopyArrayStateVar {
+                                    source_comp_name: comp_ref.name(),
+                                    source_sv_name,
+                                });
+                            }
+                            Some(CopySource::StateVar(comp_ref, StateRef::Basic(source_sv_name)))
+                        }
+                    }
+                } else {
+
+                    if c.component_type != source_type {
+                        return Err(DoenetMLError::ComponentCannotCopyOtherType {
+                            component_name: c.name.clone(),
+                            component_type: c.component_type,
+                            source_type: &source_type,
+                        });
+                    }
+
+                    Some(CopySource::Component(comp_ref))
+                }
+            } else {
+                None
+            };
+
+        let component_node = ComponentNode {
+            name: name.clone(),
+            parent: c.parent.clone(),
+            children: c.children.clone(),
+            copy_source,
+            static_attributes: c.static_attributes.clone(),
+            component_type: c.component_type,
+            definition: c.definition,
+        };
+
+        component_nodes.insert(name.clone(), component_node);
     }
 
     // Check for invalid children component profiles and throw warnings
@@ -210,165 +342,7 @@ pub fn create_doenet_core(
             }
     
         }
-
     }
-
-
-    // Check invalid component names for copy index
-    for (_, (source_name, _, _)) in copy_index_flags.iter() {
-        if !component_nodes.contains_key(source_name) {
-            // The component tried to copy a non-existent component.
-            return Err(DoenetMLError::ComponentDoesNotExist {
-                comp_name: source_name.to_owned()
-            });
-        }
-    }
-
-    // let mut dynamic_copy_index_flags: HashMap<ComponentName, (ComponentName, StateVarName, Vec<ObjectName>)>;
-    
-    for (component_name, copy_index_flag) in copy_index_flags {
-
-        let (copy_index_comp, copy_index_array_sv, copy_index_sources) = copy_index_flag;
-        let component = component_nodes.get_mut(&component_name).unwrap();
-
-        let first_string_source = copy_index_sources.iter().find_map(|source| {
-            if let ObjectName::String(string_source) = source {
-                Some(string_source)
-            } else {
-                None
-            }
-        });
-
-        if copy_index_sources.len() == 1 && first_string_source.is_some() {
-
-            let source = first_string_source.unwrap();
-
-            let index_number: Option<usize> = if let Ok(valid_result) = evalexpr::eval(&source) {
-
-                if let Ok(valid_num) = valid_result.as_number() {
-                    convert_float_to_usize(valid_num)
-                } else {
-                    None
-                }
-            } else {
-                // return Err(DoenetMLError::NonNumericalPropIndex {
-                //     comp_name: component_name,
-                //     invalid_index: source.to_owned()
-                // });
-
-                None
-            };
-
-            let index_number: usize = match index_number {
-                Some(valid_index) =>  valid_index,
-                None => {
-                    doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
-                        comp_name: component_name,
-                        invalid_index: source.to_string()
-                    });
-
-                    0
-                },
-            };
-            
-            component.copy_source = Some(CopySource::StateVar(
-                ComponentRef::Basic(copy_index_comp.to_string()),
-                StateRef::ArrayElement(copy_index_array_sv, index_number)
-            ));
-
-        } else {
-
-            // let all_index_sources_concatted = copy_index_sources.iter()
-            //     .fold(String::new(), |concatted, new_obj| {
-            //         format!("{}{}", concatted, match new_obj {
-            //             ObjectName::String(v) => v,
-            //             ObjectName::Component(v) => v,
-            //         })
-            //     });
-
-            let variable_components = copy_index_sources.iter().filter_map(|obj| {
-                if let ObjectName::Component(comp_name) = obj {
-                    Some(comp_name.clone())
-                } else {
-                    None
-                }
-            }).collect();
-
-            let expression = MathExpression::new(&copy_index_sources);
-
-            if !expression.can_evaluate_to_number() {
-                // return Err(DoenetMLError::NonNumericalPropIndex {
-                //     comp_name: component_name,
-                //     invalid_index: all_index_sources_concatted
-                // });
-            }
-
-            component.copy_source = Some(CopySource::DynamicElement(
-                copy_index_comp.to_string(),
-                copy_index_array_sv,
-                expression,
-                variable_components,
-            ));
-        }
-    
-    }
-
-
-
-
-
-
-    // Check for invalid names in both CopySource::Components and CopySource::StateVar
-    // Also check that all state var array copies are valid
-    let copy_sources = component_nodes.iter().filter_map(|(_, comp)| comp.copy_source.as_ref());
-    for copy_source in copy_sources {
-
-        let source_name = match copy_source {
-            CopySource::Component(comp_ref) => comp_ref.name(),
-            CopySource::StateVar(comp_ref, _) => comp_ref.name(),
-            CopySource::DynamicElement(comp_name, ..) => comp_name.clone(),
-        };
-
-        if !component_nodes.contains_key(&source_name) {
-            // The component tried to copy a non-existent component.
-            return Err(DoenetMLError::ComponentDoesNotExist {
-                comp_name: source_name.to_owned()
-            });
-        }
-
-
-        if let CopySource::StateVar(source_comp_name, source_state_ref) = copy_source {
-            let (source_comp_def, _) = component_ref_definition(&component_nodes, &source_comp_name);
-            let source_sv_def = source_comp_def.state_var_definitions.get(source_state_ref.name()).unwrap();
-
-            if source_sv_def.is_array() {
-                match source_state_ref {
-                    StateRef::Basic(_) => {
-                        return Err(DoenetMLError::CannotCopyArrayStateVar {
-                            source_comp_name: source_comp_name.name(),
-                            source_sv_name: source_state_ref.name(),
-                        });
-    
-                    },
-                    StateRef::ArrayElement(_, _) => {}, //no error
-                    StateRef::SizeOf(_) => unreachable!(),
-                }
-
-            } else {
-                match source_state_ref {
-                    StateRef::Basic(_) => {}, //no error
-                    StateRef::ArrayElement(_, _) => {
-                        return Err(DoenetMLError::CannotCopyIndexForStateVar {
-                            source_comp_name: source_comp_name.name(),
-                            source_sv_name: source_state_ref.name(),
-                        });
-                    },
-                    StateRef::SizeOf(_) => unreachable!(),
-                }
-            }
-        }
-    }
-
 
     // All the components that copy another component, along with the name of the component they copy
     let copy_comp_targets: Vec<(&ComponentNode, &ComponentRef)> = component_nodes.iter().filter_map(|(_, c)|
@@ -377,18 +351,6 @@ pub fn create_doenet_core(
             _ => None,
         }
     ).collect();
-
-    // Make sure that the source and target components are the same type
-    for (comp, source_comp_name) in copy_comp_targets.iter() {
-        let (_, source_comp_type) = component_ref_definition(&component_nodes, source_comp_name);
-        if comp.component_type != source_comp_type {
-            return Err(DoenetMLError::ComponentCannotCopyOtherType {
-                component_name: comp.name.clone(),
-                component_type: comp.component_type,
-                source_type: &source_comp_type,
-            });
-        }
-    }
 
     // Check for cyclical dependencies due to CopySource::Component.
     // Otherwise alias and dependency generation could crash.
@@ -457,6 +419,21 @@ pub fn create_doenet_core(
         }        
     }
     
+
+    // Fill in group dependencies
+
+    let mut group_dependencies = HashMap::new();
+    for (component_name, component) in component_nodes.iter() {
+        if let Some(group_def) = component.definition.group {
+
+            let deps = (group_def.group_dependencies)(
+                &component,
+                &component_nodes,
+            );
+
+            group_dependencies.insert(component_name.clone(), deps);
+        }
+    }
 
     // Fill in component_states and dependencies HashMaps for every component
     // and supply any essential_data required by dependencies.
@@ -571,25 +548,6 @@ fn check_cyclic_copy_source_component(
     None
 }
 
-fn name_child_of_copy(child: &str, copy: &str) -> String {
-    format!("__cp:{}({})", child, copy)
-}
-
-fn name_macro_component(
-    source_name: &str,
-    component_name: &String,
-    copy_counter: &mut HashMap<ComponentName, usize>,
-) -> String {
-    let copy_num = copy_counter.entry(source_name.to_string()).or_insert(0);
-    *copy_num += 1;
-
-    format!("__mcr:{}({})_{}", source_name, component_name, copy_num)
-}
-
-fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
-    format!("{}_from_({}[{}])", name, group, index)
-}
-
 
 /// Check for cyclical dependencies, assuming that we have already traversed through the
 /// given dependency chain. This function might become slow for larger documents with lots of copies
@@ -660,430 +618,6 @@ fn check_for_cyclical_dependencies(
     }
 
     None
-}
-
-
-
-
-lazy_static! {
-    static ref COMPONENT: Regex = Regex::new(r"[a-zA-Z_]\w*").unwrap();
-}
-lazy_static! {
-    static ref PROP: Regex = Regex::new(r"[a-zA-Z]\w*").unwrap();
-}
-lazy_static! {
-    static ref INDEX: Regex = Regex::new(r" *(\d+|\$)").unwrap();
-}
-lazy_static! {
-    static ref INDEX_END: Regex = Regex::new(r" *]").unwrap();
-}
-lazy_static! {
-    static ref MACRO_BEGIN: Regex = Regex::new(r"\$").unwrap();
-}
-
-fn apply_macro_to_string(
-    string: &str,
-    component_name: &ComponentName,
-    components: &HashMap<ComponentName, ComponentNode>,
-    macro_copy_counter: &mut HashMap<ComponentName, usize>,
-    components_to_add: &mut Vec<ComponentNode>,
-) -> Vec<ObjectName> {
-
-    let mut objects = Vec::new();
-    let mut previous_end = 0;
-
-    loop {
-        if previous_end >= string.len() {
-            break;
-        }
-        let some_next_macro = MACRO_BEGIN.find_at(string, previous_end);
-        if some_next_macro.is_none() {
-            break;
-        }
-        let next_macro = some_next_macro.unwrap();
-
-        // Append the regular string until start of macro
-        let before = &string[previous_end..next_macro.start()];
-        if !before.trim().is_empty() {
-            objects.push(ObjectName::String(before.to_string()));
-        }
-
-        match macro_comp_ref(string,
-            next_macro.end(),
-            component_name,
-            components,
-            macro_copy_counter,
-            components_to_add
-        ) {
-            Ok((macro_name, macro_end)) => {
-                previous_end = macro_end;
-                objects.push(ObjectName::Component(macro_name));
-            },
-            Err(msg) => {
-                utils::log!("macro failed: {}", msg);
-                break;
-            }
-        }
-    }
-
-    // Append until the end
-    let last = &string[previous_end..];
-    if !last.is_empty() {
-        objects.push(ComponentChild::String(last.to_string()));
-    }
-
-    objects
-}
-
-fn regex_at<'a>(regex: &Regex, string: &'a str, at: usize) -> Result<regex::Match<'a>, String> {
-    regex.find_at(string, at)
-        .and_then(|m| {
-            if m.start() == at {Some(m)} else {None}
-        })
-        .ok_or(format!("regex {:?} not found at index {} of {}", regex, at, string))
-}
-
-fn macro_comp_ref(
-    string: &str,
-    start: usize,
-    macro_parent: &ComponentName,
-    components: &HashMap<ComponentName, ComponentNode>,
-    macro_copy_counter: &mut HashMap<ComponentName, usize>,
-    components_to_add: &mut Vec<ComponentNode>,
-) -> Result<(ComponentName, usize), String> {
-
-    log_debug!("macro at {} of {}", start, string);
-
-    let comp_match = regex_at(&COMPONENT, string, start)?;
-
-    let source_name = comp_match.as_str().to_string();
-    let source_node = components.get(&source_name).expect(
-        &format!("Macro for {}, but this component does not exist", source_name));
-
-    let char_at = |c: usize| string.as_bytes().get(c).map(|c| *c as char);
-
-    // Handle possible component index: brackets after the component name
-    let (source_comp_ref, comp_end);
-    if char_at(comp_match.end()) == Some('[') {
-        let index_match = regex_at(&INDEX, string, comp_match.end() + 1)?;
-        let index_str = index_match.as_str();
-        let index_end: usize;
-        if index_str == "$" {
-            // dynamic component index
-            panic!("dynamic component index not implemented");
-        } else {
-            // static component index
-            let index: usize = index_str.trim().parse().unwrap();
-            index_end = index_match.end() + 1;
-            source_comp_ref = ComponentRef::GroupMember(source_name.clone(), index);
-        }
-        let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
-        comp_end = close_bracket_match.end();
-    } else {
-        // no component index
-        comp_end = comp_match.end();
-        source_comp_ref = ComponentRef::Basic(source_name.clone());
-    };
-
-    // log_debug!("Getting component definition for {}", source_comp_ref);
-
-    if let ComponentRef::GroupMember(_, _) = source_comp_ref {
-        if components.get(&source_comp_ref.name()).unwrap().definition.group.is_none() {
-            return Err(format!("Component {} is not a group component", source_comp_ref.name()));
-        }    
-    }
-    let (source_def, source_component_type) = component_ref_definition(components, &source_comp_ref);
-
-    let macro_copy: ComponentNode;
-    let macro_end;
-    if char_at(comp_end) == Some('.') {
-        let prop_match = regex_at(&PROP, string, comp_end + 1)?;
-        let prop_name = prop_match.as_str();
-
-        let copy_source: CopySource;
-        if let Some(state_ref) = source_def.array_aliases.get(prop_name) {
-            // static index from alias
-            macro_end = prop_match.end();
-            copy_source = CopySource::StateVar(
-                source_comp_ref,
-                state_ref.clone(),
-            );
-        } else {
-
-            let (prop_name, _) = source_node
-                .definition
-                .state_var_definitions
-                .get_key_value(prop_name)
-                .expect(&format!("Macro asks for non-existent property {}", prop_name));
-
-            // Handle possible prop index: brackets after the prop name
-            if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
-                let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
-                let index_str = index_match.as_str().trim();
-                // log_debug!("index_str is {}", index_str);
-                let index_end: usize;
-                if index_str == "$" {
-                    // dynamic index
-                    let (index_name, index_macro_end) = macro_comp_ref(string,
-                        index_match.end(),
-                        &source_name,
-                        components,
-                        macro_copy_counter,
-                        components_to_add,
-                    )?;
-
-                    index_end = index_macro_end;
-                    copy_source = CopySource::DynamicElement(
-                        source_name.clone(),
-                        prop_name,
-                        MathExpression::new(&vec![ObjectName::Component(index_name.clone())]),
-                        vec![index_name],
-                    );
-                } else {
-                    // static index
-                    let index: usize = index_str.parse().unwrap();
-                    index_end = index_match.end();
-                    copy_source = CopySource::StateVar(
-                        source_comp_ref,
-                        StateRef::ArrayElement(prop_name, index),
-                    );
-                }
-                let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
-                macro_end = close_bracket_match.end();
-            } else {
-                // no index
-                macro_end = prop_match.end();
-                copy_source = CopySource::StateVar(
-                    source_comp_ref,
-                    StateRef::Basic(prop_name),
-                );
-            }
-        }
-
-        let source_comp_sv_name = format!("{}:{}", source_name, prop_name);
-
-        let prop_ref = match &copy_source {
-            CopySource::StateVar(_, sv) => sv.clone(),
-            CopySource::DynamicElement(_, sv_name, _, _) => StateRef::ArrayElement(sv_name, 0),
-            _ => unreachable!(),
-        };
-        let copy_comp_type = default_component_type_for_state_var(source_def, prop_ref)
-            .expect(&format!("could not create component for state var copy macro"));
-
-        let copy_def = COMPONENT_DEFINITIONS.get(copy_comp_type).unwrap().clone();
-
-        let copy_name = name_macro_component(
-            &source_comp_sv_name,
-            macro_parent,
-            macro_copy_counter,
-        );
-
-        macro_copy = ComponentNode {
-            name: copy_name,
-            parent: Some(macro_parent.clone()),
-            children: vec![],
-
-            copy_source: Some(copy_source),
-            component_type: copy_comp_type,
-            static_attributes: HashMap::new(),
-            definition: copy_def,
-        }
-
-    } else {
-
-        let copy_name = name_macro_component(
-            &source_name,
-            macro_parent,
-            macro_copy_counter,
-        );
-
-        let static_attributes = match source_comp_ref {
-            ComponentRef::Basic(_) => source_node.static_attributes.clone(),
-            ComponentRef::GroupMember(_, _) => HashMap::new(),
-        };
-
-        macro_end = comp_end;
-        macro_copy = ComponentNode {
-            name: copy_name,
-            parent: Some(macro_parent.clone()),
-            children: vec![],
-
-            copy_source: Some(CopySource::Component(
-                source_comp_ref,
-            )),
-            static_attributes,
-
-            component_type: source_component_type,
-            definition: source_def,
-        }
-    };
-    let macro_name = macro_copy.name.clone();
-    components_to_add.push(macro_copy);
-
-    Ok((macro_name, macro_end))
-}
-
-fn parse_attributes_and_macros(
-    components: &mut HashMap<ComponentName, ComponentNode>,
-    attributes: HashMap<ComponentName, HashMap<AttributeName, String>>,
-    copy_prop_index_instances: HashMap<ComponentName, (ComponentName, StateVarName, String)>,
-) -> (
-    HashMap<ComponentName, HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>>,
-    HashMap<ComponentName, (ComponentName, StateVarName, Vec<ObjectName>)>,
-    )
-{
-
-    use std::iter::repeat;
-
-    // Keyed by the component name and by the original position of the child we are replacing
-    let mut replacement_children: HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>> = HashMap::new();
-    let mut attributes_parsed = HashMap::new();
-    let mut copy_index_flags_parsed = HashMap::new();
-
-    let mut components_to_add: Vec<ComponentNode> = vec![];
-
-    let mut macro_copy_counter: HashMap<ComponentName, usize> = HashMap::new();
-    
-
-    // This iterator gives info for every string child
-    // (original index of child, string value, component)
-    let all_string_children = components.iter()
-        .flat_map(|(_, comp)|
-            comp.children
-            .iter()
-            .enumerate()
-            .filter_map(|(id, child)| {
-                match child {
-                    ObjectName::String(string_val) => Some((id, string_val)),
-                    _ => None,
-                }
-            })
-            .zip(repeat(comp))
-            .map(|((id, val), comp)| (id, val, comp))
-        );
-
-    let all_attributes = attributes.iter()
-        .flat_map(|(name, attrs)|
-            attrs
-            .iter()
-            .map(|(attr_name, val)| (*attr_name, val, components.get(name).unwrap()))
-            .collect::<Vec<(AttributeName, &String, &ComponentNode)>>()
-        );
-
-    // Component string children
-    for (child_id, string_val, component) in all_string_children {
-
-        let objects = apply_macro_to_string(
-            string_val,
-            &component.name,
-            components,
-            &mut macro_copy_counter,
-            &mut components_to_add
-        );
-
-        // For now, replace everything in the children field
-        replacement_children
-            .entry(component.name.clone()).or_insert(HashMap::new())
-            .entry(child_id).or_insert(objects);
-    }
-
-    // Attributes
-    for (attribute_name, string_val, component) in all_attributes {
-
-        // The reason this uses a HashMap of usizes instead of another Vec is because
-        // later we might want to specify arrays of arrays in the attribute, so the key
-        // might be more complicated than an integer.
-        let objects: HashMap<usize, Vec<ObjectName>> = string_val.split(' ')
-            .enumerate()
-            .map(|(index, string_element)|
-
-                // DoenetML is 1-indexed
-                (index + 1,
-
-                    apply_macro_to_string(
-                        string_element.trim(),
-                        &component.name,
-                        components,
-                        &mut macro_copy_counter,
-                        &mut components_to_add,
-                    )
-                )
-            ).collect();
-
-        attributes_parsed
-            .entry(component.name.clone()).or_insert(HashMap::new())
-            .entry(attribute_name.clone()).or_insert(objects);
-    }
-
-
-    // Copy index flags
-    for (target_name, (source_comp_name, source_sv_name, source_index_str)) in copy_prop_index_instances {
-        
-        let index_objects = apply_macro_to_string(
-            &source_index_str,
-            &target_name,
-            components,
-            &mut macro_copy_counter,
-            &mut components_to_add
-        );
-
-        copy_index_flags_parsed.insert(target_name, (source_comp_name, source_sv_name, index_objects));
-    }
-
-
-
-
-    log_debug!("Components to add from macros: {:#?}", components_to_add);
-
-    for new_component in components_to_add {
-
-        debug_assert!( !components.contains_key(&new_component.name) );
-        components.insert(new_component.name.clone(), new_component);
-    }
-
-
-    log_debug!("Replacement children {:#?}", replacement_children);
-
-    for (component_name, new_children_hashmap) in replacement_children {
-        
-        let component = components.get_mut(&component_name).unwrap();
-
-        let mut new_children_vec: Vec<(usize, Vec<ObjectName>)> = new_children_hashmap
-            .into_iter()
-            .collect();
-
-        // sort by decending order so that splicing does not affect next iteration
-        new_children_vec.sort_by(|(a,_),(b,_)| b.cmp(a));
-
-        for (original_child_id, new_children) in new_children_vec.into_iter() {
-
-            // Remove the original element, and add the new children (in order) in its place
-            component.children.splice(
-                original_child_id..=original_child_id,
-                new_children
-            );
-        }
-    }
-
-    log_debug!("Replacement attributes {:#?}", attributes_parsed);
-
-    (attributes_parsed, copy_index_flags_parsed)
-}
-
-
-fn default_component_type_for_state_var(component: &ComponentDefinition, state_var: StateRef)
-    -> Result<ComponentType, String> {
-
-    let state_var_def = component.state_var_definitions.get(&state_var.name()).unwrap();
-    match (state_var_def, state_var.index()) {
-        (StateVarVariant::Boolean(_), StateIndex::Basic) => Ok("boolean"),
-        (StateVarVariant::Integer(_), StateIndex::Basic) => Ok("number"),
-        (StateVarVariant::NumberArray(_), StateIndex::Element(_)) |
-        (StateVarVariant::Number(_), StateIndex::Basic) => Ok("number"),
-        (StateVarVariant::StringArray(_), StateIndex::Element(_)) |
-        (StateVarVariant::String(_), StateIndex::Basic) => Ok("text"),
-        (v, i) => Err(format!("variant {:?} and index {:?} cannot make a component", v, i)),
-    }
 }
 
 
@@ -2859,6 +2393,15 @@ struct RenderedComponent {
 }
 
 
+fn name_child_of_copy(child: &str, copy: &str) -> String {
+    format!("__cp:{}({})", child, copy)
+}
+
+fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
+    format!("{}_from_({}[{}])", name, group, index)
+}
+
+
 fn generate_render_tree_internal(
     core: &DoenetCore,
     component: RenderedComponent,
@@ -3057,7 +2600,6 @@ fn group_member_definition(
         }
     }
 }
-
 
 /// Returns component definition and component type.
 fn component_ref_definition(

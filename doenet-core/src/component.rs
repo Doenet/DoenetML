@@ -18,7 +18,6 @@ use serde::Serialize;
 
 use crate::state_variables::*;
 use crate::GroupDependency;
-use crate::parse_json::get_key_value_ignore_case;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
@@ -57,9 +56,31 @@ lazy_static! {
     };
 }
 
+pub trait KeyValueIgnoreCase<K, V> {
+    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)>;
+}
+
+impl<K, V> KeyValueIgnoreCase<K,V> for HashMap<K, V>
+where
+    K: ToString + std::cmp::Eq + std::hash::Hash,
+{
+    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)> {
+        let lowercase_to_normalized: HashMap<String, &K> = self
+            .keys()
+            .into_iter()
+            .map(|k| (k.to_string().to_lowercase(), k))
+            .collect();
+
+        lowercase_to_normalized
+            .get(&key.to_string().to_lowercase())
+            .and_then(|k| self.get_key_value(k))
+    }
+}
+
 fn to_component_type(value: &String) -> Result<ComponentType, String> {
     Ok(
-        get_key_value_ignore_case(&COMPONENT_DEFINITIONS, value.as_str())
+        &COMPONENT_DEFINITIONS
+        .get_key_value_ignore_case(value.as_str())
         .ok_or("no component type")?
         .0
     )
