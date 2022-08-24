@@ -18,6 +18,7 @@ regex = "1.5"
 wasm-bindgen = {version = "0.2.81", features = ["serde-serialize"], optional = true}
 web-sys = {version = "0.3", features = ["console"], optional = true}
 evalexpr = {version = "8.1.0", features = ["serde_support"]}
+enum-as-inner = "0.5.1"
 
 [dev-dependencies]
 criterion = "0.3.6"

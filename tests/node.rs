@@ -2,7 +2,6 @@
 
 #[macro_use]
 mod common_node;
-
 use std::{collections::HashMap, thread};
 use std::panic::set_hook;
 use doenet_core::parse_json::DoenetMLWarning;
@@ -28,17 +27,35 @@ fn doenet_ml_error_cyclic_dependency_through_children_indirectly() {
 
 
 #[wasm_bindgen_test]
-fn doenet_ml_error_copy_unnamed_component_gives_error() {
+fn doenet_ml_error_copy_nonexistent_component_gives_error() {
     static DATA: &str = r#"
         <text copySource='qwerty' />
     "#;
     display_doenet_ml_on_failure!(DATA);
 
-
     let error = doenet_core_from(DATA).unwrap_err();
     assert!(matches!(error, DoenetMLError::ComponentDoesNotExist { comp_name: _ }));
 }
 
+// =========== DoenetML warnings ===========
+
+#[wasm_bindgen_test]
+fn doenet_ml_warning_prop_index_not_positive_integer() {
+    static DATA: &str = r#"
+    <sequence name='s' from='1' to='5' />
+    <number copySource='s' copyProp='value' propIndex='1.5' />
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let (_, warnings) = doenet_core_from(DATA).unwrap();
+    assert_eq!(
+        warnings,
+        vec![DoenetMLWarning::PropIndexIsNotPositiveInteger {
+            comp_name: "/_number1".to_string(),
+            invalid_index: "1.5".to_string(),
+        }]
+    )
+}   
 
 
 // ========= <text> ==============
@@ -241,6 +258,8 @@ fn number_input_immediate_value_syncs_with_value_on_update_request() {
 }
 
 
+// ========= <collect> =============
+
 
 #[wasm_bindgen_test]
 fn collect_and_copy_number_input_changes_original() {
@@ -360,6 +379,29 @@ fn sequence_from_and_to_can_be_copied_as_props() {
     assert_sv_is_number(&dc, "/_number6", "value", -993.0);
 }
 
+#[wasm_bindgen_test]
+fn sequence_index_copied_based_on_number_input() {
+    static DATA: &str = r#"
+    <sequence name='s' from='10' to='15' />
+    <p><numberInput name='n' /></p>
+    <p><number copySource='s' copyProp='value' propIndex='$n.value'/></p>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    update_immediate_value_for_number(&dc, "n", "5.0");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 14.0);
+
+    update_immediate_value_for_number(&dc, "n", "2");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 11.0);
+}
 
 
 // ========= <point> ==============
@@ -455,6 +497,74 @@ fn point_copies_another_point_component() {
 }
 
 // =========== <number> ============
+
+#[wasm_bindgen_test]
+fn number_with_string_children() {
+    static DATA: &str = r#"
+    <number />
+    <number></number>
+    <number>5</number>
+    <number>5+1</number>
+    <number>5+ 1 </number>
+    <number>asfd</number>
+    <number> asdft + 5</number>
+
+    <!-- <number>5  1 </number> -->
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 0.0);
+    assert_sv_is_number(&dc, "/_number2", "value", 0.0);
+    assert_sv_is_number(&dc, "/_number3", "value", 5.0);
+    assert_sv_is_number(&dc, "/_number4", "value", 6.0);
+    assert_sv_is_number(&dc, "/_number5", "value", 6.0);
+    assert_sv_is_number(&dc, "/_number6", "value", f64::NAN);
+    assert_sv_is_number(&dc, "/_number7", "value", f64::NAN);
+}
+
+#[wasm_bindgen_test]
+fn number_invalid_children() {
+    static DATA: &str = r#"
+    <number><text>2</text></number>
+    <number><text>3 +</text><text>2</text></number>
+    <number>3 <text /></number>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let (_, warnings) = doenet_core_from(DATA).unwrap();
+
+    assert_eq!(warnings.len(), 4);
+    assert!(warnings.contains(
+        &DoenetMLWarning::InvalidChildType {
+            parent_comp_name: "/_number1".into(),
+            child_comp_name: "/_text1".into(),
+            child_comp_type: "text",
+        },
+    ));
+    assert!(warnings.contains(
+        &DoenetMLWarning::InvalidChildType {
+            parent_comp_name: "/_number2".into(),
+            child_comp_name: "/_text2".into(),
+            child_comp_type: "text",
+        },
+    ));
+    assert!(warnings.contains(
+        &DoenetMLWarning::InvalidChildType {
+            parent_comp_name: "/_number2".into(),
+            child_comp_name: "/_text3".into(),
+            child_comp_type: "text",
+        },
+    ));
+    assert!(warnings.contains(
+        &DoenetMLWarning::InvalidChildType {
+            parent_comp_name: "/_number3".into(),
+            child_comp_name: "/_text4".into(),
+            child_comp_type: "text",
+        },
+    ));
+}
+
 
 #[wasm_bindgen_test]
 fn number_can_do_arithmetic_on_strings_and_number_children() {

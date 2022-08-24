@@ -98,6 +98,8 @@ lazy_static! {
         should_render_children: true,
         
         action_names: || vec!["recordVisibilityChange"],
+
+        valid_children_profiles: ValidChildTypes::AllComponents,
         
         ..Default::default()
     };

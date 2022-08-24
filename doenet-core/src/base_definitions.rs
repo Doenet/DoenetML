@@ -235,8 +235,8 @@ pub fn split_dependency_values_into_math_expression_and_values(dependency_values
         }
     }).collect();
 
-    if values.len() + 1 != dependency_values.len() {
-        return Err(format!("Invalid dependency values for number attribute, {:?}", dependency_values));
+    if values.len() != dependency_values.len() - 1 {
+        return Err(format!("Invalid quantity of numerical dependency values for number-like behavior, {} out of {} were numerical but there should have been {}", values.len(), dependency_values.len(), dependency_values.len() - 1));
     }
 
     Ok((expression, values))
@@ -483,7 +483,14 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
 
         }
 
-        let num = expression.tree.eval_number_with_context(&context).unwrap_or(f64::NAN);
+        let num = if expression.tree.operator() == &Operator::RootNode && expression.tree.children().is_empty() {
+            // Empty expression, set to 0
+            0.0
+
+        } else {
+            expression.tree.eval_number_with_context(&context).unwrap_or(f64::NAN)
+        };
+
         Ok(num)
 
 

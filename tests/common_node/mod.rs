@@ -6,7 +6,7 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-use doenet_core::EssentialDataOrigin;
+use doenet_core::{EssentialDataOrigin, Action};
 use doenet_core::component::ComponentName;
 use doenet_core::parse_json::{DoenetMLError, DoenetMLWarning};
 use doenet_core::state::EssentialStateVar;
@@ -36,7 +36,7 @@ macro_rules! display_doenet_ml_on_failure {
 
 pub fn doenet_core_with_no_warnings(data: &str) -> DoenetCore {
     let (core, warnings) = doenet_core_from(data).expect("DoenetCore creation threw an error");
-    assert_eq!(warnings.len(), 0, "There were DoenetML warning(s)");
+    assert_eq!(warnings, vec![], "There were DoenetML warning(s)");
     core
 }
 
@@ -90,7 +90,30 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
         },
     };
 
-    assert_eq!(State::Resolved(value), state, "Incorrect value from [{}]:[{}]", comp_name, sv_ref);
+    match value {
+        StateVarValue::Number(num_val) => {
+            let resolved_sv_val = state.into_resolved().expect(
+                &format!("Value [{}]:[{}] was stale, expected {}", comp_name, sv_ref, value)
+            );
+
+            let actual_num: f64 = if let StateVarValue::Number(actual_num) = resolved_sv_val {
+                actual_num
+            } else {
+                panic!("Value [{}]:[{}] was {}, expected {}", comp_name, sv_ref, resolved_sv_val, value);
+            };
+
+            assert!(
+                // Float NaN do not have equality with other NaNs, therefore we have to
+                // do this funky thing for numbers
+                (num_val.is_nan() && actual_num.is_nan()) || (num_val == actual_num),
+                "Value [{}]:[{}] was {}, expected {}", comp_name, sv_ref, resolved_sv_val, value
+            );
+
+        },
+        _ => {
+            assert_eq!(State::Resolved(value), state, "Incorrect value from [{}]:[{}]", comp_name, sv_ref);
+        },
+    }
 }
 
 pub fn assert_sv_is_string(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: &'static str) {
@@ -210,4 +233,28 @@ pub fn child_instructions_for<'a>(render_tree: &'a Value, parent: &'static str, 
         .expect(
             &format!("none with name {child} in {:?}", children_instructions)
         ).as_object().unwrap()
+}
+
+
+
+
+
+pub fn update_immediate_value_for_number(dc: &DoenetCore, component_name: &'static str, value: &'static str) {
+    let type_in_number_input = Action {
+        component_name: component_name.to_string(),
+        action_name: "updateImmediateValue".to_string(),
+        args: HashMap::from([
+            ("text".to_string(), StateVarValue::String(value.into())),
+        ]),
+    };
+    doenet_core::handle_action(&dc, type_in_number_input);
+}
+
+pub fn update_value_for_number(dc: &DoenetCore, component_name: &'static str) {
+    let update_number_input_value = Action {
+        component_name: component_name.to_string(),
+        action_name: "updateValue".to_string(),
+        args: HashMap::new(),
+    };
+    doenet_core::handle_action(&dc, update_number_input_value);
 }

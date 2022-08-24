@@ -24,7 +24,7 @@ lazy_static! {
 
                 HashMap::from([
                     ("children", DependencyInstruction::Child {
-                        desired_profiles: vec![ComponentProfile::Number, ComponentProfile::Text],
+                        desired_profiles: vec![ComponentProfile::Number],
                         parse_into_expression: true,
                     }),
                 ])
@@ -101,6 +101,8 @@ lazy_static! {
             (ComponentProfile::Number, "value"),
             (ComponentProfile::Text, "value"),
         ],
+
+        valid_children_profiles: ValidChildTypes::ValidProfiles(vec![ComponentProfile::Number]),
                 
         ..Default::default()
     };

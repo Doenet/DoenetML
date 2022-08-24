@@ -178,6 +178,8 @@ lazy_static! {
             }
         },
 
+        valid_children_profiles: ValidChildTypes::AllComponents,
+
         ..Default::default()
     };
 }

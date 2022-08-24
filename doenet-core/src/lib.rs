@@ -186,6 +186,33 @@ pub fn create_doenet_core(
         }
     }
 
+    // Check for invalid children component profiles and throw warnings
+    for (_, component) in component_nodes.iter() {
+        if let ValidChildTypes::ValidProfiles(ref valid_profiles) = component.definition.valid_children_profiles {
+
+            for child in component.children.iter().filter_map(|child| child.as_component()) {
+                let child_comp = component_nodes.get(child).unwrap();
+                let mut has_valid_profile = false;
+                for (child_profile, _) in child_comp.definition.component_profiles.iter() {
+                    if valid_profiles.contains(child_profile) {
+                        has_valid_profile = true;
+                        break;
+                    }
+                }
+
+                if has_valid_profile == false {
+                    doenet_ml_warnings.push(DoenetMLWarning::InvalidChildType {
+                        parent_comp_name: component.name.clone(),
+                        child_comp_name: child_comp.name.clone(),
+                        child_comp_type: child_comp.component_type,
+                    });
+                }
+            }
+    
+        }
+
+    }
+
 
     // Check invalid component names for copy index
     for (_, (source_name, _, _)) in copy_index_flags.iter() {
@@ -493,7 +520,6 @@ pub fn create_doenet_core(
         &group_dependencies);
 
     // log_debug!("DoenetCore creation warnings, {:?}", doenet_ml_warnings);
-
 
     Ok((DoenetCore {
         component_nodes,
@@ -1360,7 +1386,8 @@ fn create_dependencies_from_instruction(
                         }
                     },
                     (ComponentChild::String(_), actual_parent) => {
-                        if desired_profiles.contains(&ComponentProfile::Text) {
+                        if desired_profiles.contains(&ComponentProfile::Text)
+                            || desired_profiles.contains(&ComponentProfile::Number) {
                             relevant_children.push((&child.0, &actual_parent.name, None));
                         }
                     },
@@ -2062,7 +2089,7 @@ fn dependencies_of_state_var(
         }
     );
 
-    log_debug!("Deps for {}:{} with possible duplicates {:?}", component_name, state_var_slice, deps.clone().collect::<HashMap<InstructionName, &Vec<Dependency>>>());
+    // log_debug!("Deps for {}:{} with possible duplicates {:?}", component_name, state_var_slice, deps.clone().collect::<HashMap<InstructionName, &Vec<Dependency>>>());
 
     let mut combined: HashMap<InstructionName, Vec<Dependency>> = HashMap::new();
     for (k, v) in deps {
@@ -2074,7 +2101,7 @@ fn dependencies_of_state_var(
         }
     }
     
-    log_debug!("Dependencies for {}:{} {:?}", component_name, state_var_slice, combined);
+    // log_debug!("Dependencies for {}:{} {:?}", component_name, state_var_slice, combined);
 
     combined
 }

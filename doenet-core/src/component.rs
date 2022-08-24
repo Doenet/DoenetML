@@ -13,6 +13,7 @@ pub mod collect;
 pub mod section;
 
 use crate::math_expression::MathExpression;
+use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
 use crate::state_variables::*;
@@ -128,6 +129,8 @@ pub struct ComponentDefinition {
     /// state variable that fulfills it.
     /// The first element in the list is the profile most preferred by this component
     pub component_profiles: Vec<(ComponentProfile, StateVarName)>,
+
+    pub valid_children_profiles: ValidChildTypes,
 
     pub attribute_names: Vec<AttributeName>,
 
@@ -283,6 +286,7 @@ impl Default for ComponentDefinition {
             renderer_type: RendererType::Myself,
             primary_input_state_var: None,
             component_profiles: vec![],
+            valid_children_profiles: ValidChildTypes::ValidProfiles(vec![]),
             action_names: || Vec::new(),
             on_action: |_, _, _| vec![],
             group: None,
@@ -306,13 +310,17 @@ impl Debug for ComponentDefinition {
 pub type ComponentChild = ObjectName;
 
 /// An object refers to either a component or a string child.
-#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone, serde::Serialize, EnumAsInner)]
 pub enum ObjectName {
     Component(ComponentName),
     String(String),
 }
 
-
+pub enum ValidChildTypes {
+    AllComponents,
+    /// All children need to match one of the given profiles
+    ValidProfiles(Vec<ComponentProfile>)
+}
 
 #[derive(Debug)]
 pub enum RendererType {

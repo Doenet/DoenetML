@@ -177,6 +177,12 @@ pub enum DoenetMLWarning {
         comp_name: ComponentName,
         invalid_index: String,
     },
+
+    InvalidChildType {
+        parent_comp_name: ComponentName,
+        child_comp_name: ComponentName,
+        child_comp_type: ComponentType,
+    },
 }
 
 impl std::error::Error for DoenetMLWarning {}
@@ -184,8 +190,12 @@ impl Display for DoenetMLWarning {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use DoenetMLWarning::*;
         match self {
-            PropIndexIsNotPositiveInteger { comp_name, invalid_index } =>
-            write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index),
+            PropIndexIsNotPositiveInteger { comp_name, invalid_index } => {
+                write!(f, "Component {} has propIndex '{}' which is not a positive integer", comp_name, invalid_index)
+            },
+            InvalidChildType { parent_comp_name, child_comp_name: _, child_comp_type } => {
+                write!(f, "Component {} cannot have a child component of type {}", parent_comp_name, child_comp_type)
+            },
         }
 
     }

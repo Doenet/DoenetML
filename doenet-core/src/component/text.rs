@@ -64,6 +64,8 @@ lazy_static! {
         component_profiles: vec![
             (ComponentProfile::Text, "value")
         ],
+
+        valid_children_profiles: ValidChildTypes::ValidProfiles(vec![ComponentProfile::Text]),
         
         ..Default::default()
     };

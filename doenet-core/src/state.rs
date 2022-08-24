@@ -1,3 +1,5 @@
+use enum_as_inner::EnumAsInner;
+
 use crate::{state_variables::*, utils::log_debug};
 use std::{cell::RefCell, fmt, cmp::max};
 use self::State::*;
@@ -27,7 +29,7 @@ enum ValueTypeProtector {
 }
 
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, EnumAsInner)]
 pub enum State<T> {
     Stale,
     Resolved(T),
