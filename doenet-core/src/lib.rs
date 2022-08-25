@@ -182,7 +182,7 @@ pub fn create_doenet_core(
                     }
                 });
 
-                let (comp_ref, source_type, source_def);
+                let (comp_ref, source_def);
                 if c.component_index.len() == 1 && first_string.is_some() {
                     // static index
                     let string_value = first_string.unwrap().parse().unwrap_or(0.0);
@@ -199,7 +199,7 @@ pub fn create_doenet_core(
                     let group_def = source_comp.definition.group.unwrap();
 
                     comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), index);
-                    source_type = (group_def.component_type)(&source_comp.static_attributes);
+                    let source_type = (group_def.component_type)(&source_comp.static_attributes);
                     source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
                 } else if c.component_index.len() > 0 {
                     // dynamic index
@@ -210,7 +210,6 @@ pub fn create_doenet_core(
                 } else {
                     // no index
                     comp_ref = ComponentRef::Basic(source_comp_name.clone());
-                    source_type = source_comp.component_type;
                     source_def = source_comp.definition;
                 }
 
@@ -291,11 +290,11 @@ pub fn create_doenet_core(
                     }
                 } else {
 
-                    if c.component_type != source_type {
+                    if !std::ptr::eq(c.definition, source_def) {
                         return Err(DoenetMLError::ComponentCannotCopyOtherType {
                             component_name: c.name.clone(),
-                            component_type: c.component_type,
-                            source_type: &source_type,
+                            component_type: c.definition.component_type,
+                            source_type: &source_def.component_type,
                         });
                     }
 
@@ -311,7 +310,6 @@ pub fn create_doenet_core(
             children: c.children.clone(),
             copy_source,
             static_attributes: c.static_attributes.clone(),
-            component_type: c.component_type,
             definition: c.definition,
         };
 
@@ -336,7 +334,7 @@ pub fn create_doenet_core(
                     doenet_ml_warnings.push(DoenetMLWarning::InvalidChildType {
                         parent_comp_name: component.name.clone(),
                         child_comp_name: child_comp.name.clone(),
-                        child_comp_type: child_comp.component_type,
+                        child_comp_type: child_comp.definition.component_type,
                     });
                 }
             }
@@ -903,7 +901,7 @@ fn create_dependencies_from_instruction(
                             Some(_) => ComponentGroup::Group(child_name.clone()),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
-                        let (child_def, _) = group_member_definition(
+                        let child_def = group_member_definition(
                             components,
                             &component_group
                         );
@@ -976,7 +974,7 @@ fn create_dependencies_from_instruction(
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
 
-                        let (child_def, _) = group_member_definition(
+                        let child_def = group_member_definition(
                             components,
                             &component_group
                         );
@@ -1671,10 +1669,10 @@ fn get_source_for_dependency(
         },
 
         Dependency::StateVar { component_group, state_var_slice } => {
-            let (_, component_type) = group_member_definition(
+            let component_type = group_member_definition(
                 &core.component_nodes,
                 component_group,
-            );
+            ).component_type;
 
             DependencySource::StateVar {
                 component_type,
@@ -1683,7 +1681,10 @@ fn get_source_for_dependency(
         },
 
         Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, .. } => {
-            let component_type = core.component_nodes.get(component_name).unwrap().component_type;
+            let component_type = core.component_nodes
+                .get(component_name).unwrap()
+                .definition
+                .component_type;
             DependencySource::StateVar {
                 component_type,
                 state_var_name: &array_state_var_name
@@ -1833,7 +1834,7 @@ fn resolve_state_variable(
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
                             source: dependency_source,
-                            value: value,
+                            value,
                         })
                     }
                 },
@@ -1896,7 +1897,7 @@ fn resolve_state_variable(
         state_var_ref,
         dependency_values
     ).expect(&format!("Can't resolve {}:{} (a {} component type)",
-        component, state_var_ref, node.component_type)
+        component, state_var_ref, node.definition.component_type)
     );
 
     let new_value = handle_update_instruction(component,  state_var_ref, state_vars, update_instruction);
@@ -2216,7 +2217,7 @@ fn convert_dependency_values_to_update_request(
 
         let instruct_dependencies = my_dependencies.get(instruction_name).expect(
             &format!("{}:{} has the wrong instruction name to determine dependencies",
-                component.component_type, state_var)
+                component.definition.component_type, state_var)
         );
 
         assert_eq!(valid_requests.len(), instruct_dependencies.len());
@@ -2413,7 +2414,7 @@ fn generate_render_tree_internal(
 
     // log_debug!("generating render tree for {:?}", component);
 
-    let (component_definition, component_type) = component_ref_definition(
+    let component_definition = component_ref_definition(
         &core.component_nodes,
         &component.component_ref,
     );
@@ -2490,7 +2491,7 @@ fn generate_render_tree_internal(
     }
 
     let name_to_render = match &component.component_ref {
-        ComponentRef::GroupMember(n, i) => name_member_of_group(&component_type, n, *i),
+        ComponentRef::GroupMember(n, i) => name_member_of_group(component_definition.component_type, n, *i),
         _ => component_name.clone(),
     };
     let name_to_render = match &component.child_of_copy {
@@ -2518,11 +2519,11 @@ fn generate_render_tree_internal(
                         ),
                     };
 
-                    let (child_definition, child_type) =
+                    let child_definition =
                         component_ref_definition(&core.component_nodes, &child_component.component_ref);
 
                     let child_name = match &child_component.component_ref {
-                        ComponentRef::GroupMember(n, i) => name_member_of_group(&child_type, n, *i),
+                        ComponentRef::GroupMember(n, i) => name_member_of_group(&child_definition.component_type, n, *i),
                         ComponentRef::Basic(n) => n.clone(),
                     };
 
@@ -2555,13 +2556,13 @@ fn generate_render_tree_internal(
 
                     let renderer_type = match &child_definition.renderer_type {
                         RendererType::Special{ component_type, .. } => *component_type,
-                        RendererType::Myself => child_type,
+                        RendererType::Myself => child_definition.component_type,
                     };
 
                     children_instructions.push(json!({
                         "actions": child_actions,
                         "componentName": child_name,
-                        "componentType": child_type,
+                        "componentType": child_definition.component_type,
                         "effectiveName": child_name,
                         "rendererType": renderer_type,
                     }));
@@ -2588,7 +2589,7 @@ fn generate_render_tree_internal(
 fn group_member_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component_group: &ComponentGroup,
-) -> (&'static ComponentDefinition, ComponentType) {
+) -> &'static ComponentDefinition {
 
     match component_group {
         ComponentGroup::Group(group_name) => {
@@ -2605,7 +2606,7 @@ fn group_member_definition(
 fn component_ref_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component_ref: &ComponentRef,
-) -> (&'static ComponentDefinition, ComponentType) {
+) -> &'static ComponentDefinition {
 
     // log_debug!("Getting component ref definition for {:?}", component_ref);
 
@@ -2622,10 +2623,10 @@ fn component_ref_definition(
         },
         _ => component_nodes.get(&name).expect(
                 &format!("no component named {}", name)
-            ).component_type,
+            ).definition.component_type,
     };
 
-    (COMPONENT_DEFINITIONS.get(child_type).unwrap(), child_type)
+    COMPONENT_DEFINITIONS.get(child_type).unwrap()
 }
 
 
@@ -2860,7 +2861,7 @@ fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateRef)
                 None
             }
         } else {
-            panic!("{} component type doesn't have a primary input state var", component.component_type);
+            panic!("{} component type doesn't have a primary input state var", component.definition.component_type);
         }
 
     } else if let Some(CopySource::DynamicElement(ref source_comp, ref source_state_var, ..)) = component.copy_source {
@@ -2873,7 +2874,7 @@ fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateRef)
                 None
             }
         } else {
-            panic!("{} component type doesn't have a primary input state var", component.component_type);
+            panic!("{} component type doesn't have a primary input state var", component.definition.component_type);
         }
 
 

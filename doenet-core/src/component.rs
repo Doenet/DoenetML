@@ -37,22 +37,23 @@ pub type ComponentName = String;
 lazy_static! {
     pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
 
-        let mut defs: HashMap<ComponentType, &'static ComponentDefinition> = HashMap::new();
-        defs.insert("text",         &crate::text         ::MY_COMPONENT_DEFINITION);
-        defs.insert("number"   ,    &crate::number       ::MY_COMPONENT_DEFINITION);
-        defs.insert("textInput",    &crate::text_input   ::MY_COMPONENT_DEFINITION);
-        defs.insert("document",     &crate::document     ::MY_COMPONENT_DEFINITION);
-        defs.insert("boolean",      &crate::boolean      ::MY_COMPONENT_DEFINITION);
-        defs.insert("p",            &crate::p            ::MY_COMPONENT_DEFINITION);
-        defs.insert("numberInput",  &crate::number_input ::MY_COMPONENT_DEFINITION);
-        defs.insert("booleanInput", &crate::boolean_input::MY_COMPONENT_DEFINITION);
-        defs.insert("sequence",     &crate::sequence     ::MY_COMPONENT_DEFINITION);
-        defs.insert("graph",        &crate::graph        ::MY_COMPONENT_DEFINITION);
-        defs.insert("point",        &crate::point        ::MY_COMPONENT_DEFINITION);
-        defs.insert("collect",      &crate::collect      ::MY_COMPONENT_DEFINITION);
-        defs.insert("section",      &crate::section      ::MY_COMPONENT_DEFINITION);
-        defs
+        let defs: Vec<&'static ComponentDefinition> = vec![
+            &crate::text         ::MY_COMPONENT_DEFINITION,
+            &crate::number       ::MY_COMPONENT_DEFINITION,
+            &crate::text_input   ::MY_COMPONENT_DEFINITION,
+            &crate::document     ::MY_COMPONENT_DEFINITION,
+            &crate::boolean      ::MY_COMPONENT_DEFINITION,
+            &crate::p            ::MY_COMPONENT_DEFINITION,
+            &crate::number_input ::MY_COMPONENT_DEFINITION,
+            &crate::boolean_input::MY_COMPONENT_DEFINITION,
+            &crate::sequence     ::MY_COMPONENT_DEFINITION,
+            &crate::graph        ::MY_COMPONENT_DEFINITION,
+            &crate::point        ::MY_COMPONENT_DEFINITION,
+            &crate::collect      ::MY_COMPONENT_DEFINITION,
+            &crate::section      ::MY_COMPONENT_DEFINITION,
+        ];
 
+        defs.into_iter().map(|def| (def.component_type, def)).collect()
     };
 }
 
@@ -93,7 +94,6 @@ pub struct ComponentNode {
     pub name: ComponentName,
     pub parent: Option<ComponentName>,
     pub children: Vec<ComponentChild>,
-    pub component_type: ComponentType,
 
     pub copy_source: Option<CopySource>,
     pub static_attributes: HashMap<AttributeName, String>,
@@ -180,6 +180,8 @@ pub struct ComponentDefinition {
     pub renderer_type: RendererType,
 
     pub group: Option<&'static GroupComponent>,
+
+    pub component_type: ComponentType,
 
 }
 
@@ -311,6 +313,7 @@ impl Default for ComponentDefinition {
             action_names: || Vec::new(),
             on_action: |_, _, _| vec![],
             group: None,
+            component_type: "default_invalid",
         }
     }
 }

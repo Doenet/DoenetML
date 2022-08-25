@@ -56,7 +56,7 @@ fn depend_on_children_of_type(
                 let comp = component_nodes.get(c).unwrap();
                 let child_type = match comp.definition.group {
                     Some(def) => (def.component_type)(&node.static_attributes),
-                    None => comp.component_type,
+                    None => comp.definition.component_type,
                 };
                 if child_type.to_lowercase() == component_type.to_lowercase() {
                     Some(match comp.definition.group {
@@ -82,6 +82,7 @@ lazy_static! {
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        component_type: "collect",
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 

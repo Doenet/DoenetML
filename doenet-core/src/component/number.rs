@@ -88,6 +88,8 @@ lazy_static! {
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        component_type: "number",
+
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
         attribute_names: vec![

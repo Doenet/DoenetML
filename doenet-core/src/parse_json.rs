@@ -256,7 +256,6 @@ pub struct MLComponent {
     pub component_index: Vec<ObjectName>,
     pub prop_index: Vec<ObjectName>,
 
-    pub component_type: ComponentType,
     pub definition: &'static ComponentDefinition,
 }
 
@@ -366,11 +365,12 @@ fn add_component_from_json(
 
     let component_type: &str = &component_tree.component_type;
 
-    let (&component_type, &definition) = &COMPONENT_DEFINITIONS
+    let definition = &COMPONENT_DEFINITIONS
         .get_key_value_ignore_case(component_type)
         .ok_or(DoenetMLError::InvalidComponentType {
             comp_type: component_type.to_string() }
-        )?;
+        )?
+        .1;
 
     let count = component_type_counter.entry(component_type.to_string()).or_insert(0);
     *count += 1;
@@ -453,7 +453,6 @@ fn add_component_from_json(
 
         static_attributes,
 
-        component_type,
         definition,
     };
 
@@ -700,7 +699,7 @@ fn macro_comp_ref(
     let comp_match = regex_at(&COMPONENT, string, start)?;
 
     let name: String;
-    let component_type: ComponentType;
+    let definition: &ComponentDefinition;
     let copy_source = comp_match.as_str().to_string();
     let component_index: Vec<ObjectName>;
     let copy_prop: Option<String>;
@@ -712,9 +711,9 @@ fn macro_comp_ref(
 
     // Handle possible component index: brackets after the component name
     let comp_end;
-    let source_type;
     let source_def;
     if char_at(comp_match.end()) == Some('[') {
+        // group member
         let index_match = regex_at(&INDEX, string, comp_match.end() + 1)?;
         let index_str = index_match.as_str();
         let index_end: usize;
@@ -729,7 +728,7 @@ fn macro_comp_ref(
         let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
         comp_end = close_bracket_match.end();
 
-        source_type = (source_component.definition.group.unwrap().component_type)(
+        let source_type = (source_component.definition.group.unwrap().component_type)(
             &source_component.static_attributes
         );
         source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
@@ -737,7 +736,6 @@ fn macro_comp_ref(
         // no component index
         comp_end = comp_match.end();
         component_index = vec![];
-        source_type = source_component.component_type;
         source_def = source_component.definition;
     };
 
@@ -780,7 +778,9 @@ fn macro_comp_ref(
 
         let source_comp_sv_name = format!("{}:{}", copy_source, prop);
         let variant = source_def.state_var_definitions.get(prop).unwrap();
-        component_type = default_component_type_for_state_var(variant).unwrap();
+        definition = &COMPONENT_DEFINITIONS
+            .get(default_component_type_for_state_var(variant).unwrap())
+            .unwrap();
 
         name = name_macro_component(
             &source_comp_sv_name,
@@ -790,6 +790,7 @@ fn macro_comp_ref(
         copy_prop = Some(prop.to_string());
 
     } else {
+        // no prop
         copy_prop = None;
         prop_index = vec![];
 
@@ -798,10 +799,11 @@ fn macro_comp_ref(
             macro_parent,
             macro_copy_counter,
         );
-        component_type = source_type;
+        definition = source_def;
 
         macro_end = comp_end;
     };
+
     let macro_copy = MLComponent {
         name,
         parent: Some(macro_parent.clone()),
@@ -814,8 +816,7 @@ fn macro_comp_ref(
 
         static_attributes: HashMap::new(),
 
-        component_type,
-        definition: COMPONENT_DEFINITIONS.get(component_type).unwrap().clone(),
+        definition,
     };
     let macro_name = macro_copy.name.clone();
     components_to_add.push(macro_copy);

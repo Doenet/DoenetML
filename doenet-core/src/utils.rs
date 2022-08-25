@@ -100,7 +100,7 @@ pub fn package_subtree_as_json(
             Some(ref parent_name) => Value::String(parent_name.into()),
             None => Value::Null,
         });
-    my_json_props.insert("type".to_owned(), Value::String(component.component_type.to_string()));
+    my_json_props.insert("type".to_owned(), Value::String(component.definition.component_type.to_string()));
     my_json_props.insert("copySource".to_owned(),
         match &component.copy_source {
             Some(CopySource::Component(copy_source_name)) => Value::String(copy_source_name.to_string()),

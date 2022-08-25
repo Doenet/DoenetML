@@ -172,6 +172,8 @@ lazy_static! {
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
+        component_type: "sequence",
+
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
         group: Some(&MY_GROUP_DEFINITION),
