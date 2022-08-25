@@ -37,6 +37,22 @@ fn doenet_ml_error_copy_nonexistent_component_gives_error() {
     assert!(matches!(error, DoenetMLError::ComponentDoesNotExist { comp_name: _ }));
 }
 
+#[wasm_bindgen_test]
+fn doenet_ml_error_copy_nonexistent_state_var_gives_error() {
+    static DATA: &str = r#"
+        <text name='a'>hi</text>
+        <text copySource='a' copyProp='qwertyqwerty' />
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let error = doenet_core_from(DATA).unwrap_err();
+    assert_eq!(error, DoenetMLError::StateVarDoesNotExist {
+        comp_name: "a".into(),
+        sv_name: "qwertyqwerty".into()
+    });
+}
+
+
 // =========== DoenetML warnings ===========
 
 #[wasm_bindgen_test]
@@ -859,36 +875,55 @@ fn sequence_dynamic_length() {
 //     assert_sv_is_number(&dc, "/_number1", "value", 172.0);
 // }
 
-// // TODO: Do we want to allow this notation?
-// // This test takes a long time to run
-// #[wasm_bindgen_test]
-// fn macro_prop_index_inside_prop_index_with_whitespace_older_notation() {
-//     static DATA: &str = r#"
-//     <sequence hide name='s1' from='11' to='30' />
-//     <sequence hide name='s2' from='51' to='100' />
-//     <sequence hide name='s3' from='101' to='500' />
+// TODO: Do we want to allow this notation?
+// This test takes a long time to run
+#[wasm_bindgen_test]
+fn macro_prop_index_inside_prop_index_with_whitespace_older_notation() {
+    static DATA: &str = r#"
+    <sequence hide name='s1' from='11' to='30' />
+    <sequence hide name='s2' from='51' to='100' />
+    <sequence hide name='s3' from='101' to='500' />
     
-//     <text>$s1.value[1]</text>
-//     <text>$s2.value[$s1.value[3]]</text>
-//     <text>$s2.value[   $s1.value[3]    ]</text>
-//     <text>$s2.value[$s1.value[3]    ]</text>
-//     <text>$s2.value[ $s1.value[3]]</text>
-//     <text>$s3.value[ $s2.value[$s1.value[5]] ]</text>
-//     <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
-//     "#;
-//     display_doenet_ml_on_failure!(DATA);
-//     let dc = doenet_core_with_no_warnings(DATA);
-//     doenet_core::update_renderers(&dc);
+    <text>$s1.value[1]</text>
+    <text>$s2.value[$s1.value[3]]</text>
+    <text>$s2.value[   $s1.value[3]    ]</text>
+    <text>$s2.value[$s1.value[3]    ]</text>
+    <text>$s2.value[ $s1.value[3]]</text>
+    <text>$s3.value[ $s2.value[$s1.value[5]] ]</text>
+    <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
 
-//     assert_sv_is_string(&dc, "/_text1", "value", "11");
-//     assert_sv_is_string(&dc, "/_text2", "value", "63");
-//     assert_sv_is_string(&dc, "/_text3", "value", "63");
-//     assert_sv_is_string(&dc, "/_text4", "value", "63");
-//     assert_sv_is_string(&dc, "/_text5", "value", "63");
-//     assert_sv_is_string(&dc, "/_text6", "value", "165");
-//     assert_sv_is_number(&dc, "/_number1", "value", 172.0);
-// }
+    assert_sv_is_string(&dc, "/_text1", "value", "11");
+    assert_sv_is_string(&dc, "/_text2", "value", "63");
+    assert_sv_is_string(&dc, "/_text3", "value", "63");
+    assert_sv_is_string(&dc, "/_text4", "value", "63");
+    assert_sv_is_string(&dc, "/_text5", "value", "63");
+    assert_sv_is_string(&dc, "/_text6", "value", "165");
+    assert_sv_is_number(&dc, "/_number1", "value", 172.0);
+}
 
+
+#[wasm_bindgen_test]
+fn macro_invalid_component_or_state_var_or_index_does_not_crash() {
+    static DATA: &str = r#"
+        <text name='a'>$asdfasdf</text>
+        <text name='b'>$a.qwertyqwerty</text>
+        <text name='c'>$a.value[5]</text>
+        <text name='d'>$a[5].value</text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "a", "value", "$asdfasdf");
+    assert_sv_is_string(&dc, "b", "value", "$a.qwertyqwerty");
+    assert_sv_is_string(&dc, "c", "value", "$a.value[5]");
+    assert_sv_is_string(&dc, "d", "value", "$a[5].value");
+}
 
 // ========= Reloading essential data ============
 

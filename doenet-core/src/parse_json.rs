@@ -707,7 +707,7 @@ fn macro_comp_ref(
     let copy_prop: Option<String>;
     let prop_index: Vec<ObjectName>;
 
-    let source_component = components.get(&copy_source).unwrap();
+    let source_component = components.get(&copy_source).ok_or(format!("The component {} does not exist", copy_source))?;
 
     let char_at = |c: usize| string.as_bytes().get(c).map(|c| *c as char);
 
@@ -730,7 +730,11 @@ fn macro_comp_ref(
         let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
         comp_end = close_bracket_match.end();
 
-        let source_type = (source_component.definition.group.unwrap().component_type)(
+        let group_definition = source_component.definition.group.ok_or(
+            format!("Component {} cannot be indexed", copy_source)
+        )?;
+
+        let source_type = (group_definition.component_type)(
             &source_component.static_attributes
         );
         source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
@@ -747,8 +751,22 @@ fn macro_comp_ref(
         let prop_match = regex_at(&PROP, string, comp_end + 1)?;
         let prop = prop_match.as_str();
 
+        let variant = match source_def.state_var_definitions.get(prop) {
+            Some(v) => v,
+            None => source_def.state_var_definitions.get(
+                source_def.array_aliases.get(prop)
+                .ok_or(format!("prop doesn't exist on {:?}", source_def))?
+                .name()
+            ).unwrap(),
+        };
+
         // Handle possible prop index: brackets after the prop name
         if string.as_bytes().get(prop_match.end()) == Some(&b'[') {
+
+            if !variant.is_array() {
+                return Err(format!("{}.{} cannot be indexed", copy_source, prop));
+            }
+
             let index_match = regex_at(&INDEX, string, prop_match.end() + 1)?;
             let index_str = index_match.as_str().trim();
             let index_end: usize;
@@ -780,17 +798,8 @@ fn macro_comp_ref(
 
         let source_comp_sv_name = format!("{}:{}", copy_source, prop);
 
-        let variant = match source_def.state_var_definitions.get(prop) {
-            Some(v) => v,
-            None => source_def.state_var_definitions.get(
-                source_def.array_aliases.get(prop)
-                .ok_or(format!("prop doesn't exist on {:?}", source_def))?
-                .name()
-            ).unwrap(),
-        };
-
         definition = &COMPONENT_DEFINITIONS
-            .get(default_component_type_for_state_var(variant).unwrap())
+            .get(default_component_type_for_state_var(variant))
             .unwrap();
 
         name = name_macro_component(
@@ -838,15 +847,15 @@ fn macro_comp_ref(
 
 
 fn default_component_type_for_state_var(component: &StateVarVariant)
-    -> Result<ComponentType, String> {
+    -> ComponentType {
 
     match component {
-        StateVarVariant::Boolean(_) => Ok("boolean"),
-        StateVarVariant::Integer(_) => Ok("number"),
+        StateVarVariant::Boolean(_) => "boolean",
+        StateVarVariant::Integer(_) => "number",
         StateVarVariant::NumberArray(_) |
-        StateVarVariant::Number(_) => Ok("number"),
+        StateVarVariant::Number(_) => "number",
         StateVarVariant::StringArray(_) |
-        StateVarVariant::String(_) => Ok("text"),
+        StateVarVariant::String(_) => "text",
     }
 }
 
