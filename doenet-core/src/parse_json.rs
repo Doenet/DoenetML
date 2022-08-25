@@ -723,7 +723,7 @@ fn macro_comp_ref(
         } else {
             // static component index
             component_index = vec![ObjectName::String(index_str.trim().to_string())];
-            index_end = index_match.end() + 1;
+            index_end = index_match.end();
         }
         let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
         comp_end = close_bracket_match.end();
@@ -777,7 +777,16 @@ fn macro_comp_ref(
         }
 
         let source_comp_sv_name = format!("{}:{}", copy_source, prop);
-        let variant = source_def.state_var_definitions.get(prop).unwrap();
+
+        let variant = match source_def.state_var_definitions.get(prop) {
+            Some(v) => v,
+            None => source_def.state_var_definitions.get(
+                source_def.array_aliases.get(prop)
+                .ok_or(format!("prop doesn't exist on {:?}", source_def))?
+                .name()
+            ).unwrap(),
+        };
+
         definition = &COMPONENT_DEFINITIONS
             .get(default_component_type_for_state_var(variant).unwrap())
             .unwrap();

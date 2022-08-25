@@ -323,7 +323,8 @@ pub fn create_doenet_core(
             for child in component.children.iter().filter_map(|child| child.as_component()) {
                 let child_comp = component_nodes.get(child).unwrap();
                 let mut has_valid_profile = false;
-                for (child_profile, _) in child_comp.definition.component_profiles.iter() {
+                let child_member_def = definition_of_members(child_comp.definition, &child_comp.static_attributes);
+                for (child_profile, _) in child_member_def.component_profiles.iter() {
                     if valid_profiles.contains(child_profile) {
                         has_valid_profile = true;
                         break;
@@ -2627,6 +2628,21 @@ fn component_ref_definition(
     };
 
     COMPONENT_DEFINITIONS.get(child_type).unwrap()
+}
+
+/// Returns component definition and component type.
+fn definition_of_members<'a>(
+    definition: &'a ComponentDefinition,
+    static_attributes: &HashMap<AttributeName, String>,
+) -> &'a ComponentDefinition {
+
+    if let Some(group_def) = definition.group {
+        COMPONENT_DEFINITIONS.get(
+            (group_def.component_type)(static_attributes)
+        ).unwrap()
+    } else {
+        definition
+    }
 }
 
 

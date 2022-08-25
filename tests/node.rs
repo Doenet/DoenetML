@@ -222,6 +222,23 @@ fn text_input_update_immediate_value_and_update_value() {
     assert_sv_is_string(&dc, "/_text1", "value", "the second text input changed this value");
 }
 
+#[wasm_bindgen_test]
+fn text_input_macro() {
+    static DATA: &str = r#"
+        <textInput name="t" prefill="Cake"/>
+        <text>$t.value is good.</text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "t", "value", "Cake");
+    assert_sv_is_string(&dc, "t", "immediateValue", "Cake");
+    assert_sv_is_string(&dc, "/_text1", "value", "Cake is good.");
+}
+
 // ========= <numberInput> ==============
 
 #[wasm_bindgen_test]
@@ -318,6 +335,25 @@ fn collect_and_copy_number_input_changes_original() {
 }
 
 
+#[wasm_bindgen_test]
+fn collect_point_into_text() {
+    static DATA: &str = r#"
+        <graph name="graph">
+                <point name="p1" xs="2 3"/>
+                <point name="p2" xs="$p1.y $p1.x"/>
+        </graph>
+        <text name="t"><collect source="graph" componentType="point"/></text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "p1", "xs", vec![2.0, 3.0]);
+    assert_sv_array_is_number_list(&dc, "p2", "xs", vec![3.0, 2.0]);
+    assert_sv_is_string(&dc, "t", "value", "(2, 3)(3, 2)");
+}
+
 // ========= <sequence> ==============
 
 #[wasm_bindgen_test]
@@ -403,6 +439,27 @@ fn sequence_index_copied_based_on_number_input() {
     assert_sv_is_number(&dc, "/_number1", "value", 11.0);
 }
 
+#[wasm_bindgen_test]
+fn sequence_macro_component_index() {
+    static DATA: &str = r#"
+        <p>
+                <sequence name="seq" from="1" to="20"/>.
+
+                <text>Fifth:$seq[5].value.</text>
+                <text>Fifth:$seq[  5 ].value.</text>
+                <text>Fifth: $seq[ 5 ].value</text>
+                <text>Fifth: $seq[5  ].value</text>
+        </p>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "/_text1", "value", "Fifth:5.");
+    assert_sv_is_string(&dc, "/_text2", "value", "Fifth:5.");
+    assert_sv_is_string(&dc, "/_text3", "value", "Fifth: 5");
+    assert_sv_is_string(&dc, "/_text4", "value", "Fifth: 5");
+}
 
 // ========= <point> ==============
 
