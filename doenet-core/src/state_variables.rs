@@ -271,6 +271,10 @@ pub enum DependencyInstruction {
         component_ref: Option<ComponentRef>,
         state_var: StateVarSlice,
     },
+    CorrespondingElements {
+        component_ref: Option<ComponentRef>,
+        array_state_var_name: StateVarName,
+    },
     Parent {
         state_var: StateVarName,
     },

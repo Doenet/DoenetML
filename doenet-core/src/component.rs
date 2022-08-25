@@ -282,6 +282,7 @@ impl ComponentRef {
     }
 }
 impl ComponentGroup {
+    /// Group name
     pub fn name(&self) -> ComponentName {
         match self {
             Self::Single(comp_ref) => comp_ref.name(),

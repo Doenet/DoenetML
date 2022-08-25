@@ -71,17 +71,17 @@ lazy_static! {
 
             return_array_dependency_instructions: |_| {
                 HashMap::from([(
-                    "sv_value", DependencyInstruction::StateVar {
+                    "corresponding_value", DependencyInstruction::CorrespondingElements {
                         component_ref: None,
-                        state_var: StateVarSlice::Array("value"),
+                        array_state_var_name: "value",
                     }
                 )])
             },
 
-            determine_element_from_dependencies: |index, dependency_values| {
-                let values: Vec<f64> = dependency_values.dep_value("sv_value")?
-                    .into_number_list()?;
-                let my_value = values.get(index).unwrap();
+            determine_element_from_dependencies: |_, dependency_values| {
+                let my_value: f64 = dependency_values.dep_value("corresponding_value")?
+                    .has_exactly_one_element()?
+                    .into_number()?;
                 let my_text = my_value.to_string();
 
                 Ok(SetValue(my_text))

@@ -99,6 +99,10 @@ pub enum Dependency {
         component_group: ComponentGroup,
         state_var_slice: StateVarSlice,
     },
+    StateVarArrayCorrespondingElement {
+        component_group: ComponentGroup,
+        array_state_var_name: StateVarName,
+    },
 
     StateVarArrayDynamicElement {
         component_name: ComponentName,
@@ -881,6 +885,22 @@ fn create_dependencies_from_instruction(
 
         },
 
+        DependencyInstruction::CorrespondingElements { component_ref, array_state_var_name } => {
+
+            let component_ref = match component_ref {
+                Some(name) => name.clone(),
+                None => ComponentRef::Basic(component.name.clone()),
+            };
+
+            dependencies.push(
+                Dependency::StateVarArrayCorrespondingElement {
+                    component_group: ComponentGroup::Single(component_ref),
+                    array_state_var_name,
+                }
+            );
+
+        },
+
         DependencyInstruction::Child { desired_profiles, parse_into_expression } => {
 
             let children = get_children_including_copy(components, component);
@@ -1427,11 +1447,11 @@ fn essential_data_exists_for(
 
 
 /// Calculate all the (normal) state vars that depend on the given state var
-fn get_state_variables_depending_on_me<'a>(
-    core: &'a DoenetCore,
+fn get_state_variables_depending_on_me(
+    core: &DoenetCore,
     sv_component: &ComponentName,
     sv_reference: &StateRef,
-) -> Vec<(ComponentName, &'a StateVarSlice)> {
+) -> Vec<(ComponentName, StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
@@ -1444,10 +1464,23 @@ fn get_state_variables_depending_on_me<'a>(
                     if sv_component == &component_group.name() 
                     && state_var_slice.name() == sv_reference.name() {
 
-                        let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_group));
+                        let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
                 },
+
+                Dependency::StateVarArrayCorrespondingElement { component_group, array_state_var_name } => {
+                    if sv_component == &component_group.name() 
+                    && *array_state_var_name == sv_reference.name() {
+
+                        let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                        let dependent_ref = match dependent_slice {
+                            StateVarSlice::Array(array_name) => StateRef::from_name_and_index(array_name, sv_reference.index()),
+                            StateVarSlice::Single(_) => panic!(),
+                        };
+                        depending_on_me.push((dependent_comp.clone(), StateVarSlice::Single(dependent_ref)));
+                    }
+                }
 
                 Dependency::StateVarArrayDynamicElement {
                     component_name,
@@ -1468,15 +1501,15 @@ fn get_state_variables_depending_on_me<'a>(
 
                     if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
 
-                        let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_group));
+                        let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
     
 
                 }
 
-                // Essential and String dependencies are endpoints
-                _ => {},
+                // Essential dependencies are endpoints
+                Dependency::Essential { .. } => {},
 
             }
         }
@@ -1513,7 +1546,7 @@ fn groups_depending_on_state_var(
             };
             if depends_on {
                 depending_on_me.extend(
-                    group_and_groups_depending_on_it(core, comp_name)
+                    groups_depending_on_group(core, comp_name)
                 );
             }
         }
@@ -1521,12 +1554,12 @@ fn groups_depending_on_state_var(
     depending_on_me
 }
 
-fn group_and_groups_depending_on_it(
+fn groups_depending_on_group(
     core: &DoenetCore,
     group_name: &ComponentName,
 ) -> Vec<ComponentName> {
 
-    let mut depending_on_me = vec![group_name.clone()];
+    let mut depending_on_me = vec![];
 
     for (comp_name, group_deps) in core.group_dependencies.iter() {
         for group_dep in group_deps {
@@ -1537,7 +1570,7 @@ fn group_and_groups_depending_on_it(
             };
             if depends_on {
                 depending_on_me.extend(
-                    group_and_groups_depending_on_it(core, comp_name)
+                    groups_depending_on_group(core, comp_name)
                 );
             }
         }
@@ -1545,10 +1578,10 @@ fn group_and_groups_depending_on_it(
     depending_on_me
 }
 
-fn state_vars_depending_on_group<'a>(
-    core: &'a DoenetCore,
+fn state_vars_depending_on_group(
+    core: &DoenetCore,
     group_name: &ComponentName,
-) -> Vec<(ComponentName, &'a StateVarSlice)> {
+) -> Vec<(ComponentName, StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
@@ -1561,15 +1594,15 @@ fn state_vars_depending_on_group<'a>(
                         ComponentGroup::Single(c) => {
                             if c.name() == *group_name {
                                 // depending on me directly
-                                let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
-                                depending_on_me.push((dependent_comp.clone(), dependent_group));
+                                let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                                depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                             }
                         }
                         ComponentGroup::Group(name) => {
                             if name == group_name {
                                 // depending on me as a member of a group
-                                let DependencyKey::StateVar(dependent_comp, dependent_group, _) = dependency_key;
-                                depending_on_me.push((dependent_comp.clone(), dependent_group));
+                                let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                                depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                             }
                         },
                     }
@@ -1669,6 +1702,17 @@ fn get_source_for_dependency(
             }
         },
 
+        Dependency::StateVarArrayCorrespondingElement { component_group, array_state_var_name } => {
+            let component_type = group_member_definition(
+                &core.component_nodes,
+                component_group,
+            ).component_type;
+
+            DependencySource::StateVar {
+                component_type,
+                state_var_name: array_state_var_name,
+            }
+        }
         Dependency::StateVar { component_group, state_var_slice } => {
             let component_type = group_member_definition(
                 &core.component_nodes,
@@ -1814,6 +1858,31 @@ fn resolve_state_variable(
                 
                                 }
                             }
+                        }
+                    }
+
+                },
+
+                Dependency::StateVarArrayCorrespondingElement { component_group , array_state_var_name } => {
+
+                    for component_ref in component_group_members(core, &component_group) {
+                        let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
+                        let sv_slice = StateVarSlice::Single(sv_ref);
+                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, sv_slice).unwrap();
+
+                        match sv_slice {
+                            StateVarSlice::Single(ref sv_ref) => {
+
+                                let depends_on_value = resolve_state_variable(core, &sv_comp, sv_ref);
+
+                                if let Some(depends_on_value) = depends_on_value {
+                                    values_for_this_dep.push(DependencyValue {
+                                        source: dependency_source.clone(),
+                                        value: depends_on_value,
+                                    });    
+                                }
+                            },
+                            _ => (),
                         }
                     }
 

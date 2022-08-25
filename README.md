@@ -9,8 +9,9 @@ In the project folder:
 
 `$ npm run dev`
 
-Paste demo code into src/test/testCode.doenet
-Navigate to localhost:3000/src/test/index.html
+Paste demo code into `src/test/testCode.doenet`
+
+Navigate to `localhost:3000/src/test/index.html`
 
 ## Demos
 
@@ -20,7 +21,7 @@ Navigate to localhost:3000/src/test/index.html
 ``` xml
 <graph name="graph">
 	<point name="p1" xs="2 3"/>
-	<point name="p2" xs="p1.y p1.x"/>
+	<point name="p2" xs="$p1.y $p1.x"/>
 </graph>
 <text>
 	<collect source="graph" componentType="point"/>
@@ -55,7 +56,7 @@ Navigate to localhost:3000/src/test/index.html
 <graph>
 	<point name="p1" xs="0 4"/>
 	<point name="p2" xs="3 0"/>
-	<point name="p3" xs="p1.x+p2.x p1.y+p2.y"/>
+	<point name="p3" xs="$p1.x+$p2.x $p1.y+$p2.y"/>
 </graph>
 ```
 </details>
@@ -76,7 +77,7 @@ I think<text hide="$bool.value"> therefore I am</text>.
 ``` xml
 <graph name="graph">
 	<point name="p1" xs="$n1.value $n2.value"/>
-	<point name="p2" xs="$n1.immediateValue+1 $n2.immediateValue+1"/>
+	<point name="p2" xs="$n1.immediateValue+0.5 $n2.immediateValue"/>
 </graph>
 
 <numberInput name="n1" prefill="0"/>

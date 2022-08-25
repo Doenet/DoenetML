@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["console_error_panic_hook"]
-web-debug-log = []
+web-debug-log = ['doenet-core/web-debug-log']
 
 web-logging = ['doenet-core/web']
 
