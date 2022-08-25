@@ -152,6 +152,32 @@ fn text_copy_itself_as_grandchild_gives_error() {
     };
 }
 
+#[wasm_bindgen_test]
+fn text_copy_prop_and_copy_source_combinations_with_additional_children() {
+    static DATA: &str = r#"
+    <text name='ti'>hi</text>
+
+    <p>a: <text name='a' copySource='ti' copyProp='value' /></p>
+    <p>b: <text name='b' copySource='a' /></p>
+    <p>c: <text name='c' copySource='a'> more text</text></p>
+    <p>d: <text name='d'>$a more text</text></p>
+    <p>e: <text name='e'>$a.value more text</text></p>
+    <p>f: <text name='f' copySource='b' /></p>
+    <p>g: <text name='g' copySource='ti' copyProp='value'> more text</text></p>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "a", "value", "hi");
+    assert_sv_is_string(&dc, "b", "value", "hi");
+    assert_sv_is_string(&dc, "c", "value", "hi more text");
+    assert_sv_is_string(&dc, "d", "value", "hi more text");
+    assert_sv_is_string(&dc, "e", "value", "hi more text");
+    assert_sv_is_string(&dc, "f", "value", "hi");
+    assert_sv_is_string(&dc, "g", "value", "hi more text");
+}
 
 
 // ========= <textInput> ==============
@@ -694,10 +720,10 @@ fn number_invalid_prop_index_does_not_crash() {
 
     doenet_core::update_renderers(&dc);
 
-    assert_sv_is_number(&dc, "num1", "value", 0.0);
-    assert_sv_is_number(&dc, "num2", "value", 0.0);
-    assert_sv_is_number(&dc, "num3", "value", 0.0);
-    assert_sv_is_number(&dc, "num4", "value", 0.0);
+    assert_sv_is_number(&dc, "num1", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num2", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num3", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num4", "value", f64::NAN);
     assert_sv_is_number(&dc, "num5", "value", 5.0);
 
 }
@@ -728,10 +754,10 @@ fn number_invalid_dynamic_prop_index_does_not_crash() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_is_number(&dc, "num1", "value", 0.0);
-    assert_sv_is_number(&dc, "num2", "value", 0.0);
-    assert_sv_is_number(&dc, "num3", "value", 0.0);
-    assert_sv_is_number(&dc, "num4", "value", 0.0);
+    assert_sv_is_number(&dc, "num1", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num2", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num3", "value", f64::NAN);
+    assert_sv_is_number(&dc, "num4", "value", f64::NAN);
     assert_sv_is_number(&dc, "num5", "value", 5.0);
 
 }
@@ -804,34 +830,64 @@ fn sequence_dynamic_length() {
 
 // ========= Macros ===========
 
-// This test takes a long time to run
-#[wasm_bindgen_test]
-fn macro_prop_index_inside_prop_index_with_whitespace() {
-    static DATA: &str = r#"
-    <sequence hide name='s1' from='11' to='30' />
-    <sequence hide name='s2' from='51' to='100' />
-    <sequence hide name='s3' from='101' to='500' />
+// // This test takes a long time to run
+// #[wasm_bindgen_test]
+// fn macro_prop_index_inside_prop_index_with_whitespace() {
+//     static DATA: &str = r#"
+//     <sequence hide name='s1' from='11' to='30' />
+//     <sequence hide name='s2' from='51' to='100' />
+//     <sequence hide name='s3' from='101' to='500' />
     
-    <text>$s1.value[1]</text>
-    <text>$s2.value[$s1.value[3]]</text>
-    <text>$s2.value[   $s1.value[3]    ]</text>
-    <text>$s2.value[$s1.value[3]    ]</text>
-    <text>$s2.value[ $s1.value[3]]</text>
-    <text>$s3.value[ $s2.value[$s1.value[5]] ]</text>
-    <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
-    "#;
-    display_doenet_ml_on_failure!(DATA);
-    let dc = doenet_core_with_no_warnings(DATA);
-    doenet_core::update_renderers(&dc);
+//     <text>$s1[1].value</text>
+//     <text>$s2[$s1[3].value].value</text>
+//     <text>$s2[   $s1[3].value    ].value</text>
+//     <text>$s2[$s1[3].value    ].value</text>
+//     <text>$s2[ $s1[3].value].value</text>
+//     <text>$s3[ $s2[$s1[5].value].value ].value</text>
+//     <number>$s3[ $s2[$s1[ $s1[2].value ].value].value ].value</number>
+//     "#;
+//     display_doenet_ml_on_failure!(DATA);
+//     let dc = doenet_core_with_no_warnings(DATA);
+//     doenet_core::update_renderers(&dc);
 
-    assert_sv_is_string(&dc, "/_text1", "value", "11");
-    assert_sv_is_string(&dc, "/_text2", "value", "63");
-    assert_sv_is_string(&dc, "/_text3", "value", "63");
-    assert_sv_is_string(&dc, "/_text4", "value", "63");
-    assert_sv_is_string(&dc, "/_text5", "value", "63");
-    assert_sv_is_string(&dc, "/_text6", "value", "165");
-    assert_sv_is_number(&dc, "/_number1", "value", 172.0);
-}
+//     assert_sv_is_string(&dc, "/_text1", "value", "11");
+//     assert_sv_is_string(&dc, "/_text2", "value", "63");
+//     assert_sv_is_string(&dc, "/_text3", "value", "63");
+//     assert_sv_is_string(&dc, "/_text4", "value", "63");
+//     assert_sv_is_string(&dc, "/_text5", "value", "63");
+//     assert_sv_is_string(&dc, "/_text6", "value", "165");
+//     assert_sv_is_number(&dc, "/_number1", "value", 172.0);
+// }
+
+// // TODO: Do we want to allow this notation?
+// // This test takes a long time to run
+// #[wasm_bindgen_test]
+// fn macro_prop_index_inside_prop_index_with_whitespace_older_notation() {
+//     static DATA: &str = r#"
+//     <sequence hide name='s1' from='11' to='30' />
+//     <sequence hide name='s2' from='51' to='100' />
+//     <sequence hide name='s3' from='101' to='500' />
+    
+//     <text>$s1.value[1]</text>
+//     <text>$s2.value[$s1.value[3]]</text>
+//     <text>$s2.value[   $s1.value[3]    ]</text>
+//     <text>$s2.value[$s1.value[3]    ]</text>
+//     <text>$s2.value[ $s1.value[3]]</text>
+//     <text>$s3.value[ $s2.value[$s1.value[5]] ]</text>
+//     <number>$s3.value[ $s2.value[$s1.value[ $s1.value[2] ]] ]</number>
+//     "#;
+//     display_doenet_ml_on_failure!(DATA);
+//     let dc = doenet_core_with_no_warnings(DATA);
+//     doenet_core::update_renderers(&dc);
+
+//     assert_sv_is_string(&dc, "/_text1", "value", "11");
+//     assert_sv_is_string(&dc, "/_text2", "value", "63");
+//     assert_sv_is_string(&dc, "/_text3", "value", "63");
+//     assert_sv_is_string(&dc, "/_text4", "value", "63");
+//     assert_sv_is_string(&dc, "/_text5", "value", "63");
+//     assert_sv_is_string(&dc, "/_text6", "value", "165");
+//     assert_sv_is_number(&dc, "/_number1", "value", 172.0);
+// }
 
 
 // ========= Reloading essential data ============

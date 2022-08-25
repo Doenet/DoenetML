@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{state_variables::*, math_expression::MathExpression, utils::log_debug};
+use crate::{state_variables::*, math_expression::MathExpression, utils::{log_debug, log}};
 
 
 
@@ -465,7 +465,9 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
         let (expression, variable_values) = split_dependency_values_into_math_expression_and_values(dependency_values)?;
 
         if variable_values.len() != expression.external_variables_count {
-            return Err("Tried to evalute expression with incorrect number of external variables".into());
+            log!("Tried to evalute expression with incorrect number of external variables, expected {} but found {}", expression.external_variables_count, variable_values.len());
+
+            return Ok(f64::NAN);
         }
     
         let mut context = HashMapContext::new();

@@ -16,103 +16,6 @@ use crate::state_variables::*;
 
 
 
-// Structures for parse_action_from_json
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ActionStructure {
-    component_name: String,
-    action_name: String,
-    args: HashMap<String, ArgValue>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum ArgValue {
-    Bool(bool),
-    Number(serde_json::Number),
-    String(String),
-}
-
-impl From<ArgValue> for StateVarValue {
-    fn from(value: ArgValue) -> Self {
-         match value {
-             ArgValue::Bool(v) => StateVarValue::Boolean(v),
-             ArgValue::String(v) => StateVarValue::String(v),
-             ArgValue::Number(v) => if v.is_i64() {
-                 StateVarValue::Integer(v.as_i64().unwrap())
-             } else {
-                 StateVarValue::Number(v.as_f64().unwrap())
-             },
-         }
-    }
-}
-
-/// Returns the Action as well as the action id which the renderer sent
-pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> {
-
-    // log_debug!("Parsing string for action: {}", action);
-
-    let action_structure: ActionStructure = serde_json::from_str(action).map_err(|e| e.to_string())?;
-
-    let component_name = action_structure.component_name.clone();
-    let action_name = action_structure.action_name.clone();
-    let mut args: HashMap<String, StateVarValue> = action_structure.args
-        .into_iter()
-        .map(|(k, v)| (k, v.into()))
-        .collect();
-
-    let action_id: String = args.get("actionId").unwrap().clone().try_into().unwrap();
-    args.remove("actionId");
-
-    Ok((Action { component_name, action_name, args}, action_id))
-}
-
-
-
-// Structures for create_components_tree_from_json
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ComponentTree {
-    component_type: String,
-    props: Props,
-    children: Vec<ComponentOrString>,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct Props {
-    name: Option<String>,
-    copy_source: Option<String>,
-    copy_prop: Option<String>,
-    prop_index: Option<String>,
-    component_index: Option<String>,
-    #[serde(flatten)]
-    attributes: HashMap<String, AttributeValue>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-enum AttributeValue {
-    String(String),
-    Bool(bool),
-}
-
-impl ToString for AttributeValue {
-    fn to_string(&self) -> String {
-        match self {
-            Self::Bool(v) => v.to_string(),
-            Self::String(v) => v.to_string(),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(untagged)]
-enum ComponentOrString {
-    Component(ComponentTree),
-    String(String),
-}
-
 /// This error is caused by invalid DoenetML.
 /// It is thrown only on core creation.
 #[derive(Debug, PartialEq)]
@@ -238,6 +141,105 @@ impl Display for DoenetMLWarning {
         }
 
     }
+}
+
+
+
+// Structures for parse_action_from_json
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ActionStructure {
+    component_name: String,
+    action_name: String,
+    args: HashMap<String, ArgValue>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ArgValue {
+    Bool(bool),
+    Number(serde_json::Number),
+    String(String),
+}
+
+impl From<ArgValue> for StateVarValue {
+    fn from(value: ArgValue) -> Self {
+         match value {
+             ArgValue::Bool(v) => StateVarValue::Boolean(v),
+             ArgValue::String(v) => StateVarValue::String(v),
+             ArgValue::Number(v) => if v.is_i64() {
+                 StateVarValue::Integer(v.as_i64().unwrap())
+             } else {
+                 StateVarValue::Number(v.as_f64().unwrap())
+             },
+         }
+    }
+}
+
+/// Returns the Action as well as the action id which the renderer sent
+pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> {
+
+    // log_debug!("Parsing string for action: {}", action);
+
+    let action_structure: ActionStructure = serde_json::from_str(action).map_err(|e| e.to_string())?;
+
+    let component_name = action_structure.component_name.clone();
+    let action_name = action_structure.action_name.clone();
+    let mut args: HashMap<String, StateVarValue> = action_structure.args
+        .into_iter()
+        .map(|(k, v)| (k, v.into()))
+        .collect();
+
+    let action_id: String = args.get("actionId").unwrap().clone().try_into().unwrap();
+    args.remove("actionId");
+
+    Ok((Action { component_name, action_name, args}, action_id))
+}
+
+
+
+// Structures for create_components_tree_from_json
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ComponentTree {
+    component_type: String,
+    props: Props,
+    children: Vec<ComponentOrString>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Props {
+    name: Option<String>,
+    copy_source: Option<String>,
+    copy_prop: Option<String>,
+    prop_index: Option<String>,
+    component_index: Option<String>,
+    #[serde(flatten)]
+    attributes: HashMap<String, AttributeValue>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum AttributeValue {
+    String(String),
+    Bool(bool),
+}
+
+impl ToString for AttributeValue {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Bool(v) => v.to_string(),
+            Self::String(v) => v.to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ComponentOrString {
+    Component(ComponentTree),
+    String(String),
 }
 
 /// This structure will get converted into `ComponentNode`;

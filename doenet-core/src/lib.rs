@@ -410,6 +410,7 @@ pub fn create_doenet_core(
             };
 
             if let Some(attribute_for_comp) = possible_attributes {
+
                 if let Some(attribute_for_sv) = attribute_for_comp.get(sv_name) {
                     let element_dep_flags: Vec<usize> = attribute_for_sv.iter().map(|(id, _)| *id).collect();
                     element_specific_dependencies.insert(
@@ -639,20 +640,16 @@ fn create_all_dependencies_for_component(
 
     let my_definitions = component.definition.state_var_definitions;
     let mut unshadowing_definitions: HashMap<&StateVarName, &StateVarVariant>;
+    unshadowing_definitions = my_definitions.iter().collect();
 
-    if let Some(CopySource::DynamicElement(ref source_comp_name, source_sv_array_name, ref expression, ref variable_components)) = component.copy_source {
+    if let Some(CopySource::DynamicElement(_, _, ref expression, ref variable_components)) = component.copy_source {
         // We can't immediately figure out the index, so we need to use the state
         // var propIndex
 
-        let state_var_name = component.definition.primary_input_state_var.unwrap();
-
         dependencies.extend(
-            create_prop_index_dependencies(component, state_var_name, source_comp_name, source_sv_array_name, expression, variable_components, essential_data)
+            create_prop_index_dependencies(component, expression, variable_components, essential_data)
         );
 
-        unshadowing_definitions = my_definitions.iter().filter(|(key, _)| **key != state_var_name).collect();
-    } else {
-        unshadowing_definitions = my_definitions.iter().collect();
     }
 
     unshadowing_definitions.remove(&PROP_INDEX_SV);
@@ -771,7 +768,7 @@ fn create_all_dependencies_for_component(
 
         } else {
 
-            let dependency_instructions = return_dependency_instructions_including_shadowing(component, &StateRef::Basic(state_var_name));
+            let dependency_instructions = return_dependency_instructions_for_state_ref(component, &StateRef::Basic(state_var_name));
 
             for (instruct_name, ref dep_instruction) in dependency_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
@@ -901,13 +898,35 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Child { desired_profiles, parse_into_expression } => {
 
+            enum RelevantChild<'a> {
+                StateVar(Dependency),
+                String(&'a String, &'a ComponentName), // value, parent name
+            }
+
+            let mut relevant_children: Vec<RelevantChild> = Vec::new();
+            
+            let source_copy_root_name = get_recursive_copy_source_component_if_exists(components, component);
+            let source = components.get(source_copy_root_name).unwrap();
+            
+            if let Some(CopySource::StateVar(ref source_comp_ref, ref source_sv_ref)) = source.copy_source {
+                relevant_children.push(
+                    RelevantChild::StateVar(Dependency::StateVar {
+                        component_group: ComponentGroup::Single(source_comp_ref.clone()),
+                        state_var_slice: StateVarSlice::Single(source_sv_ref.clone())
+                    })
+                );
+            } else if let Some(CopySource::DynamicElement(ref source_comp, source_sv, _, _)) = source.copy_source {
+                relevant_children.push(
+                    RelevantChild::StateVar(Dependency::StateVarArrayDynamicElement {
+                        component_name: source_comp.clone(),
+                        array_state_var_name: source_sv,
+                        index_state_var: StateRef::Basic(PROP_INDEX_SV),
+                    })
+                );
+            }
+
+
             let children = get_children_including_copy(components, component);
-
-
-
-            let mut relevant_children:
-                // (object name, actual parent, relevant profile state var)
-                Vec<(&ObjectName, &ComponentName, Option<StateVarName>)> = Vec::new();
 
             for child in children.iter() {
 
@@ -916,30 +935,47 @@ fn create_dependencies_from_instruction(
 
                         let child_node = components.get(child_name).unwrap();
 
-                        let component_group = match child_node.definition.group {
+                        let child_group = match child_node.definition.group {
                             Some(_) => ComponentGroup::Group(child_name.clone()),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
                         let child_def = group_member_definition(
                             components,
-                            &component_group
+                            &child_group
                         );
-            
 
                         for child_profile in child_def.component_profiles.iter() {
                             if desired_profiles.contains(&child_profile.0) {
 
+                                let profile_state_var = child_profile.1;
+
+                                let sv_def = child_def
+                                    .state_var_definitions
+                                    .get(&profile_state_var)
+                                    .unwrap();
+
+                                let profile_sv_slice = if sv_def.is_array() {
+                                    StateVarSlice::Array(profile_state_var)
+                                } else {
+                                    StateVarSlice::Single(StateRef::Basic(profile_state_var))
+                                };
+
                                 relevant_children.push(
-                                    (&child.0, &child.1.name, Some(child_profile.1))
+                                    RelevantChild::StateVar(Dependency::StateVar {
+                                        component_group: child_group,
+                                        state_var_slice: profile_sv_slice,
+                                    })
                                 );
                                 break;
                             }
                         }
                     },
-                    (ComponentChild::String(_), actual_parent) => {
+                    (ComponentChild::String(string_value), actual_parent) => {
                         if desired_profiles.contains(&ComponentProfile::Text)
                             || desired_profiles.contains(&ComponentProfile::Number) {
-                            relevant_children.push((&child.0, &actual_parent.name, None));
+                            relevant_children.push(
+                                RelevantChild::String(string_value, &actual_parent.name)
+                            );
                         }
                     },
                 }
@@ -950,7 +986,12 @@ fn create_dependencies_from_instruction(
 
                 // Assuming for now that expression is math expression
                 let expression = MathExpression::new(
-                    &relevant_children.iter().map(|child| child.0.clone()).collect()
+                    &relevant_children.iter().map(|child| match child {
+                        // The component name doesn't matter, the expression just needs to know there is
+                        // an external variable at that location
+                        RelevantChild::StateVar(_) => ObjectName::Component(String::new()),
+                        RelevantChild::String(string_value, _) => ObjectName::String(string_value.to_string()),
+                    }).collect()
                 );
 
                 // Assuming that no other child instruction exists which has already filled
@@ -973,76 +1014,46 @@ fn create_dependencies_from_instruction(
                 });
 
                 // We already dealt with the essential data, so now only retain the component children
-                relevant_children.retain(|child| matches!(child.0, ObjectName::Component(_)));
+                relevant_children.retain(|child| matches!(child, RelevantChild::StateVar(_)));
                 
             }
 
             // Stores how many string children added per parent.
             let mut essential_data_numbering: HashMap<ComponentName, usize> = HashMap::new();
 
-            for (child, actual_parent, profile_sv) in relevant_children {
+            for relevant_child in relevant_children {
 
-                match child {
+                match relevant_child {
 
-                    ComponentChild::Component(child_name) => {
-                        let child_node = components.get(child_name).unwrap();
-                        let profile_state_var = profile_sv.unwrap();
-
-                        let component_group = match child_node.definition.group {
-                            Some(_) => ComponentGroup::Group(child_name.clone()),
-                            None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
-                        };
-
-                        let child_def = group_member_definition(
-                            components,
-                            &component_group
-                        );
-
-                        let sv_def = child_def
-                            .state_var_definitions
-                            .get(profile_state_var)
-                            .unwrap();
-
-                        dependencies.push(Dependency::StateVar {
-                            component_group,
-                            // component_name: child_name.to_string(),
-                            state_var_slice: if sv_def.is_array() {
-                                StateVarSlice::Array(profile_state_var)
-                            } else {
-                                StateVarSlice::Single(StateRef::Basic(profile_state_var))
-                            }
-                        });
+                    RelevantChild::StateVar(child_dep) => {
+                        dependencies.push(child_dep);
                     },
 
-                    ComponentChild::String(string_value) => {
-                        if desired_profiles.contains(&ComponentProfile::Text) {
+                    RelevantChild::String(string_value, actual_parent) => {
+                        let index = essential_data_numbering
+                            .entry(actual_parent.clone()).or_insert(0 as usize);
 
-                            let index = essential_data_numbering
-                                .entry(actual_parent.clone()).or_insert(0 as usize);
+                        let essential_origin = EssentialDataOrigin::ComponentChild(*index);
 
-                            let essential_origin = EssentialDataOrigin::ComponentChild(*index);
+                        if should_initialize_essential_data && &component.name == actual_parent {
+                            // Components create their own essential data
 
-
-                            if should_initialize_essential_data && &component.name == actual_parent {
-                                // Components create their own essential data
-
-                                let value = StateVarValue::String(string_value.clone());
-                                create_essential_data_for(
-                                    actual_parent,
-                                    essential_origin.clone(),
-                                    InitialEssentialData::Single(value),
-                                    essential_data
-                                );
-                            }
-
-                            dependencies.push(Dependency::Essential {
-                                component_name: actual_parent.clone(),
-                                origin: essential_origin,
-                            });
-
-                            *index += 1;
-
+                            let value = StateVarValue::String(string_value.clone());
+                            create_essential_data_for(
+                                actual_parent,
+                                essential_origin.clone(),
+                                InitialEssentialData::Single(value),
+                                essential_data
+                            );
                         }
+
+                        dependencies.push(Dependency::Essential {
+                            component_name: actual_parent.clone(),
+                            origin: essential_origin,
+                        });
+
+                        *index += 1;
+
                     },
 
                 }
@@ -1279,9 +1290,6 @@ fn create_dependencies_from_instruction(
 
 fn create_prop_index_dependencies(
     component: &ComponentNode,
-    state_var_name: StateVarName,
-    source_comp_name: &ComponentName,
-    source_sv_array_name: StateVarName,
     math_expression: &MathExpression,
     variable_components: &Vec<ComponentName>,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
@@ -1290,20 +1298,6 @@ fn create_prop_index_dependencies(
     use base_definitions::*;
 
     let mut dependencies = HashMap::new();
-
-    // Dependency on propIndex for target component state var
-    dependencies.insert(
-        DependencyKey::StateVar(
-            component.name.clone(),
-            StateVarSlice::Single(StateRef::Basic(state_var_name)),
-            SHADOW_INSTRUCTION_NAME
-        ),
-        vec![Dependency::StateVarArrayDynamicElement {
-            component_name: source_comp_name.to_string(),
-            array_state_var_name: source_sv_array_name,
-            index_state_var: StateRef::Basic(PROP_INDEX_SV),
-        }]
-    );
 
     // Dependencies on source components for propIndex
     dependencies.insert(
@@ -1806,7 +1800,11 @@ fn resolve_state_variable(
                 Dependency::StateVar { component_group , state_var_slice } => {
 
                     for component_ref in component_group_members(core, &component_group) {
+
+                        log_debug!("Component ref {:?}", component_ref);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, state_var_slice.clone()).unwrap();
+
+                        log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
 
                         match sv_slice {
                             StateVarSlice::Single(ref sv_ref) => {
@@ -1951,7 +1949,7 @@ fn resolve_state_variable(
 
     let node = core.component_nodes.get(component).unwrap();
 
-    let update_instruction = generate_update_instruction_including_shadowing(
+    let update_instruction = generate_update_instruction_for_state_ref(
         node,
         state_var_ref,
         dependency_values
@@ -2753,7 +2751,12 @@ fn get_children_including_copy<'a>(
     if let Some(CopySource::Component(ComponentRef::Basic(ref source))) = component.copy_source {
 
         let source_comp = components.get(source).unwrap();
-        children_vec = get_children_including_copy(components, source_comp)
+
+        children_vec = get_children_including_copy(components, source_comp);
+
+    // } else if let Some(CopySource::StateVar(_, _)) = component.copy_source {
+    //     // If this is a copy prop, add whatever it is copying as a child
+    //     children_vec.push((ComponentChild::Component(component.name.clone()), component));
     }
 
     children_vec.extend(
@@ -2780,50 +2783,22 @@ fn get_recursive_copy_source_component_if_exists<'a>(
 }
 
 
-const SHADOW_INSTRUCTION_NAME: &'static str = "shadow_instruction";
-
-
-fn return_dependency_instructions_including_shadowing(
-    // copy_index_flag: &Option<(ComponentName, StateVarName, String)>,
+fn return_dependency_instructions_for_state_ref(
     component: &ComponentNode,
     state_var: &StateRef,
 ) -> HashMap<InstructionName, DependencyInstruction> {
 
-    if false {
-    // if let Some((source_comp_name, source_sv_name, source_index_str)) = copy_index_flag {
+    let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
-        // HashMap::from([
-        //     (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVarArrayDynamicElement {
-        //         component_name: source_comp_name.to_string(),
-        //         state_var: &source_sv_name,
-        //         index_state_var: source_index_str.to_string(),
-        //     })
-        // ])
-
-        HashMap::new()
-
-    } else if let Some((source_comp, source_state_var)) = state_var_is_shadowing(component, state_var) {
-
-        HashMap::from([
-            (SHADOW_INSTRUCTION_NAME, DependencyInstruction::StateVar {
-                component_ref: Some(source_comp), //.clone(),
-                state_var: source_state_var,
-            })
-        ])
-
-    } else {
-        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
-
-        match state_var {
-            StateRef::Basic(_) => {
-                state_var_def.return_dependency_instructions(HashMap::new())
-            },
-            StateRef::SizeOf(_) => {
-                state_var_def.return_size_dependency_instructions(HashMap::new())
-            },
-            StateRef::ArrayElement(_, id) => {
-                state_var_def.return_element_dependency_instructions(*id, HashMap::new())
-            }
+    match state_var {
+        StateRef::Basic(_) => {
+            state_var_def.return_dependency_instructions(HashMap::new())
+        },
+        StateRef::SizeOf(_) => {
+            state_var_def.return_size_dependency_instructions(HashMap::new())
+        },
+        StateRef::ArrayElement(_, id) => {
+            state_var_def.return_element_dependency_instructions(*id, HashMap::new())
         }
     }
 }
@@ -2831,51 +2806,28 @@ fn return_dependency_instructions_including_shadowing(
 
 
 /// This determines the state var given its dependency values.
-fn generate_update_instruction_including_shadowing(
+fn generate_update_instruction_for_state_ref(
     component: &ComponentNode,
     state_var: &StateRef,
     dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
 
 ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
 
-    if state_var_is_shadowing(component, state_var).is_some() {
+    let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
 
-        // Assuming that source state var is same type as this state var
-        let source_value = dependency_values.dep_value(SHADOW_INSTRUCTION_NAME)?
-            .has_zero_or_one_elements()?
-            .value();
-        
-        let new_value = source_value.unwrap_or(
-            match component.definition.state_var_definitions.get(state_var.name()).unwrap() {
-                StateVarVariant::Integer(_) =>     StateVarValue::Integer(i64::default()),
-                StateVarVariant::Number(_) =>      StateVarValue::Number(f64::default()),
-                StateVarVariant::NumberArray(_) => StateVarValue::Number(f64::default()),
-                StateVarVariant::String(_) =>      StateVarValue::String(String::default()),
-                StateVarVariant::StringArray(_) => StateVarValue::String(String::default()),
-                StateVarVariant::Boolean(_) =>     StateVarValue::Boolean(bool::default()),
-            }
-        );
-
-        Ok(StateVarUpdateInstruction::SetValue(new_value))
-
-    } else {
-        // Otherwise, this state var is not shadowing, so proceed normally
-        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
-
-        match state_var {
-            StateRef::Basic(_) => {
-                state_var_def.determine_state_var_from_dependencies(dependency_values)
-            },
-            StateRef::SizeOf(_) => {
-                state_var_def.determine_size_from_dependencies(dependency_values)
-            },
-            StateRef::ArrayElement(_, id) => {
-                let internal_id = id - 1;
-                state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
-            }
+    match state_var {
+        StateRef::Basic(_) => {
+            state_var_def.determine_state_var_from_dependencies(dependency_values)
+        },
+        StateRef::SizeOf(_) => {
+            state_var_def.determine_size_from_dependencies(dependency_values)
+        },
+        StateRef::ArrayElement(_, id) => {
+            let internal_id = id - 1;
+            state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
         }
-
     }
+
 }
 
 

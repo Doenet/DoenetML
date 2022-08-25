@@ -254,7 +254,7 @@ impl TryFrom<&ComponentDefinition> for &GroupComponent {
 /// A component or a member of a group.
 /// Note that a group can still be referenced as a basic component
 /// in addition to referencing its group members.
-#[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash)]
+#[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash, enum_as_inner::EnumAsInner)]
 pub enum ComponentRef {
     Basic(ComponentName),
     GroupMember(ComponentName, usize),
