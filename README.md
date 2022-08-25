@@ -29,15 +29,19 @@ Navigate to `localhost:3000/src/test/index.html`
 ```
 </details>
 
----untested past this point---
-
 <details>
-<summary>Text and Number Input</summary>
+<summary>Text Input</summary>
 
 ``` xml
 <textInput name="t1" prefill="Cake"/>
 <text>$t1.value is good.</text>
+```
+</details>
 
+<details>
+<summary>Sequence and Number Input</summary>
+
+``` xml
 <numberInput name="n1" prefill="4"/>
 <numberInput name="n2" prefill="14"/>
 <p>
@@ -87,6 +91,8 @@ One point uses immediate value plus an offset
 ```
 </details>
 
+---untested past this point---
+
 <details>
 <summary>Collect Component Index</summary>
 
@@ -103,14 +109,14 @@ and more
 <sequence from="$n" to="2*$n"/>
 last one
 <number>30</number>
-<p/>
+</p>
 
 Collect the numbers in that paragraph: <collect name="c1" source="p1" componentType="number"/>
 
 The fifth number is $c1[5].value.
 
 Now try changing the number input
-<numberInput name="n" prefill="6"/>
+<numberInput prefill="6"/><number name="n" copySource="/_numberInput" copyProp="value/>
 ```
 </details>
 

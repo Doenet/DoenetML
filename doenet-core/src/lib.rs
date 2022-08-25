@@ -2180,7 +2180,6 @@ fn group_member_state_var(
     } else {
         // if the component does not specify a member_state_var function,
         // use the group_dependencies to find the ComponentRef
-        log_debug!("from member sv");
         nth_group_dependence(core, name, index)
             .map(|c| (c, state_var))
     }
@@ -2591,7 +2590,6 @@ fn generate_render_tree_internal(
                             ComponentRef::Basic(n) => Some(n.clone()),
                             ComponentRef::GroupMember(n, i) => {
                                 let group_node = core.component_nodes.get(n).unwrap();
-                                log_debug!("from gen");
                                 if group_node.definition.group.unwrap().generator().is_none() {
                                     Some(nth_group_dependence(core, n, *i).unwrap())
                                 } else {
