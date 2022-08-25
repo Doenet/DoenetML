@@ -771,6 +771,37 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
 
 }
 
+#[wasm_bindgen_test]
+fn sequence_dynamic_length() {
+    static DATA: &str = r#"
+    <numberinput name="n" prefill="4"/>
+    <text name="t"><sequence from="1" to="$n.value"/></text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "value", 4.0);
+    assert_sv_is_string(&dc, "t", "value", "1234");
+
+    update_immediate_value_for_number(&dc, "n", "10.0");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
+    assert_sv_is_number(&dc, "n", "value", 4.0);
+    assert_sv_is_string(&dc, "t", "value", "1234");
+
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
+    assert_sv_is_number(&dc, "n", "value", 10.0);
+    assert_sv_is_string(&dc, "t", "value", "12345678910");
+}
+
+
 // ========= Macros ===========
 
 // This test takes a long time to run

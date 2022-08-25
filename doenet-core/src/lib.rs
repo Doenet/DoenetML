@@ -832,20 +832,18 @@ fn create_dependencies_from_instruction(
 
                 let sv_def = component.definition.state_var_definitions.get(state_var_slice.name()).unwrap();
 
-                let initial_data = match prefill {
-                    Some(string) => {
-                        let attribute = component_attributes
-                            .get(string)
-                            .map(|x| match x.get(&1).unwrap().first().unwrap() {
-                                ObjectName::String(attr_string) => attr_string.clone(),
-                                _ => String::new(),
-                            })
-                            .unwrap_or(String::new());
-
-                        StateVarValue::String(attribute)
-                    },
-                    None => sv_def.initial_essential_value(),
-                };
+                let initial_data: StateVarValue = prefill
+                    .and_then(|string| component_attributes
+                        .get(string)
+                        .and_then(|attr| {
+                            let attr_str = attr
+                                .get(&1).unwrap()
+                                .first().unwrap()
+                                .as_string().unwrap_or(&String::new())
+                                .clone();
+                            package_string_as_state_var_value(attr_str, sv_def).ok()
+                        }))
+                    .unwrap_or(sv_def.initial_essential_value());
 
                 let initial_data = if sv_def.is_array() {
                     InitialEssentialData::Array(Vec::new(), initial_data)
@@ -1350,23 +1348,6 @@ fn create_prop_index_dependencies(
 
 fn package_string_as_state_var_value(input_string: String, state_var_variant: &StateVarVariant) -> Result<StateVarValue, String> {
 
-
-    let package_into_number_sv_value = |input_str| {
-        if let Ok(val) = evalexpr::eval_number(input_str) {
-            Ok(StateVarValue::Number(val))
-        } else {
-            Err(format!("Cannot package string {} as number", input_str))
-        }
-    };
-
-    let package_into_integer_sv_value = |input_str| {
-        if let Ok(val) = evalexpr::eval_int(input_str) {
-            Ok(StateVarValue::Integer(val))
-        } else {
-            Err(format!("Cannot package string {} as integer", input_str))
-        }
-    };
-
     match state_var_variant {
         StateVarVariant::StringArray(_) |
         StateVarVariant::String(_) => {
@@ -1380,17 +1361,25 @@ fn package_string_as_state_var_value(input_string: String, state_var_variant: &S
             } else if input_string == "false" {
                 Ok(StateVarValue::Boolean(false))
             } else {
-                Err(format!("Cannot evaluate string {} as boolean", input_string))
+                Err(format!("Cannot evaluate string '{}' as boolean", input_string))
             }
         },
 
         StateVarVariant::Integer(_) => {
-            package_into_integer_sv_value(&input_string)
+            if let Ok(val) = evalexpr::eval_int(&input_string) {
+                Ok(StateVarValue::Integer(val))
+            } else {
+                Err(format!("Cannot package string '{}' as integer", input_string))
+        }
         },
 
         StateVarVariant::NumberArray(_) |
         StateVarVariant::Number(_) => {
-            package_into_number_sv_value(&input_string)
+            if let Ok(val) = evalexpr::eval_number(&input_string) {
+                Ok(StateVarValue::Number(val))
+            } else {
+                Err(format!("Cannot package string '{}' as number", input_string))
+            }
         },
     }
 }

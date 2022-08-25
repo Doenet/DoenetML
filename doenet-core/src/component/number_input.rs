@@ -23,7 +23,7 @@ lazy_static! {
         state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
             return_dependency_instructions: |_|
                 HashMap::from([
-                    ("essential", DependencyInstruction::Essential { prefill: None }),
+                    ("essential", DependencyInstruction::Essential { prefill: Some("prefill") }),
                     ("immediate", DependencyInstruction::StateVar {
                         component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("immediateValue")),
