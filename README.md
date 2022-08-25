@@ -16,6 +16,7 @@ Navigate to localhost:3000/src/test/index.html
 
 <details>
 <summary>Point and Collect</summary>
+
 ``` xml
 <graph name="graph">
 	<point name="p1" xs="2 3"/>
@@ -31,6 +32,7 @@ Navigate to localhost:3000/src/test/index.html
 
 <details>
 <summary>Text and Number Input</summary>
+
 ``` xml
 <textInput name="t1" prefill="Cake"/>
 <text>$t1.value is good.</text>
@@ -48,6 +50,7 @@ Navigate to localhost:3000/src/test/index.html
 
 <details>
 <summary>Point Parralellogram</summary>
+
 ``` xml
 <graph>
 	<point name="p1" xs="0 4"/>
@@ -59,6 +62,7 @@ Navigate to localhost:3000/src/test/index.html
 
 <details>
 <summary>Boolean Input</summary>
+
 ``` xml
 <booleanInput name="bool"/>
 
@@ -68,7 +72,8 @@ I think<text hide="$bool.value"> therefore I am</text>.
 
 <details>
 <summary>Value vs Immediate Value</summary>
-```doenet
+
+``` xml
 <graph name="graph">
 	<point name="p1" xs="$n1.value $n2.value"/>
 	<point name="p2" xs="$n1.immediateValue+1 $n2.immediateValue+1"/>
@@ -83,6 +88,7 @@ One point uses immediate value plus an offset
 
 <details>
 <summary>Collect Component Index</summary>
+
 ``` xml
 <p name="p1">
 This paragraph has numbers and sequences:
