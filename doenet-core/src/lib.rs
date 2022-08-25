@@ -1118,6 +1118,7 @@ fn create_dependencies_from_instruction(
                 if matches!(sv_def, StateVarVariant::Number(_)
                     | StateVarVariant::NumberArray(_)
                     | StateVarVariant::Integer(_)
+                    | StateVarVariant::Boolean(_)
                 ) {
                     StateVarValue::MathExpr(
                         MathExpression::new(obj_list)
@@ -1126,7 +1127,7 @@ fn create_dependencies_from_instruction(
 
                     let first_obj = obj_list.get(0).unwrap();
                     if obj_list.len() > 1 {
-                        unimplemented!("Multiple objects for non number state var");
+                        unimplemented!("Multiple objects for non mathexpression state var");
                     }
                     match first_obj {
                         ObjectName::String(str_val) => {

@@ -23,16 +23,15 @@ lazy_static! {
                 let child_instruct = DependencyInstruction::Child {
                     desired_profiles: vec![ComponentProfile::Boolean, ComponentProfile::Text],
 
-                    // change this to true when we use a boolean syntax tree
-                    parse_into_expression: false
+                    parse_into_expression: true,
                 };
 
                 HashMap::from([("all_my_children", child_instruct)])
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
-                let children = dependency_values.get("all_my_children").unwrap();
-                DETERMINE_BOOLEAN(children.clone()).map(|x| SetValue(x))
+                let (children, _) = dependency_values.dep_value("all_my_children")?;
+                DETERMINE_BOOLEAN(children).map(|x| SetValue(x))
             },
             for_renderer: true,
             ..Default::default()

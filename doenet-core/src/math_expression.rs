@@ -1,6 +1,6 @@
 use evalexpr::{build_operator_tree, HashMapContext, ContextWithMutableVariables};
 
-use crate::{component::ObjectName};
+use crate::component::ObjectName;
 
 
 #[derive(Debug, Clone, PartialEq)]
@@ -16,22 +16,17 @@ impl MathExpression {
 
         let string_index_sources_concatted = object_names.iter()
         .filter_map(|obj| {
-            if let ObjectName::String(str_obj) = obj {
-                Some(str_obj.as_str())
-            } else {
-                None
+            match obj {
+                ObjectName::String(str_obj) => Some(str_obj.as_str()),
+                _ => None,
             }
         })
         .collect::<Vec<&str>>()
         .join(" ");
 
         let mut variable_prefix = String::from("var");
-        loop {
-            if !string_index_sources_concatted.contains(&variable_prefix) {
-                break;
-            } else {
-                variable_prefix.push('#');
-            }
+        while string_index_sources_concatted.contains(&variable_prefix) {
+            variable_prefix.push('#');
         };
 
         let mut expression_string = String::new();
@@ -44,12 +39,9 @@ impl MathExpression {
                 },
                 ObjectName::Component(_) => {
                     let var_name = &format!("{}{}", variable_prefix, var_postfix_counter);
+                    var_postfix_counter += 1;
 
                     expression_string.push_str(&var_name);
-                    // variable_components.push(comp_name_obj);
-                    // sample_expr_context.set_value(var_name.into(), 0.into()).unwrap();
-
-                    var_postfix_counter += 1;
                 }
             }
         }
@@ -74,15 +66,8 @@ impl MathExpression {
             sample_context.set_value(var_name.into(), 0.into()).unwrap();
         }
 
-        match self.tree.eval_with_context(&sample_context) {
-            Ok(_) => true,
-            Err(_) => false
-        }
+        self.tree.eval_with_context(&sample_context).is_ok()
     }
-
-    // pub fn evaluate_number_with_values(&self, values: &Vec<StateVarValue>) -> f64 {
-        
-    // }
 
 }
 

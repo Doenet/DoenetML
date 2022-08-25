@@ -165,9 +165,9 @@ macro_rules! boolean_definition_from_attribute {
                 },
 
                 determine_state_var_from_dependencies: |dependency_values| {
-                    let attribute = dependency_values.get("attribute").unwrap();
+                    let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
-                        DETERMINE_BOOLEAN(attribute.clone())
+                        DETERMINE_BOOLEAN(attribute)
                             .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
@@ -217,10 +217,12 @@ pub(crate) use string_definition_from_attribute;
 
 
 
-pub fn split_dependency_values_into_math_expression_and_values(dependency_values: Vec<&DependencyValue>) -> Result<(MathExpression, Vec<StateVarValue>), String> {
+pub fn split_dependency_values_into_math_expression_and_values(
+    dependency_values: Vec<&DependencyValue>
+) -> Result<(MathExpression, Vec<StateVarValue>), String> {
 
-    let expression = dependency_values.iter().find_map(|attr_elem| {
-        if let StateVarValue::MathExpr(ref expr) = attr_elem.value {
+    let expression = dependency_values.iter().find_map(|elem| {
+        if let StateVarValue::MathExpr(ref expr) = elem.value {
             Some(expr.clone())
         } else {
             None
@@ -228,10 +230,10 @@ pub fn split_dependency_values_into_math_expression_and_values(dependency_values
     }).ok_or("There should have been a math expression".to_string())?;
 
     let values: Vec<StateVarValue> = dependency_values.iter().filter_map(|elem| {
-        match elem.value {
-            StateVarValue::Number(_) => Some(elem.value.clone()),
-            StateVarValue::Integer(_) => Some(elem.value.clone()),
-            _ => None,
+        if let StateVarValue::MathExpr(_) = elem.value {
+            None
+        } else {
+            Some(elem.value.clone())
         }
     }).collect();
 
@@ -242,28 +244,31 @@ pub fn split_dependency_values_into_math_expression_and_values(dependency_values
     Ok((expression, values))
 }
 
-pub fn split_dependency_sources_into_expression_and_variables(dependency_sources: &Vec<(DependencySource, Option<StateVarValue>)>) -> Result<((DependencySource, MathExpression), Vec<(DependencySource, Option<StateVarValue>)>, usize), String> {
+pub fn split_dependency_sources_into_expression_and_variables(
+    dependency_sources: &Vec<(DependencySource, Option<StateVarValue>)>
+) -> Result<((DependencySource, MathExpression), Vec<(DependencySource, Option<StateVarValue>)>, usize), String> {
 
     // For now, assume that any essential data source is the expression
-    let (expr_id, expression_source, expression) = dependency_sources.iter().enumerate().find_map(|(id, attr_elem)| {
-        if let DependencySource::Essential { .. } = attr_elem.0 {
-            if let StateVarValue::MathExpr(expr) = attr_elem.1.as_ref().unwrap() {
-                Some((id, attr_elem.0.clone(), expr.clone()))
+    let (expr_id, expression_source, expression) = dependency_sources
+        .iter()
+        .enumerate()
+        .find_map(|(id, attr_elem)| {
+            if let DependencySource::Essential { .. } = attr_elem.0 {
+                if let StateVarValue::MathExpr(expr) = attr_elem.1.as_ref().unwrap() {
+                    Some((id, attr_elem.0.clone(), expr.clone()))
+                } else {
+                    unreachable!()
+                }
             } else {
-                unreachable!()
+                None
             }
-        } else {
-            None
-        }
-    }).ok_or("There should have been a math expression".to_string())?;
+        }).ok_or("There should have been a math expression".to_string())?;
 
-    let variables: Vec<(DependencySource, Option<StateVarValue>)> = dependency_sources.into_iter().enumerate().filter_map(|(id, elem)| {
-        if id == expr_id {
-            None
-        } else {
-            Some(elem.clone())
-        }
-    }).collect();
+    let variables: Vec<(DependencySource, Option<StateVarValue>)> = dependency_sources
+        .into_iter()
+        .enumerate()
+        .filter_map(|(id, elem)| (id != expr_id).then_some(elem.clone()))
+        .collect();
 
     for variable in variables.iter() {
         match variable.0 {
@@ -347,9 +352,14 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
                 .has_exactly_one_element()?
                 .into_bool();
 
-            let my_hide = dependency_values.dep_value("my_hide")?
-                .has_zero_or_one_elements()?
-                .is_bool_if_exists()?;
+            let (attribute, _) = dependency_values.dep_value("my_hide")?;
+
+            crate::utils::log!("from attribute {:?}", attribute);
+            let my_hide =
+                (attribute.len() > 0)
+                .then(|| DETERMINE_BOOLEAN(attribute).ok())
+                .flatten();
+            crate::utils::log!("my hide is {:?}", my_hide);
 
             Ok(SetValue(parent_hidden.unwrap_or(false) || my_hide.unwrap_or(false)))
         },
@@ -413,48 +423,16 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 
 
 #[allow(non_snake_case)]
-pub fn DETERMINE_BOOLEAN(dependency_values: Vec<DependencyValue>)
+pub fn DETERMINE_BOOLEAN(dependency_values: Vec<&DependencyValue>)
     -> Result<bool, String> {
 
-    let bool_child_value = match dependency_values.len() {
-        1 => dependency_values.first(),
-        _ => None,
-    };
-
-    if let Some(DependencyValue { value: StateVarValue::Boolean(value), .. }) = bool_child_value {
-        return Ok(*value);
-    }
-
-    let textlike_children: Result<Vec<String>, &str> = dependency_values
-        .iter()
-        .map(|dep_value|
-            String::try_from(dep_value.value.clone())
-        ).collect();
-    let textlike_children = textlike_children.map_err(|e| "Not all boolean children were strings: ".to_owned() + e)?;
-
-    let mut concatted_text = String::from("");
-    for textlike_child in textlike_children {
-        concatted_text.push_str(&textlike_child);
-    }
-
-    let trimmed_text = concatted_text.trim().to_lowercase();
-
-    Ok(trimmed_text == "true")
-}
-
-#[allow(non_snake_case)]
-pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
-    -> Result<f64, String> {
-
-    if dependency_values.len() == 1 &&
-        ! matches!(dependency_values[0].source, DependencySource::Essential { ..})
-    {
+    if dependency_values.len() == 1 {
         
         let value = match dependency_values[0].value {
-            StateVarValue::Number(val) => val,
-            StateVarValue::Integer(val) => val as f64,
+            StateVarValue::Boolean(val) => val,
             _ => return Err(format!(
-                    "If determine number gets only one non-essential dependency value, that value must be either a number or an integer, received {:?}", dependency_values[0]
+                    "A single dependency value must be a boolean, received {:?}",
+                    dependency_values[0]
                 )),
         };
 
@@ -475,44 +453,77 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
         for (id, value) in variable_values.iter().enumerate() {
     
             let variable_num = match value {
-                StateVarValue::Number(num) => *num,
-                StateVarValue::Integer(num) => *num as f64,
+                StateVarValue::Number(num) => (*num).into(),
+                StateVarValue::Integer(num) => (*num as f64).into(),
+                StateVarValue::Boolean(num) => (*num).into(),
+                _ => return Err("Can't determine boolean with these values".to_string()),
+            };
+
+            let name = format!("{}{}", expression.variable_prefix, id);
+            context.set_value(name, variable_num).map_err(|err| err.to_string())?;
+        }
+
+        let num =
+            if expression.tree.operator() == &Operator::RootNode && expression.tree.children().is_empty() {
+                // Empty expression
+                false
+            } else {
+                expression.tree.eval_boolean_with_context(&context).unwrap_or(false)
+            };
+
+        Ok(num)
+    }
+}
+
+#[allow(non_snake_case)]
+pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
+    -> Result<f64, String> {
+
+    if dependency_values.len() == 1 {
+        
+        let value = match dependency_values[0].value {
+            StateVarValue::Number(val) => val,
+            StateVarValue::Integer(val) => val as f64,
+            _ => return Err(format!(
+                    "A single dependency value must be a number or integer, received {:?}",
+                    dependency_values[0]
+                )),
+        };
+
+        Ok(value)
+
+    } else {
+
+        let (expression, variable_values) = split_dependency_values_into_math_expression_and_values(dependency_values)?;
+
+        if variable_values.len() != expression.external_variables_count {
+            return Err("Tried to evalute expression with incorrect number of external variables".into());
+        }
+    
+        let mut context = HashMapContext::new();
+    
+        for (id, value) in variable_values.iter().enumerate() {
+    
+            let variable_num = match value {
+                StateVarValue::Number(num) => (*num).into(),
+                StateVarValue::Integer(num) => (*num).into(),
                 _ => return Err("Can't determine number with non-numerical variable values".to_string()),
             };
     
             let name = format!("{}{}", expression.variable_prefix, id);
-            context.set_value(name, variable_num.into()).map_err(|err| err.to_string())?;
-
+            context.set_value(name, variable_num).map_err(|err| err.to_string())?;
         }
 
-        let num = if expression.tree.operator() == &Operator::RootNode && expression.tree.children().is_empty() {
-            // Empty expression, set to 0
-            0.0
-
-        } else {
-            expression.tree.eval_number_with_context(&context).unwrap_or(f64::NAN)
-        };
+        let num =
+            if expression.tree.operator() == &Operator::RootNode && expression.tree.children().is_empty() {
+                // Empty expression, set to 0
+                0.0
+            } else {
+                expression.tree.eval_number_with_context(&context).unwrap_or(f64::NAN)
+            };
 
         Ok(num)
-
-
-
-        // let str_child_val = match &value.value {
-        //     StateVarValue::Number(num) => num.to_string(),
-        //     StateVarValue::String(str) => str.to_string(),
-        //     StateVarValue::Integer(num) => num.to_string(),
-        //     _ => return Err("Invalid value for number".to_string())
-        // };
     }
-
-    // log!("concatted children {}", concatted_children);
-
-    // let num = if let Ok(num_result) = evalexpr::eval(&concatted_children) {
-    //     num_result.as_number().unwrap_or(f64::NAN)
-    // } else {
-    //     f64::NAN
-    // };
-
 }
 
 
@@ -520,12 +531,7 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
 pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(DependencySource, Option<StateVarValue>)>)
     -> Result<Vec<DependencyValue>, String> {
 
-    // let (expression, variables) = 
-    //     split_dependency_sources_into_expression_and_variables(&sources)?;
-
-    if sources.len() == 1 &&
-        ! matches!(sources[0].0, DependencySource::Essential { ..})
-    {
+    if sources.len() == 1 {
         let (source, _) = sources.first().unwrap().clone();
         let value = match source {
             DependencySource::Essential { value_type: "string" } =>
