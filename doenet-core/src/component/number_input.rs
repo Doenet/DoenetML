@@ -21,6 +21,7 @@ lazy_static! {
         let mut state_var_definitions = HashMap::new();
 
         state_var_definitions.insert("value", StateVarVariant::Number(StateVarDefinition {
+            initial_essential_value: f64::NAN,
             return_dependency_instructions: |_|
                 HashMap::from([
                     ("essential", DependencyInstruction::Essential { prefill: Some("prefill") }),
@@ -84,6 +85,10 @@ lazy_static! {
                         component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("rawRendererValue")),
                     }),
+                    // ("sync", DependencyInstruction::StateVar {
+                    //     component_ref: None,
+                    //     state_var: StateVarSlice::Single(StateRef::Basic("syncImmediateValue")),
+                    // }),
                 ])
             },
             determine_state_var_from_dependencies: |dependency_values| {
@@ -102,6 +107,12 @@ lazy_static! {
                             value: desired_value.to_string().into(),
                         }
                     ])),
+                    // ("sync", Ok(vec![
+                    //     DependencyValue {
+                    //         source: sources.get("sync").unwrap().first().unwrap().0.clone(),
+                    //         value: StateVarValue::Boolean(false),
+                    //     }
+                    // ])),
                 ])
             },
             ..Default::default()
@@ -125,8 +136,6 @@ lazy_static! {
              request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
              ..Default::default()
          }));
-
-
 
 
         state_var_definitions.insert("expanded", StateVarVariant::Boolean(StateVarDefinition {
@@ -187,7 +196,7 @@ lazy_static! {
         
         action_names: || vec!["updateImmediateValue", "updateValue"],
 
-        on_action: |action_name, args, resolve_and_retrieve_state_var| {
+        on_action: |action_name, args, _| {
             match action_name {
                 "updateImmediateValue" => {
                     // Note: the key here is whatever the renderers call the new value
@@ -200,13 +209,8 @@ lazy_static! {
                 },
 
                 "updateValue" => {
-
-                    let immediate_value: f64 =
-                        resolve_and_retrieve_state_var(&StateRef::Basic("immediateValue")).unwrap().try_into()
-                        .expect("Immediate value should have been a number");
-
                     vec![
-                        (StateRef::Basic("value"), StateVarValue::Number(immediate_value)),
+                        (StateRef::Basic("syncImmediateValue"), StateVarValue::Boolean(true)),
                     ]
                 }
 

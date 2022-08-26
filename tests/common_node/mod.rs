@@ -105,7 +105,7 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
             assert!(
                 // Float NaN do not have equality with other NaNs, therefore we have to
                 // do this funky thing for numbers
-                (num_val.is_nan() && actual_num.is_nan()) || (num_val == actual_num),
+                numbers_are_equal_or_both_nan(actual_num, num_val),
                 "Value [{}]:[{}] was {}, expected {}", comp_name, sv_ref, resolved_sv_val, value
             );
 
@@ -114,6 +114,10 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
             assert_eq!(State::Resolved(value), state, "Incorrect value from [{}]:[{}]", comp_name, sv_ref);
         },
     }
+}
+
+fn numbers_are_equal_or_both_nan(num1: f64, num2: f64) -> bool {
+    (num1.is_nan() && num2.is_nan()) || (num1 == num2)
 }
 
 pub fn assert_sv_is_string(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: &'static str) {
@@ -152,8 +156,11 @@ pub fn assert_sv_array_is_number_list(dc: &DoenetCore, comp_name: &'static str, 
         )
     ).collect();
 
-    assert_eq!(values.len(), size);
-    assert_eq!(values, num_values);
+    assert_eq!(values.len(), size, "Number list was wrong size");
+
+    for (expected_value, actual_value) in values.iter().zip(num_values.iter()) {
+        assert!(numbers_are_equal_or_both_nan(*expected_value, *actual_value), "Expected {:?} but found {:?}", values, num_values);
+    }
 }
 
 fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str) -> (usize, Vec<StateVarValue>) {

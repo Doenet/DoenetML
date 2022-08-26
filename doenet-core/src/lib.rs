@@ -827,16 +827,16 @@ fn create_dependencies_from_instruction(
                 let sv_def = component.definition.state_var_definitions.get(state_var_slice.name()).unwrap();
 
                 let initial_data: StateVarValue = prefill
-                    .and_then(|string| component_attributes
-                        .get(string)
+                    .and_then(|prefill_attr_name| component_attributes
+                        .get(prefill_attr_name)
                         .and_then(|attr| {
-                            let attr_str = attr
-                                .get(&1).unwrap()
+                            attr.get(&1).unwrap()
                                 .first().unwrap()
-                                .as_string().unwrap_or(&String::new())
-                                .clone();
-                            package_string_as_state_var_value(attr_str, sv_def).ok()
-                        }))
+                                .as_string().and_then(|actual_str|
+                                    package_string_as_state_var_value(actual_str.to_string(), sv_def).ok(),
+                                )
+                            })
+                        )
                     .unwrap_or(sv_def.initial_essential_value());
 
                 let initial_data = if sv_def.is_array() {

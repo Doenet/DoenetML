@@ -328,6 +328,95 @@ fn number_input_immediate_value_syncs_with_value_on_update_request() {
     assert_sv_is_number(&dc, "myNum", "value", -5.11);
 }
 
+#[wasm_bindgen_test]
+fn number_input_value_remains_nan_until_update_value() {
+    static DATA: &str = r#"
+    <numberInput name='n'/>
+    $n.value
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "");
+    assert_sv_is_number(&dc, "n", "immediateValue", f64::NAN);
+    assert_sv_is_number(&dc, "n", "value", f64::NAN);
+
+    update_immediate_value_for_number(&dc, "n", "13.0");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "13.0");
+    assert_sv_is_number(&dc, "n", "immediateValue", 13.0);
+    assert_sv_is_number(&dc, "n", "value", f64::NAN);
+
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "13.0");
+    assert_sv_is_number(&dc, "n", "immediateValue", 13.0);
+    assert_sv_is_number(&dc, "n", "value", 13.0);
+}
+
+#[wasm_bindgen_test]
+fn number_input_raw_renderer_value_not_overriden_on_update_value_action() {
+    static DATA: &str = r#"
+    <numberInput name='n'/>
+    $n.immediateValue $n.value
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+
+    update_immediate_value_for_number(&dc, "n", "non numerical value");
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "non numerical value");
+    assert_sv_is_number(&dc, "n", "immediateValue", f64::NAN);
+    assert_sv_is_number(&dc, "n", "value", f64::NAN);
+
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "non numerical value");
+    assert_sv_is_number(&dc, "n", "immediateValue", f64::NAN);
+    assert_sv_is_number(&dc, "n", "value", f64::NAN);
+}
+
+#[wasm_bindgen_test]
+fn number_input_raw_renderer_value_updates_with_bind() {
+    static DATA: &str = r#"
+    <numberInput name='n'/>
+    <graph>
+        <point name='immediatePoint' xs='1 $n.immediateValue' />
+        <point name='valuePoint' xs='2 $n.value' />
+    </graph>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "");
+    assert_sv_is_number(&dc, "n", "immediateValue", f64::NAN);
+    assert_sv_is_number(&dc, "n", "value", f64::NAN);
+    assert_sv_array_is_number_list(&dc, "immediatePoint", "xs", vec![1.0, f64::NAN]);
+    assert_sv_array_is_number_list(&dc, "valuePoint", "xs", vec![2.0, f64::NAN]);
+
+    move_point_2d(&dc, "immediatePoint", StateVarValue::Number(1.0), StateVarValue::Number(4.0));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "4");
+    assert_sv_is_number(&dc, "n", "immediateValue", 4.0);
+    assert_sv_array_is_number_list(&dc, "immediatePoint", "xs", vec![1.0, 4.0]);
+    // assert_sv_is_number(&dc, "n", "value", f64::NAN);
+    // assert_sv_array_is_number_list(&dc, "valuePoint", "xs", vec![2.0, f64::NAN]);
+
+    move_point_2d(&dc, "valuePoint", StateVarValue::Number(2.0), StateVarValue::Number(-7.0));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "n", "rawRendererValue", "-7");
+    assert_sv_is_number(&dc, "n", "immediateValue", -7.0);
+    assert_sv_is_number(&dc, "n", "value", -7.0);
+    assert_sv_array_is_number_list(&dc, "immediatePoint", "xs", vec![1.0, -7.0]);
+    assert_sv_array_is_number_list(&dc, "valuePoint", "xs", vec![2.0, -7.0]);
+}
+
 
 // ========= <collect> =============
 
