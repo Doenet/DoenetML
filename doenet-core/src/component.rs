@@ -11,6 +11,7 @@ pub mod graph;
 pub mod point;
 pub mod collect;
 pub mod section;
+pub mod line;
 
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
@@ -51,6 +52,7 @@ lazy_static! {
             &crate::point        ::MY_COMPONENT_DEFINITION,
             &crate::collect      ::MY_COMPONENT_DEFINITION,
             &crate::section      ::MY_COMPONENT_DEFINITION,
+            &crate::line         ::MY_COMPONENT_DEFINITION,
         ];
 
         defs.into_iter().map(|def| (def.component_type, def)).collect()
@@ -163,7 +165,7 @@ pub struct ComponentDefinition {
     /// The update requests will be processed in the order returned.
     pub on_action: for<'a> fn(
         action_name: &str,
-        args: HashMap<String, StateVarValue>,
+        args: HashMap<String, Vec<StateVarValue>>,
         resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
     ) -> Vec<(StateRef, StateVarValue)>,
 

@@ -16,43 +16,45 @@ lazy_static! {
 
         let mut state_var_definitions = HashMap::new();
 
-        state_var_definitions.insert("xs", number_array_definition_from_attribute!("xs", 0.0, 2));
+        state_var_definitions.insert("p1", number_array_definition_from_attribute!("p1", 0.0, 2));
+        state_var_definitions.insert("p2", number_array_definition_from_attribute!("p2", 1.0, 2));
 
-        state_var_definitions.insert("numericalXs", StateVarVariant::NumberArray(StateVarArrayDefinition {
+        // TODO: combine into multi-dim array?
+        state_var_definitions.insert("numericalPoints", StateVarVariant::NumberArray(StateVarArrayDefinition {
 
             for_renderer: true,
 
             return_array_dependency_instructions: |_| {
                 HashMap::from([
-                    ("xs", DependencyInstruction::StateVar {
+                    ("p1", DependencyInstruction::StateVar {
                         component_ref: None,
-                        state_var: StateVarSlice::Array("xs"),
+                        state_var: StateVarSlice::Array("p1"),
+                    }),
+                    ("p2", DependencyInstruction::StateVar {
+                        component_ref: None,
+                        state_var: StateVarSlice::Array("p2"),
                     }),
                 ])
             },
 
             determine_element_from_dependencies: |index, dependency_values| {
-                let xs = dependency_values.dep_value("xs")?
+                let p1 = dependency_values.dep_value("p1")?
                     .into_number_list()?;
-                let my_coord = *xs.get(index).unwrap();
+                let p2 = dependency_values.dep_value("p2")?
+                    .into_number_list()?;
+                let my_value = match index {
+                    0 => p1[0],
+                    1 => p1[1],
+                    2 => p2[0],
+                    3 => p2[1],
+                    i => return Err(format!("wrong line index {i}"))
+                };
 
-                Ok( SetValue( my_coord ) )
+                Ok( SetValue( my_value ) )
             },
 
-            return_size_dependency_instructions: |_| {
-                HashMap::from([
-                    ("dimensions", DependencyInstruction::StateVar {
-                        component_ref: None,
-                        state_var: StateVarSlice::Single(StateRef::SizeOf("xs")),
-                    }),
-                ])
-            },
-
-            determine_size_from_dependencies: |dependency_values| {
-                let dim = dependency_values.dep_value("dimensions")?
-                    .has_exactly_one_element()?
-                    .into_integer()?;
-                Ok( SetValue( dim as usize ) )
+            determine_size_from_dependencies: |_| {
+                Ok( SetValue( 4 ) )
             },
 
             ..Default::default()
@@ -63,20 +65,28 @@ lazy_static! {
 
             return_dependency_instructions: |_| {
                 HashMap::from([
-                    ("xs", DependencyInstruction::StateVar{
+                    ("p1", DependencyInstruction::StateVar{
                         component_ref: None,
-                        state_var: StateVarSlice::Array("xs"),
+                        state_var: StateVarSlice::Array("p1"),
+                    }),
+                    ("p2", DependencyInstruction::StateVar{
+                        component_ref: None,
+                        state_var: StateVarSlice::Array("p2"),
                     }),
                 ])
             },
 
             determine_state_var_from_dependencies: |dependency_values| {
 
-                let xs = dependency_values.dep_value("xs")?
+                let p1 = dependency_values.dep_value("p1")?
                     .into_number_list()?;
-                let x = xs.get(0).unwrap();
-                let y = xs.get(1).unwrap();
-                let set_value = format!("({}, {})", x, y);
+                let p2 = dependency_values.dep_value("p2")?
+                    .into_number_list()?;
+                let x1 = p1.get(0).unwrap();
+                let y1 = p1.get(1).unwrap();
+                let x2 = p2.get(0).unwrap();
+                let y2 = p2.get(1).unwrap();
+                let set_value = format!("({}, {})({}, {})", x1, y1, x2, y2);
 
                 Ok( SetValue( set_value ) )
             },
@@ -111,27 +121,18 @@ lazy_static! {
             ..Default::default()
         }));
 
-
         state_var_definitions.insert("draggable", boolean_definition_from_attribute!("draggable", true));
 
-        state_var_definitions.insert("labelPosition", string_definition_from_attribute!("labelPosition", "upperright"));
-
-        state_var_definitions.insert("showCoordsWhenDragging", boolean_definition_from_attribute!("showCoordsWhenDragging", true));
-
-
-        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
-
-        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
-
-        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
-
+        // Label
         state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
 
-        state_var_definitions.insert("labelHasLatex", boolean_definition_from_attribute!("layer", false));
+        // Graphical
+        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
+        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
+        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
 
-
+        // Base
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
-
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
 
         return state_var_definitions
@@ -142,58 +143,50 @@ lazy_static! {
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        component_type: "point",
+        component_type: "line",
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
         attribute_names: vec![
+            "p1",
+            "p2",
+
             "draggable",
-            "labelPosition",
-            "showCoordsWhenDragging",
+
             "showLabel",
             "applyStyleToLabel",
             "layer",
-            "label",
-            "labelHasLatex",
-
-            "xs",
 
             "hide",
             "disabled",
         ],
 
-        array_aliases: HashMap::from([
-            ("x", StateRef::ArrayElement("xs", 1)),
-            ("y", StateRef::ArrayElement("xs", 2)),
-            ("z", StateRef::ArrayElement("xs", 3)),
-            ("w", StateRef::ArrayElement("xs", 4)),
-        ]),
-
         component_profiles: vec![
             (ComponentProfile::Text, "latex")
         ],
 
-        action_names: || vec!["movePoint", "switchPoint", "pointClicked"],
+        action_names: || vec!["moveLine", "switchLine", "lineClicked"],
 
         on_action: |action_name, args, _| {
             match action_name {
-                "movePoint" => {
-                    let x = args.get("x").expect("No x argument").first().unwrap();
-                    let y = args.get("y").expect("No y argument").first().unwrap();
-                    // let z = args.get("z").expect("No z argument");
+                "moveLine" => {
+                    let p1 = args.get("point1coords").expect("No p1 argument");
+                    let p2 = args.get("point2coords").expect("No p2 argument");
+                    // let _transient = args.get("transient").expect("No transient argument").first().unwrap();
 
-                    // order means that x will processed second
+                    crate::utils::log!("points: {:?} {:?}", p1, p2);
+
                     vec![
-                        (StateRef::ArrayElement("xs", 2), y.clone()),
-                        (StateRef::ArrayElement("xs", 1), x.clone()),
+                        (StateRef::ArrayElement("p1", 2), p1[1].clone()),
+                        (StateRef::ArrayElement("p1", 1), p1[0].clone()),
+                        (StateRef::ArrayElement("p2", 2), p2[1].clone()),
+                        (StateRef::ArrayElement("p2", 1), p2[0].clone()),
                     ]
                 },
-                "switchPoint" => {
-
+                "switchLine" => {
                     vec![]
                 }
-                "pointClicked" => {
-
+                "lineClicked" => {
                     vec![]
                 }
 

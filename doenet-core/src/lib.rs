@@ -1095,18 +1095,20 @@ fn create_dependencies_from_instruction(
             let essential_origin = EssentialDataOrigin::StateVar(state_var_name);
 
 
-            let default_value = if matches!(sv_def, 
-                StateVarVariant::NumberArray(_) | StateVarVariant::Number(_) | StateVarVariant::Integer(_)
-            ) {
-                StateVarValue::MathExpr(MathExpression::new(
-                    &vec![ObjectName::String(match sv_def.initial_essential_value() {
-                        StateVarValue::Number(v) => v.to_string(),
-                        StateVarValue::Integer(v) => v.to_string(),
-                        _ => unreachable!(),
-                    })]
-                ))
-            } else {
-                sv_def.initial_essential_value()
+            let default_value = match sv_def {
+
+                StateVarVariant::NumberArray(_)| 
+                StateVarVariant::Number(_) | 
+                StateVarVariant::Integer(_) => {
+                    StateVarValue::MathExpr(MathExpression::new(
+                        &vec![ObjectName::String(match sv_def.initial_essential_value() {
+                            StateVarValue::Number(v) => v.to_string(),
+                            StateVarValue::Integer(v) => v.to_string(),
+                            _ => unreachable!(),
+                        })]
+                    ))
+                },
+                _ => sv_def.initial_essential_value(),
             };
 
 
@@ -2214,7 +2216,7 @@ pub struct Action {
 
     /// The keys are not state variable names.
     /// They are whatever name the renderer calls the new value.
-    pub args: HashMap<String, StateVarValue>,
+    pub args: HashMap<String, Vec<StateVarValue>>,
 }
 
 
@@ -2507,8 +2509,16 @@ fn generate_render_tree_internal(
                 let sv_renderer_name = state_var_aliases
                     .get(&sv_slice.name())
                     .map(|x| *x)
-                    .unwrap_or(sv_slice.name());
-                state_values.insert(sv_renderer_name.to_string(), json!(values));
+                    .unwrap_or(sv_slice.name())
+                    .to_string();
+
+                // hardcoded exceptions
+                if sv_renderer_name == "numericalPoints" {
+                    let array_2d = [[values[0], values[1]], [values[2], values[3]]];
+                    state_values.insert(sv_renderer_name, json!(array_2d));
+                } else {
+                    state_values.insert(sv_renderer_name, json!(values));
+                }
             },
 
             StateVarSlice::Single(state_ref) => {
@@ -2518,15 +2528,18 @@ fn generate_render_tree_internal(
                 let sv_renderer_name = state_var_aliases
                     .get(&state_ref.name())
                     .map(|x| *x)
-                    .unwrap_or(state_ref.name());
+                    .unwrap_or(state_ref.name())
+                    .to_string();
+
+                // hardcoded exceptions:
                 if sv_renderer_name == "selectedStyle" || sv_renderer_name == "graphicalDescendants" {
                     if let StateVarValue::String(v) = state_var_value {
                         // log_debug!("deserializing for renderer: {}", v);
                         let value = serde_json::from_str(&v).unwrap();
-                        state_values.insert(sv_renderer_name.to_string(), value);
+                        state_values.insert(sv_renderer_name, value);
                     }
                 } else {
-                    state_values.insert(sv_renderer_name.to_string(), state_var_value.into());
+                    state_values.insert(sv_renderer_name, state_var_value.into());
                 }
             },
         }

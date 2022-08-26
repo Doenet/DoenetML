@@ -159,19 +159,27 @@ struct ActionStructure {
 enum ArgValue {
     Bool(bool),
     Number(serde_json::Number),
+    NumberArray(Vec<serde_json::Number>),
     String(String),
 }
 
-impl From<ArgValue> for StateVarValue {
+impl From<serde_json::Number> for StateVarValue {
+    fn from(v: serde_json::Number) -> Self {
+        if v.is_i64() {
+             StateVarValue::Integer(v.as_i64().unwrap())
+         } else {
+             StateVarValue::Number(v.as_f64().unwrap())
+         }
+    }
+}
+
+impl From<ArgValue> for Vec<StateVarValue> {
     fn from(value: ArgValue) -> Self {
          match value {
-             ArgValue::Bool(v) => StateVarValue::Boolean(v),
-             ArgValue::String(v) => StateVarValue::String(v),
-             ArgValue::Number(v) => if v.is_i64() {
-                 StateVarValue::Integer(v.as_i64().unwrap())
-             } else {
-                 StateVarValue::Number(v.as_f64().unwrap())
-             },
+             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
+             ArgValue::String(v) => vec![StateVarValue::String(v)],
+             ArgValue::Number(v) => vec![v.into()],
+             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
          }
     }
 }
@@ -185,12 +193,12 @@ pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> 
 
     let component_name = action_structure.component_name.clone();
     let action_name = action_structure.action_name.clone();
-    let mut args: HashMap<String, StateVarValue> = action_structure.args
+    let mut args: HashMap<String, Vec<StateVarValue>> = action_structure.args
         .into_iter()
         .map(|(k, v)| (k, v.into()))
         .collect();
 
-    let action_id: String = args.get("actionId").unwrap().clone().try_into().unwrap();
+    let action_id: String = args.get("actionId").unwrap().first().unwrap().clone().try_into().unwrap();
     args.remove("actionId");
 
     Ok((Action { component_name, action_name, args}, action_id))
