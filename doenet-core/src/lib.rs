@@ -7,7 +7,7 @@ pub mod utils;
 pub mod base_definitions;
 pub mod math_expression;
 
-use base_definitions::PROP_INDEX_SV;
+use base_definitions::{PROP_INDEX_SV, prop_index_determine_value};
 use lazy_static::lazy_static;
 use parse_json::{DoenetMLError, DoenetMLWarning};
 use state::StateForStateVar;
@@ -460,11 +460,17 @@ pub fn create_doenet_core(
             &element_specific_dependencies,
         );
 
-        let state_for_this_component: HashMap<StateVarName, StateForStateVar> =
+        let mut state_for_this_component: HashMap<StateVarName, StateForStateVar> =
             component_node.definition.state_var_definitions
             .iter()
             .map(|(&sv_name, sv_variant)| (sv_name, StateForStateVar::new(&sv_variant)))
             .collect();
+
+        if let Some(CopySource::DynamicElement(_, _, _, _)) = component_node.copy_source {
+            state_for_this_component.insert(PROP_INDEX_SV, StateForStateVar::new(
+                &StateVarVariant::Number(StateVarDefinition::default())
+            ));
+        }
 
         dependencies.extend(dependencies_for_this_component);
 
@@ -637,26 +643,17 @@ fn create_all_dependencies_for_component(
 
     // log_debug!("Creating dependencies for {}", component.name);
     let mut dependencies: HashMap<DependencyKey, Vec<Dependency>> = HashMap::new();
-
     let my_definitions = component.definition.state_var_definitions;
-    let mut unshadowing_definitions: HashMap<&StateVarName, &StateVarVariant>;
-    unshadowing_definitions = my_definitions.iter().collect();
 
     if let Some(CopySource::DynamicElement(_, _, ref expression, ref variable_components)) = component.copy_source {
         // We can't immediately figure out the index, so we need to use the state
         // var propIndex
-
         dependencies.extend(
             create_prop_index_dependencies(component, expression, variable_components, essential_data)
         );
-
     }
 
-    unshadowing_definitions.remove(&PROP_INDEX_SV);
-
-    // log_debug!("Unshadowing definitions for {} {:?}", component.name, unshadowing_definitions);
-
-    for (&state_var_name, state_var_variant) in unshadowing_definitions {
+    for (&state_var_name, state_var_variant) in my_definitions {
 
         if state_var_variant.is_array() {
 
@@ -2802,19 +2799,27 @@ fn generate_update_instruction_for_state_ref(
 
 ) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
 
-    let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
+    if state_var.name() == PROP_INDEX_SV {
+        prop_index_determine_value(dependency_values).map(|update_instruction| match update_instruction {
+            StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+            StateVarUpdateInstruction::SetValue(num_val) => StateVarUpdateInstruction::SetValue(num_val.into()),
+        })
+    } else {
 
-    match state_var {
-        StateRef::Basic(_) => {
-            state_var_def.determine_state_var_from_dependencies(dependency_values)
-        },
-        StateRef::SizeOf(_) => {
-            state_var_def.determine_size_from_dependencies(dependency_values)
-        },
-        StateRef::ArrayElement(_, id) => {
-            let internal_id = id - 1;
-            state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
-        }
+        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
+
+        match state_var {
+            StateRef::Basic(_) => {
+                state_var_def.determine_state_var_from_dependencies(dependency_values)
+            },
+            StateRef::SizeOf(_) => {
+                state_var_def.determine_size_from_dependencies(dependency_values)
+            },
+            StateRef::ArrayElement(_, id) => {
+                let internal_id = id - 1;
+                state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
+            }
+        }    
     }
 
 }

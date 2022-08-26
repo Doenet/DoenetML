@@ -258,3 +258,16 @@ pub fn update_value_for_number(dc: &DoenetCore, component_name: &'static str) {
     };
     doenet_core::handle_action(&dc, update_number_input_value);
 }
+
+
+pub fn move_point_2d(dc: &DoenetCore, component_name: &'static str, x: StateVarValue, y: StateVarValue) {
+    let move_point = Action {
+        component_name: component_name.to_string(),
+        action_name: "movePoint".to_string(),
+        args: HashMap::from([
+            ("x".to_string(), x),
+            ("y".to_string(), y),
+        ]),
+    };
+    doenet_core::handle_action(&dc, move_point);
+}

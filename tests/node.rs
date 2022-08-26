@@ -52,6 +52,19 @@ fn doenet_ml_error_copy_nonexistent_state_var_gives_error() {
     });
 }
 
+#[wasm_bindgen_test]
+fn doenet_ml_error_cannot_use_copy_info_as_prop() {
+    static DATA: &str = r#"
+        <sequence name='s' from='0' to='2' />
+        <number name='n' copySource='s' copyProp='value' propIndex='2'/>
+        <number copySource='n' copyProp='propIndex' />
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let error = doenet_core_from(DATA).unwrap_err();
+    assert!(matches!(error, DoenetMLError::StateVarDoesNotExist{ .. }));
+}
+
 
 // =========== DoenetML warnings ===========
 
@@ -71,7 +84,7 @@ fn doenet_ml_warning_prop_index_not_positive_integer() {
             invalid_index: "1.5".to_string(),
         }]
     )
-}   
+}
 
 
 // ========= <text> ==============
@@ -99,7 +112,6 @@ fn text_inside_text() {
         <text>one<text> two <text name='t2' copySource='t' /> <text name='t'>three</text> again </text><text copySource="t2"/> once more</text>
     "#;
     display_doenet_ml_on_failure!(DATA);
-
 
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
@@ -517,15 +529,7 @@ fn point_moves_copy_number() {
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
 
-    let move_point = Action {
-        component_name: "p".to_string(),
-        action_name: "movePoint".to_string(),
-        args: HashMap::from([
-            ("x".to_string(), StateVarValue::Integer(5)),
-            ("y".to_string(), StateVarValue::Number(1.0)),
-        ]),
-    };
-    doenet_core::handle_action(&dc, move_point);
+    move_point_2d(&dc, "p", StateVarValue::Integer(5), StateVarValue::Number(1.0));
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
@@ -593,6 +597,36 @@ fn point_copies_another_point_component() {
     assert_sv_array_is_number_list(&dc, "p2", "xs", vec![-3.2, 7.1]);
     assert_sv_array_is_number_list(&dc, "p3", "xs", vec![-3.2, 7.1]);
     assert_sv_array_is_number_list(&dc, "p4", "xs", vec![-3.2, 7.1]);
+}
+
+
+#[wasm_bindgen_test]
+fn point_used_with_prop_index() {
+    static DATA: &str = r#"
+    <sequence name='s' from='10' to='15' />
+    <number name='id'>2</number>
+    <number copySource='s' copyProp='value' propIndex='$id.value' />
+    
+    <graph>
+    <point name='p' xs='1 $id.value' />
+    </graph>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number2", "value", 11.0);
+
+    move_point_2d(&dc, "p", StateVarValue::Integer(5), StateVarValue::Number(4.123123));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number2", "value", f64::NAN);
+
+    move_point_2d(&dc, "p", StateVarValue::Integer(5), StateVarValue::Integer(4));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number2", "value", 13.0);
 }
 
 // =========== <number> ============
@@ -924,6 +958,9 @@ fn macro_invalid_component_or_state_var_or_index_does_not_crash() {
     assert_sv_is_string(&dc, "c", "value", "$a.value[5]");
     assert_sv_is_string(&dc, "d", "value", "$a[5].value");
 }
+
+
+
 
 // ========= Reloading essential data ============
 

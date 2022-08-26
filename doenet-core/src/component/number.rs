@@ -84,8 +84,6 @@ lazy_static! {
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
 
-        insert_prop_index_state_var_definitions(&mut state_var_definitions);
-
         return state_var_definitions
     };
 }
