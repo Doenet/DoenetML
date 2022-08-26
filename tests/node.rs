@@ -599,7 +599,6 @@ fn point_copies_another_point_component() {
     assert_sv_array_is_number_list(&dc, "p4", "xs", vec![-3.2, 7.1]);
 }
 
-
 #[wasm_bindgen_test]
 fn point_used_with_prop_index() {
     static DATA: &str = r#"
@@ -627,6 +626,33 @@ fn point_used_with_prop_index() {
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "/_number2", "value", 13.0);
+}
+
+// =========== <boolean> ===========
+
+#[wasm_bindgen_test]
+fn boolean_operations() {
+    static DATA: &str = r#"
+        <booleanInput name="bool2"/>
+        <text hide="$bool2.value">Yin</text>
+        <text hide="!$bool2.value">Yang</text>
+
+        <number name="num">3</number>
+        <boolean>$num == 3.0</boolean>
+        <boolean>$num != 1.0</boolean>
+        <boolean>$num != 3.0</boolean>
+
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_boolean(&dc, "/_text1", "hidden", false);
+    assert_sv_is_boolean(&dc, "/_text2", "hidden", true);
+
+    assert_sv_is_boolean(&dc, "/_boolean1", "value", true);
+    assert_sv_is_boolean(&dc, "/_boolean2", "value", true);
+    assert_sv_is_boolean(&dc, "/_boolean3", "value", false);
 }
 
 // =========== <number> ============

@@ -72,6 +72,10 @@ Navigate to `localhost:3000/src/test/index.html`
 <booleanInput name="bool"/>
 
 I think<text hide="$bool.value"> therefore I am</text>.
+
+<booleanInput name="bool2"/>
+<text hide="$bool2.value">Yin</text>
+<text hide="$!bool2.value">Yang</text>
 ```
 </details>
 

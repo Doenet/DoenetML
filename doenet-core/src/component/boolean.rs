@@ -62,7 +62,12 @@ lazy_static! {
             (ComponentProfile::Boolean, "value"),
             // (ComponentProfile::Text, "value"),
         ],
-                
+
+        valid_children_profiles: ValidChildTypes::ValidProfiles(vec![
+            ComponentProfile::Number,
+            ComponentProfile::Boolean,
+        ]),
+
         ..Default::default()
     };
 }
