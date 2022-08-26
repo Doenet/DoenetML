@@ -533,6 +533,45 @@ fn sequence_copies_component() {
 
 }
 
+#[wasm_bindgen_test]
+fn sequence_can_grow_and_shrink() {
+    static DATA: &str = r#"
+    <numberInput name='ni' />
+    <sequence to='$ni.value' />
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    update_immediate_value_for_number(&dc, "ni", "8.0");
+    update_value_for_number(&dc, "ni");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
+
+    update_immediate_value_for_number(&dc, "ni", "9.0");
+    update_value_for_number(&dc, "ni");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0]);
+
+    update_immediate_value_for_number(&dc, "ni", "2.0");
+    update_value_for_number(&dc, "ni");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![1.0, 2.0]);
+
+    update_immediate_value_for_number(&dc, "ni", "asdf");
+    update_value_for_number(&dc, "ni");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![]);
+
+    update_immediate_value_for_number(&dc, "ni", "-3");
+    update_value_for_number(&dc, "ni");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![]);
+}
+
 
 #[wasm_bindgen_test]
 fn sequence_from_and_to_can_be_copied_as_props() {
@@ -602,6 +641,49 @@ fn sequence_macro_component_index() {
     assert_sv_is_string(&dc, "/_text2", "value", "Fifth:5.");
     assert_sv_is_string(&dc, "/_text3", "value", "Fifth: 5");
     assert_sv_is_string(&dc, "/_text4", "value", "Fifth: 5");
+}
+
+#[wasm_bindgen_test]
+fn sequence_empty() {
+    static DATA: &str = r#"
+    <sequence />
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![]);
+}
+
+
+#[wasm_bindgen_test]
+fn sequence_dynamic_length() {
+    static DATA: &str = r#"
+    <numberinput name="n" prefill="4"/>
+    <text name="t"><sequence from="1" to="$n.value"/></text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "value", 4.0);
+    assert_sv_is_string(&dc, "t", "value", "1234");
+
+    update_immediate_value_for_number(&dc, "n", "10.0");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
+    assert_sv_is_number(&dc, "n", "value", 4.0);
+    assert_sv_is_string(&dc, "t", "value", "1234");
+
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
+    assert_sv_is_number(&dc, "n", "value", 10.0);
+    assert_sv_is_string(&dc, "t", "value", "12345678910");
 }
 
 // ========= <point> ==============
@@ -960,36 +1042,6 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
     assert_sv_is_number(&dc, "n2", "value", 6.0);
     assert_sv_is_number(&dc, "n3", "value", 6.0);
 
-}
-
-#[wasm_bindgen_test]
-fn sequence_dynamic_length() {
-    static DATA: &str = r#"
-    <numberinput name="n" prefill="4"/>
-    <text name="t"><sequence from="1" to="$n.value"/></text>
-    "#;
-    display_doenet_ml_on_failure!(DATA);
-
-
-    let dc = doenet_core_with_no_warnings(DATA);
-    doenet_core::update_renderers(&dc);
-
-    assert_sv_is_number(&dc, "n", "value", 4.0);
-    assert_sv_is_string(&dc, "t", "value", "1234");
-
-    update_immediate_value_for_number(&dc, "n", "10.0");
-    doenet_core::update_renderers(&dc);
-
-    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
-    assert_sv_is_number(&dc, "n", "value", 4.0);
-    assert_sv_is_string(&dc, "t", "value", "1234");
-
-    update_value_for_number(&dc, "n");
-    doenet_core::update_renderers(&dc);
-
-    assert_sv_is_number(&dc, "n", "immediateValue", 10.0);
-    assert_sv_is_number(&dc, "n", "value", 10.0);
-    assert_sv_is_string(&dc, "t", "value", "12345678910");
 }
 
 
