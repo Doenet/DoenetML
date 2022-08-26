@@ -24,9 +24,13 @@ macro_rules! number_definition_from_attribute {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
 
-                        DETERMINE_NUMBER(attribute)
-                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
-
+                        match DETERMINE_NUMBER(attribute) {
+                            Ok(x) => Ok(SetValue(x)),
+                            Err(msg) => {
+                                crate::utils::log!("Error determing number: {}", msg);
+                                Ok(SetValue(f64::NAN))
+                            },
+                        }
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
                     }
@@ -70,8 +74,10 @@ macro_rules! integer_definition_from_attribute {
 
                         // let (expression, numerical_values) = split_dependency_values_into_math_expression_and_values(attribute)?;
 
-                        DETERMINE_NUMBER(attribute)
-                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x as i64))
+                        match DETERMINE_NUMBER(attribute) {
+                            Ok(x) => Ok(SetValue(x as i64)),
+                            Err(msg) => Err(msg),
+                        }
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
                     }
@@ -110,8 +116,13 @@ macro_rules! number_array_definition_from_attribute {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
 
-                        DETERMINE_NUMBER(attribute)
-                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+                        match DETERMINE_NUMBER(attribute) {
+                            Ok(x) => Ok(SetValue(x)),
+                            Err(msg) => {
+                                crate::utils::log!("Error determing number: {}", msg);
+                                Ok(SetValue(f64::NAN))
+                            },
+                        }
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
                     }
@@ -167,8 +178,11 @@ macro_rules! boolean_definition_from_attribute {
                 determine_state_var_from_dependencies: |dependency_values| {
                     let (attribute, _) = dependency_values.dep_value("attribute")?;
                     if attribute.len() > 0 {
-                        DETERMINE_BOOLEAN(attribute)
-                            .map(|x| crate::state_variables::StateVarUpdateInstruction::SetValue(x))
+
+                        match DETERMINE_BOOLEAN(attribute) {
+                            Ok(x) => Ok(crate::state_variables::StateVarUpdateInstruction::SetValue(x)),
+                            Err(msg) => Err(msg),
+                        }
                     } else {
                         Ok ( crate::state_variables::StateVarUpdateInstruction::SetValue($default) )
                     }
@@ -426,13 +440,15 @@ pub fn FIXED_DEFAULT_DEFINITION() -> StateVarVariant {
 pub fn DETERMINE_BOOLEAN(dependency_values: Vec<&DependencyValue>)
     -> Result<bool, String> {
 
-    if dependency_values.len() == 1 {
+    if dependency_values.len() == 1
+    && dependency_values[0].source != (DependencySource::Essential { value_type: "mathExpression" })  {
         
-        let value = match dependency_values[0].value {
-            StateVarValue::Boolean(val) => val,
+        let value = match &dependency_values[0].value {
+            StateVarValue::Boolean(val) => *val,
+            StateVarValue::MathExpr(e) => e.tree.eval_boolean().map_err(|e| e.to_string())?,
             _ => return Err(format!(
                     "A single dependency value must be a boolean, received {:?}",
-                    dependency_values[0]
+                    dependency_values
                 )),
         };
 
@@ -445,7 +461,7 @@ pub fn DETERMINE_BOOLEAN(dependency_values: Vec<&DependencyValue>)
         if variable_values.len() != expression.external_variables_count {
             log!("Tried to evalute expression with incorrect number of external variables, expected {} but found {}", expression.external_variables_count, variable_values.len());
 
-            return Ok(f64::NAN);
+            return Ok(false);
         }
     
         let mut context = HashMapContext::new();
@@ -479,14 +495,15 @@ pub fn DETERMINE_BOOLEAN(dependency_values: Vec<&DependencyValue>)
 pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
     -> Result<f64, String> {
 
-    if dependency_values.len() == 1 {
+    if dependency_values.len() == 1
+    && dependency_values[0].source != (DependencySource::Essential { value_type: "mathExpression" })  {
         
         let value = match dependency_values[0].value {
             StateVarValue::Number(val) => val,
             StateVarValue::Integer(val) => val as f64,
             _ => return Err(format!(
                     "A single dependency value must be a number or integer, received {:?}",
-                    dependency_values[0]
+                    dependency_values
                 )),
         };
 
@@ -497,7 +514,13 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
         let (expression, variable_values) = split_dependency_values_into_math_expression_and_values(dependency_values)?;
 
         if variable_values.len() != expression.external_variables_count {
-            return Err("Tried to evalute expression with incorrect number of external variables".into());
+            log!(
+                "Tried to evalute expression with {} variables but found {}",
+                expression.external_variables_count,
+                variable_values.len()
+            );
+
+            return Ok(f64::NAN);
         }
     
         let mut context = HashMapContext::new();
@@ -531,7 +554,8 @@ pub fn DETERMINE_NUMBER(dependency_values: Vec<&DependencyValue>)
 pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(DependencySource, Option<StateVarValue>)>)
     -> Result<Vec<DependencyValue>, String> {
 
-    if sources.len() == 1 {
+    if sources.len() == 1
+    && sources[0].0 != (DependencySource::Essential { value_type: "mathExpression" })  {
         let (source, _) = sources.first().unwrap().clone();
         let value = match source {
             DependencySource::Essential { value_type: "string" } =>

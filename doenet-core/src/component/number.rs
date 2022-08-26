@@ -35,7 +35,13 @@ lazy_static! {
 
                 // let (expression, numerical_values) = split_dependency_values_into_math_expression_and_values(children)?;
 
-                DETERMINE_NUMBER(children).map(|x| SetValue(x))
+                match DETERMINE_NUMBER(children) {
+                    Ok(x) => Ok(SetValue(x)),
+                    Err(msg) => {
+                        crate::utils::log!("Error determing number: {}", msg);
+                        Ok(SetValue(f64::NAN))
+                    },
+                }
             },
 
             request_dependencies_to_update_value: |desired_value, dependency_sources| {

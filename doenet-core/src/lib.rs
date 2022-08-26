@@ -1665,25 +1665,13 @@ fn get_source_for_dependency(
 
     match dependency {
         Dependency::Essential { component_name, origin } => {
-            match origin {
 
-                EssentialDataOrigin::StateVar(_) => {
-                    let data = essential_data.get(component_name).unwrap().get(origin).unwrap();
-                    // let variant = components
-                    //     .get(component_name).unwrap()
-                    //     .definition
-                    //     .state_var_definitions
-                    //     .get(sv_name).unwrap();
+                let data = essential_data.get(component_name).unwrap().get(origin).unwrap();
 
-                    DependencySource::Essential {
-                        value_type: data.get_type_as_str()
-                    }
-                },
-                _ => {
-                    DependencySource::Essential{ value_type: "string", }
-                },
-            
-            }
+                DependencySource::Essential {
+                    value_type: data.get_type_as_str()
+                }
+
         },
 
         Dependency::StateVarArrayCorrespondingElement { component_group, array_state_var_name } => {
