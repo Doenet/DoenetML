@@ -51,7 +51,7 @@ pub struct DoenetCore {
     /// - tracking when a change affects other state variables
     pub dependencies: HashMap<DependencyKey, Vec<Dependency>>,
 
-    pub group_dependencies: HashMap<ComponentName, Vec<GroupDependency>>,
+    pub group_dependencies: HashMap<ComponentName, Vec<ComponentName>>,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
@@ -111,13 +111,6 @@ pub enum Dependency {
     },
 }
 
-
-#[derive(Debug, Serialize)]
-pub enum GroupDependency {
-    Group(ComponentName),
-    Component(ComponentName),
-    StateVar(ComponentRef, StateVarSlice),
-}
 
 
 // === POTENTIAL CODE FOR MAPS ===
@@ -200,11 +193,21 @@ pub fn create_doenet_core(
                         });
                     }
 
-                    let group_def = source_comp.definition.group.unwrap();
+                    let copy_collection: Option<CollectionName>;
+                    (copy_collection, source_def) =
+                        match (&c.copy_collection, &source_comp.definition.replacement_children) {
+                            (Some(key), _) => {
+                                let collection  = source_comp.definition.collections
+                                    .get_key_value_ignore_case(key).unwrap();
+                                (Some(*collection.0), collection.1.member_definition)
+                            },
+                            (None, Some(GroupOrCollection::Collection(def)))  => (None, def.member_definition),
+                            (None, Some(GroupOrCollection::Group(def)))  => (None, (def.member_definition)(&source_comp.static_attributes)),
+                            (None, None)  => panic!("not a group"),
+                        };
 
-                    comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), index);
-                    let source_type = (group_def.component_type)(&source_comp.static_attributes);
-                    source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
+
+                    comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), copy_collection, index);
                 } else if c.component_index.len() > 0 {
                     // dynamic index
                     panic!("dynamic component index")
@@ -428,7 +431,7 @@ pub fn create_doenet_core(
 
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
-        if let Some(group_def) = component.definition.group {
+        if let Some(GroupOrCollection::Group(group_def)) = &component.definition.replacement_children {
 
             let deps = (group_def.group_dependencies)(
                 &component,
@@ -731,9 +734,18 @@ fn create_all_dependencies_for_component(
 
             let elements = element_specific_dependencies.get(&(ComponentRef::Basic(component.name.clone()), state_var_name)).unwrap_or(empty);
 
+            // TODO: change this hack
+            let mut elements = elements.clone();
+            if !elements.contains(&1) {
+                elements.push(1)
+            }
+            if !elements.contains(&2) {
+                elements.push(2)
+            }
+
             log_debug!("Will make dependencies for elements {:?} of {}:{}", elements, component.name, state_var_name);
 
-            for &index in elements {
+            for index in elements {
 
                 let element_dep_instructions = state_var_variant
                     .return_element_dependency_instructions(index, HashMap::new());
@@ -932,7 +944,7 @@ fn create_dependencies_from_instruction(
 
                         let child_node = components.get(child_name).unwrap();
 
-                        let child_group = match child_node.definition.group {
+                        let child_group = match child_node.definition.replacement_children {
                             Some(_) => ComponentGroup::Group(child_name.clone()),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
@@ -1258,7 +1270,7 @@ fn create_dependencies_from_instruction(
 
                 // inherit attribute from copy source
                 dependencies.push(Dependency::StateVar {
-                    component_group: ComponentGroup::Single(ComponentRef::Basic(c.name())),
+                    component_group: ComponentGroup::Single(c.clone()),
                     state_var_slice: StateVarSlice::Single(state_var_ref),
                 });
             } else {
@@ -1498,8 +1510,12 @@ fn get_state_variables_depending_on_me(
         }
     }
 
+    // TODO: refine the search - not all depend on this state var
+
     // a state var can depend on this through a group member
-    for comp_name in groups_depending_on_state_var(core, sv_component, sv_reference) {
+    for comp_name in groups_depending_on_group(core, sv_component) {
+        // utils::log!("groups {} depends on {}:{}", comp_name, sv_component, sv_reference);
+        // utils::log!("and vars {:?}", state_vars_depending_on_group(core, &comp_name));
         depending_on_me.extend(
             state_vars_depending_on_group(core, &comp_name)
         );
@@ -1508,34 +1524,6 @@ fn get_state_variables_depending_on_me(
     depending_on_me
 }
 
-fn groups_depending_on_state_var(
-    core: &DoenetCore,
-    sv_component: &ComponentName,
-    sv_reference: &StateRef,
-) -> Vec<ComponentName> {
-
-    let mut depending_on_me = vec![];
-
-    for (comp_name, group_deps) in core.group_dependencies.iter() {
-        for group_dep in group_deps {
-            let depends_on = match group_dep {
-                GroupDependency::StateVar(comp, name) => {
-                    &comp.name() == sv_component && name.name() == sv_reference.name()
-                },
-                GroupDependency::Component(comp_name) |
-                GroupDependency::Group(comp_name) => {
-                    comp_name == sv_component
-                },
-            };
-            if depends_on {
-                depending_on_me.extend(
-                    groups_depending_on_group(core, comp_name)
-                );
-            }
-        }
-    }
-    depending_on_me
-}
 
 fn groups_depending_on_group(
     core: &DoenetCore,
@@ -1546,12 +1534,8 @@ fn groups_depending_on_group(
 
     for (comp_name, group_deps) in core.group_dependencies.iter() {
         for group_dep in group_deps {
-            let depends_on = match group_dep {
-                GroupDependency::Component(comp_name) |
-                GroupDependency::Group(comp_name) => comp_name == group_name,
-                _ => false,
-            };
-            if depends_on {
+            if group_dep == group_name {
+                depending_on_me.push(comp_name.clone());
                 depending_on_me.extend(
                     groups_depending_on_group(core, comp_name)
                 );
@@ -1789,7 +1773,7 @@ fn resolve_state_variable(
 
                     for component_ref in component_group_members(core, &component_group) {
 
-                        log_debug!("Component ref {:?}", component_ref);
+                        log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, state_var_slice.clone()).unwrap();
 
                         log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
@@ -1986,7 +1970,17 @@ fn mark_stale_state_var_and_dependencies(
 
     state_var.mark_single_stale(&state_var_ref.index());
 
-    let depending_on_me = get_state_variables_depending_on_me(core, component, state_var_ref);
+    let mut depending_on_me = get_state_variables_depending_on_me(core, component, state_var_ref);
+
+    // TODO: should mark stale take state var slices? Could solve this problem:
+    // Currently arrays must resolve their size to be marked as stale.
+    // The problem is if the size dependencies are not yet marked stale, they will not update
+    // HACK: sort so that arrays are last, and hopefully the size deps will already be stale
+    depending_on_me.sort_by(|(_,a), (_,b)| match (a, b) {
+        (StateVarSlice::Single(_), StateVarSlice::Array(_)) => std::cmp::Ordering::Less,
+        (StateVarSlice::Array(_), StateVarSlice::Single(_)) => std::cmp::Ordering::Less,
+        (_, _) => std::cmp::Ordering::Equal,
+    });
     
     for (ref depending_comp, depending_slice) in depending_on_me {
 
@@ -1996,6 +1990,7 @@ fn mark_stale_state_var_and_dependencies(
             },
             StateVarSlice::Array(sv_name) => {
                 let members = elements_of_array(core, component, &sv_name);
+                // log_debug!("marking stale each element {:?}", members);
                 for member in members {
                     mark_stale_state_var_and_dependencies(core, depending_comp, &member);
                 }
@@ -2099,7 +2094,6 @@ fn handle_update_instruction(
     return updated_value;
 }
 
-
 /// Converts component group to a vector of component references.
 fn component_group_members<'a>(
     core: &DoenetCore,
@@ -2108,28 +2102,33 @@ fn component_group_members<'a>(
     match component_group {
         ComponentGroup::Single(comp_ref) => vec![comp_ref.clone()],
         ComponentGroup::Group(name) => {
-            let group_def = core.component_nodes.get(name).unwrap().definition.group.unwrap();
+            let group_def = core.component_nodes.get(name).unwrap().definition
+                .replacement_children.as_ref().expect(&format!("{:?} was not a group", component_group));
             let size: usize =
-                if let Some((group_size_ref, _)) = group_def.generator() {
-                    resolve_state_variable(core, name, &group_size_ref).unwrap()
-                        .try_into().unwrap()
-                } else {
-                    // use group dependencies
-                    core.group_dependencies.get(name).unwrap()
-                        .iter()
-                        .map(|dep|
-                            match dep {
-                                GroupDependency::Group(n) => component_group_members(
+                match group_def {
+                    GroupOrCollection::Collection(def) => {
+                        resolve_state_variable(core, name, &def.group_size).unwrap()
+                            .try_into().unwrap()
+                    },
+                    GroupOrCollection::Group(_) =>{
+                        core.group_dependencies.get(name).unwrap()
+                            .iter()
+                            .map(|dep|
+                                if core.component_nodes.get(dep).unwrap().definition.replacement_children.is_none() {
+                                    1
+                                } else {
+                                    component_group_members(
                                         core,
-                                        &ComponentGroup::Group(n.clone())
-                                    ).len(),
-                                GroupDependency::Component(_) => 1,
-                                GroupDependency::StateVar(_, _) => 0,
-                            }
-                        ).sum()
+                                        &ComponentGroup::Group(dep.clone())
+                                    ).len()
+                                }
+
+                            ).sum()
+                    },
                 };
+
             indices_for_size(size)
-                .map(|i| ComponentRef::GroupMember(name.clone(), i))
+                .map(|i| ComponentRef::GroupMember(name.clone(), None, i))
                 .collect()
         },
     }
@@ -2144,7 +2143,7 @@ fn convert_component_ref_state_var(
 ) -> Option<(ComponentName, StateVarSlice)> {
     match name {
         ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::GroupMember(n, i) => group_member_state_var(core, &n, state_var, *i)
+        ComponentRef::GroupMember(n, c, i) => group_member_state_var(core, &n, *c, state_var, *i)
     }
 }
 
@@ -2152,57 +2151,73 @@ fn convert_component_ref_state_var(
 fn group_member_state_var(
     core: &DoenetCore,
     name: &ComponentName,
+    collection: Option<CollectionName>,
     state_var: StateVarSlice,
     index: usize,
 ) -> Option<(ComponentName, StateVarSlice)> {
-    let group_def = core.component_nodes.get(name).unwrap().definition.group.unwrap();
+    let group_node = core.component_nodes.get(name).unwrap();
+    let state_var_resolver = | state_var_ref | {
+        resolve_state_variable(core, name, state_var_ref)
+    };
+    match (collection, &group_node.definition.replacement_children) {
+        (Some(key), _) => {
+            let def = group_node.definition.collections.get(key).unwrap();
 
-    if let Some((_, member_state_var)) = group_def.generator() {
-        let state_var_resolver = | state_var_ref | {
-            resolve_state_variable(core, name, state_var_ref)
-        };
-        member_state_var(index, &state_var, &state_var_resolver)
-            .map(|sv| (name.clone(), sv))
-    } else {
-        // if the component does not specify a member_state_var function,
-        // use the group_dependencies to find the ComponentRef
-        nth_group_dependence(core, name, index)
-            .map(|c| (c, state_var))
+            (def.member_state_var)(index, &state_var, &state_var_resolver)
+                .map(|sv| (name.clone(), sv))
+        },
+        (None, Some(GroupOrCollection::Collection(def)))  => {
+            (def.member_state_var)(index, &state_var, &state_var_resolver)
+                .map(|sv| (name.clone(), sv))
+        },
+        (None, Some(GroupOrCollection::Group(_)))  => match nth_group_dependence(core, name, index) {
+            Some(ComponentRef::Basic(c)) => Some((c, state_var)),
+            Some(ComponentRef::GroupMember(c, n, i)) => group_member_state_var(core, &c, n, state_var, i),
+            None => None,
+        },
+        (None, None)  => panic!("not a group"),
     }
 }
 
+/// The component ref return can either be a basic, or a member of a collection
 fn nth_group_dependence(
     core: &DoenetCore,
     group_name: &ComponentName,
     index: usize,
-) -> Option<ComponentName> {
+) -> Option<ComponentRef> {
     let mut index = index;
-    log_debug!("callin it {index}");
-    nth_group_dependence_internal(&mut index, group_name, &core.group_dependencies)
+    nth_group_dependence_internal(&mut index, group_name, core)
 }
 
 fn nth_group_dependence_internal(
     index: &mut usize,
     group_name: &ComponentName,
-    group_dependencies: &HashMap<ComponentName, Vec<GroupDependency>>,
-) -> Option<ComponentName> {
-    for group_dep in group_dependencies.get(group_name).unwrap() {
-        log_debug!("gd {:?} {}", &group_dep, index);
-        match group_dep {
-            GroupDependency::Group(n) => {
-                match nth_group_dependence_internal(index, n, group_dependencies) {
+    core: &DoenetCore,
+) -> Option<ComponentRef> {
+    for group_dep in core.group_dependencies.get(group_name).unwrap() {
+        match &core.component_nodes.get(group_dep).unwrap().definition.replacement_children {
+            Some(GroupOrCollection::Group(_)) => {
+                match nth_group_dependence_internal(index, group_dep, core) {
                     Some(c) => return Some(c),
                     None => (),
                 }
+            }
+            Some(GroupOrCollection::Collection(def)) => {
+                let size: usize = resolve_state_variable(core, group_dep, &def.group_size)
+                    .unwrap().try_into().unwrap();
+                if *index > size {
+                    *index -= size;
+                } else {
+                    return Some(ComponentRef::GroupMember(group_dep.clone(), None, *index));
+                }
             },
-            GroupDependency::Component(n) => {
+            None => {
                 if *index > 1 {
                     *index -= 1;
                 } else {
-                    return Some(n.clone());
+                    return Some(ComponentRef::Basic(group_dep.clone()));
                 }
             },
-            _ => (),
         }
     }
     None
@@ -2288,7 +2303,7 @@ fn convert_dependency_values_to_update_request(
                                 group_index.0 = Some(n);
                                 group_index.1 = 1;
                             }
-                            ComponentRef::GroupMember(n.clone(), group_index.1 - 1)
+                            ComponentRef::GroupMember(n.clone(), None, group_index.1 - 1)
                         },
                         ComponentGroup::Single(comp_ref) => {
                             comp_ref.clone()
@@ -2546,7 +2561,7 @@ fn generate_render_tree_internal(
     }
 
     let name_to_render = match &component.component_ref {
-        ComponentRef::GroupMember(n, i) => name_member_of_group(component_definition.component_type, n, *i),
+        ComponentRef::GroupMember(n, _, i) => name_member_of_group(component_definition.component_type, n, *i),
         _ => component_name.clone(),
     };
     let name_to_render = match &component.child_of_copy {
@@ -2578,19 +2593,21 @@ fn generate_render_tree_internal(
                         component_ref_definition(&core.component_nodes, &child_component.component_ref);
 
                     let child_name = match &child_component.component_ref {
-                        ComponentRef::GroupMember(n, i) => name_member_of_group(&child_definition.component_type, n, *i),
+                        ComponentRef::GroupMember(n, _, i) => name_member_of_group(&child_definition.component_type, n, *i),
                         ComponentRef::Basic(n) => n.clone(),
                     };
 
                     let exact_copy_of_component: Option<ComponentName> =
                         match &child_component.component_ref {
                             ComponentRef::Basic(n) => Some(n.clone()),
-                            ComponentRef::GroupMember(n, i) => {
+                            ComponentRef::GroupMember(n, _, i) => {
                                 let group_node = core.component_nodes.get(n).unwrap();
-                                if group_node.definition.group.unwrap().generator().is_none() {
-                                    Some(nth_group_dependence(core, n, *i).unwrap())
-                                } else {
-                                    None
+                                match group_node.definition.replacement_children.as_ref().unwrap() {
+                                    GroupOrCollection::Group(_) => match nth_group_dependence(core, n, *i).unwrap() {
+                                        ComponentRef::Basic(c) => Some(c.clone()),
+                                        ComponentRef::GroupMember(_, _, _) => None,
+                                    },
+                                    GroupOrCollection::Collection(_) => None,
                                 }
                             },
                         };
@@ -2647,7 +2664,7 @@ fn group_member_definition(
 
     match component_group {
         ComponentGroup::Group(group_name) => {
-            let component_ref = &ComponentRef::GroupMember(group_name.clone(), 0);
+            let component_ref = &ComponentRef::GroupMember(group_name.clone(), None, 0);
             component_ref_definition(component_nodes, component_ref)
         },
         ComponentGroup::Single(component_ref) => {
@@ -2664,23 +2681,19 @@ fn component_ref_definition(
 
     // log_debug!("Getting component ref definition for {:?}", component_ref);
 
-    let name = component_ref.name();
-    let child_type = match &component_ref {
-        ComponentRef::GroupMember(n, _) => {
-            let group_def =
-                component_nodes.get(n).unwrap()
-                .definition.group.expect(
-                    &format!("Component {} does not have a group definition", n)
-                );
-
-            (group_def.component_type)(&component_nodes.get(&name).unwrap().static_attributes)
+    let group_node = component_nodes.get(&component_ref.name()).unwrap();
+    match &component_ref {
+        ComponentRef::GroupMember(n, c, _) => {
+            let member_of = component_nodes.get(n).unwrap();
+            match (c, &member_of.definition.replacement_children) {
+                (Some(key), _) => member_of.definition.collections.get(key).unwrap().member_definition,
+                (None, Some(GroupOrCollection::Collection(def)))  => def.member_definition,
+                (None, Some(GroupOrCollection::Group(def)))  => (def.member_definition)(&member_of.static_attributes),
+                (None, None)  => panic!("not a group"),
+            }
         },
-        _ => component_nodes.get(&name).expect(
-                &format!("no component named {}", name)
-            ).definition.component_type,
-    };
-
-    COMPONENT_DEFINITIONS.get(child_type).unwrap()
+        _ => group_node.definition,
+    }
 }
 
 /// Returns component definition and component type.
@@ -2689,12 +2702,10 @@ fn definition_of_members<'a>(
     static_attributes: &HashMap<AttributeName, String>,
 ) -> &'a ComponentDefinition {
 
-    if let Some(group_def) = definition.group {
-        COMPONENT_DEFINITIONS.get(
-            (group_def.component_type)(static_attributes)
-        ).unwrap()
-    } else {
-        definition
+    match &definition.replacement_children {
+        Some(GroupOrCollection::Collection(def))  => def.member_definition,
+        Some(GroupOrCollection::Group(def))  => (def.member_definition)(static_attributes),
+        None  => definition,
     }
 }
 
@@ -2718,7 +2729,8 @@ fn get_children_and_members<'a>(
         ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
-            if core.component_nodes.get(&comp_name).unwrap().definition.group.is_some() {
+            if core.component_nodes.get(&comp_name).unwrap().definition.replacement_children.is_some() {
+
                 let group = ComponentGroup::Group(comp_name.clone());
 
                 component_group_members(core, &group).iter().map(|comp_ref|

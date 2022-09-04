@@ -477,6 +477,37 @@ fn collect_point_into_text() {
     assert_sv_is_string(&dc, "t", "value", "(2, 3)(3, 2)");
 }
 
+#[wasm_bindgen_test]
+fn collect_sequence_changing() {
+    static DATA: &str = r#"
+        <number name="n" copySource="/_numberInput1" copyProp="value"/>:
+
+        <p name="p1">
+        <sequence name="seq" from="$n" to="$n+5"/>
+        </p>
+
+        <collect name="c1" source="p1" componentType="number"/>.
+
+        $seq[3].value
+        $c1[3].value
+        <numberInput prefill="6"/>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "__mcr:c1:value(/_document1)_1", "value", 8.0);
+    assert_sv_is_number(&dc, "__mcr:seq:value(/_document1)_1", "value", 8.0);
+
+    update_immediate_value_for_number(&dc, "/_numberInput1", "30");
+    update_value_for_number(&dc, "/_numberInput1");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "__mcr:c1:value(/_document1)_1", "value", 32.0);
+    assert_sv_is_number(&dc, "__mcr:seq:value(/_document1)_1", "value", 32.0);
+}
+
 // ========= <sequence> ==============
 
 #[wasm_bindgen_test]
@@ -788,6 +819,23 @@ fn boolean_operations() {
     assert_sv_is_boolean(&dc, "/_boolean1", "value", true);
     assert_sv_is_boolean(&dc, "/_boolean2", "value", true);
     assert_sv_is_boolean(&dc, "/_boolean3", "value", false);
+}
+
+// =========== <line> ============
+
+#[wasm_bindgen_test]
+fn line_points_collection() {
+    static DATA: &str = r#"
+        <graph>
+                <line p1="5 2" p2="3 4"/>
+        </graph>
+        <number copySource="/_line1" copyCollection="points" componentIndex="1" copyProp="xs" propIndex="1"/>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 5.0);
 }
 
 // =========== <number> ============

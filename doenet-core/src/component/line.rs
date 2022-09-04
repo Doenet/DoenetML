@@ -123,13 +123,34 @@ lazy_static! {
 
         state_var_definitions.insert("draggable", boolean_definition_from_attribute!("draggable", true));
 
-        // Label
-        state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
+        // For the "points" collection
+        state_var_definitions.insert("labelPosition", StateVarVariant::String(StateVarDefinition {
+            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: "upperright".to_string(),
+            ..Default::default()
+        }));
+        state_var_definitions.insert("showCoordsWhenDragging", StateVarVariant::Boolean(StateVarDefinition {
+            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: true,
+            ..Default::default()
+        }));
+        state_var_definitions.insert("labelHasLatex", StateVarVariant::Boolean(StateVarDefinition {
+            return_dependency_instructions: USE_ESSENTIAL_DEPENDENCY_INSTRUCTION,
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: false,
+            ..Default::default()
+        }));
 
         // Graphical
         state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
         state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
         state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
+        state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
 
         // Base
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
@@ -139,7 +160,26 @@ lazy_static! {
     };
 }
 
+fn member_state_var<'a>(
+    index: usize,
+    state_var_slice: &'a StateVarSlice,
+    _: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+) -> Option<StateVarSlice> {
 
+    match state_var_slice.name() {
+        "xs" => match index {
+                1 => Some(state_var_slice.from_slice_new_name("p1")),
+                2 => Some(state_var_slice.from_slice_new_name("p2")),
+                _ => None,
+            },
+        "numericalXs" => match index {
+                1 => Some(state_var_slice.from_slice_new_name("p1")),
+                2 => Some(state_var_slice.from_slice_new_name("p2")),
+                _ => None,
+            },
+        _ => Some(state_var_slice.clone())
+    }
+}
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
@@ -164,6 +204,14 @@ lazy_static! {
         component_profiles: vec![
             (ComponentProfile::Text, "latex")
         ],
+
+        collections: HashMap::from([
+            ("points", CollectionDefinition {
+                member_definition: &super::point::MY_COMPONENT_DEFINITION,
+                group_size: StateRef::SizeOf("p1"),
+                member_state_var,
+            })
+        ]),
 
         action_names: || vec!["moveLine", "switchLine", "lineClicked"],
 

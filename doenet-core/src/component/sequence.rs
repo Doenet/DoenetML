@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::GroupDependency;
 use crate::state_variables::*;
 use crate::base_definitions::*;
 
@@ -124,20 +123,6 @@ lazy_static! {
     };
 }
 
-fn component_type(_: &HashMap<AttributeName, String>,) -> ComponentType {
-    "number"
-}
-
-fn group_dependencies(
-    node: &ComponentNode,
-    _component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<GroupDependency> {
-    vec![GroupDependency::StateVar(
-        ComponentRef::Basic(node.name.clone()),
-        StateVarSlice::Single(StateRef::SizeOf("value")),
-    )]
-}
-
 fn member_state_var<'a>(
     index: usize,
     state_var_slice: &'a StateVarSlice,
@@ -161,22 +146,16 @@ fn member_state_var<'a>(
 }
 
 lazy_static! {
-    pub static ref MY_GROUP_DEFINITION: GroupComponent = GroupComponent {
-        group_dependencies,
-        component_type,
-        group_size: Some(StateRef::SizeOf("value")),
-        member_state_var: Some(member_state_var),
-        ..Default::default()
-    };
-}
-
-lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
         component_type: "sequence",
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        group: Some(&MY_GROUP_DEFINITION),
+        replacement_children: Some(GroupOrCollection::Collection(CollectionDefinition {
+            member_definition: &super::number::MY_COMPONENT_DEFINITION,
+            group_size: StateRef::SizeOf("value"),
+            member_state_var,
+        })),
 
         attribute_names: vec![
             "hide",

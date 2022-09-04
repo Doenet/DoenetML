@@ -127,6 +127,15 @@ impl StateVarSlice {
             Self::Array(name) => name,
         }
     }
+
+    pub fn from_slice_new_name(&self, name: StateVarName) -> StateVarSlice {
+        match self {
+            Self::Single(state_ref) => StateVarSlice::Single(
+                StateRef::from_name_and_index(name, state_ref.index())
+            ),
+            Self::Array(_) => Self::Array(name),
+        }
+    }
 }
 
 impl StateRef {

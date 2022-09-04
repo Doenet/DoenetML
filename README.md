@@ -95,37 +95,40 @@ One point uses immediate value plus an offset
 ```
 </details>
 
----untested past this point---
-
 <details>
 <summary>Collect Component Index</summary>
 
 ``` xml
-<p name="p1">
-This paragraph has numbers and sequences:
+The following paragraph contains numbers and sequences based on the number
+<number name="n" copySource="/_numberInput1" copyProp="value"/>:
 
+<p name="p1">
+This paragraphs contains:
+number
 <number>23</number>
-and
+sequence
 <sequence from="1" to="$n"/>
+number
 <number>42</number>
-and more
+number
 <number>2</number>
+sequence
 <sequence from="$n" to="2*$n"/>
-last one
+number
 <number>30</number>
 </p>
 
-Collect the numbers in that paragraph: <collect name="c1" source="p1" componentType="number"/>
+Collect the numbers in that paragraph: <collect name="c1" source="p1" componentType="number"/>.
 
 The fifth number is $c1[5].value.
 
-Now try changing the number input
-<numberInput prefill="6"/><number name="n" copySource="/_numberInput" copyProp="value/>
+Now try changing the number
+<numberInput prefill="6"/>
 ```
 </details>
 
 ## Technical Documentation
-JavaScript parses the DoenetML and call Rust functions, passing in strings. On core creation, Rust returns a pointer to its main struct, existing in WASM linear memory. Javascript uses this to access the other core functions. Rust returns rendering data as strings.
+JavaScript parses the DoenetML and calls Rust functions, passing in strings. On core creation, Rust returns a pointer to its main struct, existing in WASM linear memory. Javascript uses this to access the other core functions. Rust returns rendering data as strings.
 
 The Doenet Rust code is in the doenet-core crate, doenet-core/src/lib.rs being the main file. The crate can be built as a library independent of javascript, but without a parser, one would need pre-parsed DoenetML objects as its input.
 

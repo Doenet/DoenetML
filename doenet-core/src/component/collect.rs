@@ -2,8 +2,6 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::GroupDependency;
-use crate::state_variables::*;
 use crate::base_definitions::*;
 
 use super::*;
@@ -22,17 +20,17 @@ lazy_static!{
     };
 }
 
-fn component_type(
+fn member_definition(
     values: &HashMap<AttributeName, String>,
-) -> ComponentType {
+) -> &'static ComponentDefinition {
     let component_type = values.get("componentType").unwrap();
-    to_component_type(component_type).unwrap()
+    COMPONENT_DEFINITIONS.get_key_value_ignore_case(component_type.as_str()).unwrap().1
 }
 
 fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<GroupDependency> {
+) -> Vec<ComponentName> {
 
     let my_attributes = &node.static_attributes;
     let source: &String = my_attributes.get("source").unwrap();
@@ -45,7 +43,7 @@ fn depend_on_children_of_type(
     node: &ComponentNode,
     component_type: String,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<GroupDependency> {
+) -> Vec<ComponentName> {
 
     node
     .children
@@ -54,14 +52,15 @@ fn depend_on_children_of_type(
         match n {
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
-                let child_type = match comp.definition.group {
-                    Some(def) => (def.component_type)(&node.static_attributes),
+                let child_type = match &comp.definition.replacement_children {
+                    Some(GroupOrCollection::Group(def)) => (def.member_definition)(&node.static_attributes).component_type,
+                    Some(GroupOrCollection::Collection(def)) => def.member_definition.component_type,
                     None => comp.definition.component_type,
                 };
                 if child_type.to_lowercase() == component_type.to_lowercase() {
-                    Some(match comp.definition.group {
-                        Some(_) => GroupDependency::Group(c.clone()),
-                        None => GroupDependency::Component(c.clone()),
+                    Some(match comp.definition.replacement_children {
+                        Some(_) => c.clone(),
+                        None => c.clone(),
                     })
                 } else {
                     None
@@ -70,14 +69,6 @@ fn depend_on_children_of_type(
             _ => None
         }
     ).collect()
-}
-
-lazy_static! {
-    pub static ref MY_GROUP_DEFINITION: GroupComponent = GroupComponent {
-        component_type,
-        group_dependencies,
-        ..Default::default()
-    };
 }
 
 lazy_static! {
@@ -96,7 +87,10 @@ lazy_static! {
             "componentType",
         ],
 
-        group: Some(&MY_GROUP_DEFINITION),
+        replacement_children: Some(GroupOrCollection::Group(GroupDefinition {
+            member_definition,
+            group_dependencies,
+        })),
 
         ..Default::default()
     };
