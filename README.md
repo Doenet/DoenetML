@@ -1,5 +1,14 @@
 # Doenet in Rust
- 
+Semantic markup for building interactive web activities.
+Read more about Doenet See https://www.doenet.org/home
+
+![](media/answer_example.png)
+
+## Features
+* Makes use of WebAssembly/Rust for quicker webpage start-up and increased responsiveness
+* Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
+
+
 ## Quickstart
 In the project folder:
 
