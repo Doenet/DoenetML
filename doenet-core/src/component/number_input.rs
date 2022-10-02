@@ -200,7 +200,7 @@ lazy_static! {
             match action_name {
                 "updateImmediateValue" => {
                     // Note: the key here is whatever the renderers call the new value
-                    let new_val = args.get("text").expect("No text argument");
+                    let new_val = args.get("text").expect("No text argument").first().unwrap();
 
                     vec![
                         (StateRef::Basic("rawRendererValue"), new_val.clone()),

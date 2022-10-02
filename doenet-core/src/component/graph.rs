@@ -163,10 +163,10 @@ lazy_static! {
             match action_name {
                 "changeAxisLimits" => {
                     // Note: the key here is whatever the renderers call the new value
-                    let xmin = args.get("xmin").expect("missing bound argument").clone().into_number().unwrap();
-                    let xmax = args.get("xmax").expect("missing bound argument").clone().into_number().unwrap();
-                    let ymin = args.get("ymin").expect("missing bound argument").clone().into_number().unwrap();
-                    let ymax = args.get("ymax").expect("missing bound argument").clone().into_number().unwrap();
+                    let xmin = args.get("xmin").expect("missing bound argument").first().unwrap().clone().into_number().unwrap();
+                    let xmax = args.get("xmax").expect("missing bound argument").first().unwrap().clone().into_number().unwrap();
+                    let ymin = args.get("ymin").expect("missing bound argument").first().unwrap().clone().into_number().unwrap();
+                    let ymax = args.get("ymax").expect("missing bound argument").first().unwrap().clone().into_number().unwrap();
 
                     vec![
                         (StateRef::Basic("xmin"), xmin),

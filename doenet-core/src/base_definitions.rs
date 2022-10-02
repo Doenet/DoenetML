@@ -230,6 +230,53 @@ macro_rules! string_definition_from_attribute {
 pub(crate) use string_definition_from_attribute;
 
 
+// ===== potentially useful macro for arrays ===== //
+// macro_rules! map_array {
+//     ( $variant:ident, $array:literal, $func:expr, $render:literal ) => {
+//         {
+//             StateVarVariant::$variant(StateVarArrayDefinition {
+
+//                 for_renderer: $render,
+
+//                 return_array_dependency_instructions: |_| {
+//                     HashMap::from([(
+//                         "corresponding_value", DependencyInstruction::CorrespondingElements {
+//                             component_ref: None,
+//                             array_state_var_name: $array,
+//                         }
+//                     )])
+//                 },
+
+//                 determine_element_from_dependencies: |_, dependency_values| {
+//                     let corresponding: f64 = dependency_values.dep_value("corresponding_value")?
+//                         .has_exactly_one_element()?
+//                     let my_value = $func(corresponding);
+
+//                     Ok(SetValue(my_value))
+//                 },
+
+//                 return_size_dependency_instructions: |_| {
+//                     HashMap::from([
+//                         ("size", DependencyInstruction::StateVar {
+//                             component_ref: None,
+//                             state_var: StateVarSlice::Single(StateRef::SizeOf($array)),
+//                         }),
+//                     ])
+//                 },
+
+//                 determine_size_from_dependencies: |dependency_values| {
+//                     let size = dependency_values.dep_value("size")?
+//                         .has_exactly_one_element()?
+//                         .into_integer()?;
+//                     Ok(SetValue(size as usize))
+//                 },
+
+//                 ..Default::default()
+//             })
+//         }
+//     }
+// }
+// pub(crate) use map_array;
 
 pub fn split_dependency_values_into_math_expression_and_values(
     dependency_values: Vec<&DependencyValue>
@@ -368,12 +415,10 @@ pub fn HIDDEN_DEFAULT_DEFINITION() -> StateVarVariant {
 
             let (attribute, _) = dependency_values.dep_value("my_hide")?;
 
-            crate::utils::log!("from attribute {:?}", attribute);
             let my_hide =
                 (attribute.len() > 0)
                 .then(|| DETERMINE_BOOLEAN(attribute).ok())
                 .flatten();
-            crate::utils::log!("my hide is {:?}", my_hide);
 
             Ok(SetValue(parent_hidden.unwrap_or(false) || my_hide.unwrap_or(false)))
         },

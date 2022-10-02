@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::utils::{log_json, log_debug, log};
 use crate::Action;
 use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
-KeyValueIgnoreCase, AttributeName, ObjectName};
+KeyValueIgnoreCase, AttributeName, ObjectName, GroupOrCollection};
 
 use crate::ComponentChild;
 use lazy_static::lazy_static;
@@ -159,19 +159,27 @@ struct ActionStructure {
 enum ArgValue {
     Bool(bool),
     Number(serde_json::Number),
+    NumberArray(Vec<serde_json::Number>),
     String(String),
 }
 
-impl From<ArgValue> for StateVarValue {
+impl From<serde_json::Number> for StateVarValue {
+    fn from(v: serde_json::Number) -> Self {
+        if v.is_i64() {
+             StateVarValue::Integer(v.as_i64().unwrap())
+         } else {
+             StateVarValue::Number(v.as_f64().unwrap())
+         }
+    }
+}
+
+impl From<ArgValue> for Vec<StateVarValue> {
     fn from(value: ArgValue) -> Self {
          match value {
-             ArgValue::Bool(v) => StateVarValue::Boolean(v),
-             ArgValue::String(v) => StateVarValue::String(v),
-             ArgValue::Number(v) => if v.is_i64() {
-                 StateVarValue::Integer(v.as_i64().unwrap())
-             } else {
-                 StateVarValue::Number(v.as_f64().unwrap())
-             },
+             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
+             ArgValue::String(v) => vec![StateVarValue::String(v)],
+             ArgValue::Number(v) => vec![v.into()],
+             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
          }
     }
 }
@@ -185,12 +193,12 @@ pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> 
 
     let component_name = action_structure.component_name.clone();
     let action_name = action_structure.action_name.clone();
-    let mut args: HashMap<String, StateVarValue> = action_structure.args
+    let mut args: HashMap<String, Vec<StateVarValue>> = action_structure.args
         .into_iter()
         .map(|(k, v)| (k, v.into()))
         .collect();
 
-    let action_id: String = args.get("actionId").unwrap().clone().try_into().unwrap();
+    let action_id: String = args.get("actionId").unwrap().first().unwrap().clone().try_into().unwrap();
     args.remove("actionId");
 
     Ok((Action { component_name, action_name, args}, action_id))
@@ -212,6 +220,7 @@ struct ComponentTree {
 struct Props {
     name: Option<String>,
     copy_source: Option<String>,
+    copy_collection: Option<String>,
     copy_prop: Option<String>,
     prop_index: Option<String>,
     component_index: Option<String>,
@@ -251,6 +260,7 @@ pub struct MLComponent {
     pub children: Vec<ComponentChild>,
 
     pub copy_source: Option<String>,
+    pub copy_collection: Option<String>,
     pub copy_prop: Option<String>,
     pub static_attributes: HashMap<AttributeName, String>,
 
@@ -449,6 +459,7 @@ fn add_component_from_json(
         children,
 
         copy_source: component_tree.props.copy_source.clone(),
+        copy_collection: component_tree.props.copy_collection.clone(),
         copy_prop: component_tree.props.copy_prop.clone(),
         prop_index: vec![],
         component_index: vec![],
@@ -730,14 +741,16 @@ fn macro_comp_ref(
         let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
         comp_end = close_bracket_match.end();
 
-        let group_definition = source_component.definition.group.ok_or(
-            format!("Component {} cannot be indexed", copy_source)
-        )?;
-
-        let source_type = (group_definition.component_type)(
-            &source_component.static_attributes
-        );
-        source_def = *COMPONENT_DEFINITIONS.get(source_type).unwrap();
+        source_def = match (None, &source_component.definition.replacement_children) {
+            (Some(key), _) => {
+                source_component.definition.collections
+                    .get_key_value_ignore_case(key).unwrap().1
+                    .member_definition
+            },
+            (None, Some(GroupOrCollection::Collection(def)))  => def.member_definition,
+            (None, Some(GroupOrCollection::Group(def)))  => (def.member_definition)(&source_component.static_attributes),
+            (None, None)  => return Err("index of non-group".to_string()),
+        };
     } else {
         // no component index
         comp_end = comp_match.end();
@@ -830,6 +843,7 @@ fn macro_comp_ref(
         children: vec![],
 
         copy_source: Some(copy_source),
+        copy_collection: None,
         copy_prop,
         component_index,
         prop_index,

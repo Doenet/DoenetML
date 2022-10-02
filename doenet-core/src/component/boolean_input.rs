@@ -59,7 +59,7 @@ lazy_static! {
             match action_name {
                 "updateBoolean" => {
 
-                    let new_val = args.get("boolean").expect("No boolean argument");
+                    let new_val = args.get("boolean").expect("No boolean argument").first().unwrap();
 
                     vec![(
                         StateRef::Basic("value"),

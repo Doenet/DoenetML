@@ -245,13 +245,23 @@ pub fn child_instructions_for<'a>(render_tree: &'a Value, parent: &'static str, 
 
 
 
+pub fn update_immediate_value_for_text(dc: &DoenetCore, component_name: &'static str, value: &'static str) {
+    let type_in_number_input = Action {
+        component_name: component_name.to_string(),
+        action_name: "updateImmediateValue".to_string(),
+        args: HashMap::from([
+            ("text".to_string(), vec![StateVarValue::String(value.into())]),
+        ]),
+    };
+    doenet_core::handle_action(&dc, type_in_number_input);
+}
 
 pub fn update_immediate_value_for_number(dc: &DoenetCore, component_name: &'static str, value: &'static str) {
     let type_in_number_input = Action {
         component_name: component_name.to_string(),
         action_name: "updateImmediateValue".to_string(),
         args: HashMap::from([
-            ("text".to_string(), StateVarValue::String(value.into())),
+            ("text".to_string(), vec![StateVarValue::String(value.into())]),
         ]),
     };
     doenet_core::handle_action(&dc, type_in_number_input);
@@ -272,8 +282,8 @@ pub fn move_point_2d(dc: &DoenetCore, component_name: &'static str, x: StateVarV
         component_name: component_name.to_string(),
         action_name: "movePoint".to_string(),
         args: HashMap::from([
-            ("x".to_string(), x),
-            ("y".to_string(), y),
+            ("x".to_string(), vec![x]),
+            ("y".to_string(), vec![y]),
         ]),
     };
     doenet_core::handle_action(&dc, move_point);

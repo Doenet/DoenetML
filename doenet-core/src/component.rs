@@ -11,13 +11,13 @@ pub mod graph;
 pub mod point;
 pub mod collect;
 pub mod section;
+pub mod line;
 
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
 
 use crate::state_variables::*;
-use crate::GroupDependency;
 
 use std::collections::HashMap;
 use std::fmt::{Debug, self};
@@ -33,6 +33,8 @@ pub type AttributeName = &'static str;
 /// A ComponentName is not static because it cannot be known at compile time.
 pub type ComponentName = String;
 
+/// camelCase
+pub type CollectionName = &'static str;
 
 lazy_static! {
     pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
@@ -51,6 +53,7 @@ lazy_static! {
             &crate::point        ::MY_COMPONENT_DEFINITION,
             &crate::collect      ::MY_COMPONENT_DEFINITION,
             &crate::section      ::MY_COMPONENT_DEFINITION,
+            &crate::line         ::MY_COMPONENT_DEFINITION,
         ];
 
         defs.into_iter().map(|def| (def.component_type, def)).collect()
@@ -78,14 +81,6 @@ where
     }
 }
 
-fn to_component_type(value: &String) -> Result<ComponentType, String> {
-    Ok(
-        &COMPONENT_DEFINITIONS
-        .get_key_value_ignore_case(value.as_str())
-        .ok_or("no component type")?
-        .0
-    )
-}
 
 
 #[derive(Debug, Clone)]
@@ -163,7 +158,7 @@ pub struct ComponentDefinition {
     /// The update requests will be processed in the order returned.
     pub on_action: for<'a> fn(
         action_name: &str,
-        args: HashMap<String, StateVarValue>,
+        args: HashMap<String, Vec<StateVarValue>>,
         resolve_and_retrieve_state_var: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
     ) -> Vec<(StateRef, StateVarValue)>,
 
@@ -179,75 +174,49 @@ pub struct ComponentDefinition {
 
     pub renderer_type: RendererType,
 
-    pub group: Option<&'static GroupComponent>,
+    /// If specified, the component's parent will treat this as multiple components.
+    pub replacement_children: Option<GroupOrCollection>,
+
+    /// These collections that are not used as replacement children.
+    pub collections: HashMap<CollectionName, CollectionDefinition>,
 
     pub component_type: ComponentType,
 
 }
 
+pub enum GroupOrCollection {
+    Group(GroupDefinition),
+    Collection(CollectionDefinition),
+}
 
-pub struct GroupComponent {
 
+// Like CopySource exepct multiple components
+pub struct GroupDefinition {
     pub group_dependencies: fn(
         node: &ComponentNode,
         component_nodes: &HashMap<ComponentName, ComponentNode>,
-    ) -> Vec<GroupDependency>,
+    ) -> Vec<ComponentName>,
 
-    pub component_type: fn(&HashMap<AttributeName, String>) -> ComponentType,
+    pub member_definition: fn(
+        static_attributes: &HashMap<AttributeName, String>,
+    ) -> &'static ComponentDefinition,
+}
 
+// Packaging a components state variables to appear like many components.
+// - ex: <line/> has a collection named "points"
+// - ex: <sequence/> has a collection used as its replacement children
+pub struct CollectionDefinition {
 
-    // For groups that contain their members' state variables:
-    // ("generator" groups like sequence vs "pointer" groups like collect)
+    pub member_definition: &'static ComponentDefinition,
 
-    /// `None` means use the group dependencies
-    pub group_size: Option<StateRef>,
+    pub group_size: StateRef,
 
-    /// `None` means use the group dependencies
-    pub member_state_var: Option<
+    pub member_state_var:
         for<'a> fn(
             index: usize,
             state_var_slice: &'a StateVarSlice,
             state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
-        ) -> Option<StateVarSlice>
-    >,
-}
-
-impl GroupComponent {
-    pub fn generator(&self) -> Option<(
-            StateRef, 
-            for<'a> fn(
-                usize,
-                &'a StateVarSlice,
-                &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>
-            ) -> Option<StateVarSlice>,
-    )> {
-        match (&self.group_size, &self.member_state_var) {
-            (Some(a), Some(b)) => Some((a.clone(), *b)),
-            (_, _) => None,
-        }
-    }
-}
-
-impl Default for GroupComponent {
-    fn default() -> Self {
-        GroupComponent {
-            group_dependencies: |_,_| vec![],
-            component_type: |_| "number",
-            group_size: None,
-            member_state_var: None
-        }
-    }
-}
-
-
-impl TryFrom<&ComponentDefinition> for &GroupComponent {
-    type Error = &'static str;
-    fn try_from(value: &ComponentDefinition) -> Result<Self, Self::Error> {
-        match value.group {
-            Some(ref group_def) => Ok(&group_def),
-            None => Err("not a group"),
-        }
-    }
+        ) -> Option<StateVarSlice>,
 }
 
 
@@ -257,7 +226,9 @@ impl TryFrom<&ComponentDefinition> for &GroupComponent {
 #[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash, enum_as_inner::EnumAsInner)]
 pub enum ComponentRef {
     Basic(ComponentName),
-    GroupMember(ComponentName, usize),
+
+    /// No collection name means use replacement children.
+    GroupMember(ComponentName, Option<CollectionName>, usize),
 }
 
 impl std::fmt::Display for ComponentRef {
@@ -277,7 +248,7 @@ impl ComponentRef {
     pub fn name(&self) -> ComponentName {
         match self {
             Self::Basic(name) => name.clone(),
-            Self::GroupMember(name, _) => name.clone(),
+            Self::GroupMember(name, _, _) => name.clone(),
         }
     }
 }
@@ -313,7 +284,8 @@ impl Default for ComponentDefinition {
             valid_children_profiles: ValidChildTypes::ValidProfiles(vec![]),
             action_names: || Vec::new(),
             on_action: |_, _, _| vec![],
-            group: None,
+            replacement_children: None,
+            collections: HashMap::new(),
             component_type: "default_invalid",
         }
     }

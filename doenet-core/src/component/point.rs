@@ -118,20 +118,17 @@ lazy_static! {
 
         state_var_definitions.insert("showCoordsWhenDragging", boolean_definition_from_attribute!("showCoordsWhenDragging", true));
 
-
-        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
-
-        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
-
-        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
-
-        state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
-
         state_var_definitions.insert("labelHasLatex", boolean_definition_from_attribute!("layer", false));
 
 
-        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
+        // Graphical
+        state_var_definitions.insert("showLabel", boolean_definition_from_attribute!("showLabel", true));
+        state_var_definitions.insert("applyStyleToLabel", boolean_definition_from_attribute!("applyStyleToLabel", true));
+        state_var_definitions.insert("layer", integer_definition_from_attribute!("layer", 0));
+        state_var_definitions.insert("label", string_definition_from_attribute!("label", ""));
 
+        // Base
+        state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
 
         return state_var_definitions
@@ -150,13 +147,13 @@ lazy_static! {
             "draggable",
             "labelPosition",
             "showCoordsWhenDragging",
+            "labelHasLatex",
+            "xs",
+
             "showLabel",
             "applyStyleToLabel",
             "layer",
             "label",
-            "labelHasLatex",
-
-            "xs",
 
             "hide",
             "disabled",
@@ -178,8 +175,8 @@ lazy_static! {
         on_action: |action_name, args, _| {
             match action_name {
                 "movePoint" => {
-                    let x = args.get("x").expect("No x argument");
-                    let y = args.get("y").expect("No y argument");
+                    let x = args.get("x").expect("No x argument").first().unwrap();
+                    let y = args.get("y").expect("No y argument").first().unwrap();
                     // let z = args.get("z").expect("No z argument");
 
                     // order means that x will processed second

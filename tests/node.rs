@@ -8,7 +8,7 @@ use doenet_core::parse_json::DoenetMLWarning;
 use serde_json;
 
 use common_node::*;
-use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue, Action};
+use doenet_core::{parse_json::DoenetMLError, state_variables::StateVarValue};
 use wasm_bindgen_test::{wasm_bindgen_test, console_log};
 
 // ========= DoenetML errrors ============
@@ -230,13 +230,7 @@ fn text_input_update_immediate_value_and_update_value() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    doenet_core::handle_action(&dc, doenet_core::Action {
-        component_name: String::from("/_textInput1"),
-        action_name: String::from("updateImmediateValue"),
-        args: HashMap::from([
-            ("text".into(), StateVarValue::String("this is the new immediate value".into()))
-        ])
-    });
+    update_immediate_value_for_text(&dc, "/_textInput1", "this is the new immediate value");
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "/_textInput1", "immediateValue", "this is the new immediate value");
@@ -261,13 +255,7 @@ fn text_input_update_immediate_value_and_update_value() {
 
 
     // Make sure that if we change the other textInputs, the essential data will still change
-    doenet_core::handle_action(&dc, doenet_core::Action {
-        component_name: String::from("/_textInput1"),
-        action_name: String::from("updateImmediateValue"),
-        args: HashMap::from([
-            ("text".into(), StateVarValue::String("the second text input changed this value".into()))
-        ])
-    });
+    update_immediate_value_for_text(&dc, "/_textInput1", "the second text input changed this value" );
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_string(&dc, "/_textInput1", "immediateValue", "the second text input changed this value");
@@ -311,15 +299,7 @@ fn number_input_immediate_value_syncs_with_value_on_update_request() {
 
     // assert_sv_array_is_number_list(&dc, "myPoint", "xs", vec![0.0, 1.0]);
 
-    let move_point = Action {
-        component_name: "myPoint".to_string(),
-        action_name: "movePoint".to_string(),
-        args: HashMap::from([
-            ("x".to_string(), StateVarValue::Number(-5.11)),
-            ("y".to_string(), StateVarValue::Number(27.0)),
-        ]),
-    };
-    doenet_core::handle_action(&dc, move_point);
+    move_point_2d(&dc, "myPoint", StateVarValue::Number(-5.11), StateVarValue::Number(27.0));
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "myPoint", "xs", vec![-5.11, 27.0]);
@@ -495,6 +475,37 @@ fn collect_point_into_text() {
     assert_sv_array_is_number_list(&dc, "p1", "xs", vec![2.0, 3.0]);
     assert_sv_array_is_number_list(&dc, "p2", "xs", vec![3.0, 2.0]);
     assert_sv_is_string(&dc, "t", "value", "(2, 3)(3, 2)");
+}
+
+#[wasm_bindgen_test]
+fn collect_sequence_changing() {
+    static DATA: &str = r#"
+        <number name="n" copySource="/_numberInput1" copyProp="value"/>:
+
+        <p name="p1">
+        <sequence name="seq" from="$n" to="$n+5"/>
+        </p>
+
+        <collect name="c1" source="p1" componentType="number"/>.
+
+        $seq[3].value
+        $c1[3].value
+        <numberInput prefill="6"/>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "__mcr:c1:value(/_document1)_1", "value", 8.0);
+    assert_sv_is_number(&dc, "__mcr:seq:value(/_document1)_1", "value", 8.0);
+
+    update_immediate_value_for_number(&dc, "/_numberInput1", "30");
+    update_value_for_number(&dc, "/_numberInput1");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "__mcr:c1:value(/_document1)_1", "value", 32.0);
+    assert_sv_is_number(&dc, "__mcr:seq:value(/_document1)_1", "value", 32.0);
 }
 
 // ========= <sequence> ==============
@@ -721,15 +732,7 @@ fn point_copies_coords_of_another_point() {
     assert_sv_array_is_number_list(&dc, "a", "xs", vec![1.0, 2.0]);
     assert_sv_array_is_number_list(&dc, "b", "xs", vec![-3.0, 4.0]);
 
-    let move_point = Action {
-        component_name: "a".to_string(),
-        action_name: "movePoint".to_string(),
-        args: HashMap::from([
-            ("x".to_string(), StateVarValue::Number(-2.0)),
-            ("y".to_string(), StateVarValue::Number(-5.0)),
-        ]),
-    };
-    doenet_core::handle_action(&dc, move_point);
+    move_point_2d(&dc, "a", StateVarValue::Number(-2.0), StateVarValue::Number(-5.0));
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "a", "xs", vec![-2.0, -5.0]);
@@ -753,15 +756,7 @@ fn point_copies_another_point_component() {
     assert_sv_array_is_number_list(&dc, "p3", "xs", vec![1.0, 2.0]);
     assert_sv_array_is_number_list(&dc, "p4", "xs", vec![1.0, 2.0]);
 
-    let move_point = Action {
-        component_name: "p2".to_string(),
-        action_name: "movePoint".to_string(),
-        args: HashMap::from([
-            ("x".to_string(), StateVarValue::Number(-3.2)),
-            ("y".to_string(), StateVarValue::Number(7.1)),
-        ]),
-    };
-    doenet_core::handle_action(&dc, move_point);
+    move_point_2d(&dc, "p2", StateVarValue::Number(-3.2), StateVarValue::Number(7.1));
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p1", "xs", vec![-3.2, 7.1]);
@@ -824,6 +819,23 @@ fn boolean_operations() {
     assert_sv_is_boolean(&dc, "/_boolean1", "value", true);
     assert_sv_is_boolean(&dc, "/_boolean2", "value", true);
     assert_sv_is_boolean(&dc, "/_boolean3", "value", false);
+}
+
+// =========== <line> ============
+
+#[wasm_bindgen_test]
+fn line_points_collection() {
+    static DATA: &str = r#"
+        <graph>
+                <line p1="5 2" p2="3 4"/>
+        </graph>
+        <number copySource="/_line1" copyCollection="points" componentIndex="1" copyProp="xs" propIndex="1"/>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 5.0);
 }
 
 // =========== <number> ============
@@ -1027,15 +1039,7 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    let type_in_number_input = Action {
-        component_name: "/_numberInput1".to_string(),
-        action_name: "updateImmediateValue".to_string(),
-        args: HashMap::from([
-            ("text".to_string(), StateVarValue::String("5.0".into())),
-        ]),
-    };
-
-    doenet_core::handle_action(&dc, type_in_number_input);
+    update_immediate_value_for_number(&dc, "/_numberInput1", "5.0");
     doenet_core::update_renderers(&dc);
 
     assert_sv_is_number(&dc, "n1", "value", 6.0);
@@ -1147,15 +1151,7 @@ fn reload_essential_data_after_point_moves() {
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![3.0, 2.0]);
 
-    let move_point = Action {
-        component_name: "p".to_string(),
-        action_name: "movePoint".to_string(),
-        args: HashMap::from([
-            ("x".to_string(), StateVarValue::Integer(5)),
-            ("y".to_string(), StateVarValue::Number(1.0)),
-        ]),
-    };
-    doenet_core::handle_action(&dc, move_point);
+    move_point_2d(&dc, "p", StateVarValue::Integer(5), StateVarValue::Number(1.0));
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
