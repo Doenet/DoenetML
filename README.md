@@ -1,8 +1,15 @@
 # Doenet in Rust
 Semantic markup for building interactive web activities.
-Read more about Doenet See https://www.doenet.org/home
+[Read more about Doenet](https://www.doenet.org/home)
 
-![](media/answer_example.png)
+``` xml
+<p>Drag the point to the 4th quadrant.</p>
+<graph>
+    <point xs='2 3'/>
+</graph>
+```
+
+![](media/graph_example.png)
 
 ## Features
 * Makes use of WebAssembly/Rust for quicker webpage start-up and increased responsiveness
