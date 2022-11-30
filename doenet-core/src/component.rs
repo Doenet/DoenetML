@@ -12,6 +12,9 @@ pub mod point;
 pub mod collect;
 pub mod section;
 pub mod line;
+pub mod map;
+pub mod template;
+pub mod sources;
 
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
@@ -54,6 +57,9 @@ lazy_static! {
             &crate::collect      ::MY_COMPONENT_DEFINITION,
             &crate::section      ::MY_COMPONENT_DEFINITION,
             &crate::line         ::MY_COMPONENT_DEFINITION,
+            &crate::map          ::MY_COMPONENT_DEFINITION,
+            &crate::template     ::MY_COMPONENT_DEFINITION,
+            &crate::sources      ::MY_COMPONENT_DEFINITION,
         ];
 
         defs.into_iter().map(|def| (def.component_type, def)).collect()
@@ -125,6 +131,7 @@ pub struct ComponentNode {
 pub enum CopySource {
     Component(ComponentRef),
     StateVar(ComponentRef, StateRef),
+    MapSources(ComponentName),
     DynamicElement(ComponentName, StateVarName, MathExpression, Vec<ComponentName>),
 }
 

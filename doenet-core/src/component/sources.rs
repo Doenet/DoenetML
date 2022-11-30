@@ -2,20 +2,16 @@ use std::collections::HashMap;
 
 use lazy_static::lazy_static;
 
-use crate::base_definitions::*;
+use crate::{base_definitions::*, utils::log_debug};
 
 use super::*;
 
 
 lazy_static!{
     pub static ref MY_STATE_VAR_DEFINITIONS: HashMap<StateVarName, StateVarVariant> = {
-
         let mut state_var_definitions = HashMap::new();
-
         state_var_definitions.insert("hidden", HIDDEN_DEFAULT_DEFINITION());
-
         state_var_definitions.insert("disabled", DISABLED_DEFAULT_DEFINITION());
-
         return state_var_definitions
     };
 }
@@ -23,6 +19,7 @@ lazy_static!{
 fn member_definition(
     values: &HashMap<AttributeName, String>,
 ) -> &'static ComponentDefinition {
+    log_debug!("{:?}", values);
     let component_type = values.get("componentType").unwrap();
     COMPONENT_DEFINITIONS.get_key_value_ignore_case(component_type.as_str()).unwrap().1
 }
@@ -33,10 +30,8 @@ fn group_dependencies(
 ) -> Vec<ComponentName> {
 
     let my_attributes = &node.static_attributes;
-    let source: &String = my_attributes.get("source").unwrap();
     let desired_type: String = my_attributes.get("componentType").unwrap().clone();
-    let source_node = component_nodes.get(source).unwrap();
-    depend_on_children_of_type(source_node, desired_type, component_nodes)
+    depend_on_children_of_type(node, desired_type, component_nodes)
 }
 
 fn depend_on_children_of_type(
@@ -73,7 +68,7 @@ fn depend_on_children_of_type(
 
 lazy_static! {
     pub static ref MY_COMPONENT_DEFINITION: ComponentDefinition = ComponentDefinition {
-        component_type: "collect",
+        component_type: "sources",
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
@@ -83,16 +78,16 @@ lazy_static! {
         ],
 
         static_attribute_names: vec![
-            "source",
+            "alias",
             "componentType",
         ],
-
-        should_render_children: true,
 
         replacement_children: Some(GroupOrCollection::Group(GroupDefinition {
             member_definition,
             group_dependencies,
         })),
+
+        valid_children_profiles: ValidChildTypes::AllComponents,
 
         ..Default::default()
     };

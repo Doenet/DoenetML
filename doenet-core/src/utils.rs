@@ -111,6 +111,7 @@ pub fn package_subtree_as_json(
             Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
                 format!("{} {:?} {:?}", source_name, source_sv, math_expression)
             ),
+            Some(CopySource::MapSources(sources_name)) => Value::String(sources_name.to_string()),
             None => Value::Null,
         });
 
