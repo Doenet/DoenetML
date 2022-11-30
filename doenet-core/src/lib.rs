@@ -23,6 +23,7 @@ use crate::math_expression::MathExpression;
 use crate::utils::{log_json, log_debug};
 use serde::Serialize;
 
+const MAPI: usize = 0;
 
 /// A static DoenetCore is created from parsed DoenetML at the beginning.
 /// While `component_states` and `essential_data` can update using
@@ -1763,7 +1764,7 @@ fn get_dependency_sources_for_state_var(
                 let data = core.essential_data
                     .get(component_name).unwrap()
                     .get(origin).unwrap();
-                let value = data.get_value(state_ref.index()).unwrap();
+                let value = data.get_value(state_ref.index(), MAPI).unwrap();
                 Some(value)
 
             } else {
@@ -1790,7 +1791,7 @@ fn resolve_state_variable(
     // No need to continue if the state var is already resolved or if the element does not exist
     let current_state = state_vars.get(state_var_ref.name())
         .expect(&format!("Component {} has no state var '{:?}'", component, state_var_ref))
-        .get_single_state(&state_var_ref.index())
+        .get_single_state(&state_var_ref.index(), MAPI)
         .expect(&format!("Error accessing state of {}:{:?}", component, state_var_ref));
 
     if let Some(State::Resolved(current_value)) = current_state {
@@ -1957,7 +1958,7 @@ fn resolve_state_variable(
                         .get(&component_name).unwrap()
                         .get(&origin).unwrap()
                         .clone()
-                        .get_value(index);
+                        .get_value(index, MAPI);
     
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
@@ -2058,7 +2059,7 @@ fn mark_stale_state_var_and_dependencies(
     let state_var = component_state.get(state_var_ref.name()).unwrap();
 
     // No need to continue if the state var is already stale
-    let state = state_var.get_single_state(&state_var_ref.index())
+    let state = state_var.get_single_state(&state_var_ref.index(), MAPI)
         .expect(&format!("Error accessing state of {}:{:?}", component, state_var_ref));
 
     if state == Some(State::Stale) {
@@ -2067,7 +2068,7 @@ fn mark_stale_state_var_and_dependencies(
 
     log_debug!("Marking stale {}:{}", component, state_var_ref);
 
-    state_var.mark_single_stale(&state_var_ref.index());
+    state_var.mark_single_stale(&state_var_ref.index(), MAPI);
 
     let mut depending_on_me = get_state_variables_depending_on_me(core, component, state_var_ref);
 
@@ -2164,7 +2165,7 @@ fn handle_update_instruction(
     match instruction {
         StateVarUpdateInstruction::NoChange => {
             let current_value = component_state_vars.get(state_var_ref.name()).unwrap()
-                .get_single_state(&state_var_ref.index())
+                .get_single_state(&state_var_ref.index(), MAPI)
                 .expect(&format!("Error accessing state of {}:{:?}", component_name, state_var_ref));
 
             if let Some(State::Stale) = current_value {
@@ -2181,7 +2182,7 @@ fn handle_update_instruction(
         },
         StateVarUpdateInstruction::SetValue(new_value) => {
 
-            updated_value = state_var.set_single_state(&state_var_ref.index(), new_value).unwrap();
+            updated_value = state_var.set_single_state(&state_var_ref.index(), new_value, MAPI).unwrap();
             // .expect(&format!("Failed to set {}:{} while handling SetValue update instruction", component.name, state_var_ref)
             // );
         }
@@ -2485,7 +2486,8 @@ fn process_update_request(
 
             essential_var.set_value(
                     state_index.clone(),
-                    requested_value.clone()
+                    requested_value.clone(),
+                    MAPI,
                 ).expect(
                     &format!("Failed to set essential value for {}, {:?}, {:?}", component_ref, origin, state_index)
                 );

@@ -128,10 +128,8 @@ pub fn package_subtree_as_json(
 
                     format!("sv: {}", state_var_name),
         
-                    match state_var.get_state() {
-                        State::Resolved(value) => value.into(),
-                        State::Stale => Value::Null,
-                    }
+                    serde_json::Value::Array(state_var.all_instances()
+                        .iter().map(|x| serde_json::Value::from(x)).collect())
                 );
             },
 
@@ -141,22 +139,22 @@ pub fn package_subtree_as_json(
 
                     format!("sv: {} size", state_var_name),
         
-                    match size.get_state() {
-                        State::Resolved(value) => value.into(),
-                        State::Stale => Value::Null,
-                    }
+                    serde_json::Value::Array(size.all_instances()
+                        .iter().map(|x| serde_json::Value::from(x)).collect())
                 );
 
-                for (id, element) in elements.borrow().iter().enumerate() {
-                    my_json_props.insert(
+                for elem in elements.all_instances().iter() {
+                    for (id, element) in elem.iter().enumerate() {
+                        my_json_props.insert(
 
-                        format!("sv: {} element {}", state_var_name, id),
-            
-                        match element.get_state() {
-                            State::Resolved(value) => value.into(),
-                            State::Stale => Value::Null,
-                        }
-                    );
+                            format!("sv: {} element {}", state_var_name, id),
+
+                            match element.get_state() {
+                                State::Resolved(value) => value.into(),
+                                State::Stale => Value::Null,
+                            }
+                        );
+                    }
                 }
             }
 
