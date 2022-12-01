@@ -433,14 +433,14 @@ fn collect_and_copy_number_input_changes_original() {
         .as_object().unwrap()
         .get("componentName").unwrap()
         .as_str().unwrap();
-    let copy1 = child_instructions_for(&render_tree, "/_section2", "input1")
+    let copy1 = child_instructions_for(&render_tree, "/_section2", "__cp:input1(/_section2)")
         .get("actions").unwrap()
         .as_object().unwrap()
         .get("updateImmediateValue").unwrap()
         .as_object().unwrap()
         .get("componentName").unwrap()
         .as_str().unwrap();
-    let copy2 = child_instructions_for(&render_tree, "/_section2", "input2")
+    let copy2 = child_instructions_for(&render_tree, "/_section2", "__cp:input2(/_section2)")
         .get("actions").unwrap()
         .as_object().unwrap()
         .get("updateValue").unwrap()

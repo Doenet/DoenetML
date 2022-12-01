@@ -68,7 +68,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
         self.resize(map+1);
         RefMut::map(self.values.borrow_mut(), |x| x.get_mut(map).unwrap())
     }
-    fn instance(&self, map: usize) -> Ref<'_, T> {
+    pub fn instance(&self, map: usize) -> Ref<'_, T> {
         self.resize(map+1);
         Ref::map(self.values.borrow(), |x| x.get(map).unwrap())
     }

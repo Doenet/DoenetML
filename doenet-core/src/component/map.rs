@@ -24,10 +24,7 @@ fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<ComponentName> {
-    node
-    .children
-    .iter()
-    .filter_map(|n|
+    let templates = node.children.iter().filter_map(|n|
         match n {
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
@@ -42,7 +39,24 @@ fn group_dependencies(
             }
             _ => None
         }
-    ).collect()
+    );
+    let sources = node.children.iter().filter_map(|n|
+        match n {
+            ObjectName::Component(c) => {
+                let comp = component_nodes.get(c).unwrap();
+                if comp.definition.component_type == "sources" {
+                    Some(match comp.definition.replacement_children {
+                        Some(_) => c.clone(),
+                        None => c.clone(),
+                    })
+                } else {
+                    None
+                }
+            }
+            _ => None
+        }
+    );
+    templates.chain(sources).collect()
 }
 
 lazy_static! {

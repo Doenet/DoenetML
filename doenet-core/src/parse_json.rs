@@ -276,7 +276,8 @@ pub fn create_components_tree_from_json(program: &str)
     -> Result<(
             HashMap<ComponentName, MLComponent>,
             HashMap<ComponentName, HashMap<AttributeName, HashMap<usize, Vec<ObjectName>>>>,
-            ComponentName
+            ComponentName,
+            HashMap<String, ComponentName>,
         ), DoenetMLError> {
 
     // log!("Parsing string for component tree: {}", program);
@@ -305,6 +306,7 @@ pub fn create_components_tree_from_json(program: &str)
     let mut attributes: HashMap<ComponentName, HashMap<AttributeName, String>> = HashMap::new();
     let mut component_indices: HashMap<ComponentName, Option<String>> = HashMap::new();
     let mut prop_indices: HashMap<ComponentName, Option<String>> = HashMap::new();
+    let mut map_sources_alias: HashMap<String, ComponentName> = HashMap::new();
 
     let mut component_type_counter: HashMap<String, u32> = HashMap::new();
 
@@ -313,6 +315,7 @@ pub fn create_components_tree_from_json(program: &str)
         &mut attributes,
         &mut component_indices,
         &mut prop_indices,
+        &mut map_sources_alias,
         &component_tree,
         None,
         &mut component_type_counter,
@@ -320,7 +323,14 @@ pub fn create_components_tree_from_json(program: &str)
     .unwrap();
 
     let (replacement_children, macro_components, attributes_parsed, prop_indices_parsed, component_indices_parsed) =
-        parse_attributes_and_macros(&components, attributes, prop_indices, component_indices);
+ 
+        parse_attributes_and_macros(
+            &components,
+            attributes,
+            prop_indices,
+            component_indices,
+            &map_sources_alias,
+        );
 
     // log_debug!("Components to add from macros: {:#?}", components_to_add);
     // log_debug!("Replacement children {:#?}", replacement_children);
@@ -358,7 +368,7 @@ pub fn create_components_tree_from_json(program: &str)
         macro_components.into_iter().map(|c| (c.name.clone(), c))
     ).collect();
 
-    Ok((components, attributes_parsed, root_component_name))
+    Ok((components, attributes_parsed, root_component_name, map_sources_alias))
 }
 
 
@@ -370,6 +380,7 @@ fn add_component_from_json(
     attributes: &mut HashMap<ComponentName, HashMap<AttributeName, String>>,
     component_indices: &mut HashMap<ComponentName, Option<String>>,
     prop_indices: &mut HashMap<ComponentName, Option<String>>,
+    map_sources_alias: &mut HashMap<String, ComponentName>,
     component_tree: &ComponentTree,
     parent: Option<String>,
     component_type_counter: &mut HashMap<String, u32>,
@@ -424,6 +435,12 @@ fn add_component_from_json(
         }
     }
 
+    // Add alias
+    if component_type == "sources" {
+        if let Some(alias) = static_attributes.get("alias") {
+            map_sources_alias.insert(alias.clone(), name.clone());
+        }
+    }
 
     // Recurse the children
     let mut children: Vec<ComponentChild> = Vec::new();
@@ -440,6 +457,7 @@ fn add_component_from_json(
                     attributes,
                     component_indices,
                     prop_indices,
+                    map_sources_alias,
                     &child_tree,
                     Some(name.clone()),
                     component_type_counter,
@@ -487,6 +505,7 @@ fn parse_attributes_and_macros(
     attributes: HashMap<ComponentName, HashMap<AttributeName, String>>,
     prop_indices: HashMap<ComponentName, Option<String>>,
     component_indices: HashMap<ComponentName, Option<String>>,
+    map_sources_alias: &HashMap<String, ComponentName>,
 ) -> (
     HashMap<ComponentName, HashMap<usize, Vec<ObjectName>>>,
     Vec<MLComponent>,
@@ -540,6 +559,7 @@ fn parse_attributes_and_macros(
             string_val,
             &component.name,
             components,
+            map_sources_alias,
             &mut macro_copy_counter,
             &mut components_to_add
         );
@@ -566,6 +586,7 @@ fn parse_attributes_and_macros(
                         string_element.trim(),
                         &component.name,
                         components,
+                        map_sources_alias,
                         &mut macro_copy_counter,
                         &mut components_to_add,
                     )
@@ -585,6 +606,7 @@ fn parse_attributes_and_macros(
                 &string,
                 &target_name,
                 components,
+                map_sources_alias,
                 &mut macro_copy_counter,
                 &mut components_to_add
             ),
@@ -602,6 +624,7 @@ fn parse_attributes_and_macros(
                 &string,
                 &target_name,
                 components,
+                map_sources_alias,
                 &mut macro_copy_counter,
                 &mut components_to_add
             ),
@@ -640,6 +663,7 @@ fn apply_macro_to_string(
     string: &str,
     component_name: &ComponentName,
     components: &HashMap<ComponentName, MLComponent>,
+    map_sources_alias: &HashMap<String, ComponentName>,
     macro_copy_counter: &mut HashMap<ComponentName, usize>,
     components_to_add: &mut Vec<MLComponent>,
 ) -> Vec<ObjectName> {
@@ -667,6 +691,7 @@ fn apply_macro_to_string(
             next_macro.end(),
             component_name,
             components,
+            map_sources_alias,
             macro_copy_counter,
             components_to_add
         ) {
@@ -703,6 +728,7 @@ fn macro_comp_ref(
     start: usize,
     macro_parent: &ComponentName,
     components: &HashMap<ComponentName, MLComponent>,
+    map_sources_alias: &HashMap<String, ComponentName>,
     macro_copy_counter: &mut HashMap<ComponentName, usize>,
     components_to_add: &mut Vec<MLComponent>,
 ) -> Result<(ComponentName, usize), String> {
@@ -711,17 +737,46 @@ fn macro_comp_ref(
 
     let comp_match = regex_at(&COMPONENT, string, start)?;
 
-    let name: String;
-    let definition: &ComponentDefinition;
     let copy_source = comp_match.as_str().to_string();
-    let component_index: Vec<ObjectName>;
-    let copy_prop: Option<String>;
-    let prop_index: Vec<ObjectName>;
+
+    if let Some(sources_name) = map_sources_alias.get(&copy_source) {
+        // Special case: the macro references a sources component
+
+        let component_type = components.get(sources_name).unwrap()
+            .static_attributes.get("componentType")
+            .ok_or("Sources did not define component type")?;
+        let definition = &COMPONENT_DEFINITIONS
+            .get(component_type.as_str())
+            .ok_or("Sources invalid component type")?;
+
+        let macro_copy = MLComponent {
+            name: name_macro_component(&copy_source, macro_parent, macro_copy_counter),
+            parent: Some(macro_parent.clone()),
+            children: vec![],
+            copy_source: Some(copy_source),
+            copy_collection: None,
+            copy_prop: None,
+            component_index: vec![],
+            prop_index: vec![],
+            static_attributes: HashMap::new(),
+            definition,
+        };
+
+        let macro_name = macro_copy.name.clone();
+        components_to_add.push(macro_copy);
+        return Ok((macro_name, comp_match.end()))
+    }
 
     let source_component = components.get(&copy_source).ok_or(format!("The component {} does not exist", copy_source))?;
 
     let char_at = |c: usize| string.as_bytes().get(c).map(|c| *c as char);
 
+    let name: String;
+    let definition: &ComponentDefinition;
+    let component_index: Vec<ObjectName>;
+    let copy_prop: Option<String>;
+    let prop_index: Vec<ObjectName>;
+ 
     // Handle possible component index: brackets after the component name
     let comp_end;
     let source_def;
@@ -790,6 +845,7 @@ fn macro_comp_ref(
                     index_match.end(),
                     &copy_source,
                     components,
+                    map_sources_alias,
                     macro_copy_counter,
                     components_to_add,
                 )?;
