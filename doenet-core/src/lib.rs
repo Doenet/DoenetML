@@ -23,7 +23,6 @@ use crate::math_expression::MathExpression;
 use crate::utils::{log_json, log_debug};
 use serde::Serialize;
 
-const MAPI: Instance = Instance(vec![]);
 
 /// A static DoenetCore is created from parsed DoenetML at the beginning.
 /// While `component_states` and `essential_data` can update using
@@ -120,7 +119,7 @@ pub enum Dependency {
 
 // Each tuple stores the map number and name of the relevant sources component
 /// Note: instance number starts at 1
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct Instance (Vec<(usize, ComponentName)>);
 
 impl Instance {
@@ -144,6 +143,11 @@ impl Instance {
 impl std::fmt::Display for Instance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.instance_indices().fmt(f)
+    }
+}
+impl std::fmt::Debug for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
     }
 }
 
@@ -1923,7 +1927,7 @@ fn resolve_state_variable(
                                 let element_value = resolve_state_variable(
                                     core,
                                     &sv_comp,
-                                    &MAPI,
+                                    &component_map,
                                     &StateRef::ArrayElement(array_state_var_name, id)
                                 );
 
@@ -2393,8 +2397,8 @@ pub struct Action {
 /// Internal structure used to track changes
 #[derive(Debug, Clone)]
 enum UpdateRequest {
-    SetEssentialValue(ComponentName, EssentialDataOrigin, StateIndex, StateVarValue),
-    SetStateVar(ComponentName, StateRef, StateVarValue),
+    SetEssentialValue(ComponentName, Instance, EssentialDataOrigin, StateIndex, StateVarValue),
+    SetStateVar(ComponentName, Instance, StateRef, StateVarValue),
 }
 
 
@@ -2443,6 +2447,7 @@ fn convert_dependency_values_to_update_request(
                 Dependency::Essential { component_name, origin } => {
                     update_requests.push(UpdateRequest::SetEssentialValue(
                         component_name.clone(),
+                        map.clone(),
                         origin.clone(),
                         state_var.index(),
                         request.value.clone(),
@@ -2470,6 +2475,7 @@ fn convert_dependency_values_to_update_request(
                         if let StateVarSlice::Single(state_var_ref) = state_var_slice {
                             update_requests.push(UpdateRequest::SetStateVar(
                                 sv_comp,
+                                map.clone(),
                                 state_var_ref.clone(),
                                 request.value.clone(),
                             ))
@@ -2501,13 +2507,13 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
 
     log_debug!("Handling action {:#?}", action);
 
-    let component_name = &action.component_name;
+    let (component_name, map) = dealias_name_with_map_instance(&action.component_name);
 
-    let component = core.component_nodes.get(component_name)
+    let component = core.component_nodes.get(&component_name)
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
 
     let state_var_resolver = | state_var_ref | {
-        resolve_state_variable(core, component_name, &MAPI, state_var_ref)
+        resolve_state_variable(core, &component_name, &map, state_var_ref)
     };
 
     let state_vars_to_update = (component.definition.on_action)(
@@ -2518,7 +2524,12 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
 
     for (state_var_ref, requested_value) in state_vars_to_update {
 
-        let request = UpdateRequest::SetStateVar(component_name.clone(), state_var_ref.clone(), requested_value);
+        let request = UpdateRequest::SetStateVar(
+            component_name.clone(),
+            map.clone(),
+            state_var_ref.clone(),
+            requested_value,
+        );
         process_update_request(core, &request);
     }
 
@@ -2534,7 +2545,7 @@ fn process_update_request(
     log_debug!("Processing update request {:?}", update_request);
 
     match update_request {
-        UpdateRequest::SetEssentialValue(component_ref, origin, state_index, requested_value) => {
+        UpdateRequest::SetEssentialValue(component_ref, map, origin, state_index, requested_value) => {
 
             let essential_var = core.essential_data
                 .get(component_ref).unwrap()
@@ -2543,24 +2554,24 @@ fn process_update_request(
             essential_var.set_value(
                     state_index.clone(),
                     requested_value.clone(),
-                    &MAPI,
+                    &map,
                 ).expect(
                     &format!("Failed to set essential value for {}, {:?}, {:?}", component_ref, origin, state_index)
                 );
 
             // log_debug!("Updated essential data {:?}", core.essential_data);
 
-            mark_stale_essential_datum_dependencies(core, component_ref.clone(), &MAPI, state_index, origin.clone());
+            mark_stale_essential_datum_dependencies(core, component_ref.clone(), &map, state_index, origin.clone());
         },
 
-        UpdateRequest::SetStateVar(component_name, state_var_ref, requested_value) => {
+        UpdateRequest::SetStateVar(component_name, map, state_var_ref, requested_value) => {
 
             let dep_comp = core.component_nodes.get(component_name).unwrap();
 
             let dep_update_requests = request_dependencies_to_update_value_including_shadow(
                 core,
                 dep_comp,
-                &MAPI,
+                &map,
                 state_var_ref,
                 requested_value.clone(),
             );
@@ -2569,13 +2580,46 @@ fn process_update_request(
                 process_update_request(core, &dep_update_request);
             }
 
-            mark_stale_state_var_and_dependencies(core, component_name, &MAPI, &state_var_ref);
+            mark_stale_state_var_and_dependencies(core, component_name, &map, &state_var_ref);
         }
     }
 }
 
+fn alias_name_with_map_instance(name: &ComponentName, map: Instance) -> String {
+    if map.len() > 0 {
+        format!("{:?}{}", map, name)
+    } else {
+        name.to_string()
+    }
+}
 
+fn dealias_name_with_map_instance(alias: &String) -> (String, Instance) {
+    let chars: Vec<char> = alias.chars().collect();
+    if chars[0] == '[' {
+        // split map and name parts of alias
+        let map_end = chars.iter().position(|&c| c == ']').unwrap();
+        let map_chars: String = chars[1..map_end].iter().collect();
+        let name: String = chars[map_end+1..].iter().collect();
 
+        let mut instance = Instance::default();
+        let map_split: Vec<&str> = map_chars.split(' ').collect();
+        for i in 0..(map_split.len() / 2) {
+            let map_index = map_split.get(2*i).unwrap();
+            let map_sources = map_split.get(2*i + 1).unwrap();
+
+            let map_index = &map_index[1..map_index.len() - 1];
+            let map_sources = &map_sources[1..map_sources.len() - 2];
+
+            let map_index: usize = map_index.parse().unwrap();
+            let map_sources = map_sources.to_string();
+
+            instance.push(map_index, map_sources);
+        }
+        (name, instance)
+    } else {
+        (alias.clone(), Instance::default())
+    }
+}
 
 
 pub fn update_renderers(core: &DoenetCore) -> String {
@@ -2742,8 +2786,12 @@ fn generate_render_tree_internal(
                     let exact_copy_of_component =
                         component_ref_is_exact_copy(core, &child_component.component_ref, &child_map);
 
-                    let action_component_name = exact_copy_of_component
+                    let component_original = exact_copy_of_component
                         .unwrap_or(child_name.clone());
+                    let action_component_name = alias_name_with_map_instance(
+                        &component_original,
+                        child_map
+                    );
 
                     let child_actions: Map<String, Value> =
                         (child_definition.action_names)()
@@ -3103,7 +3151,7 @@ fn request_dependencies_to_update_value_including_shadow(
             StateVarSlice::Single(sv_ref) => sv_ref,
             StateVarSlice::Array(_) => panic!()
         };
-        vec![UpdateRequest::SetStateVar(source_comp, source_state_var, new_value)]
+        vec![UpdateRequest::SetStateVar(source_comp, map.clone(), source_state_var, new_value)]
 
     } else {
 

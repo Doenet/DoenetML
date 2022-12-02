@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::convert::TryInto;
 
-use doenet_core::{EssentialDataOrigin, Action};
+use doenet_core::{EssentialDataOrigin, Action, Instance};
 use doenet_core::component::ComponentName;
 use doenet_core::parse_json::{DoenetMLError, DoenetMLWarning};
 use doenet_core::state::EssentialStateVar;
@@ -24,7 +24,7 @@ extern "C" {
     
 }
 
-const MAPI: usize = 0;
+const MAPI: Instance = Instance::default();
 
 macro_rules! display_doenet_ml_on_failure {
     ($data:expr) => {
