@@ -1,10 +1,11 @@
 use enum_as_inner::EnumAsInner;
 
-use crate::{state_variables::*, utils::log_debug};
-use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max};
+use crate::{state_variables::*, utils::log_debug, Instance, instance_indices};
+use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max, iter::repeat};
 use self::State::*;
+use ndarray::{ArrayD, SliceInfoElem};
 
-const MAPI: usize = 0;
+const MAPI: Instance = vec![];
 
 #[derive(Clone)]
 pub struct StateVar {
@@ -48,31 +49,83 @@ impl From<&StateVar> for serde_json::Value {
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct ForEachMap<T: Clone + std::fmt::Debug> {
-    values: RefCell<Vec<T>>,
+    values: RefCell<ArrayD<T>>,
     default: T,
+}
+
+// with index starting at 1
+fn map_instance_to_index(map: &Instance) -> Vec<usize> {
+    let indices = instance_indices(map);
+    if indices.len() == 0 {
+        vec![1]
+    } else {
+        indices
+    }
 }
 
 impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
     fn new(value: T) -> Self {
         ForEachMap {
-            values: RefCell::new(vec![]),
+            values: RefCell::new(ArrayD::<T>::from_elem(vec![0], value.clone())),
             default: value,
         }
     }
-    fn resize(&self, len: usize) {
-        if len > self.values.borrow().len() {
-            self.values.borrow_mut().resize(len, self.default.clone());
+    fn resize(&self, dim: &Vec<usize>) {
+        let array = self.values.borrow().clone();
+        let mut shape = array.shape().to_vec();
+        let add_dimensions: usize = max(dim.len(), shape.len()) - shape.len();
+
+        let required_shape: Vec<usize> = (0..(shape.len() + add_dimensions))
+            .map(|i| {
+                match (shape.get(i),dim.get(i)) {
+                    (Some(&x), Some(&y)) => max(x,y),
+                    (Some(&x), None) => x,
+                    (None, Some(&y)) => y,
+                    (None, None) => unreachable!(),
+                }
+            }).collect();
+
+        // log_debug!("should have size: {:?} vs shape {:?}", required_shape, current_shape);
+
+        if add_dimensions > 0 || shape != required_shape {
+
+            shape.extend(repeat(1).take(add_dimensions));
+            let array_reshape = array.to_shape(shape.clone()).unwrap();
+            let slice_info_elements: Vec<SliceInfoElem> = shape.iter()
+                .map(|&i| SliceInfoElem::Slice {
+                    start: 0,
+                    end: Some(i.try_into().unwrap()),
+                    step: 1,
+                })
+                .collect();
+            let slice_info = slice_info_elements.as_slice().as_ref();
+
+            let mut new = ArrayD::<T>::from_elem(required_shape.clone(), self.default.clone());
+            new.slice_mut(slice_info).assign(&array_reshape);
+
+            let mut value = self.values.borrow_mut();
+            *value = new;
         }
     }
-    fn instance_mut(& self, map: usize) -> RefMut<'_, T> {
-        self.resize(map+1);
-        RefMut::map(self.values.borrow_mut(), |x| x.get_mut(map).unwrap())
+    fn instance_mut(& self, map: &Instance) -> RefMut<'_, T> {
+        let dim = map_instance_to_index(map);
+        self.resize(&dim);
+
+        let index: Vec<usize> = dim.iter().map(|&i| i-1)
+            .chain(repeat(0).take(self.values.borrow().ndim()-dim.len())).collect();
+
+        RefMut::map(self.values.borrow_mut(), |x| x.get_mut(index.as_slice()).unwrap())
     }
-    pub fn instance(&self, map: usize) -> Ref<'_, T> {
-        self.resize(map+1);
-        Ref::map(self.values.borrow(), |x| x.get(map).unwrap())
+    pub fn instance(&self, map: &Instance) -> Ref<'_, T> {
+        let dim = map_instance_to_index(map);
+        self.resize(&dim);
+
+        let index: Vec<usize> = dim.iter().map(|&i| i-1)
+            .chain(repeat(0).take(self.values.borrow().ndim()-dim.len())).collect();
+
+        Ref::map(self.values.borrow(), |x| x.get(index.as_slice()).unwrap())
     }
-    pub fn all_instances(&self) -> Vec<T> {
+    pub fn all_instances(&self) -> ArrayD<T> {
         self.values.borrow().clone()
     }
 }
@@ -135,7 +188,7 @@ impl StateForStateVar {
     }
 
 
-    pub fn get_single_state(&self, sv_ref: &StateIndex, map: usize) -> Result<Option<State<StateVarValue>>, String> {
+    pub fn get_single_state(&self, sv_ref: &StateIndex, map: &Instance) -> Result<Option<State<StateVarValue>>, String> {
 
         // log_debug!("Getting single state of {:?}, current value is {:?}", sv_ref, self);
 
@@ -166,7 +219,7 @@ impl StateForStateVar {
     }
 
 
-    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue, map: usize) -> Result<Option<StateVarValue>, String> {
+    pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue, map: &Instance) -> Result<Option<StateVarValue>, String> {
         match self {
             Self::Single(sv) => sv.instance(map).set_value(val).map(|new_val| Some(new_val)),
 
@@ -204,7 +257,7 @@ impl StateForStateVar {
         }
     }
 
-    pub fn mark_single_stale(&self, state_var_ref: &StateIndex, map: usize) {
+    pub fn mark_single_stale(&self, state_var_ref: &StateIndex, map: &Instance) {
         match self {
             Self::Single(sv) => sv.instance(map).mark_stale(),
 
@@ -222,7 +275,7 @@ impl StateForStateVar {
         }
     }
 
-    pub fn elements_len(&self, map: usize) -> usize {
+    pub fn elements_len(&self, map: &Instance) -> usize {
         match self {
             Self::Single(_) => panic!(),
             Self::Array { elements, .. } => elements.instance(map).len(),
@@ -332,9 +385,9 @@ impl EssentialStateVar {
             extension: RefCell::new(default_fill_value)
         };
 
-        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64), MAPI).unwrap();
+        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64), &MAPI).unwrap();
         for (id, value) in values.into_iter().enumerate() {
-            essential_data.set_value(StateIndex::Element(id + 1), value.clone(), MAPI).expect(
+            essential_data.set_value(StateIndex::Element(id + 1), value.clone(), &MAPI).expect(
                 &format!("Tried to set to {:?}", value)
             );
         }
@@ -346,7 +399,7 @@ impl EssentialStateVar {
         Self::Single(ForEachMap::new(value))
     }
 
-    pub fn set_value(&self, state_index: StateIndex, new_value: StateVarValue, map: usize) -> Result<(), String> {
+    pub fn set_value(&self, state_index: StateIndex, new_value: StateVarValue, map: &Instance) -> Result<(), String> {
         match (self, state_index) {
             (Self::Single(v), StateIndex::Basic) => {
                 v.instance_mut(map).set_protect_type(new_value)
@@ -384,7 +437,7 @@ impl EssentialStateVar {
     }
 
 
-    pub fn get_value(&self, state_index: StateIndex, map: usize) -> Option<StateVarValue> {
+    pub fn get_value(&self, state_index: StateIndex, map: &Instance) -> Option<StateVarValue> {
         match (self, state_index) {
             (Self::Single(v), StateIndex::Basic) => {
                 Some(v.instance(map).clone())
@@ -412,7 +465,7 @@ impl EssentialStateVar {
                 extension.borrow().type_as_str()
             },
             Self::Single(val) => {
-                val.instance(0).type_as_str()
+                val.default.type_as_str()
             }
         }
     }

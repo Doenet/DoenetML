@@ -23,7 +23,7 @@ use crate::math_expression::MathExpression;
 use crate::utils::{log_json, log_debug};
 use serde::Serialize;
 
-const MAPI: Instance = 0;
+const MAPI: Instance = vec![];
 
 /// A static DoenetCore is created from parsed DoenetML at the beginning.
 /// While `component_states` and `essential_data` can update using
@@ -118,8 +118,13 @@ pub enum Dependency {
 }
 
 
-// instance if this is a map
-type Instance = usize;
+// Each tuple stores the map number and name of the relevant sources component
+// Note: instance number starts at 1
+type Instance = Vec<(usize, ComponentName)>;
+
+pub fn instance_indices(instance: &Instance) -> Vec<usize> {
+    instance.iter().map(|(i,_)| i.clone()).collect()
+}
 
 // #[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash)]
 // struct Instance<T> {
@@ -918,172 +923,171 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Child { desired_profiles, parse_into_expression } => {
 
-            if let Some(CopySource::MapSources(map_sources)) = &component.copy_source {
-                dependencies.push(Dependency::MapSources {
-                    map_sources: map_sources.clone(),
-                    state_var_slice: state_var_slice.clone(),
-                });
-            } else {
+            enum RelevantChild<'a> {
+                StateVar(Dependency),
+                String(&'a String, &'a ComponentName), // value, parent name
+            }
 
-                enum RelevantChild<'a> {
-                    StateVar(Dependency),
-                    String(&'a String, &'a ComponentName), // value, parent name
-                }
+            let mut relevant_children: Vec<RelevantChild> = Vec::new();
+            
+            let source_copy_root_name = get_recursive_copy_source_component_if_exists(components, component);
+            let source = components.get(source_copy_root_name).unwrap();
+            
+            if let Some(CopySource::StateVar(ref source_comp_ref, ref source_sv_ref)) = source.copy_source {
+                relevant_children.push(
+                    RelevantChild::StateVar(Dependency::StateVar {
+                        component_group: ComponentGroup::Single(source_comp_ref.clone()),
+                        state_var_slice: StateVarSlice::Single(source_sv_ref.clone())
+                    })
+                );
+            } else if let Some(CopySource::DynamicElement(ref source_comp, source_sv, _, _)) = source.copy_source {
+                relevant_children.push(
+                    RelevantChild::StateVar(Dependency::StateVarArrayDynamicElement {
+                        component_name: source_comp.clone(),
+                        array_state_var_name: source_sv,
+                        index_state_var: StateRef::Basic(PROP_INDEX_SV),
+                    })
+                );
+            } else if let Some(CopySource::MapSources(map_sources)) = &component.copy_source {
+                relevant_children.push(
+                    RelevantChild::StateVar(Dependency::MapSources {
+                        map_sources: map_sources.clone(),
+                        state_var_slice: state_var_slice.clone(),
+                    })
+                );
+            }
 
-                let mut relevant_children: Vec<RelevantChild> = Vec::new();
-                
-                let source_copy_root_name = get_recursive_copy_source_component_if_exists(components, component);
-                let source = components.get(source_copy_root_name).unwrap();
-                
-                if let Some(CopySource::StateVar(ref source_comp_ref, ref source_sv_ref)) = source.copy_source {
-                    relevant_children.push(
-                        RelevantChild::StateVar(Dependency::StateVar {
-                            component_group: ComponentGroup::Single(source_comp_ref.clone()),
-                            state_var_slice: StateVarSlice::Single(source_sv_ref.clone())
-                        })
-                    );
-                } else if let Some(CopySource::DynamicElement(ref source_comp, source_sv, _, _)) = source.copy_source {
-                    relevant_children.push(
-                        RelevantChild::StateVar(Dependency::StateVarArrayDynamicElement {
-                            component_name: source_comp.clone(),
-                            array_state_var_name: source_sv,
-                            index_state_var: StateRef::Basic(PROP_INDEX_SV),
-                        })
-                    );
-                }
 
+            let children = get_children_including_copy(components, component);
 
-                let children = get_children_including_copy(components, component);
+            for child in children.iter() {
 
-                for child in children.iter() {
+                match child {
+                    (ComponentChild::Component(child_name), _) => {
 
-                    match child {
-                        (ComponentChild::Component(child_name), _) => {
+                        let child_node = components.get(child_name).unwrap();
 
-                            let child_node = components.get(child_name).unwrap();
+                        let child_group = match child_node.definition.replacement_children {
+                            Some(_) => ComponentGroup::Group(child_name.clone()),
+                            None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
+                        };
+                        let child_def = group_member_definition(
+                            components,
+                            &child_group
+                        );
 
-                            let child_group = match child_node.definition.replacement_children {
-                                Some(_) => ComponentGroup::Group(child_name.clone()),
-                                None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
-                            };
-                            let child_def = group_member_definition(
-                                components,
-                                &child_group
-                            );
+                        for child_profile in child_def.component_profiles.iter() {
+                            if desired_profiles.contains(&child_profile.0) {
 
-                            for child_profile in child_def.component_profiles.iter() {
-                                if desired_profiles.contains(&child_profile.0) {
+                                let profile_state_var = child_profile.1;
 
-                                    let profile_state_var = child_profile.1;
+                                let sv_def = child_def
+                                    .state_var_definitions
+                                    .get(&profile_state_var)
+                                    .unwrap();
 
-                                    let sv_def = child_def
-                                        .state_var_definitions
-                                        .get(&profile_state_var)
-                                        .unwrap();
+                                let profile_sv_slice = if sv_def.is_array() {
+                                    StateVarSlice::Array(profile_state_var)
+                                } else {
+                                    StateVarSlice::Single(StateRef::Basic(profile_state_var))
+                                };
 
-                                    let profile_sv_slice = if sv_def.is_array() {
-                                        StateVarSlice::Array(profile_state_var)
-                                    } else {
-                                        StateVarSlice::Single(StateRef::Basic(profile_state_var))
-                                    };
-
-                                    relevant_children.push(
-                                        RelevantChild::StateVar(Dependency::StateVar {
-                                            component_group: child_group,
-                                            state_var_slice: profile_sv_slice,
-                                        })
-                                    );
-                                    break;
-                                }
-                            }
-                        },
-                        (ComponentChild::String(string_value), actual_parent) => {
-                            if desired_profiles.contains(&ComponentProfile::Text)
-                                || desired_profiles.contains(&ComponentProfile::Number) {
                                 relevant_children.push(
-                                    RelevantChild::String(string_value, &actual_parent.name)
+                                    RelevantChild::StateVar(Dependency::StateVar {
+                                        component_group: child_group,
+                                        state_var_slice: profile_sv_slice,
+                                    })
                                 );
+                                break;
                             }
-                        },
-                    }
+                        }
+                    },
+                    (ComponentChild::String(string_value), actual_parent) => {
+                        if desired_profiles.contains(&ComponentProfile::Text)
+                            || desired_profiles.contains(&ComponentProfile::Number) {
+                            relevant_children.push(
+                                RelevantChild::String(string_value, &actual_parent.name)
+                            );
+                        }
+                    },
+                }
+            }
+
+
+            if *parse_into_expression {
+
+                // Assuming for now that expression is math expression
+                let expression = MathExpression::new(
+                    &relevant_children.iter().map(|child| match child {
+                        // The component name doesn't matter, the expression just needs to know there is
+                        // an external variable at that location
+                        RelevantChild::StateVar(_) => ObjectName::Component(String::new()),
+                        RelevantChild::String(string_value, _) => ObjectName::String(string_value.to_string()),
+                    }).collect()
+                );
+
+                // Assuming that no other child instruction exists which has already filled
+                // up the child essential data
+                let essential_origin = EssentialDataOrigin::ComponentChild(0);
+
+                if should_initialize_essential_data {
+                    create_essential_data_for(
+                        &component.name,
+                        essential_origin.clone(),
+                        InitialEssentialData::Single(
+                            StateVarValue::MathExpr(expression),
+                        ),
+                        essential_data
+                    );    
                 }
 
+                dependencies.push(Dependency::Essential {
+                    component_name: component.name.clone(), origin: essential_origin,
+                });
 
-                if *parse_into_expression {
+                // We already dealt with the essential data, so now only retain the component children
+                relevant_children.retain(|child| matches!(child, RelevantChild::StateVar(_)));
+                
+            }
 
-                    // Assuming for now that expression is math expression
-                    let expression = MathExpression::new(
-                        &relevant_children.iter().map(|child| match child {
-                            // The component name doesn't matter, the expression just needs to know there is
-                            // an external variable at that location
-                            RelevantChild::StateVar(_) => ObjectName::Component(String::new()),
-                            RelevantChild::String(string_value, _) => ObjectName::String(string_value.to_string()),
-                        }).collect()
-                    );
+            // Stores how many string children added per parent.
+            let mut essential_data_numbering: HashMap<ComponentName, usize> = HashMap::new();
 
-                    // Assuming that no other child instruction exists which has already filled
-                    // up the child essential data
-                    let essential_origin = EssentialDataOrigin::ComponentChild(0);
+            for relevant_child in relevant_children {
 
-                    if should_initialize_essential_data {
-                        create_essential_data_for(
-                            &component.name,
-                            essential_origin.clone(),
-                            InitialEssentialData::Single(
-                                StateVarValue::MathExpr(expression),
-                            ),
-                            essential_data
-                        );    
-                    }
+                match relevant_child {
 
-                    dependencies.push(Dependency::Essential {
-                        component_name: component.name.clone(), origin: essential_origin,
-                    });
+                    RelevantChild::StateVar(child_dep) => {
+                        dependencies.push(child_dep);
+                    },
 
-                    // We already dealt with the essential data, so now only retain the component children
-                    relevant_children.retain(|child| matches!(child, RelevantChild::StateVar(_)));
-                    
-                }
+                    RelevantChild::String(string_value, actual_parent) => {
+                        let index = essential_data_numbering
+                            .entry(actual_parent.clone()).or_insert(0 as usize);
 
-                // Stores how many string children added per parent.
-                let mut essential_data_numbering: HashMap<ComponentName, usize> = HashMap::new();
+                        let essential_origin = EssentialDataOrigin::ComponentChild(*index);
 
-                for relevant_child in relevant_children {
+                        if should_initialize_essential_data && &component.name == actual_parent {
+                            // Components create their own essential data
 
-                    match relevant_child {
+                            let value = StateVarValue::String(string_value.clone());
+                            create_essential_data_for(
+                                actual_parent,
+                                essential_origin.clone(),
+                                InitialEssentialData::Single(value),
+                                essential_data
+                            );
+                        }
 
-                        RelevantChild::StateVar(child_dep) => {
-                            dependencies.push(child_dep);
-                        },
+                        dependencies.push(Dependency::Essential {
+                            component_name: actual_parent.clone(),
+                            origin: essential_origin,
+                        });
 
-                        RelevantChild::String(string_value, actual_parent) => {
-                            let index = essential_data_numbering
-                                .entry(actual_parent.clone()).or_insert(0 as usize);
+                        *index += 1;
 
-                            let essential_origin = EssentialDataOrigin::ComponentChild(*index);
+                    },
 
-                            if should_initialize_essential_data && &component.name == actual_parent {
-                                // Components create their own essential data
-
-                                let value = StateVarValue::String(string_value.clone());
-                                create_essential_data_for(
-                                    actual_parent,
-                                    essential_origin.clone(),
-                                    InitialEssentialData::Single(value),
-                                    essential_data
-                                );
-                            }
-
-                            dependencies.push(Dependency::Essential {
-                                component_name: actual_parent.clone(),
-                                origin: essential_origin,
-                            });
-
-                            *index += 1;
-
-                        },
-
-                    }
                 }
             }
             
@@ -1736,7 +1740,7 @@ fn get_source_for_dependency(
 fn get_dependency_sources_for_state_var(
     core: &DoenetCore,
     component_name: &ComponentName,
-    map: Instance,
+    map: &Instance,
     state_ref: &StateRef,
 ) -> HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> {
     
@@ -1770,7 +1774,7 @@ fn get_dependency_sources_for_state_var(
 fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentName,
-    map: Instance,
+    map: &Instance,
     state_var_ref: &StateRef,
 ) -> Option<StateVarValue> {
 
@@ -1791,7 +1795,7 @@ fn resolve_state_variable(
         return None
     }
 
-    log_debug!("Resolving {}:{} ({})", component, state_var_ref, map);
+    log_debug!("Resolving {}:{} ({:?})", component, state_var_ref, map);
 
     let my_dependencies = dependencies_of_state_var(&core.dependencies, component, state_var_ref);
 
@@ -1821,7 +1825,7 @@ fn resolve_state_variable(
                         match sv_slice {
                             StateVarSlice::Single(ref sv_ref) => {
 
-                                let depends_on_value = resolve_state_variable(core, &sv_comp, comp_map, sv_ref);
+                                let depends_on_value = resolve_state_variable(core, &sv_comp, &comp_map, sv_ref);
 
                                 if let Some(depends_on_value) = depends_on_value {
                                     values_for_this_dep.push(DependencyValue {
@@ -1834,7 +1838,7 @@ fn resolve_state_variable(
 
                                 // important to resolve the size before the elements
                                 let size_value: usize = resolve_state_variable(
-                                    core, &sv_comp, comp_map, &StateRef::SizeOf(array_state_var_name))
+                                    core, &sv_comp, &comp_map, &StateRef::SizeOf(array_state_var_name))
                                 .expect("Array size should always resolve to a StateVarValue")
                                 .try_into()
                                 .unwrap();
@@ -1844,7 +1848,7 @@ fn resolve_state_variable(
                                     let element_value = resolve_state_variable(
                                         core,
                                         &sv_comp,
-                                        comp_map,
+                                        &comp_map,
                                         &StateRef::ArrayElement(array_state_var_name, id)
                                     );
 
@@ -1866,7 +1870,7 @@ fn resolve_state_variable(
                 Dependency::MapSources { map_sources, state_var_slice } => {
 
                     // add 1 to map because counting starts at 1 for nth_group_dependence
-                    let component_ref = nth_group_dependence(core, &map_sources, MAPI, map+1).unwrap();
+                    let component_ref = map_sources_dependency_member(core, &map_sources, map).unwrap();
 
                     log_debug!("map source ref: {:?}", component_ref);
 
@@ -1875,7 +1879,7 @@ fn resolve_state_variable(
                     match sv_slice {
                         StateVarSlice::Single(ref sv_ref) => {
 
-                            let depends_on_value = resolve_state_variable(core, &sv_comp, MAPI, sv_ref);
+                            let depends_on_value = resolve_state_variable(core, &sv_comp, &MAPI, sv_ref);
 
                             if let Some(depends_on_value) = depends_on_value {
                                 values_for_this_dep.push(DependencyValue {
@@ -1888,7 +1892,7 @@ fn resolve_state_variable(
 
                             // important to resolve the size before the elements
                             let size_value: usize = resolve_state_variable(
-                                core, &sv_comp, MAPI, &StateRef::SizeOf(array_state_var_name))
+                                core, &sv_comp, &MAPI, &StateRef::SizeOf(array_state_var_name))
                             .expect("Array size should always resolve to a StateVarValue")
                             .try_into()
                             .unwrap();
@@ -1898,7 +1902,7 @@ fn resolve_state_variable(
                                 let element_value = resolve_state_variable(
                                     core,
                                     &sv_comp,
-                                    MAPI,
+                                    &MAPI,
                                     &StateRef::ArrayElement(array_state_var_name, id)
                                 );
 
@@ -1920,12 +1924,12 @@ fn resolve_state_variable(
                     for (component_ref, map) in component_group_members(core, &component_group, map) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
                         let sv_slice = StateVarSlice::Single(sv_ref);
-                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, map, sv_slice).unwrap();
+                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &map, sv_slice).unwrap();
 
                         match sv_slice {
                             StateVarSlice::Single(ref sv_ref) => {
 
-                                let depends_on_value = resolve_state_variable(core, &sv_comp, map, sv_ref);
+                                let depends_on_value = resolve_state_variable(core, &sv_comp, &map, sv_ref);
 
                                 if let Some(depends_on_value) = depends_on_value {
                                     values_for_this_dep.push(DependencyValue {
@@ -2033,7 +2037,7 @@ fn resolve_state_variable(
 fn elements_of_array(
     core: &DoenetCore,
     component: &ComponentName,
-    map: Instance,
+    map: &Instance,
     array_name: &StateVarName,
 ) -> Vec<StateRef> {
     let size_ref = StateRef::SizeOf(array_name);
@@ -2049,7 +2053,7 @@ fn elements_of_array(
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentName,
-    map: Instance,
+    map: &Instance,
     state_var_ref: &StateRef,
 ) {
     let component_state = core.component_states.get(component).unwrap();
@@ -2102,7 +2106,7 @@ fn mark_stale_state_var_and_dependencies(
 fn mark_stale_essential_datum_dependencies(
     core: &DoenetCore,
     component_name: ComponentName,
-    map: Instance,
+    map: &Instance,
     state_index: &StateIndex,
     origin: EssentialDataOrigin,
 ) {
@@ -2149,7 +2153,7 @@ fn mark_stale_essential_datum_dependencies(
 /// Sets the state var and returns the new value
 fn handle_update_instruction(
     component_name: &ComponentName,
-    map: Instance,
+    map: &Instance,
     state_var_ref: &StateRef,
     component_state_vars: &HashMap<StateVarName, StateForStateVar>,
     instruction: StateVarUpdateInstruction<StateVarValue>
@@ -2197,10 +2201,10 @@ fn handle_update_instruction(
 fn component_group_members<'a>(
     core: &DoenetCore,
     component_group: &ComponentGroup,
-    map: Instance,
+    map: &Instance,
 ) -> Vec<(ComponentRef, Instance)> {
     match component_group {
-        ComponentGroup::Single(comp_ref) => vec![(comp_ref.clone(), map)],
+        ComponentGroup::Single(comp_ref) => vec![(comp_ref.clone(), map.clone())],
         ComponentGroup::Group(name) => {
             let node_definition = core.component_nodes.get(name).unwrap().definition;
             if node_definition.component_type == "map" {
@@ -2210,13 +2214,17 @@ fn component_group_members<'a>(
                                                     //
                 let size = component_group_size(core, sources, map);
                 log_debug!("MAP HAS SIZE {}", size);
-                (0..size)
-                    .map(|i| (ComponentRef::Basic(template.clone()), i))
+                indices_for_size(size)
+                    .map(|i| {
+                        let mut map_new = map.clone();
+                        map_new.push((i, sources.clone()));
+                        (ComponentRef::Basic(template.clone()), map_new)
+                    })
                     .collect()
             } else {
                 let size = component_group_size(core, name, map);
                 indices_for_size(size)
-                    .map(|i| (ComponentRef::GroupMember(name.clone(), None, i), 0))
+                    .map(|i| (ComponentRef::GroupMember(name.clone(), None, i), map.clone()))
                     .collect()
             }
         },
@@ -2228,7 +2236,7 @@ fn component_group_members<'a>(
 fn component_group_size(
     core: &DoenetCore,
     component_group: &ComponentName,
-    map: Instance,
+    map: &Instance,
 ) -> usize {
     let group_def = core.component_nodes.get(component_group).unwrap().definition
         .replacement_children.as_ref().expect(&format!("{:?} was not a group", component_group));
@@ -2261,7 +2269,7 @@ fn component_group_size(
 fn convert_component_ref_state_var(
     core: &DoenetCore,
     name: &ComponentRef,
-    map: Instance,
+    map: &Instance,
     state_var: StateVarSlice,
 ) -> Option<(ComponentName, StateVarSlice)> {
     match name {
@@ -2274,7 +2282,7 @@ fn convert_component_ref_state_var(
 fn group_member_state_var(
     core: &DoenetCore,
     name: &ComponentName,
-    map: Instance,
+    map: &Instance,
     collection: Option<CollectionName>,
     state_var: StateVarSlice,
     index: usize,
@@ -2307,7 +2315,7 @@ fn group_member_state_var(
 fn nth_group_dependence(
     core: &DoenetCore,
     group_name: &ComponentName,
-    map: Instance,
+    map: &Instance,
     index: usize,
 ) -> Option<ComponentRef> {
     let mut index = index;
@@ -2317,7 +2325,7 @@ fn nth_group_dependence(
 fn nth_group_dependence_internal(
     index: &mut usize,
     group_name: &ComponentName,
-    map: Instance,
+    map: &Instance,
     core: &DoenetCore,
 ) -> Option<ComponentRef> {
     for group_dep in core.group_dependencies.get(group_name).unwrap() {
@@ -2374,7 +2382,7 @@ enum UpdateRequest {
 fn convert_dependency_values_to_update_request(
     core: &DoenetCore,
     component: &ComponentNode,
-    map: Instance,
+    map: &Instance,
     state_var: &StateRef,
     requests: HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 ) -> Vec<UpdateRequest> {
@@ -2478,7 +2486,7 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
         .expect(&format!("{} doesn't exist, but action {} uses it", action.component_name, action.action_name));
 
     let state_var_resolver = | state_var_ref | {
-        resolve_state_variable(core, component_name, MAPI, state_var_ref)
+        resolve_state_variable(core, component_name, &MAPI, state_var_ref)
     };
 
     let state_vars_to_update = (component.definition.on_action)(
@@ -2514,14 +2522,14 @@ fn process_update_request(
             essential_var.set_value(
                     state_index.clone(),
                     requested_value.clone(),
-                    MAPI,
+                    &MAPI,
                 ).expect(
                     &format!("Failed to set essential value for {}, {:?}, {:?}", component_ref, origin, state_index)
                 );
 
             // log_debug!("Updated essential data {:?}", core.essential_data);
 
-            mark_stale_essential_datum_dependencies(core, component_ref.clone(), MAPI, state_index, origin.clone());
+            mark_stale_essential_datum_dependencies(core, component_ref.clone(), &MAPI, state_index, origin.clone());
         },
 
         UpdateRequest::SetStateVar(component_name, state_var_ref, requested_value) => {
@@ -2531,7 +2539,7 @@ fn process_update_request(
             let dep_update_requests = request_dependencies_to_update_value_including_shadow(
                 core,
                 dep_comp,
-                MAPI,
+                &MAPI,
                 state_var_ref,
                 requested_value.clone(),
             );
@@ -2540,7 +2548,7 @@ fn process_update_request(
                 process_update_request(core, &dep_update_request);
             }
 
-            mark_stale_state_var_and_dependencies(core, component_name, MAPI, &state_var_ref);
+            mark_stale_state_var_and_dependencies(core, component_name, &MAPI, &state_var_ref);
         }
     }
 }
@@ -2566,7 +2574,7 @@ fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     let root_node = core.component_nodes.get(&core.root_component_name).unwrap();
     let root_comp_rendered = RenderedComponent {
         component_ref: ComponentRef::Basic(root_node.name.clone()),
-        map: 0,
+        map: Instance::default(),
         child_of_copy: None
     };
     let mut json_obj: Vec<serde_json::Value> = vec![];
@@ -2592,8 +2600,8 @@ fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
     format!("{}_from_({}[{}])", name, group, index)
 }
 
-fn name_map_instance(name: &str, map: Instance) -> String {
-    format!("{}_map({})", name, map)
+fn name_map_instance(name: &str, map: &Instance) -> String {
+    format!("{}_map({:?})", name, map)
 }
 
 
@@ -2637,7 +2645,7 @@ fn generate_render_tree_internal(
         let (sv_comp, sv_slice) = convert_component_ref_state_var(
             core,
             &component.component_ref,
-            component.map,
+            &component.map,
             state_var_slice
         ).unwrap();
 
@@ -2645,12 +2653,12 @@ fn generate_render_tree_internal(
             StateVarSlice::Array(sv_name) => {
 
                 // TODO: not the best way to do this?
-                let sv_refs = elements_of_array(core, &component_name, component.map, &sv_name);
+                let sv_refs = elements_of_array(core, &component_name, &component.map, &sv_name);
 
                 let mut values: Vec<f64> = Vec::new();
                 for sv_ref in sv_refs {
                     values.push(
-                        resolve_state_variable(core, &sv_comp, component.map, &sv_ref)
+                        resolve_state_variable(core, &sv_comp, &component.map, &sv_ref)
                         .unwrap()
                         .try_into()
                         .unwrap()
@@ -2673,7 +2681,7 @@ fn generate_render_tree_internal(
             },
 
             StateVarSlice::Single(state_ref) => {
-                let state_var_value = resolve_state_variable(core, &sv_comp, component.map, &state_ref)
+                let state_var_value = resolve_state_variable(core, &sv_comp, &component.map, &state_ref)
                     .expect(&format!("state var {}:{} cannot be resolved", &sv_comp, &state_ref));
 
                 let sv_renderer_name = state_var_aliases
@@ -2708,7 +2716,7 @@ fn generate_render_tree_internal(
 
                     let child_component = RenderedComponent {
                         component_ref: comp_ref,
-                        map: child_map,
+                        map: child_map.clone(),
                         child_of_copy: component.child_of_copy.clone().or(
                             if std::ptr::eq(actual_parent, node) {
                                 None
@@ -2724,7 +2732,7 @@ fn generate_render_tree_internal(
                     let child_name = name_rendered_component(&child_component, child_definition.component_type);
 
                     let exact_copy_of_component =
-                        component_ref_is_exact_copy(core, &child_component.component_ref, child_map);
+                        component_ref_is_exact_copy(core, &child_component.component_ref, &child_map);
 
                     let action_component_name = exact_copy_of_component
                         .unwrap_or(child_name.clone());
@@ -2778,17 +2786,18 @@ fn name_rendered_component(component: &RenderedComponent, component_type: &str) 
         Some(copy_name) => name_child_of_copy(&name_to_render, &copy_name),
         None => name_to_render,
     };
-    let name_to_render = match &component.map {
-        0 => name_to_render,
-        _ => name_map_instance(&name_to_render, component.map),
-    };
+    let name_to_render = if component.map.len() == 0 {
+            name_to_render
+        } else {
+            name_map_instance(&name_to_render, &component.map)
+        };
     name_to_render
 }
 
 fn component_ref_is_exact_copy(
     core: &DoenetCore,
     component_ref: &ComponentRef,
-    map: Instance,
+    map: &Instance,
 ) -> Option<ComponentName> {
     match &component_ref {
         ComponentRef::Basic(n) => Some(n.clone()),
@@ -2872,14 +2881,14 @@ fn get_children_and_members<'a>(
     map: &'a Instance,
 ) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
 
-    let use_component_name = component_ref_is_exact_copy(core, component, map.clone())
+    let use_component_name = component_ref_is_exact_copy(core, component, map)
         .unwrap_or(component.name());
     log_debug!("{:?} -> {:?}", component, use_component_name);
 
     get_children_including_copy_and_groups(
         &core,
         core.component_nodes.get(&use_component_name).unwrap(),
-        map.clone(),
+        map,
     )
     .into_iter()
     .flat_map(|(child, actual_parent)| match child {
@@ -2890,7 +2899,7 @@ fn get_children_and_members<'a>(
 
                 let group = ComponentGroup::Group(comp_name.clone());
 
-                component_group_members(core, &group, map.clone()).iter().map(|(comp_ref, comp_map)|
+                component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
                     (ObjectRefName::Component(comp_ref.clone()),
                     comp_map.clone(),
                     actual_parent)
@@ -2909,7 +2918,7 @@ fn get_children_and_members<'a>(
 fn get_children_including_copy_and_groups<'a>(
     core: &'a DoenetCore,
     component: &'a ComponentNode,
-    map: Instance,
+    map: &Instance,
 ) -> Vec<(ComponentChild, &'a ComponentNode)> {
 
     let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
@@ -2922,7 +2931,7 @@ fn get_children_including_copy_and_groups<'a>(
             children_vec = get_children_including_copy_and_groups(core, source_comp, map);
         },
         Some(CopySource::MapSources(map_sources)) => {
-            let source = nth_group_dependence(core, &map_sources, MAPI, map+1).unwrap();
+            let source = map_sources_dependency_member(core, &map_sources, map).unwrap();
             if let ComponentRef::Basic(name) = source {
                 let source_comp = core.component_nodes.get(&name).unwrap();
 
@@ -2939,6 +2948,19 @@ fn get_children_including_copy_and_groups<'a>(
     );
 
     children_vec
+}
+
+// Find the component that the sources dependency points to
+fn map_sources_dependency_member(
+    core: &DoenetCore,
+    sources: &ComponentName,
+    map: &Instance,
+) -> Option<ComponentRef> {
+    let sources_map_overlap = map.iter().position(|(_, n)| n == sources).unwrap();
+    let sources_map = &map[..sources_map_overlap];
+    let sources_map = Vec::from(sources_map);
+    let index = map.get(sources_map_overlap).unwrap().0;
+    nth_group_dependence(core, sources, &sources_map, index)
 }
 
 ////////////// Wrappers providing for CopySource and sequence component //////////////
@@ -3048,7 +3070,7 @@ fn generate_update_instruction_for_state_ref(
 fn request_dependencies_to_update_value_including_shadow(
     core: &DoenetCore,
     component: &ComponentNode,
-    map: Instance,
+    map: &Instance,
     state_var_ref: &StateRef,
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest> {
