@@ -1,11 +1,9 @@
 use enum_as_inner::EnumAsInner;
 
-use crate::{state_variables::*, utils::log_debug, Instance, instance_indices};
+use crate::{state_variables::*, utils::log_debug, Instance};
 use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max, iter::repeat};
 use self::State::*;
 use ndarray::{ArrayD, SliceInfoElem};
-
-const MAPI: Instance = vec![];
 
 #[derive(Clone)]
 pub struct StateVar {
@@ -55,7 +53,7 @@ pub struct ForEachMap<T: Clone + std::fmt::Debug> {
 
 // with index starting at 1
 fn map_instance_to_index(map: &Instance) -> Vec<usize> {
-    let indices = instance_indices(map);
+    let indices = map.instance_indices();
     if indices.len() == 0 {
         vec![1]
     } else {
@@ -385,9 +383,11 @@ impl EssentialStateVar {
             extension: RefCell::new(default_fill_value)
         };
 
-        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64), &MAPI).unwrap();
+        let map_instance = Instance::default();
+
+        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64), &map_instance).unwrap();
         for (id, value) in values.into_iter().enumerate() {
-            essential_data.set_value(StateIndex::Element(id + 1), value.clone(), &MAPI).expect(
+            essential_data.set_value(StateIndex::Element(id + 1), value.clone(), &map_instance).expect(
                 &format!("Tried to set to {:?}", value)
             );
         }

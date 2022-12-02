@@ -23,7 +23,7 @@ use crate::math_expression::MathExpression;
 use crate::utils::{log_json, log_debug};
 use serde::Serialize;
 
-const MAPI: Instance = vec![];
+const MAPI: Instance = Instance(vec![]);
 
 /// A static DoenetCore is created from parsed DoenetML at the beginning.
 /// While `component_states` and `essential_data` can update using
@@ -119,11 +119,32 @@ pub enum Dependency {
 
 
 // Each tuple stores the map number and name of the relevant sources component
-// Note: instance number starts at 1
-type Instance = Vec<(usize, ComponentName)>;
+/// Note: instance number starts at 1
+#[derive(Clone, Debug, Default)]
+pub struct Instance (Vec<(usize, ComponentName)>);
 
-pub fn instance_indices(instance: &Instance) -> Vec<usize> {
-    instance.iter().map(|(i,_)| i.clone()).collect()
+impl Instance {
+    pub fn instance_indices(&self) -> Vec<usize> {
+        self.0.iter().map(|(i,_)| i.clone()).collect()
+    }
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn push(&mut self, index: usize, sources: ComponentName) {
+        self.0.push((index, sources))
+    }
+    /// Find the instance of the <sources> component pertining to the given instance
+    pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
+        let sources_index = self.0.iter().position(|(_, n)| n == sources).unwrap();
+        let sources_map = (&self.0[..sources_index]).to_vec();
+        let index = self.0.get(sources_index).unwrap().0;
+        (index, Instance(sources_map))
+    }
+}
+impl std::fmt::Display for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.instance_indices().fmt(f)
+    }
 }
 
 // #[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash)]
@@ -2217,7 +2238,7 @@ fn component_group_members<'a>(
                 indices_for_size(size)
                     .map(|i| {
                         let mut map_new = map.clone();
-                        map_new.push((i, sources.clone()));
+                        map_new.push(i, sources.clone());
                         (ComponentRef::Basic(template.clone()), map_new)
                     })
                     .collect()
@@ -2592,19 +2613,6 @@ struct RenderedComponent {
 }
 
 
-fn name_child_of_copy(child: &str, copy: &str) -> String {
-    format!("__cp:{}({})", child, copy)
-}
-
-fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
-    format!("{}_from_({}[{}])", name, group, index)
-}
-
-fn name_map_instance(name: &str, map: &Instance) -> String {
-    format!("{}_map({:?})", name, map)
-}
-
-
 fn generate_render_tree_internal(
     core: &DoenetCore,
     component: RenderedComponent,
@@ -2794,6 +2802,19 @@ fn name_rendered_component(component: &RenderedComponent, component_type: &str) 
     name_to_render
 }
 
+fn name_child_of_copy(child: &str, copy: &str) -> String {
+    format!("__cp:{}({})", child, copy)
+}
+
+fn name_member_of_group(name: &str, group: &str, index: usize) -> String {
+    format!("{}_from_({}[{}])", name, group, index)
+}
+
+fn name_map_instance(name: &str, map: &Instance) -> String {
+    format!("{}_map{}", name, map)
+}
+
+
 fn component_ref_is_exact_copy(
     core: &DoenetCore,
     component_ref: &ComponentRef,
@@ -2955,10 +2976,7 @@ fn map_sources_dependency_member(
     sources: &ComponentName,
     map: &Instance,
 ) -> Option<(ComponentRef, Instance)> {
-    let sources_map_overlap = map.iter().position(|(_, n)| n == sources).unwrap();
-    let sources_map = (&map[..sources_map_overlap]).to_vec();
-    let index = map.get(sources_map_overlap).unwrap().0;
-
+    let (index, sources_map) = map.find_sources(sources);
     let comp_ref = nth_group_dependence(core, sources, &sources_map, index);
     comp_ref.map(|x| (x,sources_map))
 }
