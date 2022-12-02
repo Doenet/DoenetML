@@ -1870,16 +1870,16 @@ fn resolve_state_variable(
                 Dependency::MapSources { map_sources, state_var_slice } => {
 
                     // add 1 to map because counting starts at 1 for nth_group_dependence
-                    let component_ref = map_sources_dependency_member(core, &map_sources, map).unwrap();
+                    let (component_ref, component_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
 
-                    log_debug!("map source ref: {:?}", component_ref);
+                    // log_debug!("map source ref: {:?}", component_ref);
 
-                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()).unwrap();
+                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &component_map, state_var_slice.clone()).unwrap();
 
                     match sv_slice {
                         StateVarSlice::Single(ref sv_ref) => {
 
-                            let depends_on_value = resolve_state_variable(core, &sv_comp, &MAPI, sv_ref);
+                            let depends_on_value = resolve_state_variable(core, &sv_comp, &component_map, sv_ref);
 
                             if let Some(depends_on_value) = depends_on_value {
                                 values_for_this_dep.push(DependencyValue {
@@ -1892,7 +1892,7 @@ fn resolve_state_variable(
 
                             // important to resolve the size before the elements
                             let size_value: usize = resolve_state_variable(
-                                core, &sv_comp, &MAPI, &StateRef::SizeOf(array_state_var_name))
+                                core, &sv_comp, &component_map, &StateRef::SizeOf(array_state_var_name))
                             .expect("Array size should always resolve to a StateVarValue")
                             .try_into()
                             .unwrap();
@@ -2213,7 +2213,7 @@ fn component_group_members<'a>(
                 let sources = deps.get(1).unwrap();
                                                     //
                 let size = component_group_size(core, sources, map);
-                log_debug!("MAP HAS SIZE {}", size);
+                // log_debug!("MAP HAS SIZE {}", size);
                 indices_for_size(size)
                     .map(|i| {
                         let mut map_new = map.clone();
@@ -2883,7 +2883,6 @@ fn get_children_and_members<'a>(
 
     let use_component_name = component_ref_is_exact_copy(core, component, map)
         .unwrap_or(component.name());
-    log_debug!("{:?} -> {:?}", component, use_component_name);
 
     get_children_including_copy_and_groups(
         &core,
@@ -2931,11 +2930,11 @@ fn get_children_including_copy_and_groups<'a>(
             children_vec = get_children_including_copy_and_groups(core, source_comp, map);
         },
         Some(CopySource::MapSources(map_sources)) => {
-            let source = map_sources_dependency_member(core, &map_sources, map).unwrap();
+            let (source, source_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
             if let ComponentRef::Basic(name) = source {
                 let source_comp = core.component_nodes.get(&name).unwrap();
 
-                children_vec = get_children_including_copy_and_groups(core, source_comp, map);
+                children_vec = get_children_including_copy_and_groups(core, source_comp, &source_map);
             }
         },
         _ => {},
@@ -2955,12 +2954,13 @@ fn map_sources_dependency_member(
     core: &DoenetCore,
     sources: &ComponentName,
     map: &Instance,
-) -> Option<ComponentRef> {
+) -> Option<(ComponentRef, Instance)> {
     let sources_map_overlap = map.iter().position(|(_, n)| n == sources).unwrap();
-    let sources_map = &map[..sources_map_overlap];
-    let sources_map = Vec::from(sources_map);
+    let sources_map = (&map[..sources_map_overlap]).to_vec();
     let index = map.get(sources_map_overlap).unwrap().0;
-    nth_group_dependence(core, sources, &sources_map, index)
+
+    let comp_ref = nth_group_dependence(core, sources, &sources_map, index);
+    comp_ref.map(|x| (x,sources_map))
 }
 
 ////////////// Wrappers providing for CopySource and sequence component //////////////

@@ -143,11 +143,11 @@ pub fn package_subtree_as_json(
                         .iter().map(|x| serde_json::Value::from(x)).collect())
                 );
 
-                for elem in elements.all_instances().iter() {
+                for (instance, elem) in elements.all_instances().iter().enumerate() {
                     for (id, element) in elem.iter().enumerate() {
                         my_json_props.insert(
 
-                            format!("sv: {} element {}", state_var_name, id),
+                            format!("sv ({}): {} element {}", instance, state_var_name, id),
 
                             match element.get_state() {
                                 State::Resolved(value) => value.into(),
