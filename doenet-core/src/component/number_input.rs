@@ -24,7 +24,10 @@ lazy_static! {
             initial_essential_value: f64::NAN,
             return_dependency_instructions: |_|
                 HashMap::from([
-                    ("essential", DependencyInstruction::Essential { prefill: Some("prefill") }),
+                    ("last", DependencyInstruction::StateVar {
+                        component_ref: None,
+                        state_var: StateVarSlice::Single(StateRef::Basic("lastValue")),
+                    }),
                     ("immediate", DependencyInstruction::StateVar {
                         component_ref: None,
                         state_var: StateVarSlice::Single(StateRef::Basic("immediateValue")),
@@ -35,7 +38,7 @@ lazy_static! {
                     }),
                 ]),
             determine_state_var_from_dependencies: |dependency_values| {
-                let essential_value = dependency_values.dep_value("essential")?
+                let essential_value = dependency_values.dep_value("last")?
                     .has_exactly_one_element()?
                     .into_number()?;
                 let immediate_value = dependency_values.dep_value("immediate")?
@@ -55,9 +58,9 @@ lazy_static! {
             } ,
             request_dependencies_to_update_value: |desired_value, sources| {
                 HashMap::from([
-                    ("essential", Ok(vec![
+                    ("last", Ok(vec![
                         DependencyValue {
-                            source: sources.get("essential").unwrap().first().unwrap().0.clone(),
+                            source: sources.get("last").unwrap().first().unwrap().0.clone(),
                             value: desired_value.clone().into(),
                         }
                     ])),
@@ -115,6 +118,17 @@ lazy_static! {
                     // ])),
                 ])
             },
+            ..Default::default()
+        }));
+
+        state_var_definitions.insert("lastValue", StateVarVariant::Number(StateVarDefinition {
+             return_dependency_instructions: |_|
+                 HashMap::from([
+                     ("essential", DependencyInstruction::Essential { prefill: Some("prefill") }),
+                 ]),
+            determine_state_var_from_dependencies: DETERMINE_FROM_ESSENTIAL,
+            request_dependencies_to_update_value: REQUEST_ESSENTIAL_TO_UPDATE,
+            initial_essential_value: f64::NAN,
             ..Default::default()
         }));
 
@@ -196,7 +210,7 @@ lazy_static! {
         
         action_names: || vec!["updateImmediateValue", "updateValue"],
 
-        on_action: |action_name, args, _| {
+        on_action: |action_name, args, resolve_and_retrieve_state_var| {
             match action_name {
                 "updateImmediateValue" => {
                     // Note: the key here is whatever the renderers call the new value
@@ -209,7 +223,13 @@ lazy_static! {
                 },
 
                 "updateValue" => {
+
+                    let new_val = resolve_and_retrieve_state_var(&StateRef::Basic("immediateValue"))
+                        .unwrap().try_into().unwrap();
+                    let new_val = StateVarValue::Number(new_val);
+
                     vec![
+                        (StateRef::Basic("lastValue"), new_val),
                         (StateRef::Basic("syncImmediateValue"), StateVarValue::Boolean(true)),
                     ]
                 }

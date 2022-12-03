@@ -122,6 +122,12 @@ pub enum Dependency {
 #[derive(Clone, Default)]
 pub struct Instance (Vec<(usize, ComponentName)>);
 
+impl From<Vec<(i32, &str)>> for Instance {
+    fn from(v: Vec<(i32, &str)>) -> Self {
+        Instance(v.into_iter().map(|(a,b)| (a as usize, b.to_string())).collect())
+    }
+}
+
 impl Instance {
     pub fn instance_indices(&self) -> Vec<usize> {
         self.0.iter().map(|(i,_)| i.clone()).collect()
@@ -1841,14 +1847,14 @@ fn resolve_state_variable(
                 Dependency::StateVar { component_group , state_var_slice } => {
 
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
-                    log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
+                    // log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
 
                     for (component_ref, comp_map) in component_group_members(core, &component_group, &dependency_map) {
 
-                        log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
+                        // log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()).unwrap();
 
-                        log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
+                        // log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
 
                         match sv_slice {
                             StateVarSlice::Single(ref sv_ref) => {
@@ -1913,7 +1919,7 @@ fn resolve_state_variable(
                                 values_for_this_dep.push(DependencyValue {
                                     source: dependency_source.clone(),
                                     value: depends_on_value,
-                                });    
+                                });
                             }
                         }
                         StateVarSlice::Array(array_state_var_name) => {
@@ -3267,7 +3273,7 @@ fn request_dependencies_to_update_value_including_shadow(
 
         let dependency_sources = get_dependency_sources_for_state_var(core, &component.name, map, &state_var_ref.clone());
 
-        log_debug!("Dependency sources for {}{}, {:?}", component.name, state_var_ref, dependency_sources);
+        log_debug!("Dependency sources for {}:{}, {:?}", component.name, state_var_ref, dependency_sources);
 
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
             .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources)

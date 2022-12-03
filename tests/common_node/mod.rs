@@ -55,7 +55,7 @@ pub fn doenet_core_with_essential_data(
     doenet_core::create_doenet_core(&program, Some(essential_data))
 }
 
-fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateRef, value: StateVarValue) {
+fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_ref: &StateRef, value: StateVarValue) {
 
     let state_value = dc.component_states.get(comp_name).expect(
         &format!("Component {} does not exist", comp_name)
@@ -66,20 +66,20 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
     let state = match sv_ref {
         StateRef::Basic(sv_name) => {
             match state_value {
-                StateForStateVar::Single(sv) => sv.instance(&Instance::default()).get_state(),
+                StateForStateVar::Single(sv) => sv.instance(map).get_state(),
                 _ => panic!("State var [{}]:[{}] is basic but does not have single state", comp_name, sv_name)
             }
         },
         StateRef::SizeOf(sv_name) => {
             match state_value {
-                StateForStateVar::Array { size, .. } => size.instance(&Instance::default()).get_state(),
+                StateForStateVar::Array { size, .. } => size.instance(map).get_state(),
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
         StateRef::ArrayElement(sv_name, id) => {
             match state_value {
                 StateForStateVar::Array { elements, .. } => {
-                    elements.instance(&Instance::default()).get(*id).expect(
+                    elements.instance(map).get(*id).expect(
                         &format!("State var [{}]:[{}] does not have element index {}", comp_name, sv_name, id)
                     ).get_state()
                 },
@@ -120,34 +120,48 @@ fn numbers_are_equal_or_both_nan(num1: f64, num2: f64) -> bool {
 }
 
 pub fn assert_sv_is_string(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: &'static str) {
-    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::String(value.into()));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::Basic(sv_name), StateVarValue::String(value.into()));
 }
 pub fn assert_sv_is_number(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: f64) {
-    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Number(value));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::Basic(sv_name), StateVarValue::Number(value));
 }
 pub fn assert_sv_is_boolean(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: bool) {
-    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Boolean(value));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::Basic(sv_name), StateVarValue::Boolean(value));
 }
 pub fn assert_sv_is_integer(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, value: i64) {
-    assert_state_var_is(dc, comp_name, &StateRef::Basic(sv_name), StateVarValue::Integer(value));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::Basic(sv_name), StateVarValue::Integer(value));
 }
-
-
-
-
 pub fn assert_sv_array_element_is_number(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, id: usize, value: f64) {
-    assert_state_var_is(dc, comp_name, &StateRef::ArrayElement(sv_name, id), StateVarValue::Number(value));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::ArrayElement(sv_name, id), StateVarValue::Number(value));
 }
-
 pub fn assert_sv_array_size_is(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, size: usize,) {
-    assert_state_var_is(dc, comp_name, &StateRef::SizeOf(sv_name), StateVarValue::Integer(size as i64));
+    assert_state_var_is(dc, comp_name, &Instance::default(), &StateRef::SizeOf(sv_name), StateVarValue::Integer(size as i64));
+}
+pub fn assert_sv_array_is_number_list(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, values: Vec<f64>) {
+    assert_sv_array_is_number_list_with_map(dc, comp_name, Instance::default(), sv_name, values)
 }
 
+pub fn assert_sv_is_string_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, value: &'static str) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::Basic(sv_name), StateVarValue::String(value.into()));
+}
+pub fn assert_sv_is_number_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, value: f64) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::Basic(sv_name), StateVarValue::Number(value));
+}
+pub fn assert_sv_is_boolean_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, value: bool) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::Basic(sv_name), StateVarValue::Boolean(value));
+}
+pub fn assert_sv_is_integer_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, value: i64) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::Basic(sv_name), StateVarValue::Integer(value));
+}
+pub fn assert_sv_array_element_is_number_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, id: usize, value: f64) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::ArrayElement(sv_name, id), StateVarValue::Number(value));
+}
+pub fn assert_sv_array_size_is_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, size: usize,) {
+    assert_state_var_is(dc, comp_name, &map, &StateRef::SizeOf(sv_name), StateVarValue::Integer(size as i64));
+}
 
-
-
-pub fn assert_sv_array_is_number_list(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str, values: Vec<f64>) {
-    let (size, element_values) = get_array_state(dc, comp_name, sv_name);
+pub fn assert_sv_array_is_number_list_with_map(dc: &DoenetCore, comp_name: &'static str, map: Instance, sv_name: &'static str, values: Vec<f64>) {
+    let (size, element_values) = get_array_state(dc, comp_name, &map, sv_name);
 
     let num_values: Vec<f64> = element_values.into_iter().map(|elem|
         elem.try_into().expect(
@@ -162,7 +176,7 @@ pub fn assert_sv_array_is_number_list(dc: &DoenetCore, comp_name: &'static str, 
     }
 }
 
-fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static str) -> (usize, Vec<StateVarValue>) {
+fn get_array_state(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_name: &'static str) -> (usize, Vec<StateVarValue>) {
 
     let state_value = dc.component_states.get(comp_name).expect(
         &format!("Component {} does not exist", comp_name)
@@ -173,14 +187,14 @@ fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static s
     match state_value {
         StateForStateVar::Array { size, elements, .. } => {
 
-            let size_value = if let State::Resolved(val) = size.instance(&Instance::default()).get_state() {
+            let size_value = if let State::Resolved(val) = size.instance(map).get_state() {
                 let val: i64 = val.try_into().unwrap();
                 val as usize
             } else {
                 panic!("Size of state var [{}]:[{}] is not resolved", comp_name, sv_name);
             };
 
-            let state_values = elements.instance(&Instance::default()).iter().map(|elem| {
+            let state_values = elements.instance(map).iter().map(|elem| {
                 if let State::Resolved(elem_val) = elem.get_state() {
                     elem_val
                 } else {
