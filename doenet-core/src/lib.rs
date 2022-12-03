@@ -1840,7 +1840,10 @@ fn resolve_state_variable(
 
                 Dependency::StateVar { component_group , state_var_slice } => {
 
-                    for (component_ref, comp_map) in component_group_members(core, &component_group, map) {
+                    let dependency_map = instance_of_dependency(core, map, &component_group.name());
+                    log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
+
+                    for (component_ref, comp_map) in component_group_members(core, &component_group, &dependency_map) {
 
                         log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()).unwrap();
@@ -1946,7 +1949,9 @@ fn resolve_state_variable(
                 },
                 Dependency::StateVarArrayCorrespondingElement { component_group , array_state_var_name } => {
 
-                    for (component_ref, map) in component_group_members(core, &component_group, map) {
+                    let dependency_map = instance_of_dependency(core, map, &component_group.name());
+
+                    for (component_ref, map) in component_group_members(core, &component_group, &dependency_map) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
                         let sv_slice = StateVarSlice::Single(sv_ref);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &map, sv_slice).unwrap();
@@ -1971,6 +1976,8 @@ fn resolve_state_variable(
 
                 Dependency::Essential { component_name, origin } => {
 
+                    let dependency_map = instance_of_dependency(core, map, &component_name);
+
                     let index = match origin {
                         EssentialDataOrigin::StateVar(_) => state_var_ref.index(),
                         _ => StateIndex::Basic,
@@ -1980,7 +1987,7 @@ fn resolve_state_variable(
                         .get(&component_name).unwrap()
                         .get(&origin).unwrap()
                         .clone()
-                        .get_value(index, map);
+                        .get_value(index, &dependency_map);
     
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
@@ -1992,10 +1999,12 @@ fn resolve_state_variable(
 
                 Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, index_state_var } => {
 
+                    let dependency_map = instance_of_dependency(core, map, &component_name);
+
                     let index_value = resolve_state_variable(
                         core,
                         component, // myself
-                        map,
+                        &dependency_map,
                         &index_state_var,
                     );
 
@@ -2015,7 +2024,7 @@ fn resolve_state_variable(
                         let element_value = resolve_state_variable(
                             core,
                             &component_name,
-                            map,
+                            &dependency_map,
                             &StateRef::ArrayElement(array_state_var_name, index)
                         );
 
@@ -2092,7 +2101,7 @@ fn mark_stale_state_var_and_dependencies(
         return;
     }
 
-    log_debug!("Marking stale {}:{}", component, state_var_ref);
+    log_debug!("Marking stale {}_map{}:{}", component, map, state_var_ref);
 
     state_var.mark_single_stale(&state_var_ref.index(), map);
 
@@ -2104,21 +2113,23 @@ fn mark_stale_state_var_and_dependencies(
     // HACK: sort so that arrays are last, and hopefully the size deps will already be stale
     depending_on_me.sort_by(|(_,a), (_,b)| match (a, b) {
         (StateVarSlice::Single(_), StateVarSlice::Array(_)) => std::cmp::Ordering::Less,
-        (StateVarSlice::Array(_), StateVarSlice::Single(_)) => std::cmp::Ordering::Less,
+        (StateVarSlice::Array(_), StateVarSlice::Single(_)) => std::cmp::Ordering::Greater,
         (_, _) => std::cmp::Ordering::Equal,
     });
     
-    for (ref depending_comp, depending_slice) in depending_on_me {
+    for (ref depending_comp, ref depending_slice) in depending_on_me {
 
-        match depending_slice {
-            StateVarSlice::Single(sv_ref) => {
-                mark_stale_state_var_and_dependencies(core, depending_comp, map, &sv_ref);
-            },
-            StateVarSlice::Array(sv_name) => {
-                let members = elements_of_array(core, component, map, &sv_name);
-                // log_debug!("marking stale each element {:?}", members);
-                for member in members {
-                    mark_stale_state_var_and_dependencies(core, depending_comp, map, &member);
+        for instance in instances_of_dependent(core, map, depending_comp) {
+            match depending_slice {
+                StateVarSlice::Single(sv_ref) => {
+                    mark_stale_state_var_and_dependencies(core, depending_comp, &instance, sv_ref);
+                },
+                StateVarSlice::Array(sv_name) => {
+                    let members = elements_of_array(core, component, map, sv_name);
+                    // log_debug!("marking stale each element {:?}", members);
+                    for member in members {
+                        mark_stale_state_var_and_dependencies(core, depending_comp, &instance, &member);
+                    }
                 }
             }
         }
@@ -3027,6 +3038,105 @@ fn map_sources_dependency_member(
     let (index, sources_map) = map.find_sources(sources);
     let comp_ref = nth_group_dependence(core, sources, &sources_map, index);
     comp_ref.map(|x| (x,sources_map))
+}
+
+/// Find all instances of a component inside extra maps
+fn instances_of_dependent(
+    core: &DoenetCore,
+    map: &Instance,
+    dependent: &ComponentName,
+) -> Vec<Instance> {
+    let dependency_inside = sources_that_instance_component(core, dependent);
+    let chain_remaining = &dependency_inside[map.len()..];
+    all_map_instances(core, map, &chain_remaining)
+}
+
+/// Find the instance of a component inside fewer maps
+fn instance_of_dependency(
+    core: &DoenetCore,
+    map: &Instance,
+    dependency: &ComponentName,
+) -> Instance {
+    let dependency_inside = sources_that_instance_component(core, dependency);
+    let mut instance = Instance::default();
+    for (i, s) in dependency_inside.iter().enumerate() {
+        let (map_index, map_source) = map.0.get(i).unwrap();
+        if map_source == s {
+            instance.push(*map_index, s.clone());
+        } else {
+            panic!("dependency is inside a different map");
+        }
+    }
+    instance
+}
+
+
+fn all_map_instances(
+    core: &DoenetCore,
+    map: &Instance,
+    chain_remaining: &[ComponentName],
+) -> Vec<Instance> {
+    if chain_remaining.len() > 0 {
+        let sources_name = &chain_remaining[0];
+        let sources = core.component_nodes.get(sources_name).unwrap();
+        let map_name = sources.parent.clone().unwrap();
+        let mut vec = vec![];
+        for i in indices_for_size(component_group_size(core, &map_name, map)) {
+            let mut next_map = map.clone();
+            next_map.push(i, sources_name.clone());
+            vec.extend(all_map_instances(core, &next_map, &chain_remaining[1..]));
+        }
+        vec
+    } else {
+        vec![map.clone()]
+    }
+}
+
+fn sources_that_instance_component(
+    core: &DoenetCore,
+    component: &ComponentName,
+) -> Vec<ComponentName> {
+    let parent_chain = parent_chain(core, component);
+    let mut sources = vec![];
+    if parent_chain.len() > 1 {
+        for i in 0..parent_chain.len() - 1 {
+            let parent = core.component_nodes.get(parent_chain.get(i).unwrap()).unwrap();
+            let child = core.component_nodes.get(parent_chain.get(i+1).unwrap()).unwrap();
+            if parent.definition.component_type == "map"
+            && child.definition.component_type == "template" {
+                let sources_child = parent.children.iter().find_map(|o|
+                    match o {
+                        ObjectName::Component(c) => {
+                            if core.component_nodes.get(c).unwrap().definition.component_type == "sources" {
+                                Some(c.clone())
+                            } else {
+                                None
+                            }
+                        }
+                        ObjectName::String(_) => None
+                    }
+                );
+                if let Some(sources_child) = sources_child {
+                    sources.push(sources_child);
+                }
+            }
+        }
+    }
+    sources
+}
+
+fn parent_chain(
+    core: &DoenetCore,
+    component: &ComponentName,
+) -> Vec<ComponentName> {
+    let mut parent_chain = vec![];
+    let mut loop_component = core.component_nodes.get(component).unwrap();
+    while loop_component.parent.is_some() {
+        let loop_parent = loop_component.parent.clone().unwrap();
+        loop_component = core.component_nodes.get(&loop_parent).unwrap();
+        parent_chain.push(loop_parent);
+    }
+    parent_chain.into_iter().rev().collect()
 }
 
 ////////////// Wrappers providing for CopySource and sequence component //////////////

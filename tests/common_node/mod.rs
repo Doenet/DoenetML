@@ -24,8 +24,6 @@ extern "C" {
     
 }
 
-const MAPI: Instance = Instance::default();
-
 macro_rules! display_doenet_ml_on_failure {
     ($data:expr) => {
         if !thread::panicking() {
@@ -68,20 +66,20 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, sv_ref: &StateR
     let state = match sv_ref {
         StateRef::Basic(sv_name) => {
             match state_value {
-                StateForStateVar::Single(sv) => sv.instance(MAPI).get_state(),
+                StateForStateVar::Single(sv) => sv.instance(&Instance::default()).get_state(),
                 _ => panic!("State var [{}]:[{}] is basic but does not have single state", comp_name, sv_name)
             }
         },
         StateRef::SizeOf(sv_name) => {
             match state_value {
-                StateForStateVar::Array { size, .. } => size.instance(MAPI).get_state(),
+                StateForStateVar::Array { size, .. } => size.instance(&Instance::default()).get_state(),
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
         StateRef::ArrayElement(sv_name, id) => {
             match state_value {
                 StateForStateVar::Array { elements, .. } => {
-                    elements.instance(MAPI).get(*id).expect(
+                    elements.instance(&Instance::default()).get(*id).expect(
                         &format!("State var [{}]:[{}] does not have element index {}", comp_name, sv_name, id)
                     ).get_state()
                 },
@@ -175,14 +173,14 @@ fn get_array_state(dc: &DoenetCore, comp_name: &'static str, sv_name: &'static s
     match state_value {
         StateForStateVar::Array { size, elements, .. } => {
 
-            let size_value = if let State::Resolved(val) = size.instance(MAPI).get_state() {
+            let size_value = if let State::Resolved(val) = size.instance(&Instance::default()).get_state() {
                 let val: i64 = val.try_into().unwrap();
                 val as usize
             } else {
                 panic!("Size of state var [{}]:[{}] is not resolved", comp_name, sv_name);
             };
 
-            let state_values = elements.instance(MAPI).iter().map(|elem| {
+            let state_values = elements.instance(&Instance::default()).iter().map(|elem| {
                 if let State::Resolved(elem_val) = elem.get_state() {
                     elem_val
                 } else {
