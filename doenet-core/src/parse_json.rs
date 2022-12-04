@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::utils::{log_json, log_debug, log};
 use crate::Action;
 use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
-KeyValueIgnoreCase, AttributeName, ObjectName, GroupOrCollection};
+KeyValueIgnoreCase, AttributeName, ObjectName, CollectionOrBatch};
 
 use crate::ComponentChild;
 use lazy_static::lazy_static;
@@ -796,14 +796,14 @@ fn macro_comp_ref(
         let close_bracket_match = regex_at(&INDEX_END, string, index_end)?;
         comp_end = close_bracket_match.end();
 
-        source_def = match (None, &source_component.definition.replacement_children) {
+        source_def = match (None, &source_component.definition.replacement_components) {
             (Some(key), _) => {
-                source_component.definition.collections
+                source_component.definition.batches
                     .get_key_value_ignore_case(key).unwrap().1
                     .member_definition
             },
-            (None, Some(GroupOrCollection::Collection(def)))  => def.member_definition,
-            (None, Some(GroupOrCollection::Group(def)))  => (def.member_definition)(&source_component.static_attributes),
+            (None, Some(CollectionOrBatch::Batch(def)))  => def.member_definition,
+            (None, Some(CollectionOrBatch::Collection(def)))  => (def.member_definition)(&source_component.static_attributes),
             (None, None)  => return Err("index of non-group".to_string()),
         };
     } else {

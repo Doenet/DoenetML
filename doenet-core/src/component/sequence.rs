@@ -131,7 +131,7 @@ fn member_state_var<'a>(
 
     let slice = match state_var_slice {
         StateVarSlice::Single(StateRef::Basic("value")) => {
-            // reslove size before giving value
+            // resolve size before giving value
             let _ = resolver(&StateRef::SizeOf("value"));
             StateVarSlice::Single(StateRef::ArrayElement("value", index))
         }
@@ -151,9 +151,9 @@ lazy_static! {
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        replacement_children: Some(GroupOrCollection::Collection(CollectionDefinition {
+        replacement_components: Some(CollectionOrBatch::Batch(BatchDefinition {
             member_definition: &super::number::MY_COMPONENT_DEFINITION,
-            group_size: StateRef::SizeOf("value"),
+            size: StateRef::SizeOf("value"),
             member_state_var,
         })),
 

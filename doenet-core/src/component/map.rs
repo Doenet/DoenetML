@@ -29,7 +29,7 @@ fn group_dependencies(
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
                 if comp.definition.component_type == "template" {
-                    Some(match comp.definition.replacement_children {
+                    Some(match comp.definition.replacement_components {
                         Some(_) => c.clone(),
                         None => c.clone(),
                     })
@@ -45,7 +45,7 @@ fn group_dependencies(
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
                 if comp.definition.component_type == "sources" {
-                    Some(match comp.definition.replacement_children {
+                    Some(match comp.definition.replacement_components {
                         Some(_) => c.clone(),
                         None => c.clone(),
                     })
@@ -70,7 +70,7 @@ lazy_static! {
             "disabled",
         ],
 
-        replacement_children: Some(GroupOrCollection::Group(GroupDefinition {
+        replacement_components: Some(CollectionOrBatch::Collection(CollectionDefinition {
             member_definition,
             group_dependencies,
         })),

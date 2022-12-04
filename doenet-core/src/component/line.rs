@@ -205,10 +205,10 @@ lazy_static! {
             (ComponentProfile::Text, "latex")
         ],
 
-        collections: HashMap::from([
-            ("points", CollectionDefinition {
+        batches: HashMap::from([
+            ("points", BatchDefinition {
                 member_definition: &super::point::MY_COMPONENT_DEFINITION,
-                group_size: StateRef::SizeOf("p1"),
+                size: StateRef::SizeOf("p1"),
                 member_state_var,
             })
         ]),

@@ -70,7 +70,7 @@ Navigate to `localhost:3000/src/test/index.html`
 </details>
 
 <details>
-<summary>Point Parralellogram</summary>
+<summary>Point Parallelogram</summary>
 
 ``` xml
 <graph>

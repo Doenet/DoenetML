@@ -37,7 +37,7 @@ pub type AttributeName = &'static str;
 pub type ComponentName = String;
 
 /// camelCase
-pub type CollectionName = &'static str;
+pub type BatchName = &'static str;
 
 lazy_static! {
     pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
@@ -182,23 +182,23 @@ pub struct ComponentDefinition {
     pub renderer_type: RendererType,
 
     /// If specified, the component's parent will treat this as multiple components.
-    pub replacement_children: Option<GroupOrCollection>,
+    pub replacement_components: Option<CollectionOrBatch>,
 
     /// These collections that are not used as replacement children.
-    pub collections: HashMap<CollectionName, CollectionDefinition>,
+    pub batches: HashMap<BatchName, BatchDefinition>,
 
     pub component_type: ComponentType,
 
 }
 
-pub enum GroupOrCollection {
-    Group(GroupDefinition),
+pub enum CollectionOrBatch {
     Collection(CollectionDefinition),
+    Batch(BatchDefinition),
 }
 
 
-// Like CopySource exepct multiple components
-pub struct GroupDefinition {
+// Like CopySource except multiple components
+pub struct CollectionDefinition {
     pub group_dependencies: fn(
         node: &ComponentNode,
         component_nodes: &HashMap<ComponentName, ComponentNode>,
@@ -210,13 +210,13 @@ pub struct GroupDefinition {
 }
 
 // Packaging a components state variables to appear like many components.
-// - ex: <line/> has a collection named "points"
-// - ex: <sequence/> has a collection used as its replacement children
-pub struct CollectionDefinition {
+// - ex: <line/> has a batch named "points"
+// - ex: <sequence/> has a batch used as its replacement children
+pub struct BatchDefinition {
 
     pub member_definition: &'static ComponentDefinition,
 
-    pub group_size: StateRef,
+    pub size: StateRef,
 
     pub member_state_var:
         for<'a> fn(
@@ -235,7 +235,7 @@ pub enum ComponentRef {
     Basic(ComponentName),
 
     /// No collection name means use replacement children.
-    GroupMember(ComponentName, Option<CollectionName>, usize),
+    GroupMember(ComponentName, Option<BatchName>, usize),
 }
 
 impl std::fmt::Display for ComponentRef {
@@ -291,8 +291,8 @@ impl Default for ComponentDefinition {
             valid_children_profiles: ValidChildTypes::ValidProfiles(vec![]),
             action_names: || Vec::new(),
             on_action: |_, _, _| vec![],
-            replacement_children: None,
-            collections: HashMap::new(),
+            replacement_components: None,
+            batches: HashMap::new(),
             component_type: "default_invalid",
         }
     }

@@ -29,7 +29,7 @@ use serde::Serialize;
 /// internal mutability (the RefCell), the over-arching HashMaps are static.
 #[derive(Debug)]
 pub struct DoenetCore {
-    /// The component tree has almost the same structute as the tree of elements
+    /// The component tree has almost the same structure as the tree of elements
     /// typed into DoenetML, except:
     /// - macros are converted into their own components
     pub component_nodes: HashMap<ComponentName, ComponentNode>,
@@ -138,7 +138,7 @@ impl Instance {
     pub fn push(&mut self, index: usize, sources: ComponentName) {
         self.0.push((index, sources))
     }
-    /// Find the instance of the <sources> component pertining to the given instance
+    /// Find the instance of the <sources> component pertaining to the given instance
     pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
         let sources_index = self.0.iter().position(|(_, n)| n == sources).unwrap();
         let sources_map = (&self.0[..sources_index]).to_vec();
@@ -200,13 +200,13 @@ pub fn create_doenet_core(
 
     let mut doenet_ml_warnings = vec![];
 
-    // Convert to MLComponents into component nodes
+    // Convert MLComponents into component nodes
 
     let mut component_nodes: HashMap<ComponentName, ComponentNode> = HashMap::new();
-    for (name, c) in ml_components.iter() {
-
+    for (name, ml_component) in ml_components.iter() {
+        
         let copy_source: Option<CopySource> =
-            if let Some(ref source_comp_name) = c.copy_source {
+            if let Some(ref source_comp_name) = ml_component.copy_source {
                 if let Some(map_source) = map_sources_alias.get(source_comp_name) {
                     Some(CopySource::MapSources(map_source.to_string()))
                 } else {
@@ -217,7 +217,7 @@ pub fn create_doenet_core(
                             comp_name: source_comp_name.clone()
                         })?;
 
-                    let first_string = c.component_index.iter().find_map(|source| {
+                    let first_string = ml_component.component_index.iter().find_map(|source| {
                         if let ObjectName::String(string_source) = source {
                             Some(string_source)
                         } else {
@@ -226,35 +226,35 @@ pub fn create_doenet_core(
                     });
 
                     let (comp_ref, source_def);
-                    if c.component_index.len() == 1 && first_string.is_some() {
+                    if ml_component.component_index.len() == 1 && first_string.is_some() {
                         // static index
                         let string_value = first_string.unwrap().parse().unwrap_or(0.0);
                         let index: usize = convert_float_to_usize(string_value)
                             .unwrap_or(0);
 
-                        if index <= 0 {
-                            doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
-                                comp_name: c.name.clone(),
-                                invalid_index: string_value.to_string()
-                            });
-                        }
-
-                        let copy_collection: Option<CollectionName>;
+                            if index <= 0 {
+                                doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
+                                    comp_name: ml_component.name.clone(),
+                                    invalid_index: string_value.to_string()
+                                });
+                            }
+    
+                        let copy_collection: Option<BatchName>;
                         (copy_collection, source_def) =
-                            match (&c.copy_collection, &source_comp.definition.replacement_children) {
+                            match (&ml_component.copy_collection, &source_comp.definition.replacement_components) {
                                 (Some(key), _) => {
-                                    let collection  = source_comp.definition.collections
+                                    let collection  = source_comp.definition.batches
                                         .get_key_value_ignore_case(key).unwrap();
                                     (Some(*collection.0), collection.1.member_definition)
                                 },
-                                (None, Some(GroupOrCollection::Collection(def)))  => (None, def.member_definition),
-                                (None, Some(GroupOrCollection::Group(def)))  => (None, (def.member_definition)(&source_comp.static_attributes)),
+                                (None, Some(CollectionOrBatch::Batch(def)))  => (None, def.member_definition),
+                                (None, Some(CollectionOrBatch::Collection(def)))  => (None, (def.member_definition)(&source_comp.static_attributes)),
                                 (None, None)  => panic!("not a group"),
                             };
 
 
                         comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), copy_collection, index);
-                    } else if c.component_index.len() > 0 {
+                    } else if ml_component.component_index.len() > 0 {
                         // dynamic index
                         panic!("dynamic component index")
                         // let group_def = source_comp.definition.group.unwrap();
@@ -266,7 +266,7 @@ pub fn create_doenet_core(
                         source_def = source_comp.definition;
                     }
 
-                    if let Some(ref copy_prop) = c.copy_prop {
+                    if let Some(ref copy_prop) = ml_component.copy_prop {
                         if let Some(state_ref) = source_def.array_aliases.get(copy_prop.as_str()) {
                             Some(CopySource::StateVar(comp_ref, state_ref.clone()))
                         } else {
@@ -285,7 +285,7 @@ pub fn create_doenet_core(
                                 .get(source_sv_name)
                                 .unwrap();
 
-                            let first_string = c.prop_index.iter().find_map(|source| {
+                            let first_string = ml_component.prop_index.iter().find_map(|source| {
                                 if let ObjectName::String(string_source) = source {
                                     Some(string_source)
                                 } else {
@@ -293,7 +293,7 @@ pub fn create_doenet_core(
                                 }
                             });
 
-                            if c.prop_index.len() == 1 && first_string.is_some() {
+                            if ml_component.prop_index.len() == 1 && first_string.is_some() {
                                 // static index
                                 let string_value = first_string.unwrap().parse().unwrap_or(0.0);
                                 let index: usize = convert_float_to_usize(string_value)
@@ -301,7 +301,7 @@ pub fn create_doenet_core(
 
                                 if index <= 0 {
                                     doenet_ml_warnings.push(DoenetMLWarning::PropIndexIsNotPositiveInteger {
-                                        comp_name: c.name.clone(),
+                                        comp_name: ml_component.name.clone(),
                                         invalid_index: string_value.to_string()
                                     });
                                 }
@@ -314,9 +314,9 @@ pub fn create_doenet_core(
                                 }
 
                                 Some(CopySource::StateVar(comp_ref, StateRef::ArrayElement(source_sv_name, index)))
-                            } else if c.prop_index.len() > 0 {
+                            } else if ml_component.prop_index.len() > 0 {
                                 // dynamic index
-                                let variable_components = c.prop_index.iter().filter_map(|obj| {
+                                let variable_components = ml_component.prop_index.iter().filter_map(|obj| {
                                     if let ObjectName::Component(comp_name) = obj {
                                         Some(comp_name.clone())
                                     } else {
@@ -327,7 +327,7 @@ pub fn create_doenet_core(
                                 Some(CopySource::DynamicElement(
                                     comp_ref.name(),
                                     source_sv_name,
-                                    MathExpression::new(&c.prop_index),
+                                    MathExpression::new(&ml_component.prop_index),
                                     variable_components,
                                 ))
                             } else {
@@ -343,10 +343,10 @@ pub fn create_doenet_core(
                         }
                     } else {
 
-                        if !std::ptr::eq(c.definition, source_def) {
+                        if !std::ptr::eq(ml_component.definition, source_def) {
                             return Err(DoenetMLError::ComponentCannotCopyOtherType {
-                                component_name: c.name.clone(),
-                                component_type: c.definition.component_type,
+                                component_name: ml_component.name.clone(),
+                                component_type: ml_component.definition.component_type,
                                 source_type: &source_def.component_type,
                             });
                         }
@@ -360,11 +360,11 @@ pub fn create_doenet_core(
 
         let component_node = ComponentNode {
             name: name.clone(),
-            parent: c.parent.clone(),
-            children: c.children.clone(),
+            parent: ml_component.parent.clone(),
+            children: ml_component.children.clone(),
             copy_source,
-            static_attributes: c.static_attributes.clone(),
-            definition: c.definition,
+            static_attributes: ml_component.static_attributes.clone(),
+            definition: ml_component.definition,
         };
 
         component_nodes.insert(name.clone(), component_node);
@@ -478,7 +478,7 @@ pub fn create_doenet_core(
 
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
-        if let Some(GroupOrCollection::Group(group_def)) = &component.definition.replacement_children {
+        if let Some(CollectionOrBatch::Collection(group_def)) = &component.definition.replacement_components {
 
             let deps = (group_def.group_dependencies)(
                 &component,
@@ -998,7 +998,7 @@ fn create_dependencies_from_instruction(
 
                         let child_node = components.get(child_name).unwrap();
 
-                        let child_group = match child_node.definition.replacement_children {
+                        let child_group = match child_node.definition.replacement_components {
                             Some(_) => ComponentGroup::Group(child_name.clone()),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
@@ -2281,17 +2281,17 @@ fn component_group_size(
     map: &Instance,
 ) -> usize {
     let group_def = core.component_nodes.get(component_group).unwrap().definition
-        .replacement_children.as_ref().expect(&format!("{:?} was not a group", component_group));
+        .replacement_components.as_ref().expect(&format!("{:?} was not a group", component_group));
     match group_def {
-        GroupOrCollection::Collection(def) => {
-            resolve_state_variable(core, component_group, map, &def.group_size).unwrap()
+        CollectionOrBatch::Batch(def) => {
+            resolve_state_variable(core, component_group, map, &def.size).unwrap()
                 .try_into().unwrap()
         },
-        GroupOrCollection::Group(_) =>{
+        CollectionOrBatch::Collection(_) =>{
             core.group_dependencies.get(component_group).unwrap()
                 .iter()
                 .map(|dep|
-                    if core.component_nodes.get(dep).unwrap().definition.replacement_children.is_none() {
+                    if core.component_nodes.get(dep).unwrap().definition.replacement_components.is_none() {
                         1
                     } else {
                         component_group_size(
@@ -2325,7 +2325,7 @@ fn group_member_state_var(
     core: &DoenetCore,
     name: &ComponentName,
     map: &Instance,
-    collection: Option<CollectionName>,
+    collection: Option<BatchName>,
     state_var: StateVarSlice,
     index: usize,
 ) -> Option<(ComponentName, StateVarSlice)> {
@@ -2333,18 +2333,18 @@ fn group_member_state_var(
     let state_var_resolver = | state_var_ref | {
         resolve_state_variable(core, name, map, state_var_ref)
     };
-    match (collection, &group_node.definition.replacement_children) {
+    match (collection, &group_node.definition.replacement_components) {
         (Some(key), _) => {
-            let def = group_node.definition.collections.get(key).unwrap();
+            let def = group_node.definition.batches.get(key).unwrap();
 
             (def.member_state_var)(index, &state_var, &state_var_resolver)
                 .map(|sv| (name.clone(), sv))
         },
-        (None, Some(GroupOrCollection::Collection(def)))  => {
+        (None, Some(CollectionOrBatch::Batch(def)))  => {
             (def.member_state_var)(index, &state_var, &state_var_resolver)
                 .map(|sv| (name.clone(), sv))
         },
-        (None, Some(GroupOrCollection::Group(_)))  => match nth_group_dependence(core, name, map, index) {
+        (None, Some(CollectionOrBatch::Collection(_)))  => match nth_group_dependence(core, name, map, index) {
             Some(ComponentRef::Basic(c)) => Some((c, state_var)),
             Some(ComponentRef::GroupMember(c, n, i)) => group_member_state_var(core, &c, map, n, state_var, i),
             None => None,
@@ -2371,15 +2371,15 @@ fn nth_group_dependence_internal(
     core: &DoenetCore,
 ) -> Option<ComponentRef> {
     for group_dep in core.group_dependencies.get(group_name).unwrap() {
-        match &core.component_nodes.get(group_dep).unwrap().definition.replacement_children {
-            Some(GroupOrCollection::Group(_)) => {
+        match &core.component_nodes.get(group_dep).unwrap().definition.replacement_components {
+            Some(CollectionOrBatch::Collection(_)) => {
                 match nth_group_dependence_internal(index, group_dep, map, core) {
                     Some(c) => return Some(c),
                     None => (),
                 }
             }
-            Some(GroupOrCollection::Collection(def)) => {
-                let size: usize = resolve_state_variable(core, group_dep, map, &def.group_size)
+            Some(CollectionOrBatch::Batch(def)) => {
+                let size: usize = resolve_state_variable(core, group_dep, map, &def.size)
                     .unwrap().try_into().unwrap();
                 if *index > size {
                     *index -= size;
@@ -2889,12 +2889,12 @@ fn component_ref_is_exact_copy(
         ComponentRef::Basic(n) => Some(n.clone()),
         ComponentRef::GroupMember(n, _, i) => {
             let group_node = core.component_nodes.get(n).unwrap();
-            match group_node.definition.replacement_children.as_ref().unwrap() {
-                GroupOrCollection::Group(_) => match nth_group_dependence(core, n, map, *i).unwrap() {
+            match group_node.definition.replacement_components.as_ref().unwrap() {
+                CollectionOrBatch::Collection(_) => match nth_group_dependence(core, n, map, *i).unwrap() {
                     ComponentRef::Basic(c) => Some(c.clone()),
                     ComponentRef::GroupMember(_, _, _) => None,
                 },
-                GroupOrCollection::Collection(_) => None,
+                CollectionOrBatch::Batch(_) => None,
             }
         },
     }
@@ -2929,10 +2929,10 @@ fn component_ref_definition(
     match &component_ref {
         ComponentRef::GroupMember(n, c, _) => {
             let member_of = component_nodes.get(n).unwrap();
-            match (c, &member_of.definition.replacement_children) {
-                (Some(key), _) => member_of.definition.collections.get(key).unwrap().member_definition,
-                (None, Some(GroupOrCollection::Collection(def)))  => def.member_definition,
-                (None, Some(GroupOrCollection::Group(def)))  => (def.member_definition)(&member_of.static_attributes),
+            match (c, &member_of.definition.replacement_components) {
+                (Some(key), _) => member_of.definition.batches.get(key).unwrap().member_definition,
+                (None, Some(CollectionOrBatch::Batch(def)))  => def.member_definition,
+                (None, Some(CollectionOrBatch::Collection(def)))  => (def.member_definition)(&member_of.static_attributes),
                 (None, None)  => panic!("not a group"),
             }
         },
@@ -2946,9 +2946,9 @@ fn definition_of_members<'a>(
     static_attributes: &HashMap<AttributeName, String>,
 ) -> &'a ComponentDefinition {
 
-    match &definition.replacement_children {
-        Some(GroupOrCollection::Collection(def))  => def.member_definition,
-        Some(GroupOrCollection::Group(def))  => (def.member_definition)(static_attributes),
+    match &definition.replacement_components {
+        Some(CollectionOrBatch::Batch(def))  => def.member_definition,
+        Some(CollectionOrBatch::Collection(def))  => (def.member_definition)(static_attributes),
         None  => definition,
     }
 }
@@ -2980,7 +2980,7 @@ fn get_children_and_members<'a>(
         ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
-            if core.component_nodes.get(&comp_name).unwrap().definition.replacement_children.is_some() {
+            if core.component_nodes.get(&comp_name).unwrap().definition.replacement_components.is_some() {
 
                 let group = ComponentGroup::Group(comp_name.clone());
 
