@@ -26,7 +26,6 @@ use std::collections::HashMap;
 use std::fmt::{Debug, self};
 
 
-
 /// camelCase
 pub type ComponentType = &'static str;
 
@@ -64,27 +63,6 @@ lazy_static! {
 
         defs.into_iter().map(|def| (def.component_type, def)).collect()
     };
-}
-
-pub trait KeyValueIgnoreCase<K, V> {
-    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)>;
-}
-
-impl<K, V> KeyValueIgnoreCase<K,V> for HashMap<K, V>
-where
-    K: ToString + std::cmp::Eq + std::hash::Hash,
-{
-    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)> {
-        let lowercase_to_normalized: HashMap<String, &K> = self
-            .keys()
-            .into_iter()
-            .map(|k| (k.to_string().to_lowercase(), k))
-            .collect();
-
-        lowercase_to_normalized
-            .get(&key.to_string().to_lowercase())
-            .and_then(|k| self.get_key_value(k))
-    }
 }
 
 
@@ -197,7 +175,8 @@ pub enum CollectionOrBatch {
 }
 
 
-// Like CopySource except multiple components
+/// A collection is a way to group several existing components of the same type under one component
+/// It is like a CopySource with multiple sources.
 pub struct CollectionDefinition {
     pub group_dependencies: fn(
         node: &ComponentNode,
@@ -209,15 +188,21 @@ pub struct CollectionDefinition {
     ) -> &'static ComponentDefinition,
 }
 
-// Packaging a components state variables to appear like many components.
+/// A batch is a way to make one component appear like several non-existent components
+/// For example, a <sequence> has a batch of <number> components which it sends to the renderer instead of itself.
+/// These non-existent components do not exist as ComponentNodes, and they don't have any ComponentState either.
+/// They derive all their state from the one actual component's state.
 // - ex: <line/> has a batch named "points"
-// - ex: <sequence/> has a batch used as its replacement children
 pub struct BatchDefinition {
 
+    /// Component definition of the batch members. All batch members share the same component type.
     pub member_definition: &'static ComponentDefinition,
 
+    /// A reference to a state var which stores the number of members in this batch.
+    /// The numbers of members can change, so it needs to be stored as a state var.
     pub size: StateRef,
 
+    /// Route a supposed state var of a member component to the actual component's state var
     pub member_state_var:
         for<'a> fn(
             index: usize,
@@ -336,3 +321,24 @@ pub enum RendererType {
     // DoNotRender,
 }
 
+
+pub trait KeyValueIgnoreCase<K, V> {
+    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)>;
+}
+
+impl<K, V> KeyValueIgnoreCase<K,V> for HashMap<K, V>
+where
+    K: ToString + std::cmp::Eq + std::hash::Hash,
+{
+    fn get_key_value_ignore_case<'a>(&'a self, key: &str) -> Option<(&'a K, &'a V)> {
+        let lowercase_to_normalized: HashMap<String, &K> = self
+            .keys()
+            .into_iter()
+            .map(|k| (k.to_string().to_lowercase(), k))
+            .collect();
+
+        lowercase_to_normalized
+            .get(&key.to_string().to_lowercase())
+            .and_then(|k| self.get_key_value(k))
+    }
+}
