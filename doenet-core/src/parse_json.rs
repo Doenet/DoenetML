@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize};
 use crate::utils::{log_json, log_debug, log};
 use crate::Action;
 use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
-KeyValueIgnoreCase, AttributeName, ObjectName, CollectionOrBatch};
+KeyValueIgnoreCase, AttributeName, ObjectName, ReplacementComponents};
 
 use crate::ComponentChild;
 use lazy_static::lazy_static;
@@ -802,8 +802,8 @@ fn macro_comp_ref(
                     .get_key_value_ignore_case(key).unwrap().1
                     .member_definition
             },
-            (None, Some(CollectionOrBatch::Batch(def)))  => def.member_definition,
-            (None, Some(CollectionOrBatch::Collection(def)))  => (def.member_definition)(&source_component.static_attributes),
+            (None, Some(ReplacementComponents::Batch(def)))  => def.member_definition,
+            (None, Some(ReplacementComponents::Collection(def)))  => (def.member_definition)(&source_component.static_attributes),
             (None, None)  => return Err("index of non-group".to_string()),
         };
     } else {

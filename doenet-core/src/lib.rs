@@ -239,21 +239,24 @@ pub fn create_doenet_core(
                                 });
                             }
     
-                        let copy_collection: Option<BatchName>;
-                        (copy_collection, source_def) =
-                            match (&ml_component.copy_collection, &source_comp.definition.replacement_components) {
-                                (Some(key), _) => {
-                                    let collection  = source_comp.definition.batches
-                                        .get_key_value_ignore_case(key).unwrap();
-                                    (Some(*collection.0), collection.1.member_definition)
-                                },
-                                (None, Some(CollectionOrBatch::Batch(def)))  => (None, def.member_definition),
-                                (None, Some(CollectionOrBatch::Collection(def)))  => (None, (def.member_definition)(&source_comp.static_attributes)),
-                                (None, None)  => panic!("not a group"),
-                            };
+                        match (&ml_component.copy_collection, &source_comp.definition.replacement_components) {
+                            (None, Some(ReplacementComponents::Batch(def)))  => {
+                                comp_ref = ComponentRef::BatchMember(source_comp_name.clone(), None, index);
+                                source_def = def.member_definition;
+                            },
+                            (None, Some(ReplacementComponents::Collection(def)))  => {
+                                comp_ref = ComponentRef::CollectionMember(source_comp_name.clone(), index);
+                                source_def = (def.member_definition)(&source_comp.static_attributes);
+                            },
+                            (Some(key), _) => {
+                                let batch  = source_comp.definition.batches
+                                    .get_key_value_ignore_case(key).unwrap();
+                                comp_ref = ComponentRef::BatchMember(source_comp_name.clone(), Some(batch.0), index);
+                                source_def = batch.1.member_definition;
+                            },
+                            (None, None)  => panic!("not a group"),
+                        };
 
-
-                        comp_ref = ComponentRef::GroupMember(source_comp_name.clone(), copy_collection, index);
                     } else if ml_component.component_index.len() > 0 {
                         // dynamic index
                         panic!("dynamic component index")
@@ -478,7 +481,7 @@ pub fn create_doenet_core(
 
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
-        if let Some(CollectionOrBatch::Collection(group_def)) = &component.definition.replacement_components {
+        if let Some(ReplacementComponents::Collection(group_def)) = &component.definition.replacement_components {
 
             let deps = (group_def.group_dependencies)(
                 &component,
@@ -999,7 +1002,8 @@ fn create_dependencies_from_instruction(
                         let child_node = components.get(child_name).unwrap();
 
                         let child_group = match child_node.definition.replacement_components {
-                            Some(_) => ComponentGroup::Group(child_name.clone()),
+                            Some(ReplacementComponents::Batch(_)) => ComponentGroup::Batch(child_name.clone()),
+                            Some(ReplacementComponents::Collection(_)) => ComponentGroup::Collection(child_name.clone()),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
                         let child_def = group_member_definition(
@@ -1627,7 +1631,8 @@ fn state_vars_depending_on_group(
                                 depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                             }
                         }
-                        ComponentGroup::Group(name) => {
+                        ComponentGroup::Collection(name) |
+                        ComponentGroup::Batch(name) => {
                             if name == group_name {
                                 // depending on me as a member of a group
                                 let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
@@ -1744,7 +1749,7 @@ fn get_source_for_dependency(
         Dependency::MapSources { map_sources, state_var_slice } => {
             let component_type = group_member_definition(
                 &core.component_nodes,
-                &ComponentGroup::Group(map_sources.clone()),
+                &ComponentGroup::Collection(map_sources.clone()),
             ).component_type;
 
             DependencySource::StateVar {
@@ -2247,16 +2252,17 @@ fn component_group_members<'a>(
 ) -> Vec<(ComponentRef, Instance)> {
     match component_group {
         ComponentGroup::Single(comp_ref) => vec![(comp_ref.clone(), map.clone())],
-        ComponentGroup::Group(name) => {
-            let node_definition = core.component_nodes.get(name).unwrap().definition;
-            if node_definition.component_type == "map" {
+        ComponentGroup::Batch(name) => {
+            indices_for_size(batch_size(core, name, None, map))
+                .map(|i| (ComponentRef::BatchMember(name.clone(), None, i), map.clone())).collect()
+        },
+        ComponentGroup::Collection(name) => {
+            if core.component_nodes.get(name).unwrap().definition.component_type == "map" {
                 let deps = core.group_dependencies.get(name).unwrap();
                 let template = deps.get(0).unwrap();
                 let sources = deps.get(1).unwrap();
-                                                    //
-                let size = component_group_size(core, sources, map);
-                // log_debug!("MAP HAS SIZE {}", size);
-                indices_for_size(size)
+
+                indices_for_size(collection_size(core, sources, map))
                     .map(|i| {
                         let mut map_new = map.clone();
                         map_new.push(i, sources.clone());
@@ -2264,47 +2270,13 @@ fn component_group_members<'a>(
                     })
                     .collect()
             } else {
-                let size = component_group_size(core, name, map);
-                indices_for_size(size)
-                    .map(|i| (ComponentRef::GroupMember(name.clone(), None, i), map.clone()))
-                    .collect()
+                indices_for_size(collection_size(core, name, map))
+                    .map(|i| (ComponentRef::CollectionMember(name.clone(), i), map.clone())).collect()
             }
         },
     }
 }
 
-
-
-fn component_group_size(
-    core: &DoenetCore,
-    component_group: &ComponentName,
-    map: &Instance,
-) -> usize {
-    let group_def = core.component_nodes.get(component_group).unwrap().definition
-        .replacement_components.as_ref().expect(&format!("{:?} was not a group", component_group));
-    match group_def {
-        CollectionOrBatch::Batch(def) => {
-            resolve_state_variable(core, component_group, map, &def.size).unwrap()
-                .try_into().unwrap()
-        },
-        CollectionOrBatch::Collection(_) =>{
-            core.group_dependencies.get(component_group).unwrap()
-                .iter()
-                .map(|dep|
-                    if core.component_nodes.get(dep).unwrap().definition.replacement_components.is_none() {
-                        1
-                    } else {
-                        component_group_size(
-                            core,
-                            dep,
-                            map,
-                        )
-                    }
-
-                ).sum()
-        },
-    }
-}
 
 /// Convert (ComponentRef, StateVarSlice) -> (ComponentName, StateVarSlice).
 /// If the component reference is a group member, these are not the same.
@@ -2316,75 +2288,94 @@ fn convert_component_ref_state_var(
 ) -> Option<(ComponentName, StateVarSlice)> {
     match name {
         ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::GroupMember(n, c, i) => group_member_state_var(core, &n, map, *c, state_var, *i)
+        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, *c, state_var, *i),
+        ComponentRef::CollectionMember(n, i) => match nth_collection_member(core, &n, map, *i) {
+            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i),
+            Some(ComponentRef::Basic(n)) => Some((n, state_var)),
+            _ => None
+        }
     }
 }
 
-/// Find the state variable for the nth member of a group
-fn group_member_state_var(
+fn batch_size(
     core: &DoenetCore,
-    name: &ComponentName,
+    component_name: &ComponentName,
+    batch_name: Option<BatchName>,
     map: &Instance,
-    collection: Option<BatchName>,
+) -> usize {
+
+    let batch_def = core.component_nodes.get(component_name).unwrap()
+        .definition.unwrap_batch_def(&batch_name);
+    resolve_state_variable(core, component_name, map, &batch_def.size)
+        .unwrap().try_into().unwrap()
+}
+
+fn batch_state_var(
+    core: &DoenetCore,
+    component_name: &ComponentName,
+    map: &Instance,
+    batch_name: Option<BatchName>,
     state_var: StateVarSlice,
     index: usize,
 ) -> Option<(ComponentName, StateVarSlice)> {
-    let group_node = core.component_nodes.get(name).unwrap();
-    let state_var_resolver = | state_var_ref | {
-        resolve_state_variable(core, name, map, state_var_ref)
-    };
-    match (collection, &group_node.definition.replacement_components) {
-        (Some(key), _) => {
-            let def = group_node.definition.batches.get(key).unwrap();
 
-            (def.member_state_var)(index, &state_var, &state_var_resolver)
-                .map(|sv| (name.clone(), sv))
-        },
-        (None, Some(CollectionOrBatch::Batch(def)))  => {
-            (def.member_state_var)(index, &state_var, &state_var_resolver)
-                .map(|sv| (name.clone(), sv))
-        },
-        (None, Some(CollectionOrBatch::Collection(_)))  => match nth_group_dependence(core, name, map, index) {
-            Some(ComponentRef::Basic(c)) => Some((c, state_var)),
-            Some(ComponentRef::GroupMember(c, n, i)) => group_member_state_var(core, &c, map, n, state_var, i),
-            None => None,
-        },
-        (None, None)  => panic!("not a group"),
-    }
+    let batch_def = core.component_nodes.get(component_name).unwrap()
+        .definition.unwrap_batch_def(&batch_name);
+    let state_var_resolver = | state_var_ref | {
+        resolve_state_variable(core, component_name, map, state_var_ref)
+    };
+    (batch_def.member_state_var)(index, &state_var, &state_var_resolver)
+        .map(|sv| (component_name.clone(), sv))
 }
 
-/// The component ref return can either be a basic, or a member of a collection
-fn nth_group_dependence(
+fn collection_size(
     core: &DoenetCore,
-    group_name: &ComponentName,
+    component_name: &ComponentName,
+    map: &Instance,
+) -> usize {
+    core.group_dependencies.get(component_name).unwrap()
+        .iter()
+        .map(|dep|
+            match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
+                None => 1,
+                Some(ReplacementComponents::Batch(_)) => batch_size(core, dep, None, map),
+                Some(ReplacementComponents::Collection(_)) => collection_size(core, dep, map),
+            }
+        ).sum()
+}
+
+/// The component ref return can either be a basic, or a member of a batch
+fn nth_collection_member(
+    core: &DoenetCore,
+    component_name: &ComponentName,
     map: &Instance,
     index: usize,
 ) -> Option<ComponentRef> {
     let mut index = index;
-    nth_group_dependence_internal(&mut index, group_name, map, core)
+    nth_collection_member_internal(&mut index, component_name, map, core)
 }
 
-fn nth_group_dependence_internal(
+fn nth_collection_member_internal(
     index: &mut usize,
-    group_name: &ComponentName,
+    component_name: &ComponentName,
     map: &Instance,
     core: &DoenetCore,
 ) -> Option<ComponentRef> {
-    for group_dep in core.group_dependencies.get(group_name).unwrap() {
+    for group_dep in core.group_dependencies.get(component_name).unwrap() {
         match &core.component_nodes.get(group_dep).unwrap().definition.replacement_components {
-            Some(CollectionOrBatch::Collection(_)) => {
-                match nth_group_dependence_internal(index, group_dep, map, core) {
+            Some(ReplacementComponents::Collection(_)) => {
+                match nth_collection_member_internal(index, group_dep, map, core) {
                     Some(c) => return Some(c),
                     None => (),
                 }
             }
-            Some(CollectionOrBatch::Batch(def)) => {
+            Some(ReplacementComponents::Batch(def)) => {
                 let size: usize = resolve_state_variable(core, group_dep, map, &def.size)
                     .unwrap().try_into().unwrap();
                 if *index > size {
                     *index -= size;
                 } else {
-                    return Some(ComponentRef::GroupMember(group_dep.clone(), None, *index));
+                    return Some(ComponentRef::BatchMember(group_dep.clone(), None, *index));
                 }
             },
             None => {
@@ -2449,6 +2440,13 @@ fn convert_dependency_values_to_update_request(
 
         // stores (group name, index)
         let mut group_index = (None, 0);
+        let increment = |group_index: (Option<ComponentName>, usize), n: &ComponentName| {
+            if group_index.0 == Some(n.clone()) {
+                (Some(n.clone()), group_index.1 + 1)
+            } else {
+                (Some(n.clone()), 1)
+            }
+        };
 
 
         let instruct_dependencies = my_dependencies.get(instruction_name).expect(
@@ -2472,16 +2470,13 @@ fn convert_dependency_values_to_update_request(
                 },
                 Dependency::StateVar { component_group, state_var_slice } => {
                     let component_ref = match component_group {
-                        ComponentGroup::Group(n) => {
-
-                            // determine the group member this DependencyValue corresponds to
-                            if group_index.0 == Some(n) {
-                                group_index.1 += 1;
-                            } else {
-                                group_index.0 = Some(n);
-                                group_index.1 = 1;
-                            }
-                            ComponentRef::GroupMember(n.clone(), None, group_index.1 - 1)
+                        ComponentGroup::Batch(n) => {
+                            group_index = increment(group_index, n);
+                            ComponentRef::BatchMember(n.clone(), None, group_index.1 - 1)
+                        },
+                        ComponentGroup::Collection(n) => {
+                            group_index = increment(group_index, n);
+                            ComponentRef::CollectionMember(n.clone(), group_index.1 - 1)
                         },
                         ComponentGroup::Single(comp_ref) => {
                             comp_ref.clone()
@@ -2852,7 +2847,9 @@ fn generate_render_tree_internal(
 
 fn name_rendered_component(component: &RenderedComponent, component_type: &str) -> String {
     let name_to_render = match &component.component_ref {
-        ComponentRef::GroupMember(n, _, i) => name_member_of_group(component_type, n, *i),
+        ComponentRef::CollectionMember(n, i) |
+        ComponentRef::BatchMember(n, _, i) =>
+            name_member_of_group(component_type, n, *i),
         _ => component.component_ref.name().clone(),
     };
     let name_to_render = match &component.child_of_copy {
@@ -2887,14 +2884,11 @@ fn component_ref_is_exact_copy(
 ) -> Option<ComponentName> {
     match &component_ref {
         ComponentRef::Basic(n) => Some(n.clone()),
-        ComponentRef::GroupMember(n, _, i) => {
-            let group_node = core.component_nodes.get(n).unwrap();
-            match group_node.definition.replacement_components.as_ref().unwrap() {
-                CollectionOrBatch::Collection(_) => match nth_group_dependence(core, n, map, *i).unwrap() {
-                    ComponentRef::Basic(c) => Some(c.clone()),
-                    ComponentRef::GroupMember(_, _, _) => None,
-                },
-                CollectionOrBatch::Batch(_) => None,
+        ComponentRef::BatchMember(_, _, _) => None,
+        ComponentRef::CollectionMember(n, i) => {
+            match nth_collection_member(core, n, map, *i).unwrap() {
+                ComponentRef::Basic(c) => Some(c.clone()),
+                _ => None,
             }
         },
     }
@@ -2906,15 +2900,8 @@ fn group_member_definition(
     component_group: &ComponentGroup,
 ) -> &'static ComponentDefinition {
 
-    match component_group {
-        ComponentGroup::Group(group_name) => {
-            let component_ref = &ComponentRef::GroupMember(group_name.clone(), None, 0);
-            component_ref_definition(component_nodes, component_ref)
-        },
-        ComponentGroup::Single(component_ref) => {
-            component_ref_definition(component_nodes, component_ref)
-        }
-    }
+    let node = component_nodes.get(&component_group.name()).unwrap();
+    definition_of_members(node.definition, &node.static_attributes)
 }
 
 /// Returns component definition and component type.
@@ -2925,30 +2912,25 @@ fn component_ref_definition(
 
     // log_debug!("Getting component ref definition for {:?}", component_ref);
 
-    let group_node = component_nodes.get(&component_ref.name()).unwrap();
+    let node = component_nodes.get(&component_ref.name()).unwrap();
     match &component_ref {
-        ComponentRef::GroupMember(n, c, _) => {
-            let member_of = component_nodes.get(n).unwrap();
-            match (c, &member_of.definition.replacement_components) {
-                (Some(key), _) => member_of.definition.batches.get(key).unwrap().member_definition,
-                (None, Some(CollectionOrBatch::Batch(def)))  => def.member_definition,
-                (None, Some(CollectionOrBatch::Collection(def)))  => (def.member_definition)(&member_of.static_attributes),
-                (None, None)  => panic!("not a group"),
-            }
-        },
-        _ => group_node.definition,
+        ComponentRef::CollectionMember(_, _) =>
+            (node.definition.unwrap_collection_def().member_definition)(&node.static_attributes),
+        ComponentRef::BatchMember(_, n, _) =>
+            node.definition.unwrap_batch_def(n).member_definition,
+        ComponentRef::Basic(_) => node.definition,
     }
 }
 
-/// Returns component definition and component type.
+/// Returns component definition
 fn definition_of_members<'a>(
     definition: &'a ComponentDefinition,
     static_attributes: &HashMap<AttributeName, String>,
 ) -> &'a ComponentDefinition {
 
     match &definition.replacement_components {
-        Some(CollectionOrBatch::Batch(def))  => def.member_definition,
-        Some(CollectionOrBatch::Collection(def))  => (def.member_definition)(static_attributes),
+        Some(ReplacementComponents::Batch(def))  => def.member_definition,
+        Some(ReplacementComponents::Collection(def))  => (def.member_definition)(static_attributes),
         None  => definition,
     }
 }
@@ -2980,9 +2962,12 @@ fn get_children_and_members<'a>(
         ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
-            if core.component_nodes.get(&comp_name).unwrap().definition.replacement_components.is_some() {
+            if let Some(replacements) = &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
 
-                let group = ComponentGroup::Group(comp_name.clone());
+                let group = match replacements {
+                    ReplacementComponents::Batch(_) => ComponentGroup::Batch(comp_name.clone()),
+                    ReplacementComponents::Collection(_) => ComponentGroup::Collection(comp_name.clone()),
+                };
 
                 component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
                     (ObjectRefName::Component(comp_ref.clone()),
@@ -3042,7 +3027,7 @@ fn map_sources_dependency_member(
     map: &Instance,
 ) -> Option<(ComponentRef, Instance)> {
     let (index, sources_map) = map.find_sources(sources);
-    let comp_ref = nth_group_dependence(core, sources, &sources_map, index);
+    let comp_ref = nth_collection_member(core, sources, &sources_map, index);
     comp_ref.map(|x| (x,sources_map))
 }
 
@@ -3087,7 +3072,7 @@ fn all_map_instances(
         let sources = core.component_nodes.get(sources_name).unwrap();
         let map_name = sources.parent.clone().unwrap();
         let mut vec = vec![];
-        for i in indices_for_size(component_group_size(core, &map_name, map)) {
+        for i in indices_for_size(collection_size(core, &map_name, map)) {
             let mut next_map = map.clone();
             next_map.push(i, sources_name.clone());
             vec.extend(all_map_instances(core, &next_map, &chain_remaining[1..]));

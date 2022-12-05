@@ -70,7 +70,7 @@ lazy_static! {
             "disabled",
         ],
 
-        replacement_components: Some(CollectionOrBatch::Collection(CollectionDefinition {
+        replacement_components: Some(ReplacementComponents::Collection(CollectionDefinition {
             member_definition,
             group_dependencies,
         })),

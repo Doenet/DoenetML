@@ -53,8 +53,8 @@ fn depend_on_children_of_type(
             ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
                 let child_type = match &comp.definition.replacement_components {
-                    Some(CollectionOrBatch::Collection(def)) => (def.member_definition)(&node.static_attributes).component_type,
-                    Some(CollectionOrBatch::Batch(def)) => def.member_definition.component_type,
+                    Some(ReplacementComponents::Collection(def)) => (def.member_definition)(&node.static_attributes).component_type,
+                    Some(ReplacementComponents::Batch(def)) => def.member_definition.component_type,
                     None => comp.definition.component_type,
                 };
                 if child_type.to_lowercase() == component_type.to_lowercase() {
@@ -89,7 +89,7 @@ lazy_static! {
 
         should_render_children: true,
 
-        replacement_components: Some(CollectionOrBatch::Collection(CollectionDefinition {
+        replacement_components: Some(ReplacementComponents::Collection(CollectionDefinition {
             member_definition,
             group_dependencies,
         })),

@@ -151,7 +151,7 @@ lazy_static! {
 
         state_var_definitions: &MY_STATE_VAR_DEFINITIONS,
 
-        replacement_components: Some(CollectionOrBatch::Batch(BatchDefinition {
+        replacement_components: Some(ReplacementComponents::Batch(BatchDefinition {
             member_definition: &super::number::MY_COMPONENT_DEFINITION,
             size: StateRef::SizeOf("value"),
             member_state_var,

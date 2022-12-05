@@ -160,7 +160,7 @@ pub struct ComponentDefinition {
     pub renderer_type: RendererType,
 
     /// If specified, the component's parent will treat this as multiple components.
-    pub replacement_components: Option<CollectionOrBatch>,
+    pub replacement_components: Option<ReplacementComponents>,
 
     /// These collections that are not used as replacement children.
     pub batches: HashMap<BatchName, BatchDefinition>,
@@ -168,12 +168,6 @@ pub struct ComponentDefinition {
     pub component_type: ComponentType,
 
 }
-
-pub enum CollectionOrBatch {
-    Collection(CollectionDefinition),
-    Batch(BatchDefinition),
-}
-
 
 /// A collection is a way to group several existing components of the same type under one component
 /// It is like a CopySource with multiple sources.
@@ -212,6 +206,11 @@ pub struct BatchDefinition {
 }
 
 
+pub enum ReplacementComponents {
+    Collection(CollectionDefinition),
+    Batch(BatchDefinition),
+}
+
 /// A component or a member of a group.
 /// Note that a group can still be referenced as a basic component
 /// in addition to referencing its group members.
@@ -219,8 +218,10 @@ pub struct BatchDefinition {
 pub enum ComponentRef {
     Basic(ComponentName),
 
-    /// No collection name means use replacement children.
-    GroupMember(ComponentName, Option<BatchName>, usize),
+    /// No batch name refers to the replacement components batch.
+    BatchMember(ComponentName, Option<BatchName>, usize),
+
+    CollectionMember(ComponentName, usize),
 }
 
 impl std::fmt::Display for ComponentRef {
@@ -230,26 +231,49 @@ impl std::fmt::Display for ComponentRef {
 }
 
 
+/// Can refer to a component ref or replacement components
 #[derive(PartialEq, Serialize, Eq, Clone, Debug)]
 pub enum ComponentGroup {
     Single(ComponentRef),
-    Group(ComponentName),
+    Collection(ComponentName),
+    Batch(ComponentName),
 }
 
 impl ComponentRef {
     pub fn name(&self) -> ComponentName {
         match self {
             Self::Basic(name) => name.clone(),
-            Self::GroupMember(name, _, _) => name.clone(),
+            Self::BatchMember(name, _, _) => name.clone(),
+            Self::CollectionMember(name, _) => name.clone(),
         }
     }
 }
 impl ComponentGroup {
-    /// Group name
+    /// The name of the component node
     pub fn name(&self) -> ComponentName {
         match self {
             Self::Single(comp_ref) => comp_ref.name(),
-            Self::Group(name) => name.clone(),
+            Self::Collection(name) => name.clone(),
+            Self::Batch(name) => name.clone(),
+        }
+    }
+}
+
+impl ComponentDefinition {
+    pub fn unwrap_batch_def(&self, name: &Option<BatchName>) -> &BatchDefinition{
+        match name {
+            Some(n) => self.batches.get(n).unwrap(),
+            None => match &self.replacement_components {
+                Some(ReplacementComponents::Batch(def)) => def,
+                _ => panic!(),
+            }
+        }
+        
+    }
+    pub fn unwrap_collection_def(&self) -> &CollectionDefinition {
+        match &self.replacement_components {
+            Some(ReplacementComponents::Collection(def)) => def,
+            _ => panic!(),
         }
     }
 }
