@@ -456,7 +456,7 @@ pub fn create_doenet_core(
             let possible_attributes = if let Some(my_own_comp_attrs) = component_attributes.get(comp_name) {
                 Some(my_own_comp_attrs)
             } else if let Some(CopySource::Component(_)) = comp.copy_source {
-                let final_source = get_recursive_copy_source_component_if_exists(&component_nodes, comp);
+                let final_source = get_recursive_copy_source_component_when_exists(&component_nodes, comp);
                 component_attributes.get(final_source)
             } else {
                 None
@@ -880,7 +880,7 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Essential { prefill } => {
 
-            let source_comp_name = get_recursive_copy_source_component_if_exists(components, component);
+            let source_comp_name = get_recursive_copy_source_component_when_exists(components, component);
             let essential_origin = EssentialDataOrigin::StateVar(state_var_slice.name());
 
             if should_initialize_essential_data && source_comp_name == &component.name {
@@ -964,7 +964,7 @@ fn create_dependencies_from_instruction(
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
             
-            let source_copy_root_name = get_recursive_copy_source_component_if_exists(components, component);
+            let source_copy_root_name = get_recursive_copy_source_component_when_exists(components, component);
             let source = components.get(source_copy_root_name).unwrap();
             
             if let Some(CopySource::StateVar(ref source_comp_ref, ref source_sv_ref)) = source.copy_source {
@@ -1454,8 +1454,7 @@ enum InitialEssentialData {
     Array(Vec<StateVarValue>, StateVarValue),
 }
 
-/// Add (or update) essential data for a state variable or string child.
-/// Returns the dependency.
+/// Add essential data for a state variable or string child
 fn create_essential_data_for(
     component_name: &ComponentName,
     origin: EssentialDataOrigin,
@@ -3020,7 +3019,7 @@ fn get_children_including_copy_and_groups<'a>(
     children_vec
 }
 
-// Find the component that the sources dependency points to
+/// Find the component that the sources dependency points to
 fn map_sources_dependency_member(
     core: &DoenetCore,
     sources: &ComponentName,
@@ -3165,13 +3164,13 @@ fn get_children_including_copy<'a>(
 
 /// Recurse until the name of the original source is found.
 /// This allows copies to share essential data.
-fn get_recursive_copy_source_component_if_exists<'a>(
+fn get_recursive_copy_source_component_when_exists<'a>(
     components: &'a HashMap<ComponentName, ComponentNode>,
     component: &'a ComponentNode,
 ) -> &'a ComponentName {
     match &component.copy_source {
         Some(CopySource::Component(ComponentRef::Basic(ref source))) =>
-            get_recursive_copy_source_component_if_exists(components, components.get(source).unwrap()),
+            get_recursive_copy_source_component_when_exists(components, components.get(source).unwrap()),
         _ => &component.name,
     }
 }

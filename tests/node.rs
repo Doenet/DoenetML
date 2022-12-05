@@ -1218,6 +1218,20 @@ fn number_parses_arithmetic_from_number_input_immediate_value() {
 }
 
 
+// ========= <sources> ===========
+
+#[wasm_bindgen_test]
+fn sources_with_no_children() {
+    static DATA: &str = r#"
+    <sources></sources>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+}
+
+
 // ========= Macros ===========
 
 // // This test takes a long time to run
