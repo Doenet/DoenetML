@@ -1467,8 +1467,10 @@ fn create_essential_data_for(
     }
 
     let essential_state = match initial_values {
-        InitialEssentialData::Single(value) => EssentialStateVar::new_single_basic_with_state_var_value(value),
-        InitialEssentialData::Array(values, default_fill_value) => EssentialStateVar::new_array_with_state_var_values(values, default_fill_value),
+        InitialEssentialData::Single(value) =>
+            EssentialStateVar::new_single_basic_with_state_var_value(value),
+        InitialEssentialData::Array(values, default_fill_value) =>
+            EssentialStateVar::new_array_with_state_var_values(values, default_fill_value),
     };
 
     log_debug!("New essential data for {} {:?} {:?}", component_name, origin, essential_state);
@@ -2238,7 +2240,7 @@ fn handle_update_instruction(
 
     };
 
-    log_debug!("Updated {}:{} to {:?}", component_name, state_var_ref, updated_value);
+    log_debug!("Updated {}_map{}:{} to {:?}", component_name, map, state_var_ref, updated_value);
 
     return updated_value;
 }

@@ -351,7 +351,7 @@ pub enum EssentialStateVar {
     Array {
         size: ForEachMap<usize>,
         elements:ForEachMap<Vec<StateVarValue>>,
-        extension: RefCell<StateVarValue>,
+        extension: StateVarValue,
     },
 }
 
@@ -377,22 +377,11 @@ impl EssentialStateVar {
     pub fn new_array_with_state_var_values(values: Vec<StateVarValue>, default_fill_value: StateVarValue) -> Self {
         log_debug!("Initializing essential state with elements {:?} and default value {:?}", values, default_fill_value);
 
-        let essential_data = Self::Array {
-            size: ForEachMap::new(0),
-            elements: ForEachMap::new(vec![]),
-            extension: RefCell::new(default_fill_value)
-        };
-
-        let map_instance = Instance::default();
-
-        essential_data.set_value(StateIndex::SizeOf, StateVarValue::Integer(values.len() as i64), &map_instance).unwrap();
-        for (id, value) in values.into_iter().enumerate() {
-            essential_data.set_value(StateIndex::Element(id + 1), value.clone(), &map_instance).expect(
-                &format!("Tried to set to {:?}", value)
-            );
+        Self::Array {
+            size: ForEachMap::new(values.len()),
+            elements: ForEachMap::new(values),
+            extension: default_fill_value,
         }
-
-        essential_data
     }
 
     pub fn new_single_basic_with_state_var_value(value: StateVarValue) -> Self {
@@ -409,7 +398,7 @@ impl EssentialStateVar {
                 let new_len = max(size.instance(map).clone(), usize::try_from(new_value.clone()).expect(
                     &format!("tried to set essential size to {}", new_value))
                 );
-                elements.instance_mut(map).resize(new_len, extension.borrow().clone());
+                elements.instance_mut(map).resize(new_len, extension.clone());
 
                 let mut s = size.instance_mut(map);
                 *s = new_len;
@@ -427,7 +416,7 @@ impl EssentialStateVar {
                 let mut v = elements.instance_mut(map);
 
                 let new_len = max(v.len(), internal_id + 1);
-                v.resize(new_len, extension.borrow().clone());
+                v.resize(new_len, extension.clone());
 
                 v.get_mut(internal_id).unwrap().set_protect_type(new_value)?;
                 Ok(())
@@ -462,7 +451,7 @@ impl EssentialStateVar {
     pub fn get_type_as_str(&self) -> &'static str {
         match self {
             Self::Array { extension, .. } => {
-                extension.borrow().type_as_str()
+                extension.type_as_str()
             },
             Self::Single(val) => {
                 val.default.type_as_str()

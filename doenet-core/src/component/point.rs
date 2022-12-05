@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 
 use crate::state_variables::*;
 use crate::base_definitions::*;
+use crate::utils::log_debug;
 
 use super::*;
 
@@ -74,6 +75,7 @@ lazy_static! {
 
                 let xs = dependency_values.dep_value("xs")?
                     .into_number_list()?;
+                log_debug!("xs: {:?}", xs);
                 let x = xs.get(0).unwrap();
                 let y = xs.get(1).unwrap();
                 let set_value = format!("({}, {})", x, y);

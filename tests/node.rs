@@ -963,6 +963,43 @@ fn map_dynamic_size() {
     assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(2, "/_sources2")].into(), "value", "(3, 2) with size (3, 2)");
 }
 
+#[wasm_bindgen_test]
+fn map_move_points() {
+    static DATA: &str = r#"
+    <map>
+    <sources componentType="number" alias="x">
+        <number>5</number>
+        <number>3</number>
+    </sources>
+    <template>
+            <graph>
+                    <point name="p" xs="$x 2"/>
+            </graph>
+    </template>
+    </map>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 2.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 2.0]);
+
+    let first_instance = r#"[(1, "/_sources1")]p"#;
+    move_point_2d(&dc, first_instance, StateVarValue::Integer(2), StateVarValue::Integer(4));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 4.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 2.0]);
+
+    let second_instance = r#"[(2, "/_sources1")]p"#;
+    move_point_2d(&dc, second_instance, StateVarValue::Integer(1), StateVarValue::Integer(6));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 4.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 6.0]);
+}
+
 // =========== <boolean> ===========
 
 #[wasm_bindgen_test]
