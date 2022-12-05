@@ -1034,14 +1034,36 @@ fn line_points_collection() {
     static DATA: &str = r#"
         <graph>
                 <line p1="5 2" p2="3 4"/>
+	        <point copySource="/_line1" copyCollection="points" componentIndex="1"/>
+	        <point copySource="/_line1" copyCollection="points" componentIndex="2"/>
         </graph>
-        <number copySource="/_line1" copyCollection="points" componentIndex="1" copyProp="xs" propIndex="1"/>
+        <number copySource="/_line1" copyCollection="points" componentIndex="1" copyProp="xs" propIndex="2"/>
+        <number copySource="/_line1" copyCollection="points" componentIndex="2" copyProp="xs" propIndex="1"/>
     "#;
     display_doenet_ml_on_failure!(DATA);
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_is_number(&dc, "/_number1", "value", 5.0);
+    assert_sv_is_number(&dc, "/_number1", "value", 2.0);
+    assert_sv_is_number(&dc, "/_number2", "value", 3.0);
+    assert_sv_array_is_number_list(&dc, "/_point1", "numericalXs", vec![5.0, 2.0]);
+    assert_sv_array_is_number_list(&dc, "/_point2", "numericalXs", vec![3.0, 4.0]);
+
+    move_point_2d(&dc, "/_point1", StateVarValue::Number(3.0), StateVarValue::Number(1.0));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 1.0);
+    assert_sv_is_number(&dc, "/_number2", "value", 3.0);
+    assert_sv_array_is_number_list(&dc, "/_point1", "numericalXs", vec![3.0, 1.0]);
+    assert_sv_array_is_number_list(&dc, "/_point2", "numericalXs", vec![3.0, 4.0]);
+
+    move_point_2d(&dc, "/_point2", StateVarValue::Number(1.0), StateVarValue::Number(3.0));
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_number(&dc, "/_number1", "value", 1.0);
+    assert_sv_is_number(&dc, "/_number2", "value", 1.0);
+    assert_sv_array_is_number_list(&dc, "/_point1", "numericalXs", vec![3.0, 1.0]);
+    assert_sv_array_is_number_list(&dc, "/_point2", "numericalXs", vec![1.0, 3.0]);
 }
 
 // =========== <number> ============

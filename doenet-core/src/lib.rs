@@ -968,6 +968,8 @@ fn create_dependencies_from_instruction(
             let source = components.get(source_copy_root_name).unwrap();
             
             if let Some(CopySource::StateVar(ref source_comp_ref, ref source_sv_ref)) = source.copy_source {
+                // copying a state var means we don't inheret its children,
+                // so we depend on it directly
                 relevant_children.push(
                     RelevantChild::StateVar(Dependency::StateVar {
                         component_group: ComponentGroup::Single(source_comp_ref.clone()),
@@ -982,6 +984,16 @@ fn create_dependencies_from_instruction(
                         index_state_var: StateRef::Basic(PROP_INDEX_SV),
                     })
                 );
+            } else if let Some(CopySource::Component(ref source_comp_ref)) = source.copy_source {
+                if matches!(source_comp_ref, ComponentRef::BatchMember(_, _, _)) {
+                    // a batch member has no children, so we depend on it directly
+                    relevant_children.push(
+                        RelevantChild::StateVar(Dependency::StateVar {
+                            component_group: ComponentGroup::Single(source_comp_ref.clone()),
+                            state_var_slice: state_var_slice.clone(),
+                        })
+                    );
+                }
             } else if let Some(CopySource::MapSources(map_sources)) = &component.copy_source {
                 relevant_children.push(
                     RelevantChild::StateVar(Dependency::MapSources {
@@ -1504,6 +1516,7 @@ fn essential_data_exists_for(
 fn get_state_variables_depending_on_me(
     core: &DoenetCore,
     sv_component: &ComponentName,
+    map: &Instance,
     sv_reference: &StateRef,
 ) -> Vec<(ComponentName, StateVarSlice)> {
 
@@ -1515,6 +1528,11 @@ fn get_state_variables_depending_on_me(
 
             match dependency {
                 Dependency::StateVar { component_group, state_var_slice } => {
+                    let state_var_slice = (match component_group {
+                        ComponentGroup::Single(ComponentRef::BatchMember(n, b, i)) =>
+                            batch_state_var(core, &n, map, *b, state_var_slice.clone(), *i),
+                        _ => None,
+                    }).unwrap_or(state_var_slice.clone());
                     if sv_component == &component_group.name() 
                     && state_var_slice.name() == sv_reference.name() {
 
@@ -2117,7 +2135,7 @@ fn mark_stale_state_var_and_dependencies(
 
     state_var.mark_single_stale(&state_var_ref.index(), map);
 
-    let mut depending_on_me = get_state_variables_depending_on_me(core, component, state_var_ref);
+    let mut depending_on_me = get_state_variables_depending_on_me(core, component, map, state_var_ref);
 
     // TODO: should mark stale take state var slices? Could solve this problem:
     // Currently arrays must resolve their size to be marked as stale.
@@ -2289,9 +2307,11 @@ fn convert_component_ref_state_var(
 ) -> Option<(ComponentName, StateVarSlice)> {
     match name {
         ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, *c, state_var, *i),
+        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, *c, state_var, *i)
+            .map(|sv| (n.clone(), sv)),
         ComponentRef::CollectionMember(n, i) => match nth_collection_member(core, &n, map, *i) {
-            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i),
+            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
+                .map(|sv| (n.clone(), sv)),
             Some(ComponentRef::Basic(n)) => Some((n, state_var)),
             _ => None
         }
@@ -2318,7 +2338,7 @@ fn batch_state_var(
     batch_name: Option<BatchName>,
     state_var: StateVarSlice,
     index: usize,
-) -> Option<(ComponentName, StateVarSlice)> {
+) -> Option<StateVarSlice> {
 
     let batch_def = core.component_nodes.get(component_name).unwrap()
         .definition.unwrap_batch_def(&batch_name);
@@ -2326,7 +2346,6 @@ fn batch_state_var(
         resolve_state_variable(core, component_name, map, state_var_ref)
     };
     (batch_def.member_state_var)(index, &state_var, &state_var_resolver)
-        .map(|sv| (component_name.clone(), sv))
 }
 
 fn collection_size(
@@ -2484,12 +2503,12 @@ fn convert_dependency_values_to_update_request(
                         },
                     };
 
-                    if let Some((sv_comp, _)) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()) {
-                        if let StateVarSlice::Single(state_var_ref) = state_var_slice {
+                    if let Some((sv_comp, sv_slice)) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()) {
+                        if let StateVarSlice::Single(state_var_ref) = sv_slice {
                             update_requests.push(UpdateRequest::SetStateVar(
                                 sv_comp,
                                 map.clone(),
-                                state_var_ref.clone(),
+                                state_var_ref,
                                 request.value.clone(),
                             ))
                         }
