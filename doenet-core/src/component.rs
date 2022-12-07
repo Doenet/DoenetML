@@ -123,6 +123,7 @@ pub enum ComponentProfile {
     // Graphical,
 }
 
+/// The definition of a component type.
 pub struct ComponentDefinition {
     pub state_var_definitions: &'static HashMap<StateVarName, StateVarVariant>,
 
@@ -227,12 +228,6 @@ pub enum ComponentRef {
     CollectionMember(ComponentName, usize),
 }
 
-impl std::fmt::Display for ComponentRef {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
 
 /// Can refer to a component ref or replacement components
 #[derive(PartialEq, Serialize, Eq, Clone, Debug)]
@@ -278,6 +273,21 @@ impl ComponentDefinition {
             Some(ReplacementComponents::Collection(def)) => def,
             _ => panic!(),
         }
+    }
+
+
+    /// Returns component definition of members, or itself if there are no replacement components
+    /// Pass the static_attributes as a parameter
+    pub fn definition_of_members(
+        &self,
+        static_attributes: &HashMap<AttributeName, String>,
+    ) -> &ComponentDefinition {
+
+        match &self.replacement_components {
+            Some(ReplacementComponents::Batch(def))  => def.member_definition,
+            Some(ReplacementComponents::Collection(def))  => (def.member_definition)(static_attributes),
+            _  => self,
+        }        
     }
 }
 

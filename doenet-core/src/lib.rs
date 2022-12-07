@@ -210,6 +210,7 @@ pub fn create_doenet_core(
 
     let mut doenet_ml_warnings = vec![];
 
+
     // Convert MLComponents into component nodes
 
     let mut component_nodes: HashMap<ComponentName, ComponentNode> = HashMap::new();
@@ -390,7 +391,7 @@ pub fn create_doenet_core(
             for child in component.children.iter().filter_map(|child| child.as_component()) {
                 let child_comp = component_nodes.get(child).unwrap();
                 let mut has_valid_profile = false;
-                let child_member_def = definition_of_members(child_comp.definition, &child_comp.static_attributes);
+                let child_member_def = child_comp.definition.definition_of_members(&child_comp.static_attributes);
                 for (child_profile, _) in child_member_def.component_profiles.iter() {
                     if valid_profiles.contains(child_profile) {
                         has_valid_profile = true;
@@ -447,6 +448,8 @@ pub fn create_doenet_core(
             }
         }
     }
+
+
 
     let mut all_state_var_defs: Vec<(&ComponentName, StateVarName, &StateVarVariant)> = Vec::new();
     for (_, comp) in component_nodes.iter() {
@@ -3096,7 +3099,7 @@ fn group_member_definition(
 ) -> &'static ComponentDefinition {
 
     let node = component_nodes.get(&component_group.name()).unwrap();
-    definition_of_members(node.definition, &node.static_attributes)
+    node.definition.definition_of_members(&node.static_attributes)
 }
 
 /// Returns component definition and component type.
@@ -3117,18 +3120,6 @@ fn component_ref_definition(
     }
 }
 
-/// Returns component definition
-fn definition_of_members<'a>(
-    definition: &'a ComponentDefinition,
-    static_attributes: &HashMap<AttributeName, String>,
-) -> &'a ComponentDefinition {
-
-    match &definition.replacement_components {
-        Some(ReplacementComponents::Batch(def))  => def.member_definition,
-        Some(ReplacementComponents::Collection(def))  => (def.member_definition)(static_attributes),
-        _  => definition,
-    }
-}
 
 
 #[derive(Debug)]

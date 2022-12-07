@@ -104,9 +104,9 @@ pub fn package_subtree_as_json(
     my_json_props.insert("type".to_owned(), Value::String(component.definition.component_type.to_string()));
     my_json_props.insert("copySource".to_owned(),
         match &component.copy_source {
-            Some(CopySource::Component(copy_source_name)) => Value::String(copy_source_name.to_string()),
+            Some(CopySource::Component(copy_source_name)) => Value::String(format!("{:?}", copy_source_name)),
             Some(CopySource::StateVar(source_name, source_state_var)) => Value::String(
-                format!("{} {:?}", source_name, source_state_var)
+                format!("{:?} {:?}", source_name, source_state_var)
             ),
             Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
                 format!("{} {:?} {:?}", source_name, source_sv, math_expression)
@@ -115,19 +115,22 @@ pub fn package_subtree_as_json(
             None => Value::Null,
         });
 
+    for (static_attr_name, static_attr_val) in component.static_attributes.iter() {
+        my_json_props.insert(
+            format!("static attr {}", static_attr_name),
+            Value::String(static_attr_val.to_string())
+        );
+    }
+
     let component_state = component_states.get(&component.name).unwrap();
 
     for &state_var_name in component.definition.state_var_definitions.keys() {
 
         let state_for_state_var = component_state.get(state_var_name).unwrap();
-
         match state_for_state_var {
-
             StateForStateVar::Single(state_var) => {
                 my_json_props.insert(
-
                     format!("sv: {}", state_var_name),
-        
                     serde_json::Value::Array(state_var.all_instances()
                         .iter().map(|x| serde_json::Value::from(x)).collect())
                 );

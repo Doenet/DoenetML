@@ -64,6 +64,11 @@ pub enum DoenetMLError {
         component_type: ComponentType,
         source_type: ComponentType,
     },
+
+    /// For the componentType static attr of <sources>
+    CannotImplySourcesComponentType {
+        component_name: ComponentName,
+    }
 }
 
 impl std::error::Error for DoenetMLError {}
@@ -99,10 +104,11 @@ impl Display for DoenetMLError {
                 msg.pop();
 
                 write!(f, "{}", msg)
-            }
+            },
             ComponentCannotCopyOtherType { component_name, component_type, source_type } => {
                 write!(f, "The {} component '{}' cannot copy a {} component.", component_type, component_name, source_type)
-            }
+            },
+            CannotImplySourcesComponentType { component_name } => write!(f, "Cannot impy 'componentType' attribute of {}", component_name),
         }
     }
 }
@@ -321,6 +327,33 @@ pub fn create_components_tree_from_json(program: &str)
         &mut component_type_counter,
     )?
     .unwrap();
+
+
+    // Determine <sources>'s componentType static attribute, if not specified
+    // TODO: <sources> inside <sources>
+    // TODO: <sources> with copySource another <sources>
+    let mut sources_component_types: HashMap<ComponentName, ComponentType> = HashMap::new();
+    for (comp_name, comp) in components.iter().filter(|(_, c)|
+        c.definition.component_type == "sources" && !c.static_attributes.contains_key("componentType")
+    ) {
+        let comp_children: Vec<&MLComponent> = comp.children.iter().filter_map(|child|
+            child.as_component().and_then(|name| Some(components.get(name).unwrap()))
+        ).collect();
+            
+        if comp_children.len() > 0 {
+            // log!("{} is <source> without componentType attr, child is {}", comp_name, comp_children[0].name);
+            let first_comp_child_def = comp_children[0].definition;
+            let child_type = first_comp_child_def.definition_of_members(&HashMap::new()).component_type;
+            sources_component_types.insert(comp_name.clone(), child_type);
+        }
+    }
+
+    for (comp_name, child_comp_type) in sources_component_types {
+        let comp = components.get_mut(&comp_name).unwrap();
+        comp.static_attributes.insert("componentType", String::from(child_comp_type));
+    }
+
+
 
     let (replacement_children, macro_components, attributes_parsed, prop_indices_parsed, component_indices_parsed) =
  
