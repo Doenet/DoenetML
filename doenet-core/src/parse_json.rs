@@ -804,7 +804,7 @@ fn macro_comp_ref(
             },
             (None, Some(ReplacementComponents::Batch(def)))  => def.member_definition,
             (None, Some(ReplacementComponents::Collection(def)))  => (def.member_definition)(&source_component.static_attributes),
-            (None, None)  => return Err("index of non-group".to_string()),
+            (None, _)  => return Err("index of non-group".to_string()),
         };
     } else {
         // no component index

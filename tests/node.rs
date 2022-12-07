@@ -1000,6 +1000,27 @@ fn map_move_points() {
     assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 6.0]);
 }
 
+#[wasm_bindgen_test]
+fn map_inside_text() {
+    static DATA: &str = r#"
+    <text><map><sources alias="t" componentType="text">
+            <text>cow</text>
+            <text>horse</text>
+    </sources><template>some $t but <map>
+    <sources alias="r" componentType="text">
+            <text>yes</text>
+            <text>no</text>
+    </sources><template>then it answers $r </template>
+    </map>and </template>
+    </map>they left</text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "/_text1", "value", "some cow but then it answers yes then it answers no and some horse but then it answers yes then it answers no and they left");
+}
+
 // =========== <boolean> ===========
 
 #[wasm_bindgen_test]

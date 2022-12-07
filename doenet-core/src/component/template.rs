@@ -33,6 +33,8 @@ lazy_static! {
 
         should_render_children: true,
 
+        replacement_components: Some(ReplacementComponents::Children),
+
         valid_children_profiles: ValidChildTypes::AllComponents,
         
         ..Default::default()

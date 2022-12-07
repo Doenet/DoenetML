@@ -100,6 +100,14 @@ pub enum Dependency {
         component_group: ComponentGroup,
         state_var_slice: StateVarSlice,
     },
+    // Necessary when a child dependency instruction encounters a groups
+    // whose members replace themselves with children
+    // - ex: <template> inside <map>
+    // Implementation is WIP
+    UndeterminedChildren {
+        component_name: ComponentName,
+        desired_profiles: Vec<ComponentProfile>,
+    },
     MapSources {
         map_sources: ComponentName,
         state_var_slice: StateVarSlice,
@@ -140,7 +148,9 @@ impl Instance {
     }
     /// Find the instance of the <sources> component pertaining to the given instance
     pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
-        let sources_index = self.0.iter().position(|(_, n)| n == sources).unwrap();
+        let sources_index = self.0.iter().position(|(_, n)| n == sources).expect(
+            &format!("instance {:?} does not contain sources {}", self, sources)
+        );
         let sources_map = (&self.0[..sources_index]).to_vec();
         let index = self.0.get(sources_index).unwrap().0;
         (index, Instance(sources_map))
@@ -254,7 +264,7 @@ pub fn create_doenet_core(
                                 comp_ref = ComponentRef::BatchMember(source_comp_name.clone(), Some(batch.0), index);
                                 source_def = batch.1.member_definition;
                             },
-                            (None, None)  => panic!("not a group"),
+                            (None, _)  => panic!("not a group"),
                         };
 
                     } else if ml_component.component_index.len() > 0 {
@@ -387,12 +397,15 @@ pub fn create_doenet_core(
                         break;
                     }
                 }
+                if matches!(child_member_def.replacement_components, Some(ReplacementComponents::Children)) {
+                    has_valid_profile = true;
+                }
 
                 if has_valid_profile == false {
                     doenet_ml_warnings.push(DoenetMLWarning::InvalidChildType {
                         parent_comp_name: component.name.clone(),
                         child_comp_name: child_comp.name.clone(),
-                        child_comp_type: child_comp.definition.component_type,
+                        child_comp_type: child_member_def.component_type,
                     });
                 }
             }
@@ -963,6 +976,7 @@ fn create_dependencies_from_instruction(
             }
 
             let mut relevant_children: Vec<RelevantChild> = Vec::new();
+            let mut can_parse_into_expression = *parse_into_expression;
             
             let source_copy_root_name = get_recursive_copy_source_component_when_exists(components, component);
             let source = components.get(source_copy_root_name).unwrap();
@@ -1016,6 +1030,7 @@ fn create_dependencies_from_instruction(
                         let child_group = match child_node.definition.replacement_components {
                             Some(ReplacementComponents::Batch(_)) => ComponentGroup::Batch(child_name.clone()),
                             Some(ReplacementComponents::Collection(_)) => ComponentGroup::Collection(child_name.clone()),
+                            Some(ReplacementComponents::Children) => panic!("replace children outside group, not implemented"),
                             None => ComponentGroup::Single(ComponentRef::Basic(child_name.clone())),
                         };
                         let child_def = group_member_definition(
@@ -1023,30 +1038,24 @@ fn create_dependencies_from_instruction(
                             &child_group
                         );
 
-                        for child_profile in child_def.component_profiles.iter() {
-                            if desired_profiles.contains(&child_profile.0) {
+                        if matches!(child_def.replacement_components, Some(ReplacementComponents::Children)) {
+                            // cannot permanently parse into an expression when the type and number of children could change
+                            can_parse_into_expression = false;
+                            relevant_children.push(
+                                RelevantChild::StateVar(Dependency::UndeterminedChildren {
+                                    component_name: child_group.name(),
+                                    desired_profiles: desired_profiles.clone(),
+                                })
+                            );
+                        }
 
-                                let profile_state_var = child_profile.1;
-
-                                let sv_def = child_def
-                                    .state_var_definitions
-                                    .get(&profile_state_var)
-                                    .unwrap();
-
-                                let profile_sv_slice = if sv_def.is_array() {
-                                    StateVarSlice::Array(profile_state_var)
-                                } else {
-                                    StateVarSlice::Single(StateRef::Basic(profile_state_var))
-                                };
-
-                                relevant_children.push(
-                                    RelevantChild::StateVar(Dependency::StateVar {
-                                        component_group: child_group,
-                                        state_var_slice: profile_sv_slice,
-                                    })
-                                );
-                                break;
-                            }
+                        if let Some(profile_sv_slice) = component_profile_match(child_def, desired_profiles) {
+                            relevant_children.push(
+                                RelevantChild::StateVar(Dependency::StateVar {
+                                    component_group: child_group,
+                                    state_var_slice: profile_sv_slice,
+                                })
+                            );
                         }
                     },
                     (ComponentChild::String(string_value), actual_parent) => {
@@ -1061,7 +1070,7 @@ fn create_dependencies_from_instruction(
             }
 
 
-            if *parse_into_expression {
+            if can_parse_into_expression {
 
                 // Assuming for now that expression is math expression
                 let expression = MathExpression::new(
@@ -1368,7 +1377,31 @@ fn create_dependencies_from_instruction(
     dependencies
 }
 
+fn component_profile_match(
+    definition: &ComponentDefinition,
+    desired_profiles: &Vec<ComponentProfile>,
+) -> Option<StateVarSlice> {
+    for profile in definition.component_profiles.iter() {
+        if desired_profiles.contains(&profile.0) {
 
+            let profile_state_var = profile.1;
+
+            let sv_def = definition
+                .state_var_definitions
+                .get(&profile_state_var)
+                .unwrap();
+
+            let profile_sv_slice = if sv_def.is_array() {
+                StateVarSlice::Array(profile_state_var)
+            } else {
+                StateVarSlice::Single(StateRef::Basic(profile_state_var))
+            };
+
+            return Some(profile_sv_slice);
+        }
+    }
+    None
+}
 
 fn create_prop_index_dependencies(
     component: &ComponentNode,
@@ -1536,6 +1569,33 @@ fn get_state_variables_depending_on_me(
                     if sv_component == &component_group.name() 
                     && state_var_slice.name() == sv_reference.name() {
 
+                        let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
+                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
+                    }
+                },
+                Dependency::UndeterminedChildren { component_name, desired_profiles } => {
+                    let component_node = core.component_nodes.get(component_name).unwrap();
+                    let mut dependent = false;
+                    if component_profile_match(component_node.definition, desired_profiles).is_some() {
+                        let mut chain = parent_chain(core, component_name).into_iter().rev();
+                        let mut parent: Option<String> = chain.next();
+                        while parent.is_some()  {
+                            let parent_node = core.component_nodes.get(parent.as_ref().unwrap()).unwrap();
+                            if let Some(ReplacementComponents::Children) = parent_node.definition.replacement_components {
+                                parent = chain.next();
+                                let parent_node = core.component_nodes.get(parent.as_ref().unwrap()).unwrap();
+                                if parent_node.definition.component_type == "map" {
+                                    parent = chain.next();
+                                }
+                            } else if &parent_node.name == sv_component {
+                                dependent = true;
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                    if dependent {
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
@@ -1765,6 +1825,12 @@ fn get_source_for_dependency(
                 state_var_name: state_var_slice.name()
             }
         },
+        Dependency::UndeterminedChildren { .. } => {
+            DependencySource::StateVar {
+                component_type: "undetermined",
+                state_var_name: "undetermined",
+            }
+        },
         Dependency::MapSources { map_sources, state_var_slice } => {
             let component_type = group_member_definition(
                 &core.component_nodes,
@@ -1921,6 +1987,71 @@ fn resolve_state_variable(
                                 }
                             }
                         }
+                    }
+
+                },
+
+                Dependency::UndeterminedChildren { component_name , desired_profiles } => {
+
+                    let group_member = component_group_members(core, &ComponentGroup::Collection(component_name.clone()), &map);
+
+                    let mut children = Vec::new();
+                    for (component_ref, comp_map) in group_member {
+                        children.extend(state_vars_for_undetermined_children(core, &comp_map, &component_ref, &desired_profiles));
+                    }
+                    for (child, sv_slice, dep_source, comp_map) in children {
+                        match child {
+                            ObjectName::Component(sv_comp) => {
+
+                                match sv_slice.unwrap() {
+                                    StateVarSlice::Single(ref sv_ref) => {
+
+                                        let depends_on_value = resolve_state_variable(core, &sv_comp, &comp_map, sv_ref);
+
+                                        if let Some(depends_on_value) = depends_on_value {
+                                            values_for_this_dep.push(DependencyValue {
+                                                source: dep_source,
+                                                value: depends_on_value,
+                                            });    
+                                        }
+                                    }
+                                    StateVarSlice::Array(array_state_var_name) => {
+
+                                        // important to resolve the size before the elements
+                                        let size_value: usize = resolve_state_variable(
+                                            core, &sv_comp, &comp_map, &StateRef::SizeOf(array_state_var_name))
+                                        .expect("Array size should always resolve to a StateVarValue")
+                                        .try_into()
+                                        .unwrap();
+                                        
+                                        for id in indices_for_size(size_value) {
+
+                                            let element_value = resolve_state_variable(
+                                                core,
+                                                &sv_comp,
+                                                &comp_map,
+                                                &StateRef::ArrayElement(array_state_var_name, id)
+                                            );
+
+                                            if let Some(element_value) = element_value {
+                                                values_for_this_dep.push(DependencyValue {
+                                                    source: dep_source.clone(),
+                                                    value: element_value,
+                                                });
+                        
+                                            }
+                        
+                                        }
+                                    }
+                                }
+                            },
+                            ObjectName::String(s) => {
+                                values_for_this_dep.push(DependencyValue {
+                                    source: dep_source,
+                                    value: StateVarValue::String(s),
+                                })
+                            },
+                        };
                     }
 
                 },
@@ -2113,6 +2244,49 @@ fn elements_of_array(
     indices_for_size(size).map(|i| StateRef::ArrayElement(array_name, i)).collect()
 }
 
+fn state_vars_for_undetermined_children(
+    core: &DoenetCore,
+    map: &Instance,
+    component_ref: &ComponentRef,
+    desired_profiles: &Vec<ComponentProfile>,
+) -> Vec<(ObjectName, Option<StateVarSlice>, DependencySource, Instance)> {
+    let mut source_and_value = vec![];
+
+    for (member_child, comp_map, _) in get_children_and_members(core, &component_ref, &map) {
+        match member_child {
+            ObjectRefName::Component(child_ref) => {
+
+                let child_def = component_ref_definition(&core.component_nodes, &child_ref);
+
+                match  &child_def.replacement_components {
+                    Some(ReplacementComponents::Children) => {
+                        source_and_value.extend(state_vars_for_undetermined_children(core, &comp_map, &child_ref, desired_profiles));
+                        continue;
+                    }
+                    _ => (),
+                };
+                        
+                if let Some(relevant_sv) = component_profile_match(child_def, &desired_profiles) {
+                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &child_ref, &comp_map, relevant_sv).unwrap();
+
+                    let dependency_source = DependencySource::StateVar {
+                        component_type: child_def.component_type,
+                        state_var_name: sv_slice.name()
+                    };
+                    source_and_value.push((ObjectName::Component(sv_comp), Some(sv_slice), dependency_source, comp_map));
+                }
+            },
+            ObjectRefName::String(s) => {
+                let dependency_source = DependencySource::StateVar {
+                    component_type: "string",
+                    state_var_name: "",
+                };
+                source_and_value.push((ObjectName::String(s), None, dependency_source, comp_map));
+            },
+        };
+    }
+    source_and_value
+}
 
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
@@ -2357,14 +2531,15 @@ fn collection_size(
         .iter()
         .map(|dep|
             match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
-                None => 1,
                 Some(ReplacementComponents::Batch(_)) => batch_size(core, dep, None, map),
                 Some(ReplacementComponents::Collection(_)) => collection_size(core, dep, map),
+                _ => 1,
             }
         ).sum()
 }
 
 /// The component ref return can either be a basic, or a member of a batch
+/// TODO: return is weird
 fn nth_collection_member(
     core: &DoenetCore,
     component_name: &ComponentName,
@@ -2398,7 +2573,7 @@ fn nth_collection_member_internal(
                     return Some(ComponentRef::BatchMember(group_dep.clone(), None, *index));
                 }
             },
-            None => {
+            _ => {
                 if *index > 1 {
                     *index -= 1;
                 } else {
@@ -2951,7 +3126,7 @@ fn definition_of_members<'a>(
     match &definition.replacement_components {
         Some(ReplacementComponents::Batch(def))  => def.member_definition,
         Some(ReplacementComponents::Collection(def))  => (def.member_definition)(static_attributes),
-        None  => definition,
+        _  => definition,
     }
 }
 
@@ -2982,22 +3157,28 @@ fn get_children_and_members<'a>(
         ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
-            if let Some(replacements) = &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
-
-                let group = match replacements {
-                    ReplacementComponents::Batch(_) => ComponentGroup::Batch(comp_name.clone()),
-                    ReplacementComponents::Collection(_) => ComponentGroup::Collection(comp_name.clone()),
-                };
-
-                component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
-                    (ObjectRefName::Component(comp_ref.clone()),
-                    comp_map.clone(),
-                    actual_parent)
-                ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
-            } else {
-                vec![(ObjectRefName::Component(ComponentRef::Basic(comp_name.clone())),
-                map.clone(),
-                actual_parent)]
+            match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
+                Some(ReplacementComponents::Batch(_)) => {
+                    let group = ComponentGroup::Batch(comp_name.clone());
+                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                        (ObjectRefName::Component(comp_ref.clone()),
+                        comp_map.clone(),
+                        actual_parent)
+                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                },
+                Some(ReplacementComponents::Collection(_)) => {
+                    let group = ComponentGroup::Collection(comp_name.clone());
+                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                        (ObjectRefName::Component(comp_ref.clone()),
+                        comp_map.clone(),
+                        actual_parent)
+                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                },
+                _ => {
+                    vec![(ObjectRefName::Component(ComponentRef::Basic(comp_name.clone())),
+                    map.clone(),
+                    actual_parent)]
+                }
             }
         },
     })
@@ -3136,6 +3317,7 @@ fn sources_that_instance_component(
     sources
 }
 
+// Vector of parents beginning with the root, ending with the immediate parent.
 fn parent_chain(
     core: &DoenetCore,
     component: &ComponentName,

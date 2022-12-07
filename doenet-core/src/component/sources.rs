@@ -50,7 +50,7 @@ fn depend_on_children_of_type(
                 let child_type = match &comp.definition.replacement_components {
                     Some(ReplacementComponents::Collection(def)) => (def.member_definition)(&node.static_attributes).component_type,
                     Some(ReplacementComponents::Batch(def)) => def.member_definition.component_type,
-                    None => comp.definition.component_type,
+                    _ => comp.definition.component_type,
                 };
                 if child_type.to_lowercase() == component_type.to_lowercase() {
                     Some(match comp.definition.replacement_components {

@@ -114,7 +114,7 @@ pub enum CopySource {
 }
 
 
-#[derive(Clone, PartialEq, Eq, Debug, Hash)]
+#[derive(Clone, PartialEq, Eq, Debug, Hash, Serialize)]
 pub enum ComponentProfile {
     Text,
     Number,
@@ -209,6 +209,9 @@ pub struct BatchDefinition {
 pub enum ReplacementComponents {
     Collection(CollectionDefinition),
     Batch(BatchDefinition),
+    // Unlike the previous, Children cannot form a component group
+    // because they may be of different types.
+    Children,
 }
 
 /// A component or a member of a group.
