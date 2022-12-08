@@ -14,8 +14,6 @@ use std::fmt::Display;
 
 use crate::state_variables::*;
 
-
-
 /// This error is caused by invalid DoenetML.
 /// It is thrown only on core creation.
 #[derive(Debug, PartialEq)]
@@ -123,7 +121,6 @@ pub enum DoenetMLWarning {
         comp_name: ComponentName,
         invalid_index: String,
     },
-
     InvalidChildType {
         parent_comp_name: ComponentName,
         child_comp_name: ComponentName,
@@ -146,7 +143,6 @@ impl Display for DoenetMLWarning {
 
     }
 }
-
 
 
 // Structures for create_components_tree_from_json
@@ -214,6 +210,7 @@ pub struct MLComponent {
     pub definition: &'static ComponentDefinition,
 }
 
+/// Convert serialized JSON of doenetML into tree of MLComponents
 pub fn create_components_tree_from_json(program: &str)
     -> Result<(
             HashMap<ComponentName, MLComponent>,
@@ -276,7 +273,10 @@ pub fn create_components_tree_from_json(program: &str)
             child.as_component().and_then(|name| Some(components.get(name).unwrap()))
         ).collect();
             
-        if comp_children.len() > 0 {
+        if comp_children.len() == 0 {
+            // Every <sources> needs a componentType attr, so default to <number> since it doesn't matter
+            sources_component_types.insert(comp_name.clone(), "number");
+        } else {
             // log!("{} is <source> without componentType attr, child is {}", comp_name, comp_children[0].name);
             let first_comp_child_def = comp_children[0].definition;
             let child_type = first_comp_child_def.definition_of_members(&HashMap::new()).component_type;
@@ -898,6 +898,7 @@ fn regex_at<'a>(regex: &Regex, string: &'a str, at: usize) -> Result<regex::Matc
 
 
 
+
 // Structures for parse_action_from_json
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -914,27 +915,6 @@ enum ArgValue {
     Number(serde_json::Number),
     NumberArray(Vec<serde_json::Number>),
     String(String),
-}
-
-impl From<serde_json::Number> for StateVarValue {
-    fn from(v: serde_json::Number) -> Self {
-        if v.is_i64() {
-             StateVarValue::Integer(v.as_i64().unwrap())
-         } else {
-             StateVarValue::Number(v.as_f64().unwrap())
-         }
-    }
-}
-
-impl From<ArgValue> for Vec<StateVarValue> {
-    fn from(value: ArgValue) -> Self {
-         match value {
-             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
-             ArgValue::String(v) => vec![StateVarValue::String(v)],
-             ArgValue::Number(v) => vec![v.into()],
-             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
-         }
-    }
 }
 
 /// Returns the Action as well as the action id which the renderer sent
@@ -957,3 +937,24 @@ pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> 
     Ok((Action { component_name, action_name, args}, action_id))
 }
 
+
+impl From<serde_json::Number> for StateVarValue {
+    fn from(v: serde_json::Number) -> Self {
+        if v.is_i64() {
+             StateVarValue::Integer(v.as_i64().unwrap())
+         } else {
+             StateVarValue::Number(v.as_f64().unwrap())
+         }
+    }
+}
+
+impl From<ArgValue> for Vec<StateVarValue> {
+    fn from(value: ArgValue) -> Self {
+         match value {
+             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
+             ArgValue::String(v) => vec![StateVarValue::String(v)],
+             ArgValue::Number(v) => vec![v.into()],
+             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
+         }
+    }
+}
