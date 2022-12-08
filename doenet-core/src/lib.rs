@@ -2665,6 +2665,7 @@ fn resolve_batch_size(
         .unwrap().try_into().unwrap()
 }
 
+/// Note: not applicable to special collections like <map> or <conditionalContent>
 fn collection_size(
     core: &DoenetCore,
     component_name: &ComponentName,
@@ -2689,16 +2690,15 @@ fn convert_component_ref_state_var(
     map: &Instance,
     state_var: StateVarSlice,
 ) -> Option<(ComponentName, StateVarSlice)> {
+    let name = match name {
+        ComponentRef::CollectionMember(n, i) => nth_collection_member(core, &n, map, i),
+        _ => Some(name),
+    };
     match name {
-        ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, c, state_var, i)
-            .map(|sv| (n.clone(), sv)),
-        ComponentRef::CollectionMember(n, i) => match nth_collection_member(core, &n, map, i) {
-            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
-                .map(|sv| (n.clone(), sv)),
-            Some(ComponentRef::Basic(n)) => Some((n, state_var)),
-            _ => None
-        }
+        Some(ComponentRef::Basic(n)) => Some((n, state_var)),
+        Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
+            .map(|sv| (n, sv)),
+        _ => None,
     }
 }
 
@@ -2904,10 +2904,8 @@ fn all_map_instances(
 ) -> Vec<Instance> {
     if chain_remaining.len() > 0 {
         let sources_name = &chain_remaining[0];
-        let sources = core.component_nodes.get(sources_name).unwrap();
-        let map_name = sources.parent.clone().unwrap();
         let mut vec = vec![];
-        for i in indices_for_size(collection_size(core, &map_name, map)) {
+        for i in indices_for_size(collection_size(core, &sources_name, map)) {
             let mut next_map = map.clone();
             next_map.push(i, sources_name.clone());
             vec.extend(all_map_instances(core, &next_map, &chain_remaining[1..]));

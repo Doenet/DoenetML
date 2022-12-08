@@ -31,39 +31,7 @@ fn group_dependencies(
 
     let my_attributes = &node.static_attributes;
     let desired_type: String = my_attributes.get("componentType").unwrap().clone();
-    depend_on_children_of_type(node, desired_type, component_nodes)
-}
-
-fn depend_on_children_of_type(
-    node: &ComponentNode,
-    component_type: String,
-    component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<ComponentName> {
-
-    node
-    .children
-    .iter()
-    .filter_map(|n|
-        match n {
-            ObjectName::Component(c) => {
-                let comp = component_nodes.get(c).unwrap();
-                let child_type = match &comp.definition.replacement_components {
-                    Some(ReplacementComponents::Collection(def)) => (def.member_definition)(&node.static_attributes).component_type,
-                    Some(ReplacementComponents::Batch(def)) => def.member_definition.component_type,
-                    _ => comp.definition.component_type,
-                };
-                if child_type.to_lowercase() == component_type.to_lowercase() {
-                    Some(match comp.definition.replacement_components {
-                        Some(_) => c.clone(),
-                        None => c.clone(),
-                    })
-                } else {
-                    None
-                }
-            }
-            _ => None
-        }
-    ).collect()
+    get_children_of_type(component_nodes, node, &desired_type, true)
 }
 
 lazy_static! {

@@ -1,3 +1,11 @@
+use crate::math_expression::MathExpression;
+use enum_as_inner::EnumAsInner;
+use serde::Serialize;
+use crate::state_variables::*;
+use std::collections::HashMap;
+use std::fmt::{Debug, self};
+
+
 pub mod text;
 pub mod number;
 pub mod text_input;
@@ -15,15 +23,37 @@ pub mod line;
 pub mod map;
 pub mod template;
 pub mod sources;
+pub mod conditional_content;
+pub mod case;
 
-use crate::math_expression::MathExpression;
-use enum_as_inner::EnumAsInner;
-use serde::Serialize;
+lazy_static! {
+    pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
 
-use crate::state_variables::*;
+        let defs: Vec<&'static ComponentDefinition> = vec![
+            &crate::text               ::MY_COMPONENT_DEFINITION,
+            &crate::number             ::MY_COMPONENT_DEFINITION,
+            &crate::text_input         ::MY_COMPONENT_DEFINITION,
+            &crate::document           ::MY_COMPONENT_DEFINITION,
+            &crate::boolean            ::MY_COMPONENT_DEFINITION,
+            &crate::p                  ::MY_COMPONENT_DEFINITION,
+            &crate::number_input       ::MY_COMPONENT_DEFINITION,
+            &crate::boolean_input      ::MY_COMPONENT_DEFINITION,
+            &crate::sequence           ::MY_COMPONENT_DEFINITION,
+            &crate::graph              ::MY_COMPONENT_DEFINITION,
+            &crate::point              ::MY_COMPONENT_DEFINITION,
+            &crate::collect            ::MY_COMPONENT_DEFINITION,
+            &crate::section            ::MY_COMPONENT_DEFINITION,
+            &crate::line               ::MY_COMPONENT_DEFINITION,
+            &crate::map                ::MY_COMPONENT_DEFINITION,
+            &crate::template           ::MY_COMPONENT_DEFINITION,
+            &crate::sources            ::MY_COMPONENT_DEFINITION,
+            &crate::conditional_content::MY_COMPONENT_DEFINITION,
+            &crate::case               ::MY_COMPONENT_DEFINITION,
+        ];
 
-use std::collections::HashMap;
-use std::fmt::{Debug, self};
+        defs.into_iter().map(|def| (def.component_type, def)).collect()
+    };
+}
 
 
 /// camelCase
@@ -37,34 +67,6 @@ pub type ComponentName = String;
 
 /// camelCase
 pub type BatchName = &'static str;
-
-lazy_static! {
-    pub static ref COMPONENT_DEFINITIONS: HashMap<ComponentType, &'static ComponentDefinition> = {
-
-        let defs: Vec<&'static ComponentDefinition> = vec![
-            &crate::text         ::MY_COMPONENT_DEFINITION,
-            &crate::number       ::MY_COMPONENT_DEFINITION,
-            &crate::text_input   ::MY_COMPONENT_DEFINITION,
-            &crate::document     ::MY_COMPONENT_DEFINITION,
-            &crate::boolean      ::MY_COMPONENT_DEFINITION,
-            &crate::p            ::MY_COMPONENT_DEFINITION,
-            &crate::number_input ::MY_COMPONENT_DEFINITION,
-            &crate::boolean_input::MY_COMPONENT_DEFINITION,
-            &crate::sequence     ::MY_COMPONENT_DEFINITION,
-            &crate::graph        ::MY_COMPONENT_DEFINITION,
-            &crate::point        ::MY_COMPONENT_DEFINITION,
-            &crate::collect      ::MY_COMPONENT_DEFINITION,
-            &crate::section      ::MY_COMPONENT_DEFINITION,
-            &crate::line         ::MY_COMPONENT_DEFINITION,
-            &crate::map          ::MY_COMPONENT_DEFINITION,
-            &crate::template     ::MY_COMPONENT_DEFINITION,
-            &crate::sources      ::MY_COMPONENT_DEFINITION,
-        ];
-
-        defs.into_iter().map(|def| (def.component_type, def)).collect()
-    };
-}
-
 
 
 #[derive(Debug, Clone)]

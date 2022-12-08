@@ -24,39 +24,9 @@ fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<ComponentName> {
-    let templates = node.children.iter().filter_map(|n|
-        match n {
-            ObjectName::Component(c) => {
-                let comp = component_nodes.get(c).unwrap();
-                if comp.definition.component_type == "template" {
-                    Some(match comp.definition.replacement_components {
-                        Some(_) => c.clone(),
-                        None => c.clone(),
-                    })
-                } else {
-                    None
-                }
-            }
-            _ => None
-        }
-    );
-    let sources = node.children.iter().filter_map(|n|
-        match n {
-            ObjectName::Component(c) => {
-                let comp = component_nodes.get(c).unwrap();
-                if comp.definition.component_type == "sources" {
-                    Some(match comp.definition.replacement_components {
-                        Some(_) => c.clone(),
-                        None => c.clone(),
-                    })
-                } else {
-                    None
-                }
-            }
-            _ => None
-        }
-    );
-    templates.chain(sources).collect()
+    let templates = get_children_of_type(component_nodes, node, "template", false);
+    let sources = get_children_of_type(component_nodes, node, "sources", false);
+    templates.into_iter().chain(sources).collect()
 }
 
 lazy_static! {

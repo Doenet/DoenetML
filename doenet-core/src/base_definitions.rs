@@ -733,6 +733,33 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
 }
 
 
+pub fn get_children_of_type(
+    component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
+    node: &crate::component::ComponentNode,
+    component_type: &str,
+    include_groups: bool,
+) -> Vec<crate::component::ComponentName> {
+    node.children.iter().filter_map(|n|
+        match n {
+            crate::component::ObjectName::String(_) => None,
+            crate::component::ObjectName::Component(c) => {
+                let comp = component_nodes.get(c).unwrap();
+                let child_type = match (include_groups, &comp.definition.replacement_components) {
+                    (true, Some(crate::component::ReplacementComponents::Collection(def))) =>
+                        (def.member_definition)(&node.static_attributes).component_type,
+                    (true, Some(crate::component::ReplacementComponents::Batch(def))) =>
+                        def.member_definition.component_type,
+                    _ => comp.definition.component_type,
+                };
+                if child_type.to_lowercase() == component_type.to_lowercase() {
+                    Some(c.clone())
+                } else {
+                    None
+                }
+            },
+        }
+    ).collect()
+}
 
 
 // ========== Prop Index ============
