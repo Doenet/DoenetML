@@ -113,8 +113,6 @@ impl Display for DoenetMLError {
     }
 }
 
-
-
 /// This warning is caused by invalid DoenetML.
 /// It is thrown only on core creation, but does not stop core from being created.
 #[derive(Debug, PartialEq)]
@@ -147,67 +145,6 @@ impl Display for DoenetMLWarning {
         }
 
     }
-}
-
-
-
-// Structures for parse_action_from_json
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct ActionStructure {
-    component_name: String,
-    action_name: String,
-    args: HashMap<String, ArgValue>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(untagged)]
-enum ArgValue {
-    Bool(bool),
-    Number(serde_json::Number),
-    NumberArray(Vec<serde_json::Number>),
-    String(String),
-}
-
-impl From<serde_json::Number> for StateVarValue {
-    fn from(v: serde_json::Number) -> Self {
-        if v.is_i64() {
-             StateVarValue::Integer(v.as_i64().unwrap())
-         } else {
-             StateVarValue::Number(v.as_f64().unwrap())
-         }
-    }
-}
-
-impl From<ArgValue> for Vec<StateVarValue> {
-    fn from(value: ArgValue) -> Self {
-         match value {
-             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
-             ArgValue::String(v) => vec![StateVarValue::String(v)],
-             ArgValue::Number(v) => vec![v.into()],
-             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
-         }
-    }
-}
-
-/// Returns the Action as well as the action id which the renderer sent
-pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> {
-
-    // log_debug!("Parsing string for action: {}", action);
-
-    let action_structure: ActionStructure = serde_json::from_str(action).map_err(|e| e.to_string())?;
-
-    let component_name = action_structure.component_name.clone();
-    let action_name = action_structure.action_name.clone();
-    let mut args: HashMap<String, Vec<StateVarValue>> = action_structure.args
-        .into_iter()
-        .map(|(k, v)| (k, v.into()))
-        .collect();
-
-    let action_id: String = args.get("actionId").unwrap().first().unwrap().clone().try_into().unwrap();
-    args.remove("actionId");
-
-    Ok((Action { component_name, action_name, args}, action_id))
 }
 
 
@@ -276,7 +213,6 @@ pub struct MLComponent {
 
     pub definition: &'static ComponentDefinition,
 }
-
 
 pub fn create_components_tree_from_json(program: &str)
     -> Result<(
@@ -403,7 +339,6 @@ pub fn create_components_tree_from_json(program: &str)
 
     Ok((components, attributes_parsed, root_component_name, map_sources_alias))
 }
-
 
 /// Recursive function
 /// The return is the name of the child, if it exists
@@ -676,22 +611,6 @@ fn parse_attributes_and_macros(
     )
 }
 
-lazy_static! {
-    static ref COMPONENT: Regex = Regex::new(r"[a-zA-Z_]\w*").unwrap();
-}
-lazy_static! {
-    static ref PROP: Regex = Regex::new(r"[a-zA-Z]\w*").unwrap();
-}
-lazy_static! {
-    static ref INDEX: Regex = Regex::new(r" *(\d+|\$)").unwrap();
-}
-lazy_static! {
-    static ref INDEX_END: Regex = Regex::new(r" *]").unwrap();
-}
-lazy_static! {
-    static ref MACRO_BEGIN: Regex = Regex::new(r"\$").unwrap();
-}
-
 fn apply_macro_to_string(
     string: &str,
     component_name: &ComponentName,
@@ -746,14 +665,6 @@ fn apply_macro_to_string(
     }
 
     objects
-}
-
-fn regex_at<'a>(regex: &Regex, string: &'a str, at: usize) -> Result<regex::Match<'a>, String> {
-    regex.find_at(string, at)
-        .and_then(|m| {
-            if m.start() == at {Some(m)} else {None}
-        })
-        .ok_or(format!("regex {:?} not found at index {} of {}", regex, at, string))
 }
 
 fn macro_comp_ref(
@@ -947,8 +858,6 @@ fn macro_comp_ref(
     Ok((macro_name, macro_end))
 }
 
-
-
 fn default_component_type_for_state_var(component: &StateVarVariant)
     -> ComponentType {
 
@@ -971,5 +880,80 @@ fn name_macro_component(
     *copy_num += 1;
 
     format!("__mcr:{}({})_{}", source_name, component_name, copy_num)
+}
+
+lazy_static! { static ref MACRO_BEGIN: Regex = Regex::new(r"\$").unwrap(); }
+lazy_static! { static ref COMPONENT: Regex   = Regex::new(r"[a-zA-Z_]\w*").unwrap(); }
+lazy_static! { static ref PROP: Regex        = Regex::new(r"[a-zA-Z]\w*").unwrap(); }
+lazy_static! { static ref INDEX: Regex       = Regex::new(r" *(\d+|\$)").unwrap(); }
+lazy_static! { static ref INDEX_END: Regex   = Regex::new(r" *]").unwrap(); }
+
+fn regex_at<'a>(regex: &Regex, string: &'a str, at: usize) -> Result<regex::Match<'a>, String> {
+    regex.find_at(string, at)
+        .and_then(|m| {
+            if m.start() == at {Some(m)} else {None}
+        })
+        .ok_or(format!("regex {:?} not found at index {} of {}", regex, at, string))
+}
+
+
+
+// Structures for parse_action_from_json
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ActionStructure {
+    component_name: String,
+    action_name: String,
+    args: HashMap<String, ArgValue>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+enum ArgValue {
+    Bool(bool),
+    Number(serde_json::Number),
+    NumberArray(Vec<serde_json::Number>),
+    String(String),
+}
+
+impl From<serde_json::Number> for StateVarValue {
+    fn from(v: serde_json::Number) -> Self {
+        if v.is_i64() {
+             StateVarValue::Integer(v.as_i64().unwrap())
+         } else {
+             StateVarValue::Number(v.as_f64().unwrap())
+         }
+    }
+}
+
+impl From<ArgValue> for Vec<StateVarValue> {
+    fn from(value: ArgValue) -> Self {
+         match value {
+             ArgValue::Bool(v) => vec![StateVarValue::Boolean(v)],
+             ArgValue::String(v) => vec![StateVarValue::String(v)],
+             ArgValue::Number(v) => vec![v.into()],
+             ArgValue::NumberArray(v) =>  v.into_iter().map(|v| v.into()).collect(),
+         }
+    }
+}
+
+/// Returns the Action as well as the action id which the renderer sent
+pub fn parse_action_from_json(action: &str) -> Result<(Action, String), String> {
+
+    // log_debug!("Parsing string for action: {}", action);
+
+    let action_structure: ActionStructure = serde_json::from_str(action).map_err(|e| e.to_string())?;
+
+    let component_name = action_structure.component_name.clone();
+    let action_name = action_structure.action_name.clone();
+    let mut args: HashMap<String, Vec<StateVarValue>> = action_structure.args
+        .into_iter()
+        .map(|(k, v)| (k, v.into()))
+        .collect();
+
+    let action_id: String = args.get("actionId").unwrap().first().unwrap().clone().try_into().unwrap();
+    args.remove("actionId");
+
+    Ok((Action { component_name, action_name, args}, action_id))
 }
 

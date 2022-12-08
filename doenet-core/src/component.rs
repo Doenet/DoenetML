@@ -289,6 +289,33 @@ impl ComponentDefinition {
             _  => self,
         }        
     }
+
+    pub fn component_profile_match(
+        &self,
+        desired_profiles: &Vec<ComponentProfile>,
+    ) -> Option<StateVarSlice> {
+        for profile in self.component_profiles.iter() {
+            if desired_profiles.contains(&profile.0) {
+
+                let profile_state_var = profile.1;
+
+                let sv_def = self
+                    .state_var_definitions
+                    .get(&profile_state_var)
+                    .unwrap();
+
+                let profile_sv_slice = if sv_def.is_array() {
+                    StateVarSlice::Array(profile_state_var)
+                } else {
+                    StateVarSlice::Single(StateRef::Basic(profile_state_var))
+                };
+
+                return Some(profile_sv_slice);
+            }
+        }
+        None
+    }
+
 }
 
 use crate::lazy_static;

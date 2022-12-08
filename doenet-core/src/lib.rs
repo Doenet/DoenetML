@@ -179,6 +179,7 @@ pub fn create_doenet_core(
 }
 
 
+/// Add CopySource info
 fn convert_ml_components_into_component_nodes(
     ml_components: HashMap<ComponentName, MLComponent>,
     map_sources_alias: HashMap<String, String>,
@@ -796,7 +797,7 @@ fn create_dependencies_from_instruction(
                             );
                         }
 
-                        if let Some(profile_sv_slice) = component_profile_match(child_def, desired_profiles) {
+                        if let Some(profile_sv_slice) = child_def.component_profile_match(desired_profiles) {
                             relevant_children.push(
                                 RelevantChild::StateVar(Dependency::StateVar {
                                     component_group: child_group,
@@ -1124,32 +1125,6 @@ fn create_dependencies_from_instruction(
     dependencies
 }
 
-fn component_profile_match(
-    definition: &ComponentDefinition,
-    desired_profiles: &Vec<ComponentProfile>,
-) -> Option<StateVarSlice> {
-    for profile in definition.component_profiles.iter() {
-        if desired_profiles.contains(&profile.0) {
-
-            let profile_state_var = profile.1;
-
-            let sv_def = definition
-                .state_var_definitions
-                .get(&profile_state_var)
-                .unwrap();
-
-            let profile_sv_slice = if sv_def.is_array() {
-                StateVarSlice::Array(profile_state_var)
-            } else {
-                StateVarSlice::Single(StateRef::Basic(profile_state_var))
-            };
-
-            return Some(profile_sv_slice);
-        }
-    }
-    None
-}
-
 fn create_prop_index_dependencies(
     component: &ComponentNode,
     math_expression: &MathExpression,
@@ -1371,10 +1346,10 @@ fn resolve_state_variable(
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
                     // log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
 
-                    for (component_ref, comp_map) in component_group_members(core, &component_group, &dependency_map) {
+                    for (component_ref, comp_map) in component_group_members(core, component_group, dependency_map) {
 
                         // log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
-                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()).unwrap();
+                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, map, state_var_slice.clone()).unwrap();
                         // log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
 
                         values_for_this_dep.extend(
@@ -1386,7 +1361,7 @@ fn resolve_state_variable(
 
                 Dependency::UndeterminedChildren { component_name , desired_profiles } => {
 
-                    let group_member = component_group_members(core, &ComponentGroup::Collection(component_name.clone()), &map);
+                    let group_member = component_group_members(core, ComponentGroup::Collection(component_name.clone()), map.clone());
 
                     let mut children = Vec::new();
                     for (component_ref, comp_map) in group_member {
@@ -1419,7 +1394,7 @@ fn resolve_state_variable(
 
                     // log_debug!("map source ref: {:?}", component_ref);
 
-                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &comp_map, state_var_slice.clone()).unwrap();
+                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, &comp_map, state_var_slice.clone()).unwrap();
 
                     values_for_this_dep.extend(
                         get_dependency_values_for_state_var_slice(core, &sv_comp, &comp_map, &sv_slice)
@@ -1429,10 +1404,10 @@ fn resolve_state_variable(
 
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
 
-                    for (component_ref, comp_map) in component_group_members(core, &component_group, &dependency_map) {
+                    for (component_ref, comp_map) in component_group_members(core, component_group, dependency_map) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
                         let sv_slice = StateVarSlice::Single(sv_ref);
-                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &map, sv_slice).unwrap();
+                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, &map, sv_slice).unwrap();
 
                         values_for_this_dep.extend(
                             get_dependency_values_for_state_var_slice(core, &sv_comp, &comp_map, &sv_slice)
@@ -1474,34 +1449,19 @@ fn resolve_state_variable(
                         &index_state_var,
                     );
 
-                    let index: Option<usize> = if let Some(index_value) = index_value {
-
-                        let index_num: f64 = index_value.try_into().unwrap();
-                        convert_float_to_usize(index_num)
-
-                    } else {
-                        None
-                    };
+                    let index: Option<usize> = index_value.and_then(|i|
+                        convert_float_to_usize(i.try_into().unwrap())
+                    );
 
                     if let Some(index) = index {
 
                         log_debug!("got prop index which is {}", index);
 
-                        let element_value = resolve_state_variable(
-                            core,
-                            &component_name,
-                            &dependency_map,
-                            &StateRef::ArrayElement(array_state_var_name, index)
+                        let sv_slice = StateVarSlice::Single(StateRef::ArrayElement(array_state_var_name, index));
+
+                        values_for_this_dep.extend(
+                            get_dependency_values_for_state_var_slice(core, &component_name, &dependency_map, &sv_slice)
                         );
-
-                        log_debug!("element value is {:?}", element_value);
-
-                        if let Some(element_value) = element_value {
-                            values_for_this_dep.push(DependencyValue {
-                                source: dependency_source,
-                                value: element_value,
-                            });
-                        }
                     }
                 }
             }
@@ -1582,17 +1542,17 @@ fn handle_update_instruction(
                 .get_single_state(&state_var_ref.index(), map)
                 .expect(&format!("Error accessing state of {}:{:?}", component_name, state_var_ref));
 
-            if let Some(State::Stale) = current_value {
-                panic!("Cannot use NoChange update instruction on a stale value");
-
-            } else if let Some(State::Resolved(current_resolved_value)) = current_value {
-                // Do nothing. It's resolved, so we can use it as is
-                updated_value = Some(current_resolved_value);
-
-            } else {
-                updated_value = None;
-            };
-
+            match current_value {
+                Some(State::Stale) => 
+                    panic!("Cannot use NoChange update instruction on a stale value"),
+                Some(State::Resolved(current_resolved_value)) => {
+                    // Do nothing. It's resolved, so we can use it as is
+                    updated_value = Some(current_resolved_value);
+                },
+                None => {
+                    updated_value = None;
+                },
+            }
         },
         StateVarUpdateInstruction::SetValue(new_value) => {
 
@@ -1870,8 +1830,8 @@ fn state_vars_for_undetermined_children(
                     _ => (),
                 };
                         
-                if let Some(relevant_sv) = component_profile_match(child_def, &desired_profiles) {
-                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &child_ref, &comp_map, relevant_sv).unwrap();
+                if let Some(relevant_sv) = child_def.component_profile_match(&desired_profiles) {
+                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, child_ref, &comp_map, relevant_sv).unwrap();
 
                     let dependency_source = DependencySource::StateVar {
                         component_type: child_def.component_type,
@@ -2025,7 +1985,7 @@ fn get_state_variables_depending_on_me(
                 Dependency::UndeterminedChildren { component_name, desired_profiles } => {
                     let component_node = core.component_nodes.get(component_name).unwrap();
                     let mut dependent = false;
-                    if component_profile_match(component_node.definition, desired_profiles).is_some() {
+                    if component_node.definition.component_profile_match(desired_profiles).is_some() {
                         let mut chain = parent_chain(core, component_name).into_iter().rev();
                         let mut parent: Option<String> = chain.next();
                         while parent.is_some()  {
@@ -2255,7 +2215,7 @@ fn generate_render_tree_internal(
     for state_var_slice in renderered_state_vars {
         let (sv_comp, sv_slice) = convert_component_ref_state_var(
             core,
-            &component.component_ref,
+            component.component_ref.clone(),
             &component.map,
             state_var_slice
         ).unwrap();
@@ -2585,7 +2545,7 @@ fn convert_dependency_values_to_update_request(
                         },
                     };
 
-                    if let Some((sv_comp, sv_slice)) = convert_component_ref_state_var(core, &component_ref, map, state_var_slice.clone()) {
+                    if let Some((sv_comp, sv_slice)) = convert_component_ref_state_var(core, component_ref, map, state_var_slice.clone()) {
                         if let StateVarSlice::Single(state_var_ref) = sv_slice {
                             update_requests.push(UpdateRequest::SetStateVar(
                                 sv_comp,
@@ -2660,56 +2620,35 @@ fn process_update_request(
 
 
 /// Converts component group to a vector of component references.
-fn component_group_members<'a>(
+fn component_group_members(
     core: &DoenetCore,
-    component_group: &ComponentGroup,
-    map: &Instance,
+    component_group: ComponentGroup,
+    map: Instance,
 ) -> Vec<(ComponentRef, Instance)> {
     match component_group {
-        ComponentGroup::Single(comp_ref) => vec![(comp_ref.clone(), map.clone())],
+        ComponentGroup::Single(comp_ref) => vec![(comp_ref, map)],
         ComponentGroup::Batch(name) => {
-            indices_for_size(resolve_batch_size(core, name, None, map))
+            indices_for_size(resolve_batch_size(core, &name, None, &map))
                 .map(|i| (ComponentRef::BatchMember(name.clone(), None, i), map.clone())).collect()
         },
         ComponentGroup::Collection(name) => {
-            if core.component_nodes.get(name).unwrap().definition.component_type == "map" {
-                let deps = core.group_dependencies.get(name).unwrap();
+
+            if core.component_nodes.get(&name).unwrap().definition.component_type == "map" {
+                let deps = core.group_dependencies.get(&name).unwrap();
                 let template = deps.get(0).unwrap();
                 let sources = deps.get(1).unwrap();
 
-                indices_for_size(collection_size(core, sources, map))
+                return indices_for_size(collection_size(core, sources, &map))
                     .map(|i| {
                         let mut map_new = map.clone();
                         map_new.push(i, sources.clone());
                         (ComponentRef::Basic(template.clone()), map_new)
-                    })
-                    .collect()
-            } else {
-                indices_for_size(collection_size(core, name, map))
-                    .map(|i| (ComponentRef::CollectionMember(name.clone(), i), map.clone())).collect()
+                    }).collect()
             }
-        },
-    }
-}
 
-/// Convert (ComponentRef, StateVarSlice) -> (ComponentName, StateVarSlice).
-/// If the component reference is a group member, these are not the same.
-fn convert_component_ref_state_var(
-    core: &DoenetCore,
-    name: &ComponentRef,
-    map: &Instance,
-    state_var: StateVarSlice,
-) -> Option<(ComponentName, StateVarSlice)> {
-    match name {
-        ComponentRef::Basic(n) => Some((n.clone(), state_var)),
-        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, *c, state_var, *i)
-            .map(|sv| (n.clone(), sv)),
-        ComponentRef::CollectionMember(n, i) => match nth_collection_member(core, &n, map, *i) {
-            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
-                .map(|sv| (n.clone(), sv)),
-            Some(ComponentRef::Basic(n)) => Some((n, state_var)),
-            _ => None
-        }
+            indices_for_size(collection_size(core, &name, &map))
+                .map(|i| (ComponentRef::CollectionMember(name.clone(), i), map.clone())).collect()
+        },
     }
 }
 
@@ -2724,6 +2663,43 @@ fn resolve_batch_size(
         .definition.unwrap_batch_def(&batch_name);
     resolve_state_variable(core, component_name, map, &batch_def.size)
         .unwrap().try_into().unwrap()
+}
+
+fn collection_size(
+    core: &DoenetCore,
+    component_name: &ComponentName,
+    map: &Instance,
+) -> usize {
+    core.group_dependencies.get(component_name).unwrap()
+        .iter()
+        .map(|dep|
+            match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
+                Some(ReplacementComponents::Batch(_)) => resolve_batch_size(core, dep, None, map),
+                Some(ReplacementComponents::Collection(_)) => collection_size(core, dep, map),
+                _ => 1,
+            }
+        ).sum()
+}
+
+/// Convert (ComponentRef, StateVarSlice) -> (ComponentName, StateVarSlice).
+/// If the component reference is a group member, these are not the same.
+fn convert_component_ref_state_var(
+    core: &DoenetCore,
+    name: ComponentRef,
+    map: &Instance,
+    state_var: StateVarSlice,
+) -> Option<(ComponentName, StateVarSlice)> {
+    match name {
+        ComponentRef::Basic(n) => Some((n.clone(), state_var)),
+        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, map, c, state_var, i)
+            .map(|sv| (n.clone(), sv)),
+        ComponentRef::CollectionMember(n, i) => match nth_collection_member(core, &n, map, i) {
+            Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
+                .map(|sv| (n.clone(), sv)),
+            Some(ComponentRef::Basic(n)) => Some((n, state_var)),
+            _ => None
+        }
+    }
 }
 
 fn batch_state_var(
@@ -2741,22 +2717,6 @@ fn batch_state_var(
         resolve_state_variable(core, component_name, map, state_var_ref)
     };
     (batch_def.member_state_var)(index, &state_var, &state_var_resolver)
-}
-
-fn collection_size(
-    core: &DoenetCore,
-    component_name: &ComponentName,
-    map: &Instance,
-) -> usize {
-    core.group_dependencies.get(component_name).unwrap()
-        .iter()
-        .map(|dep|
-            match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
-                Some(ReplacementComponents::Batch(_)) => resolve_batch_size(core, dep, None, map),
-                Some(ReplacementComponents::Collection(_)) => collection_size(core, dep, map),
-                _ => 1,
-            }
-        ).sum()
 }
 
 /// The component ref return can either be a basic, or a member of a batch
@@ -2823,7 +2783,6 @@ fn component_ref_is_exact_copy(
     }
 }
 
-/// Returns component definition and component type.
 fn group_member_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component_group: &ComponentGroup,
@@ -2833,7 +2792,6 @@ fn group_member_definition(
     node.definition.definition_of_members(&node.static_attributes)
 }
 
-/// Returns component definition and component type.
 fn component_ref_definition(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component_ref: &ComponentRef,
@@ -3041,7 +2999,7 @@ fn get_children_and_members<'a>(
             match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
                 Some(ReplacementComponents::Batch(_)) => {
                     let group = ComponentGroup::Batch(comp_name.clone());
-                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                    component_group_members(core, group, map.clone()).iter().map(|(comp_ref, comp_map)|
                         (ObjectRefName::Component(comp_ref.clone()),
                         comp_map.clone(),
                         actual_parent)
@@ -3049,7 +3007,7 @@ fn get_children_and_members<'a>(
                 },
                 Some(ReplacementComponents::Collection(_)) => {
                     let group = ComponentGroup::Collection(comp_name.clone());
-                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                    component_group_members(core, group, map.clone()).iter().map(|(comp_ref, comp_map)|
                         (ObjectRefName::Component(comp_ref.clone()),
                         comp_map.clone(),
                         actual_parent)
@@ -3158,7 +3116,7 @@ fn request_dependencies_to_update_value_including_shadow(
     if let Some((source_ref, source_sv_ref)) = state_var_is_shadowing(component, state_var_ref) {
 
         let (source_comp, source_state_var) =
-            convert_component_ref_state_var(core, &source_ref, map, source_sv_ref)
+            convert_component_ref_state_var(core, source_ref, map, source_sv_ref)
             .unwrap();
 
         let source_state_var = match source_state_var {
