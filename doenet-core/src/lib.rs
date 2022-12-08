@@ -128,50 +128,6 @@ pub enum Dependency {
 }
 
 
-// Each tuple stores the map number and name of the relevant sources component
-/// Note: instance number starts at 1
-#[derive(Clone, Default)]
-pub struct Instance (Vec<(usize, ComponentName)>);
-
-impl From<Vec<(i32, &str)>> for Instance {
-    fn from(v: Vec<(i32, &str)>) -> Self {
-        Instance(v.into_iter().map(|(a,b)| (a as usize, b.to_string())).collect())
-    }
-}
-
-impl Instance {
-    pub fn instance_indices(&self) -> Vec<usize> {
-        self.0.iter().map(|(i,_)| i.clone()).collect()
-    }
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-    pub fn push(&mut self, index: usize, sources: ComponentName) {
-        self.0.push((index, sources))
-    }
-    /// Find the instance of the <sources> component pertaining to the given instance
-    pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
-        let sources_index = self.0.iter().position(|(_, n)| n == sources).expect(
-            &format!("instance {:?} does not contain sources {}", self, sources)
-        );
-        let sources_map = (&self.0[..sources_index]).to_vec();
-        let index = self.0.get(sources_index).unwrap().0;
-        (index, Instance(sources_map))
-    }
-}
-impl std::fmt::Display for Instance {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.instance_indices().fmt(f)
-    }
-}
-impl std::fmt::Debug for Instance {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
-
-
-
 
 
 
@@ -403,7 +359,6 @@ fn convert_ml_components_into_component_nodes(
 }
 
 
-
 fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentNode>) -> HashMap<ComponentName, Vec<ComponentName>> {
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
@@ -418,7 +373,6 @@ fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentN
     }
     group_dependencies
 }
-
 
 
 fn create_dependencies_and_essential_data(
@@ -633,7 +587,7 @@ fn create_all_dependencies_for_component(
 
         } else {
 
-            let dependency_instructions = return_dependency_instructions_for_state_ref(component, &StateRef::Basic(state_var_name));
+            let dependency_instructions = state_var_variant.return_dependency_instructions(HashMap::new());
 
             for (instruct_name, ref dep_instruction) in dependency_instructions.into_iter() {
                 let instruct_dependencies = create_dependencies_from_instruction(
@@ -1376,6 +1330,7 @@ fn create_stale_component_states(component_nodes: &HashMap<ComponentName, Compon
 
 
 
+
 fn resolve_state_variable(
     core: &DoenetCore,
     component: &ComponentName,
@@ -1474,27 +1429,15 @@ fn resolve_state_variable(
 
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
 
-                    for (component_ref, map) in component_group_members(core, &component_group, &dependency_map) {
+                    for (component_ref, comp_map) in component_group_members(core, &component_group, &dependency_map) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
                         let sv_slice = StateVarSlice::Single(sv_ref);
                         let (sv_comp, sv_slice) = convert_component_ref_state_var(core, &component_ref, &map, sv_slice).unwrap();
 
-                        match sv_slice {
-                            StateVarSlice::Single(ref sv_ref) => {
-
-                                let depends_on_value = resolve_state_variable(core, &sv_comp, &map, sv_ref);
-
-                                if let Some(depends_on_value) = depends_on_value {
-                                    values_for_this_dep.push(DependencyValue {
-                                        source: dependency_source.clone(),
-                                        value: depends_on_value,
-                                    });    
-                                }
-                            },
-                            _ => (),
-                        }
+                        values_for_this_dep.extend(
+                            get_dependency_values_for_state_var_slice(core, &sv_comp, &comp_map, &sv_slice)
+                        );
                     }
-
                 },
 
                 Dependency::Essential { component_name, origin } => {
@@ -1583,6 +1526,39 @@ fn resolve_state_variable(
     let new_value = handle_update_instruction(component, map, state_var_ref, state_vars, update_instruction);
 
     return new_value;
+}
+
+/// This determines the state var given its dependency values.
+fn generate_update_instruction_for_state_ref(
+    component: &ComponentNode,
+    state_var: &StateRef,
+    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
+
+) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
+
+    if state_var.name() == PROP_INDEX_SV {
+        prop_index_determine_value(dependency_values).map(|update_instruction| match update_instruction {
+            StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
+            StateVarUpdateInstruction::SetValue(num_val) => StateVarUpdateInstruction::SetValue(num_val.into()),
+        })
+    } else {
+
+        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
+
+        match state_var {
+            StateRef::Basic(_) => {
+                state_var_def.determine_state_var_from_dependencies(dependency_values)
+            },
+            StateRef::SizeOf(_) => {
+                state_var_def.determine_size_from_dependencies(dependency_values)
+            },
+            StateRef::ArrayElement(_, id) => {
+                let internal_id = id - 1;
+                state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
+            }
+        }    
+    }
+
 }
 
 /// Sets the state var and returns the new value
@@ -1688,6 +1664,7 @@ fn get_dependency_values_for_state_var_slice(
     }
     dependency_values
 }
+
 
 
 
@@ -1972,7 +1949,6 @@ fn mark_stale_state_var_and_dependencies(
     }
 }
 
-
 fn mark_stale_essential_datum_dependencies(
     core: &DoenetCore,
     component_name: ComponentName,
@@ -2017,7 +1993,6 @@ fn mark_stale_essential_datum_dependencies(
         mark_stale_state_var_and_dependencies(core, &component_name, map, &state_var_ref);
     }
 }
-
 
 /// Calculate all the (normal) state vars that depend on the given state var
 fn get_state_variables_depending_on_me(
@@ -2203,6 +2178,9 @@ fn get_state_variables_depending_on_me(
 
     depending_on_me
 }
+
+
+
 
 
 #[derive(Debug)]
@@ -2875,94 +2853,48 @@ fn component_ref_definition(
 
 
 
-#[derive(Debug)]
-enum ObjectRefName {
-    Component(ComponentRef),
-    String(String),
-}
 
-// return child and actual parent
-fn get_children_and_members<'a>(
-    core: &'a DoenetCore,
-    component: &ComponentRef,
-    map: &'a Instance,
-) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
 
-    let use_component_name = component_ref_is_exact_copy(core, component, map)
-        .unwrap_or(component.name());
+// Each tuple stores the map number and name of the relevant sources component
+/// Note: instance number starts at 1
+#[derive(Clone, Default)]
+pub struct Instance (Vec<(usize, ComponentName)>);
 
-    get_children_including_copy_and_groups(
-        &core,
-        core.component_nodes.get(&use_component_name).unwrap(),
-        map,
-    )
-    .into_iter()
-    .flat_map(|(child, actual_parent)| match child {
-        ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
-        ComponentChild::Component(comp_name) => {
-
-            match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
-                Some(ReplacementComponents::Batch(_)) => {
-                    let group = ComponentGroup::Batch(comp_name.clone());
-                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
-                        (ObjectRefName::Component(comp_ref.clone()),
-                        comp_map.clone(),
-                        actual_parent)
-                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
-                },
-                Some(ReplacementComponents::Collection(_)) => {
-                    let group = ComponentGroup::Collection(comp_name.clone());
-                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
-                        (ObjectRefName::Component(comp_ref.clone()),
-                        comp_map.clone(),
-                        actual_parent)
-                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
-                },
-                _ => {
-                    vec![(ObjectRefName::Component(ComponentRef::Basic(comp_name.clone())),
-                    map.clone(),
-                    actual_parent)]
-                }
-            }
-        },
-    })
-}
-
-/// An addition to get_children_including_copy that includes copying
-/// the component index of a group
-fn get_children_including_copy_and_groups<'a>(
-    core: &'a DoenetCore,
-    component: &'a ComponentNode,
-    map: &Instance,
-) -> Vec<(ComponentChild, &'a ComponentNode)> {
-
-    let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
-    match &component.copy_source {
-        Some(CopySource::Component(component_ref)) => {
-            let exact_copy_of_component = component_ref_is_exact_copy(core, &component_ref, map);
-            let source = exact_copy_of_component.unwrap_or(component_ref.name());
-            let source_comp = core.component_nodes.get(&source).unwrap();
-
-            children_vec = get_children_including_copy_and_groups(core, source_comp, map);
-        },
-        Some(CopySource::MapSources(map_sources)) => {
-            let (source, source_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
-            if let ComponentRef::Basic(name) = source {
-                let source_comp = core.component_nodes.get(&name).unwrap();
-
-                children_vec = get_children_including_copy_and_groups(core, source_comp, &source_map);
-            }
-        },
-        _ => {},
+impl From<Vec<(i32, &str)>> for Instance {
+    fn from(v: Vec<(i32, &str)>) -> Self {
+        Instance(v.into_iter().map(|(a,b)| (a as usize, b.to_string())).collect())
     }
+}
 
-    children_vec.extend(
-        component.children
-        .iter()
-        .map(|c| (c.clone(), component))
-    );
-
-    children_vec
+impl Instance {
+    pub fn instance_indices(&self) -> Vec<usize> {
+        self.0.iter().map(|(i,_)| i.clone()).collect()
+    }
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+    pub fn push(&mut self, index: usize, sources: ComponentName) {
+        self.0.push((index, sources))
+    }
+    /// Find the instance of the <sources> component pertaining to the given instance
+    pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
+        let sources_index = self.0.iter().position(|(_, n)| n == sources).expect(
+            &format!("instance {:?} does not contain sources {}", self, sources)
+        );
+        let sources_map = (&self.0[..sources_index]).to_vec();
+        let index = self.0.get(sources_index).unwrap().0;
+        (index, Instance(sources_map))
+    }
+}
+impl std::fmt::Display for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.instance_indices().fmt(f)
+    }
+}
+impl std::fmt::Debug for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
 }
 
 /// Find the component that the sources dependency points to
@@ -3076,7 +3008,99 @@ fn parent_chain(
     parent_chain.into_iter().rev().collect()
 }
 
-////////////// Wrappers providing for CopySource and sequence component //////////////
+
+
+
+
+#[derive(Debug)]
+enum ObjectRefName {
+    Component(ComponentRef),
+    String(String),
+}
+
+// return child and actual parent
+fn get_children_and_members<'a>(
+    core: &'a DoenetCore,
+    component: &ComponentRef,
+    map: &'a Instance,
+) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
+
+    let use_component_name = component_ref_is_exact_copy(core, component, map)
+        .unwrap_or(component.name());
+
+    get_children_including_copy_and_groups(
+        &core,
+        core.component_nodes.get(&use_component_name).unwrap(),
+        map,
+    )
+    .into_iter()
+    .flat_map(|(child, actual_parent)| match child {
+        ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
+        ComponentChild::Component(comp_name) => {
+
+            match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
+                Some(ReplacementComponents::Batch(_)) => {
+                    let group = ComponentGroup::Batch(comp_name.clone());
+                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                        (ObjectRefName::Component(comp_ref.clone()),
+                        comp_map.clone(),
+                        actual_parent)
+                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                },
+                Some(ReplacementComponents::Collection(_)) => {
+                    let group = ComponentGroup::Collection(comp_name.clone());
+                    component_group_members(core, &group, map).iter().map(|(comp_ref, comp_map)|
+                        (ObjectRefName::Component(comp_ref.clone()),
+                        comp_map.clone(),
+                        actual_parent)
+                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                },
+                _ => {
+                    vec![(ObjectRefName::Component(ComponentRef::Basic(comp_name.clone())),
+                    map.clone(),
+                    actual_parent)]
+                }
+            }
+        },
+    })
+}
+
+/// An addition to get_children_including_copy that includes copying
+/// the component index of a group
+fn get_children_including_copy_and_groups<'a>(
+    core: &'a DoenetCore,
+    component: &'a ComponentNode,
+    map: &Instance,
+) -> Vec<(ComponentChild, &'a ComponentNode)> {
+
+    let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
+    match &component.copy_source {
+        Some(CopySource::Component(component_ref)) => {
+            let exact_copy_of_component = component_ref_is_exact_copy(core, &component_ref, map);
+            let source = exact_copy_of_component.unwrap_or(component_ref.name());
+            let source_comp = core.component_nodes.get(&source).unwrap();
+
+            children_vec = get_children_including_copy_and_groups(core, source_comp, map);
+        },
+        Some(CopySource::MapSources(map_sources)) => {
+            let (source, source_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
+            if let ComponentRef::Basic(name) = source {
+                let source_comp = core.component_nodes.get(&name).unwrap();
+
+                children_vec = get_children_including_copy_and_groups(core, source_comp, &source_map);
+            }
+        },
+        _ => {},
+    }
+
+    children_vec.extend(
+        component.children
+        .iter()
+        .map(|c| (c.clone(), component))
+    );
+
+    children_vec
+}
 
 
 /// This includes the copy source's children.
@@ -3121,63 +3145,6 @@ fn get_recursive_copy_source_component_when_exists<'a>(
         _ => &component.name,
     }
 }
-
-
-fn return_dependency_instructions_for_state_ref(
-    component: &ComponentNode,
-    state_var: &StateRef,
-) -> HashMap<InstructionName, DependencyInstruction> {
-
-    let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
-
-    match state_var {
-        StateRef::Basic(_) => {
-            state_var_def.return_dependency_instructions(HashMap::new())
-        },
-        StateRef::SizeOf(_) => {
-            state_var_def.return_size_dependency_instructions(HashMap::new())
-        },
-        StateRef::ArrayElement(_, id) => {
-            state_var_def.return_element_dependency_instructions(*id, HashMap::new())
-        }
-    }
-}
-
-
-
-/// This determines the state var given its dependency values.
-fn generate_update_instruction_for_state_ref(
-    component: &ComponentNode,
-    state_var: &StateRef,
-    dependency_values: HashMap<InstructionName, Vec<DependencyValue>>
-
-) -> Result<StateVarUpdateInstruction<StateVarValue>, String> {
-
-    if state_var.name() == PROP_INDEX_SV {
-        prop_index_determine_value(dependency_values).map(|update_instruction| match update_instruction {
-            StateVarUpdateInstruction::NoChange => StateVarUpdateInstruction::NoChange,
-            StateVarUpdateInstruction::SetValue(num_val) => StateVarUpdateInstruction::SetValue(num_val.into()),
-        })
-    } else {
-
-        let state_var_def = component.definition.state_var_definitions.get(state_var.name()).unwrap();
-
-        match state_var {
-            StateRef::Basic(_) => {
-                state_var_def.determine_state_var_from_dependencies(dependency_values)
-            },
-            StateRef::SizeOf(_) => {
-                state_var_def.determine_size_from_dependencies(dependency_values)
-            },
-            StateRef::ArrayElement(_, id) => {
-                let internal_id = id - 1;
-                state_var_def.determine_element_from_dependencies(internal_id, dependency_values)
-            }
-        }    
-    }
-
-}
-
 
 
 fn request_dependencies_to_update_value_including_shadow(
@@ -3256,8 +3223,11 @@ fn state_var_is_shadowing(component: &ComponentNode, state_var: &StateRef)
     }
 }
 
-// ==== Error and warning checks during core creating ====
 
+
+
+
+// ==== Error and warning checks during core creating ====
 
 fn check_for_invalid_childen_component_profiles(component_nodes: &HashMap<ComponentName, ComponentNode>) -> Vec<DoenetMLWarning> {
     let mut doenet_ml_warnings = vec![];
@@ -3474,7 +3444,6 @@ fn convert_float_to_usize(f: f64) -> Option<usize> {
         None
     }
 }
-
 
 fn indices_for_size(size: usize) -> std::ops::Range<usize> {
     1..size+1

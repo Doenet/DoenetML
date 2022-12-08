@@ -419,14 +419,14 @@ fn collect_and_copy_number_input_changes_original() {
     let render_tree_string = doenet_core::update_renderers(&dc);
     let render_tree = serde_json::from_str(&render_tree_string).unwrap();
 
-    let collect1 = child_instructions_for(&render_tree, "/_document1", "textInput_from_(/_collect1[1])")
+    let collect1 = child_instructions_for(&render_tree, "/_document1", "__textInput_from_(/_collect1[1])")
         .get("actions").unwrap()
         .as_object().unwrap()
         .get("updateValue").unwrap()
         .as_object().unwrap()
         .get("componentName").unwrap()
         .as_str().unwrap();
-    let collect2 = child_instructions_for(&render_tree, "/_document1", "textInput_from_(/_collect1[2])")
+    let collect2 = child_instructions_for(&render_tree, "/_document1", "__textInput_from_(/_collect1[2])")
         .get("actions").unwrap()
         .as_object().unwrap()
         .get("updateImmediateValue").unwrap()
