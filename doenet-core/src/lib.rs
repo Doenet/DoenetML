@@ -1346,10 +1346,10 @@ fn resolve_state_variable(
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
                     // log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
 
-                    for (component_ref, comp_map) in component_group_members(core, component_group, dependency_map) {
+                    for component_ref in component_group_members(core, component_group, dependency_map.clone()) {
 
                         // log_debug!("Component ref {:?} and {:?}", component_ref, state_var_slice);
-                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, map, state_var_slice.clone()).unwrap();
+                        let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, component_ref, dependency_map.clone(), state_var_slice.clone()).unwrap();
                         // log_debug!("Converted to sv_comp {} and sv_slice {}", sv_comp, sv_slice);
 
                         values_for_this_dep.extend(
@@ -1364,8 +1364,8 @@ fn resolve_state_variable(
                     let group_member = component_group_members(core, ComponentGroup::Collection(component_name.clone()), map.clone());
 
                     let mut children = Vec::new();
-                    for (component_ref, comp_map) in group_member {
-                        children.extend(state_vars_for_undetermined_children(core, &comp_map, &component_ref, &desired_profiles));
+                    for component_ref in group_member {
+                        children.extend(state_vars_for_undetermined_children(core, map, &component_ref, &desired_profiles));
                     }
                     for (child, sv_slice, dep_source, comp_map) in children {
                         match child {
@@ -1394,7 +1394,7 @@ fn resolve_state_variable(
 
                     // log_debug!("map source ref: {:?}", component_ref);
 
-                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, &comp_map, state_var_slice.clone()).unwrap();
+                    let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, component_ref, comp_map, state_var_slice.clone()).unwrap();
 
                     values_for_this_dep.extend(
                         get_dependency_values_for_state_var_slice(core, &sv_comp, &comp_map, &sv_slice)
@@ -1404,10 +1404,10 @@ fn resolve_state_variable(
 
                     let dependency_map = instance_of_dependency(core, map, &component_group.name());
 
-                    for (component_ref, comp_map) in component_group_members(core, component_group, dependency_map) {
+                    for component_ref in component_group_members(core, component_group, dependency_map.clone()) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
                         let sv_slice = StateVarSlice::Single(sv_ref);
-                        let (sv_comp, sv_slice) = convert_component_ref_state_var(core, component_ref, &map, sv_slice).unwrap();
+                        let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, component_ref, dependency_map.clone(), sv_slice).unwrap();
 
                         values_for_this_dep.extend(
                             get_dependency_values_for_state_var_slice(core, &sv_comp, &comp_map, &sv_slice)
@@ -1831,7 +1831,7 @@ fn state_vars_for_undetermined_children(
                 };
                         
                 if let Some(relevant_sv) = child_def.component_profile_match(&desired_profiles) {
-                    let (sv_comp, sv_slice) = convert_component_ref_state_var(core, child_ref, &comp_map, relevant_sv).unwrap();
+                    let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, child_ref, comp_map, relevant_sv).unwrap();
 
                     let dependency_source = DependencySource::StateVar {
                         component_type: child_def.component_type,
@@ -2213,22 +2213,22 @@ fn generate_render_tree_internal(
 
     let mut state_values = serde_json::Map::new();
     for state_var_slice in renderered_state_vars {
-        let (sv_comp, sv_slice) = convert_component_ref_state_var(
+        let (sv_comp, sv_map, sv_slice) = convert_component_ref_state_var(
             core,
             component.component_ref.clone(),
-            &component.map,
+            component.map.clone(),
             state_var_slice
         ).unwrap();
 
         match sv_slice {
             StateVarSlice::Array(sv_name) => {
 
-                let sv_refs = elements_of_array(core, &component_name, &component.map, &sv_name);
+                let sv_refs = elements_of_array(core, &component_name, &sv_map, &sv_name);
 
                 let mut values: Vec<f64> = Vec::new();
                 for sv_ref in sv_refs {
                     values.push(
-                        resolve_state_variable(core, &sv_comp, &component.map, &sv_ref)
+                        resolve_state_variable(core, &sv_comp, &sv_map, &sv_ref)
                         .unwrap()
                         .try_into()
                         .unwrap()
@@ -2251,7 +2251,7 @@ fn generate_render_tree_internal(
             },
 
             StateVarSlice::Single(state_ref) => {
-                let state_var_value = resolve_state_variable(core, &sv_comp, &component.map, &state_ref)
+                let state_var_value = resolve_state_variable(core, &sv_comp, &sv_map, &state_ref)
                     .expect(&format!("state var {}:{} cannot be resolved", &sv_comp, &state_ref));
 
                 let sv_renderer_name = state_var_aliases
@@ -2301,11 +2301,9 @@ fn generate_render_tree_internal(
 
                     let child_name = name_rendered_component(&child_component, child_definition.component_type);
 
-                    let exact_copy_of_component =
-                        component_ref_is_exact_copy(core, &child_component.component_ref, &child_map);
+                    let (component_original, child_map) =
+                        component_ref_original_component(core, child_component.component_ref.clone(), child_map);
 
-                    let component_original = exact_copy_of_component
-                        .unwrap_or(child_name.clone());
                     let action_component_name = alias_name_with_map_instance(
                         &component_original,
                         child_map
@@ -2545,11 +2543,11 @@ fn convert_dependency_values_to_update_request(
                         },
                     };
 
-                    if let Some((sv_comp, sv_slice)) = convert_component_ref_state_var(core, component_ref, map, state_var_slice.clone()) {
+                    if let Some((sv_comp, sv_map, sv_slice)) = convert_component_ref_state_var(core, component_ref, map.clone(), state_var_slice.clone()) {
                         if let StateVarSlice::Single(state_var_ref) = sv_slice {
                             update_requests.push(UpdateRequest::SetStateVar(
                                 sv_comp,
-                                map.clone(),
+                                sv_map,
                                 state_var_ref,
                                 request.value.clone(),
                             ))
@@ -2624,31 +2622,15 @@ fn component_group_members(
     core: &DoenetCore,
     component_group: ComponentGroup,
     map: Instance,
-) -> Vec<(ComponentRef, Instance)> {
+) -> Vec<ComponentRef> {
     match component_group {
-        ComponentGroup::Single(comp_ref) => vec![(comp_ref, map)],
-        ComponentGroup::Batch(name) => {
+        ComponentGroup::Single(comp_ref) => vec![comp_ref],
+        ComponentGroup::Batch(name) =>
             indices_for_size(resolve_batch_size(core, &name, None, &map))
-                .map(|i| (ComponentRef::BatchMember(name.clone(), None, i), map.clone())).collect()
-        },
-        ComponentGroup::Collection(name) => {
-
-            if core.component_nodes.get(&name).unwrap().definition.component_type == "map" {
-                let deps = core.group_dependencies.get(&name).unwrap();
-                let template = deps.get(0).unwrap();
-                let sources = deps.get(1).unwrap();
-
-                return indices_for_size(collection_size(core, sources, &map))
-                    .map(|i| {
-                        let mut map_new = map.clone();
-                        map_new.push(i, sources.clone());
-                        (ComponentRef::Basic(template.clone()), map_new)
-                    }).collect()
-            }
-
+                .map(|i| ComponentRef::BatchMember(name.clone(), None, i)).collect(),
+        ComponentGroup::Collection(name) =>
             indices_for_size(collection_size(core, &name, &map))
-                .map(|i| (ComponentRef::CollectionMember(name.clone(), i), map.clone())).collect()
-        },
+                .map(|i| ComponentRef::CollectionMember(name.clone(), i)).collect(),
     }
 }
 
@@ -2659,20 +2641,36 @@ fn resolve_batch_size(
     map: &Instance,
 ) -> usize {
 
+    log_debug!("resolving {} batch {:?} found def ", component_name, batch_name);
     let batch_def = core.component_nodes.get(component_name).unwrap()
         .definition.unwrap_batch_def(&batch_name);
     resolve_state_variable(core, component_name, map, &batch_def.size)
         .unwrap().try_into().unwrap()
 }
 
-/// Note: not applicable to special collections like <map> or <conditionalContent>
 fn collection_size(
     core: &DoenetCore,
     component_name: &ComponentName,
     map: &Instance,
 ) -> usize {
-    core.group_dependencies.get(component_name).unwrap()
-        .iter()
+
+    let group_deps = core.group_dependencies.get(component_name).unwrap();
+    let component_def = core.component_nodes.get(component_name).unwrap().definition;
+
+    if component_def.component_type == "map" {
+        let sources = group_deps.get(1).unwrap();
+        return collection_size(core, sources, map);
+    }
+    if component_def.component_type == "conditionalContent" {
+        let active_cases = group_deps.iter().filter(|case| {
+            let condition_sv = &StateRef::Basic("condition");
+            let condition = resolve_state_variable(core, case, map, condition_sv);
+            matches!(condition, Some(StateVarValue::Boolean(true)))
+        });
+        return active_cases.count();
+    }
+
+    group_deps.iter()
         .map(|dep|
             match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
                 Some(ReplacementComponents::Batch(_)) => resolve_batch_size(core, dep, None, map),
@@ -2682,22 +2680,36 @@ fn collection_size(
         ).sum()
 }
 
-/// Convert (ComponentRef, StateVarSlice) -> (ComponentName, StateVarSlice).
+// Converts a collection into the ComponentRef it points to.
+// Returns ComponentRef of type basic or batch.
+fn component_ref_apply_collection(
+    core: &DoenetCore,
+    component_ref: ComponentRef,
+    map: Instance,
+) -> Option<(ComponentRef, Instance)> {
+    match component_ref {
+        ComponentRef::CollectionMember(n, i) => nth_collection_member(core, &n, map, i),
+        _ => Some((component_ref, map)),
+    }
+}
+
+/// Convert (ComponentRef, Instance, StateVarSlice) -> (ComponentName, Instance, StateVarSlice).
 /// If the component reference is a group member, these are not the same.
 fn convert_component_ref_state_var(
     core: &DoenetCore,
     name: ComponentRef,
-    map: &Instance,
+    map: Instance,
     state_var: StateVarSlice,
-) -> Option<(ComponentName, StateVarSlice)> {
-    let name = match name {
-        ComponentRef::CollectionMember(n, i) => nth_collection_member(core, &n, map, i),
-        _ => Some(name),
+) -> Option<(ComponentName, Instance, StateVarSlice)> {
+    let (name, map) = match component_ref_apply_collection(core, name, map) {
+        Some((c,m)) => (c, m),
+        None => return None,
     };
+
     match name {
-        Some(ComponentRef::Basic(n)) => Some((n, state_var)),
-        Some(ComponentRef::BatchMember(n, c, i)) => batch_state_var(core, &n, map, c, state_var, i)
-            .map(|sv| (n, sv)),
+        ComponentRef::Basic(n) => Some((n, map, state_var)),
+        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, &map, c, state_var, i)
+            .map(|sv| (n, map, sv)),
         _ => None,
     }
 }
@@ -2724,11 +2736,39 @@ fn batch_state_var(
 fn nth_collection_member(
     core: &DoenetCore,
     component_name: &ComponentName,
-    map: &Instance,
+    map: Instance,
     index: usize,
-) -> Option<ComponentRef> {
-    let mut index = index;
-    nth_collection_member_internal(&mut index, component_name, map, core)
+) -> Option<(ComponentRef, Instance)> {
+
+    let deps = core.group_dependencies.get(component_name).unwrap();
+    let component_def = core.component_nodes.get(component_name).unwrap().definition;
+    if component_def.component_type == "map" {
+        let template = deps.get(0).unwrap();
+        let sources = deps.get(1).unwrap();
+
+        if index <= collection_size(core, sources, &map) {
+            let mut map_new = map;
+            map_new.push(index, sources.clone());
+            return Some((ComponentRef::Basic(template.clone()), map_new))
+        } else {
+            return None
+        }
+    }
+    if component_def.component_type == "conditionalContent" {
+        let mut active_cases = deps.iter().filter(|case| {
+            let condition_sv = &StateRef::Basic("condition");
+            let condition = resolve_state_variable(core, case, &map, condition_sv);
+            matches!(condition, Some(StateVarValue::Boolean(true)))
+        });
+
+        // log_debug!("active cases of {} are {:?}", component_name, useable_cases.clone().collect::<Vec<&String>>());
+        return active_cases.nth(index - 1)
+            .map(|c| (ComponentRef::Basic(c.clone()), map.clone()));
+    }
+
+    let mut index = index; // countdown
+    nth_collection_member_internal(&mut index, component_name, &map, core)
+        .map(|c| (c, map.clone()))
 }
 
 fn nth_collection_member_internal(
@@ -2738,16 +2778,15 @@ fn nth_collection_member_internal(
     core: &DoenetCore,
 ) -> Option<ComponentRef> {
     for group_dep in core.group_dependencies.get(component_name).unwrap() {
-        match &core.component_nodes.get(group_dep).unwrap().definition.replacement_components {
+        let component_node = core.component_nodes.get(group_dep).unwrap();
+        match &component_node.definition.replacement_components {
             Some(ReplacementComponents::Collection(_)) => {
-                match nth_collection_member_internal(index, group_dep, map, core) {
-                    Some(c) => return Some(c),
-                    None => (),
+                if let Some(c) = nth_collection_member_internal(index, group_dep, map, core) {
+                    return Some(c)
                 }
             }
-            Some(ReplacementComponents::Batch(def)) => {
-                let size: usize = resolve_state_variable(core, group_dep, map, &def.size)
-                    .unwrap().try_into().unwrap();
+            Some(ReplacementComponents::Batch(_)) => {
+                let size = resolve_batch_size(core, &component_node.name, None, map);
                 if *index > size {
                     *index -= size;
                 } else {
@@ -2766,21 +2805,17 @@ fn nth_collection_member_internal(
     None
 }
 
-fn component_ref_is_exact_copy(
+// Returns the component that the ComponentRef refers to.
+// If the ComponentRef refers to a batch member, this returns the entire component.
+fn component_ref_original_component(
     core: &DoenetCore,
-    component_ref: &ComponentRef,
-    map: &Instance,
-) -> Option<ComponentName> {
-    match &component_ref {
-        ComponentRef::Basic(n) => Some(n.clone()),
-        ComponentRef::BatchMember(_, _, _) => None,
-        ComponentRef::CollectionMember(n, i) => {
-            match nth_collection_member(core, n, map, *i).unwrap() {
-                ComponentRef::Basic(c) => Some(c.clone()),
-                _ => None,
-            }
-        },
-    }
+    component_ref: ComponentRef,
+    map: Instance,
+) -> (ComponentName, Instance) {
+    let (c, m) = component_ref_apply_collection(core, component_ref.clone(), map.clone()).expect(
+        &format!("no component original {:?} {}", component_ref, map)
+    );
+    (c.name(), m)
 }
 
 fn group_member_definition(
@@ -2862,8 +2897,7 @@ fn map_sources_dependency_member(
     map: &Instance,
 ) -> Option<(ComponentRef, Instance)> {
     let (index, sources_map) = map.find_sources(sources);
-    let comp_ref = nth_collection_member(core, sources, &sources_map, index);
-    comp_ref.map(|x| (x,sources_map))
+    nth_collection_member(core, sources, sources_map, index)
 }
 
 /// Find all instances of a component inside extra maps
@@ -2884,6 +2918,7 @@ fn instance_of_dependency(
     dependency: &ComponentName,
 ) -> Instance {
     let dependency_inside = sources_that_instance_component(core, dependency);
+    log_debug!("sources instancing {} map {}: {:?}", dependency, map, dependency_inside);
     let mut instance = Instance::default();
     for (i, s) in dependency_inside.iter().enumerate() {
         let (map_index, map_source) = map.0.get(i).unwrap();
@@ -2981,39 +3016,39 @@ fn get_children_and_members<'a>(
     map: &'a Instance,
 ) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
 
-    let use_component_name = component_ref_is_exact_copy(core, component, map)
-        .unwrap_or(component.name());
+    let (use_component_name, use_map) = component_ref_original_component(core, component.clone(), map.clone());
+    log_debug!("use component {} {}", use_component_name, use_map);
 
     get_children_including_copy_and_groups(
         &core,
         core.component_nodes.get(&use_component_name).unwrap(),
-        map,
+        &use_map,
     )
     .into_iter()
-    .flat_map(|(child, actual_parent)| match child {
-        ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), map.clone(), actual_parent)],
+    .flat_map(move |(child, actual_parent)| match child {
+        ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), use_map.clone(), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
             match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
                 Some(ReplacementComponents::Batch(_)) => {
                     let group = ComponentGroup::Batch(comp_name.clone());
-                    component_group_members(core, group, map.clone()).iter().map(|(comp_ref, comp_map)|
+                    component_group_members(core, group, use_map.clone()).iter().map(|comp_ref|
                         (ObjectRefName::Component(comp_ref.clone()),
-                        comp_map.clone(),
+                        use_map.clone(),
                         actual_parent)
                     ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
                 },
                 Some(ReplacementComponents::Collection(_)) => {
                     let group = ComponentGroup::Collection(comp_name.clone());
-                    component_group_members(core, group, map.clone()).iter().map(|(comp_ref, comp_map)|
+                    component_group_members(core, group, use_map.clone()).iter().map(|comp_ref|
                         (ObjectRefName::Component(comp_ref.clone()),
-                        comp_map.clone(),
+                        use_map.clone(),
                         actual_parent)
                     ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
                 },
                 _ => {
                     vec![(ObjectRefName::Component(ComponentRef::Basic(comp_name.clone())),
-                    map.clone(),
+                    use_map.clone(),
                     actual_parent)]
                 }
             }
@@ -3032,11 +3067,10 @@ fn get_children_including_copy_and_groups<'a>(
     let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
     match &component.copy_source {
         Some(CopySource::Component(component_ref)) => {
-            let exact_copy_of_component = component_ref_is_exact_copy(core, &component_ref, map);
-            let source = exact_copy_of_component.unwrap_or(component_ref.name());
+            let (source, source_map) = component_ref_original_component(core, component_ref.clone(), map.clone());
             let source_comp = core.component_nodes.get(&source).unwrap();
 
-            children_vec = get_children_including_copy_and_groups(core, source_comp, map);
+            children_vec = get_children_including_copy_and_groups(core, source_comp, &source_map);
         },
         Some(CopySource::MapSources(map_sources)) => {
             let (source, source_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
@@ -3113,15 +3147,15 @@ fn request_dependencies_to_update_value_including_shadow(
 
     if let Some((source_ref, source_sv_ref)) = state_var_is_shadowing(component, state_var_ref) {
 
-        let (source_comp, source_state_var) =
-            convert_component_ref_state_var(core, source_ref, map, source_sv_ref)
+        let (source_comp, sv_map, source_state_var) =
+            convert_component_ref_state_var(core, source_ref, map.clone(), source_sv_ref)
             .unwrap();
 
         let source_state_var = match source_state_var {
             StateVarSlice::Single(sv_ref) => sv_ref,
             StateVarSlice::Array(_) => panic!()
         };
-        vec![UpdateRequest::SetStateVar(source_comp, map.clone(), source_state_var, new_value)]
+        vec![UpdateRequest::SetStateVar(source_comp, sv_map, source_state_var, new_value)]
 
     } else {
 
