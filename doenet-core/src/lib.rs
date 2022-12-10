@@ -1343,7 +1343,7 @@ fn resolve_state_variable(
             match dep {
                 Dependency::StateVar { component_group , state_var_slice } => {
 
-                    let dependency_map = instance_of_dependency(core, map, &component_group.name());
+                    let dependency_map = instance_of_dependency(core, component, map, &component_group.name());
                     // log_debug!("instance {:?} for group {:?}", dependency_map, component_group);
 
                     for component_ref in component_group_members(core, component_group, dependency_map.clone()) {
@@ -1389,10 +1389,9 @@ fn resolve_state_variable(
 
                 Dependency::MapSources { map_sources, state_var_slice } => {
 
-                    // add 1 to map because counting starts at 1 for nth_group_dependence
-                    let (component_ref, comp_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
+                    let (component_ref, comp_map) = map_sources_dependency_member(core, component, map, &map_sources).unwrap();
 
-                    // log_debug!("map source ref: {:?}", component_ref);
+                    log_debug!("map source ref: {:?} map{:?}", component_ref, comp_map);
 
                     let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, component_ref, comp_map, state_var_slice.clone()).unwrap();
 
@@ -1402,7 +1401,7 @@ fn resolve_state_variable(
                 },
                 Dependency::StateVarArrayCorrespondingElement { component_group , array_state_var_name } => {
 
-                    let dependency_map = instance_of_dependency(core, map, &component_group.name());
+                    let dependency_map = instance_of_dependency(core, component, map, &component_group.name());
 
                     for component_ref in component_group_members(core, component_group, dependency_map.clone()) {
                         let sv_ref = StateRef::from_name_and_index(array_state_var_name, state_var_ref.index());
@@ -1417,7 +1416,7 @@ fn resolve_state_variable(
 
                 Dependency::Essential { component_name, origin } => {
 
-                    let dependency_map = instance_of_dependency(core, map, &component_name);
+                    let dependency_map = instance_of_dependency(core, component, map, &component_name);
 
                     let index = match origin {
                         EssentialDataOrigin::StateVar(_) => state_var_ref.index(),
@@ -1440,7 +1439,7 @@ fn resolve_state_variable(
 
                 Dependency::StateVarArrayDynamicElement { component_name, array_state_var_name, index_state_var } => {
 
-                    let dependency_map = instance_of_dependency(core, map, &component_name);
+                    let dependency_map = instance_of_dependency(core, component, map, &component_name);
 
                     let index_value = resolve_state_variable(
                         core,
@@ -1563,7 +1562,7 @@ fn handle_update_instruction(
 
     };
 
-    log_debug!("Updated {}_map{}:{} to {:?}", component_name, map, state_var_ref, updated_value);
+    log_debug!("Updated {}_map{:?}:{} to {:?}", component_name, map, state_var_ref, updated_value);
 
     return updated_value;
 }
@@ -1874,7 +1873,7 @@ fn mark_stale_state_var_and_dependencies(
         return;
     }
 
-    log_debug!("Marking stale {}_map{}:{}", component, map, state_var_ref);
+    log_debug!("Marking stale {}_map{:?}:{}", component, map, state_var_ref);
 
     state_var.mark_single_stale(&state_var_ref.index(), map);
 
@@ -2363,7 +2362,7 @@ fn name_rendered_component(component: &RenderedComponent, component_type: &str) 
     let name_to_render = if component.map.len() == 0 {
             name_to_render
         } else {
-            format!("__{}_map{}", name_to_render, component.map)
+            format!("__{}_map{:?}", name_to_render, component.map)
         };
     name_to_render
 }
@@ -2382,23 +2381,13 @@ fn dealias_name_with_map_instance(alias: &String) -> (String, Instance) {
     if chars[0] == '[' {
         // split map and name parts of alias
         let map_end = chars.iter().position(|&c| c == ']').unwrap();
-        let map_chars: String = chars[1..map_end].iter().collect();
+        let map_chars: String = chars[1..map_end].iter().collect(); // no square brackets
         let name: String = chars[map_end+1..].iter().collect();
 
-        let mut instance = Instance::default();
-        let map_split: Vec<&str> = map_chars.split(' ').collect();
-        for i in 0..(map_split.len() / 2) {
-            let map_index = map_split.get(2*i).unwrap();
-            let map_sources = map_split.get(2*i + 1).unwrap();
-
-            let map_index = &map_index[1..map_index.len() - 1];
-            let map_sources = &map_sources[1..map_sources.len() - 2];
-
-            let map_index: usize = map_index.parse().unwrap();
-            let map_sources = map_sources.to_string();
-
-            instance.push(map_index, map_sources);
-        }
+        let instance: Vec<usize> = map_chars
+            .split(", ")
+            .map(|s| s.parse().unwrap() )
+            .collect();
         (name, instance)
     } else {
         (alias.clone(), Instance::default())
@@ -2658,7 +2647,7 @@ fn collection_size(
     let component_def = core.component_nodes.get(component_name).unwrap().definition;
 
     if component_def.component_type == "map" {
-        let sources = group_deps.get(1).unwrap();
+        let sources = group_deps.get(MAP_GROUP_DEP_SOURCES).unwrap();
         return collection_size(core, sources, map);
     }
     if component_def.component_type == "conditionalContent" {
@@ -2743,12 +2732,12 @@ fn nth_collection_member(
     let deps = core.group_dependencies.get(component_name).unwrap();
     let component_def = core.component_nodes.get(component_name).unwrap().definition;
     if component_def.component_type == "map" {
-        let template = deps.get(0).unwrap();
-        let sources = deps.get(1).unwrap();
+        let template = deps.get(MAP_GROUP_DEP_TEMPLATE).unwrap();
+        let sources = deps.get(MAP_GROUP_DEP_SOURCES).unwrap();
 
         if index <= collection_size(core, sources, &map) {
             let mut map_new = map;
-            map_new.push(index, sources.clone());
+            map_new.push(index);
             return Some((ComponentRef::Basic(template.clone()), map_new))
         } else {
             return None
@@ -2813,7 +2802,7 @@ fn component_ref_original_component(
     map: Instance,
 ) -> (ComponentName, Instance) {
     let (c, m) = component_ref_apply_collection(core, component_ref.clone(), map.clone()).expect(
-        &format!("no component original {:?} {}", component_ref, map)
+        &format!("no component original {:?} {:?}", component_ref, map)
     );
     (c.name(), m)
 }
@@ -2848,55 +2837,28 @@ fn component_ref_definition(
 
 
 
-// Each tuple stores the map number and name of the relevant sources component
+/// An instance is specified with a component to refer to a single map instance.
+/// The length is the number of maps a component is inside.
+/// Each index selects the map instance the component is part of.
 /// Note: instance number starts at 1
-#[derive(Clone, Default)]
-pub struct Instance (Vec<(usize, ComponentName)>);
+pub type Instance = Vec<usize>;
 
-impl From<Vec<(i32, &str)>> for Instance {
-    fn from(v: Vec<(i32, &str)>) -> Self {
-        Instance(v.into_iter().map(|(a,b)| (a as usize, b.to_string())).collect())
-    }
-}
-
-impl Instance {
-    pub fn instance_indices(&self) -> Vec<usize> {
-        self.0.iter().map(|(i,_)| i.clone()).collect()
-    }
-    pub fn len(&self) -> usize {
-        self.0.len()
-    }
-    pub fn push(&mut self, index: usize, sources: ComponentName) {
-        self.0.push((index, sources))
-    }
-    /// Find the instance of the <sources> component pertaining to the given instance
-    pub fn find_sources(&self, sources: &ComponentName) -> (usize, Instance) {
-        let sources_index = self.0.iter().position(|(_, n)| n == sources).expect(
-            &format!("instance {:?} does not contain sources {}", self, sources)
-        );
-        let sources_map = (&self.0[..sources_index]).to_vec();
-        let index = self.0.get(sources_index).unwrap().0;
-        (index, Instance(sources_map))
-    }
-}
-impl std::fmt::Display for Instance {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.instance_indices().fmt(f)
-    }
-}
-impl std::fmt::Debug for Instance {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(f)
-    }
-}
+// How maps fill their group_dependencies
+// (specified in the map component definition)
+const MAP_GROUP_DEP_TEMPLATE: usize = 0;
+const MAP_GROUP_DEP_SOURCES: usize = 1;
 
 /// Find the component that the sources dependency points to
 fn map_sources_dependency_member(
     core: &DoenetCore,
-    sources: &ComponentName,
+    component: &ComponentName,
     map: &Instance,
+    sources: &ComponentName,
 ) -> Option<(ComponentRef, Instance)> {
-    let (index, sources_map) = map.find_sources(sources);
+    let sources_for_component = sources_that_instance_component(core, component);
+    let sources_index_in_map = sources_for_component.iter().position(|n| n == sources).unwrap();
+    let index = *map.get(sources_index_in_map).unwrap();
+    let sources_map = map[0..sources_index_in_map].to_vec();
     nth_collection_member(core, sources, sources_map, index)
 }
 
@@ -2914,16 +2876,17 @@ fn instances_of_dependent(
 /// Find the instance of a component inside fewer maps
 fn instance_of_dependency(
     core: &DoenetCore,
+    component: &ComponentName,
     map: &Instance,
     dependency: &ComponentName,
 ) -> Instance {
-    let dependency_inside = sources_that_instance_component(core, dependency);
-    log_debug!("sources instancing {} map {}: {:?}", dependency, map, dependency_inside);
+    let sources_for_component = sources_that_instance_component(core, component);
+    let sources_for_dependency = sources_that_instance_component(core, dependency);
+
     let mut instance = Instance::default();
-    for (i, s) in dependency_inside.iter().enumerate() {
-        let (map_index, map_source) = map.0.get(i).unwrap();
-        if map_source == s {
-            instance.push(*map_index, s.clone());
+    for (i, (d, c)) in sources_for_dependency.into_iter().zip(sources_for_component).enumerate() {
+        if d == c {
+            instance.push(*map.get(i).unwrap());
         } else {
             panic!("dependency is inside a different map");
         }
@@ -2942,7 +2905,7 @@ fn all_map_instances(
         let mut vec = vec![];
         for i in indices_for_size(collection_size(core, &sources_name, map)) {
             let mut next_map = map.clone();
-            next_map.push(i, sources_name.clone());
+            next_map.push(i);
             vec.extend(all_map_instances(core, &next_map, &chain_remaining[1..]));
         }
         vec
@@ -2957,28 +2920,14 @@ fn sources_that_instance_component(
 ) -> Vec<ComponentName> {
     let parent_chain = parent_chain(core, component);
     let mut sources = vec![];
-    if parent_chain.len() > 1 {
-        for i in 0..parent_chain.len() - 1 {
-            let parent = core.component_nodes.get(parent_chain.get(i).unwrap()).unwrap();
-            let child = core.component_nodes.get(parent_chain.get(i+1).unwrap()).unwrap();
-            if parent.definition.component_type == "map"
-            && child.definition.component_type == "template" {
-                let sources_child = parent.children.iter().find_map(|o|
-                    match o {
-                        ObjectName::Component(c) => {
-                            if core.component_nodes.get(c).unwrap().definition.component_type == "sources" {
-                                Some(c.clone())
-                            } else {
-                                None
-                            }
-                        }
-                        ObjectName::String(_) => None
-                    }
-                );
-                if let Some(sources_child) = sources_child {
-                    sources.push(sources_child);
-                }
-            }
+    for i in 0..parent_chain.len().checked_sub(1).unwrap_or(0) {
+        let parent = core.component_nodes.get(parent_chain.get(i).unwrap()).unwrap();
+        let child = core.component_nodes.get(parent_chain.get(i+1).unwrap()).unwrap();
+        if parent.definition.component_type == "map"
+        && child.definition.component_type == "template" {
+            let map_group_deps = core.group_dependencies.get(&parent.name).unwrap();
+            let sources_child = map_group_deps.get(MAP_GROUP_DEP_SOURCES).unwrap();
+            sources.push(sources_child.clone());
         }
     }
     sources
@@ -3017,7 +2966,7 @@ fn get_children_and_members<'a>(
 ) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
 
     let (use_component_name, use_map) = component_ref_original_component(core, component.clone(), map.clone());
-    log_debug!("use component {} {}", use_component_name, use_map);
+    // log_debug!("use component {} {:?}", use_component_name, use_map);
 
     get_children_including_copy_and_groups(
         &core,
@@ -3073,7 +3022,7 @@ fn get_children_including_copy_and_groups<'a>(
             children_vec = get_children_including_copy_and_groups(core, source_comp, &source_map);
         },
         Some(CopySource::MapSources(map_sources)) => {
-            let (source, source_map) = map_sources_dependency_member(core, &map_sources, map).unwrap();
+            let (source, source_map) = map_sources_dependency_member(core, &component.name, map, &map_sources).unwrap();
             if let ComponentRef::Basic(name) = source {
                 let source_comp = core.component_nodes.get(&name).unwrap();
 

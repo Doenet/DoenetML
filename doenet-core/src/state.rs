@@ -53,11 +53,10 @@ pub struct ForEachMap<T: Clone + std::fmt::Debug> {
 
 // with index starting at 1
 fn map_instance_to_index(map: &Instance) -> Vec<usize> {
-    let indices = map.instance_indices();
-    if indices.len() == 0 {
+    if map.len() == 0 {
         vec![1]
     } else {
-        indices
+        map.clone()
     }
 }
 

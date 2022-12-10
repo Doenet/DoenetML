@@ -831,13 +831,13 @@ fn map_complicated_sources() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1")].into(), "value", "3 squared is 9");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1")].into(), "value", "4 squared is 16");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1")].into(), "value", "1 squared is 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(4, "/_sources1")].into(), "value", "2 squared is 4");
-    assert_sv_is_string_with_map(&dc, "t", vec![(5, "/_sources1")].into(), "value", "3 squared is 9");
-    assert_sv_is_string_with_map(&dc, "t", vec![(6, "/_sources1")].into(), "value", "8 squared is 64");
-    assert_sv_is_string_with_map(&dc, "t", vec![(7, "/_sources1")].into(), "value", "2 squared is 4");
+    assert_sv_is_string_with_map(&dc, "t", vec![1] ,"value", "3 squared is 9");
+    assert_sv_is_string_with_map(&dc, "t", vec![2] ,"value", "4 squared is 16");
+    assert_sv_is_string_with_map(&dc, "t", vec![3] ,"value", "1 squared is 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![4] ,"value", "2 squared is 4");
+    assert_sv_is_string_with_map(&dc, "t", vec![5] ,"value", "3 squared is 9");
+    assert_sv_is_string_with_map(&dc, "t", vec![6] ,"value", "8 squared is 64");
+    assert_sv_is_string_with_map(&dc, "t", vec![7] ,"value", "2 squared is 4");
 }
 
 #[wasm_bindgen_test]
@@ -872,23 +872,23 @@ fn maps_in_maps() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(1, "/_sources1")].into(), "value", 1);
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(1, "/_sources2"),(1, "/_sources3")].into(), "value", "1 is x using 1 and 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(1, "/_sources2"),(2, "/_sources3")].into(), "value", "1 is y using 1 and 1");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![1], "value", 1);
+    assert_sv_is_string_with_map(&dc, "t", vec![1,1,1], "value", "1 is x using 1 and 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![1,1,2], "value", "1 is y using 1 and 1");
 
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(2, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(1, "/_sources2"),(1, "/_sources3")].into(), "value", "2 is x using 2 and 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(1, "/_sources2"),(2, "/_sources3")].into(), "value", "1 is y using 2 and 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(2, "/_sources2"),(1, "/_sources3")].into(), "value", "2 is x using 2 and 2");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(2, "/_sources2"),(2, "/_sources3")].into(), "value", "2 is y using 2 and 2");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![2], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![2,1,1], "value", "2 is x using 2 and 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,1,2], "value", "1 is y using 2 and 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,2,1], "value", "2 is x using 2 and 2");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,2,2], "value", "2 is y using 2 and 2");
 
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(3, "/_sources1")].into(), "value", 3);
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(1, "/_sources2"),(1, "/_sources3")].into(), "value", "3 is x using 3 and 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(1, "/_sources2"),(2, "/_sources3")].into(), "value", "1 is y using 3 and 1");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(2, "/_sources2"),(1, "/_sources3")].into(), "value", "3 is x using 3 and 2");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(2, "/_sources2"),(2, "/_sources3")].into(), "value", "2 is y using 3 and 2");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(3, "/_sources2"),(1, "/_sources3")].into(), "value", "3 is x using 3 and 3");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(3, "/_sources2"),(2, "/_sources3")].into(), "value", "3 is y using 3 and 3");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![3], "value", 3);
+    assert_sv_is_string_with_map(&dc, "t", vec![3,1,1], "value", "3 is x using 3 and 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,1,2], "value", "1 is y using 3 and 1");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,2,1], "value", "3 is x using 3 and 2");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,2,2], "value", "2 is y using 3 and 2");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,3,1], "value", "3 is x using 3 and 3");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,3,2], "value", "3 is y using 3 and 3");
 }
 
 
@@ -917,50 +917,50 @@ fn map_dynamic_size() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![].into(), "value", 1);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(1, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(1,"/_sources2")].into(), "value", "(1, 1) with size (1, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(2,"/_sources2")].into(), "value", "(1, 2) with size (1, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![], "value", 1);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![1], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![1,1], "value", "(1, 1) with size (1, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![1,2], "value", "(1, 2) with size (1, 2)");
 
 
     update_immediate_value_for_number(&dc, "i", "3.0");
     doenet_core::update_renderers(&dc);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![].into(), "value", 1);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(1, "/_sources1")].into(), "value", 2);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![], "value", 1);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![1], "value", 2);
 
     update_value_for_number(&dc, "i");
     doenet_core::update_renderers(&dc);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![].into(), "value", 3);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(1, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(1, "/_sources2")].into(), "value", "(1, 1) with size (3, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(2, "/_sources2")].into(), "value", "(1, 2) with size (3, 2)");
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(2, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(1, "/_sources2")].into(), "value", "(2, 1) with size (3, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(2, "/_sources2")].into(), "value", "(2, 2) with size (3, 2)");
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(3, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(1, "/_sources2")].into(), "value", "(3, 1) with size (3, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(2, "/_sources2")].into(), "value", "(3, 2) with size (3, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![], "value", 3);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![1], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![1,1], "value", "(1, 1) with size (3, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![1,2], "value", "(1, 2) with size (3, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![2], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![2,1], "value", "(2, 1) with size (3, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,2], "value", "(2, 2) with size (3, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![3], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![3,1], "value", "(3, 1) with size (3, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,2], "value", "(3, 2) with size (3, 2)");
 
 
-    let action_name = r#"[(2, "/_sources1")]j"#;
+    let action_name = r#"[2]j"#;
     update_immediate_value_for_number(&dc, action_name, "4.0");
     doenet_core::update_renderers(&dc);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(2, "/_sources1")].into(), "value", 2);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![2], "value", 2);
 
     update_value_for_number(&dc, action_name);
     doenet_core::update_renderers(&dc);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![].into(), "value", 3);
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(1, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(1, "/_sources2")].into(), "value", "(1, 1) with size (3, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(1, "/_sources1"),(2, "/_sources2")].into(), "value", "(1, 2) with size (3, 2)");
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(2, "/_sources1")].into(), "value", 4);
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(1, "/_sources2")].into(), "value", "(2, 1) with size (3, 4)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(2, "/_sources2")].into(), "value", "(2, 2) with size (3, 4)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(3, "/_sources2")].into(), "value", "(2, 3) with size (3, 4)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(2, "/_sources1"),(4, "/_sources2")].into(), "value", "(2, 4) with size (3, 4)");
-    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![(3, "/_sources1")].into(), "value", 2);
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(1, "/_sources2")].into(), "value", "(3, 1) with size (3, 2)");
-    assert_sv_is_string_with_map(&dc, "t", vec![(3, "/_sources1"),(2, "/_sources2")].into(), "value", "(3, 2) with size (3, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence1", vec![], "value", 3);
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![1], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![1,1], "value", "(1, 1) with size (3, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![1,2], "value", "(1, 2) with size (3, 2)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![2], "value", 4);
+    assert_sv_is_string_with_map(&dc, "t", vec![2,1], "value", "(2, 1) with size (3, 4)");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,2], "value", "(2, 2) with size (3, 4)");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,3], "value", "(2, 3) with size (3, 4)");
+    assert_sv_is_string_with_map(&dc, "t", vec![2,4], "value", "(2, 4) with size (3, 4)");
+    assert_sv_array_size_is_with_map(&dc, "/_sequence2", vec![3], "value", 2);
+    assert_sv_is_string_with_map(&dc, "t", vec![3,1], "value", "(3, 1) with size (3, 2)");
+    assert_sv_is_string_with_map(&dc, "t", vec![3,2], "value", "(3, 2) with size (3, 2)");
 }
 
 #[wasm_bindgen_test]
@@ -982,22 +982,22 @@ fn map_move_points() {
     let dc = doenet_core_with_no_warnings(DATA);
     doenet_core::update_renderers(&dc);
 
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 2.0]);
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 2.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![1] , "numericalXs", vec![5.0, 2.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![2] , "numericalXs", vec![3.0, 2.0]);
 
-    let first_instance = r#"[(1, "/_sources1")]p"#;
+    let first_instance = r#"[1]p"#;
     move_point_2d(&dc, first_instance, StateVarValue::Integer(2), StateVarValue::Integer(4));
     doenet_core::update_renderers(&dc);
 
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 4.0]);
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 2.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![1] , "numericalXs", vec![5.0, 4.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![2] , "numericalXs", vec![3.0, 2.0]);
 
-    let second_instance = r#"[(2, "/_sources1")]p"#;
+    let second_instance = r#"[2]p"#;
     move_point_2d(&dc, second_instance, StateVarValue::Integer(1), StateVarValue::Integer(6));
     doenet_core::update_renderers(&dc);
 
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(1, "/_sources1")].into(), "numericalXs", vec![5.0, 4.0]);
-    assert_sv_array_is_number_list_with_map(&dc, "p", vec![(2, "/_sources1")].into(), "numericalXs", vec![3.0, 6.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![1] , "numericalXs", vec![5.0, 4.0]);
+    assert_sv_array_is_number_list_with_map(&dc, "p", vec![2] , "numericalXs", vec![3.0, 6.0]);
 }
 
 #[wasm_bindgen_test]
