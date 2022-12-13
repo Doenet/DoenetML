@@ -204,7 +204,7 @@ pub struct BatchDefinition {
         for<'a> fn(
             index: usize,
             state_var_slice: &'a StateVarSlice,
-            state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
+            // state_var_resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
         ) -> Option<StateVarSlice>,
 }
 

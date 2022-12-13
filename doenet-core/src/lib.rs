@@ -1313,6 +1313,10 @@ fn resolve_state_variable(
     state_var_ref: &StateRef,
 ) -> Option<StateVarValue> {
 
+    if let StateRef::ArrayElement(sv_name, _) = state_var_ref {
+        resolve_state_variable(core, component, map, &StateRef::SizeOf(sv_name));
+    }
+
     let state_vars = core.component_states.get(component).unwrap();
 
     // No need to continue if the state var is already resolved or if the element does not exist
@@ -1860,50 +1864,27 @@ fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentName,
     map: &Instance,
-    state_var_ref: &StateRef,
+    state_var_slice: &StateVarSlice,
 ) {
-    let component_state = core.component_states.get(component).unwrap();
-    let state_var = component_state.get(state_var_ref.name()).unwrap();
+    let state_var = core.component_states.get(component).unwrap()
+        .get(state_var_slice.name()).unwrap();
 
     // No need to continue if the state var is already stale
-    let state = state_var.get_single_state(&state_var_ref.index(), map)
-        .expect(&format!("Error accessing state of {}:{:?}", component, state_var_ref));
-
-    if state == Some(State::Stale) {
+    let already_stale = state_var.slice_is_stale(state_var_slice, map)
+        .expect(&format!("Error accessing state of {}:{:?}", component, state_var_slice));
+    if already_stale {
         return;
     }
 
-    log_debug!("Marking stale {}_map{:?}:{}", component, map, state_var_ref);
+    log_debug!("Marking stale {}_map{:?}:{}", component, map, state_var_slice);
 
-    state_var.mark_single_stale(&state_var_ref.index(), map);
+    state_var.mark_stale_slice(state_var_slice, map);
 
-    let mut depending_on_me = get_state_variables_depending_on_me(core, component, map, state_var_ref);
+    let depending_on_me = get_state_variables_depending_on_me(core, component, map, state_var_slice);
 
-    // TODO: should mark stale take state var slices? Could solve this problem:
-    // Currently arrays must resolve their size to be marked as stale.
-    // The problem is if the size dependencies are not yet marked stale, they will not update
-    // HACK: sort so that arrays are last, and hopefully the size deps will already be stale
-    depending_on_me.sort_by(|(_,a), (_,b)| match (a, b) {
-        (StateVarSlice::Single(_), StateVarSlice::Array(_)) => std::cmp::Ordering::Less,
-        (StateVarSlice::Array(_), StateVarSlice::Single(_)) => std::cmp::Ordering::Greater,
-        (_, _) => std::cmp::Ordering::Equal,
-    });
-    
     for (ref depending_comp, ref depending_slice) in depending_on_me {
-
         for instance in instances_of_dependent(core, map, depending_comp) {
-            match depending_slice {
-                StateVarSlice::Single(sv_ref) => {
-                    mark_stale_state_var_and_dependencies(core, depending_comp, &instance, sv_ref);
-                },
-                StateVarSlice::Array(sv_name) => {
-                    let members = elements_of_array(core, component, map, sv_name);
-                    // log_debug!("marking stale each element {:?}", members);
-                    for member in members {
-                        mark_stale_state_var_and_dependencies(core, depending_comp, &instance, &member);
-                    }
-                }
-            }
+            mark_stale_state_var_and_dependencies(core, depending_comp, &instance, depending_slice);
         }
     }
 }
@@ -1949,38 +1930,46 @@ fn mark_stale_essential_datum_dependencies(
     });
 
     for (component_name, state_var_ref) in my_dependencies {
-        mark_stale_state_var_and_dependencies(core, &component_name, map, &state_var_ref);
+        mark_stale_state_var_and_dependencies(
+            core,
+            &component_name,
+            map,
+            &StateVarSlice::Single(state_var_ref),
+        );
     }
 }
 
-/// Calculate all the (normal) state vars that depend on the given state var
+/// Calculate all the state vars that depend on the given state var
 fn get_state_variables_depending_on_me(
     core: &DoenetCore,
     sv_component: &ComponentName,
-    map: &Instance,
-    sv_reference: &StateRef,
+    _map: &Instance,
+    sv_slice: &StateVarSlice,
 ) -> Vec<(ComponentName, StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
     for (dependency_key, dependencies) in core.dependencies.iter() {
-
         for dependency in dependencies {
 
             match dependency {
                 Dependency::StateVar { component_group, state_var_slice } => {
                     let state_var_slice = (match component_group {
                         ComponentGroup::Single(ComponentRef::BatchMember(n, b, i)) =>
-                            batch_state_var(core, &n, map, *b, state_var_slice.clone(), *i),
+                            batch_state_var(core, &n, *b, state_var_slice.clone(), *i),
+
+                        // TODO change hack: assume batch has array state var of the same name
+                        ComponentGroup::Batch(_) => Some(StateVarSlice::Array(state_var_slice.name())),
                         _ => None,
                     }).unwrap_or(state_var_slice.clone());
                     if sv_component == &component_group.name() 
-                    && state_var_slice.name() == sv_reference.name() {
+                    && slices_intersect(sv_slice, &state_var_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
                 },
+
                 Dependency::UndeterminedChildren { component_name, desired_profiles } => {
                     let component_node = core.component_nodes.get(component_name).unwrap();
                     let mut dependent = false;
@@ -2008,9 +1997,10 @@ fn get_state_variables_depending_on_me(
                         depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
                 },
+
                 Dependency::MapSources { map_sources, state_var_slice } => {
                     if sv_component == map_sources
-                    && state_var_slice.name() == sv_reference.name() {
+                    && slices_intersect(sv_slice, state_var_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
@@ -2019,16 +2009,12 @@ fn get_state_variables_depending_on_me(
 
                 Dependency::StateVarArrayCorrespondingElement { component_group, array_state_var_name } => {
                     if sv_component == &component_group.name() 
-                    && *array_state_var_name == sv_reference.name() {
+                    && *array_state_var_name == sv_slice.name() {
 
-                        let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        let dependent_ref = match dependent_slice {
-                            StateVarSlice::Array(array_name) => StateRef::from_name_and_index(array_name, sv_reference.index()),
-                            StateVarSlice::Single(_) => panic!(),
-                        };
-                        depending_on_me.push((dependent_comp.clone(), StateVarSlice::Single(dependent_ref)));
+                        let DependencyKey::StateVar(dependent_comp, _, _) = dependency_key;
+                        depending_on_me.push((dependent_comp.clone(), sv_slice.clone()));
                     }
-                }
+                },
 
                 Dependency::StateVarArrayDynamicElement {
                     component_name,
@@ -2038,23 +2024,21 @@ fn get_state_variables_depending_on_me(
 
                     let this_array_refers_to_me = 
                         component_name == sv_component
-                        && *array_state_var_name == sv_reference.name();
+                        && *array_state_var_name == sv_slice.name();
 
                     let i_am_prop_index_of_this_dependency = 
                         // The key that this dependency is under is myself
                         // Aka, the index is supposed to be in my component, not another component
                         dependency_key.component_name() == sv_component
                         // I am actually a propIndex, and not some other state var
-                        && sv_reference == &StateRef::Basic("propIndex");
+                        && sv_slice == &StateVarSlice::Single(StateRef::Basic("propIndex"));
 
                     if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
                     }
-    
-
-                }
+                },
 
                 // Essential dependencies are endpoints
                 Dependency::Essential { .. } => {},
@@ -2063,6 +2047,22 @@ fn get_state_variables_depending_on_me(
         }
     }
 
+    fn slices_intersect(a: &StateVarSlice, b: &StateVarSlice) -> bool {
+       a.name() == b.name()
+       && match (a,b) {
+           (StateVarSlice::Array(_), _) |
+           (_, StateVarSlice::Array(_)) |
+           (StateVarSlice::Single(StateRef::Basic(_)),
+            StateVarSlice::Single(StateRef::Basic(_))) |
+           (StateVarSlice::Single(StateRef::SizeOf(_)),
+            StateVarSlice::Single(StateRef::SizeOf(_))) =>
+                true,
+           (StateVarSlice::Single(StateRef::ArrayElement(i, _)),
+           StateVarSlice::Single(StateRef::ArrayElement(j, _))) =>
+               i == j,
+           (_, _) => false
+       }
+    }
 
     fn groups_depending_on_group(
         core: &DoenetCore,
@@ -2596,7 +2596,7 @@ fn process_update_request(
                 process_update_request(core, &dep_update_request);
             }
 
-            mark_stale_state_var_and_dependencies(core, component_name, &map, &state_var_ref);
+            mark_stale_state_var_and_dependencies(core, component_name, &map, &StateVarSlice::Single(state_var_ref.clone()));
         }
     }
 }
@@ -2697,7 +2697,7 @@ fn convert_component_ref_state_var(
 
     match name {
         ComponentRef::Basic(n) => Some((n, map, state_var)),
-        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, &map, c, state_var, i)
+        ComponentRef::BatchMember(n, c, i) => batch_state_var(core, &n, c, state_var, i)
             .map(|sv| (n, map, sv)),
         _ => None,
     }
@@ -2706,7 +2706,6 @@ fn convert_component_ref_state_var(
 fn batch_state_var(
     core: &DoenetCore,
     component_name: &ComponentName,
-    map: &Instance,
     batch_name: Option<BatchName>,
     state_var: StateVarSlice,
     index: usize,
@@ -2714,10 +2713,7 @@ fn batch_state_var(
 
     let batch_def = core.component_nodes.get(component_name).unwrap()
         .definition.unwrap_batch_def(&batch_name);
-    let state_var_resolver = | state_var_ref | {
-        resolve_state_variable(core, component_name, map, state_var_ref)
-    };
-    (batch_def.member_state_var)(index, &state_var, &state_var_resolver)
+    (batch_def.member_state_var)(index, &state_var)
 }
 
 /// The component ref return can either be a basic, or a member of a batch

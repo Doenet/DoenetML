@@ -254,21 +254,58 @@ impl StateForStateVar {
         }
     }
 
-    pub fn mark_single_stale(&self, state_var_ref: &StateIndex, map: &Instance) {
-        match self {
-            Self::Single(sv) => sv.instance(map).mark_stale(),
+    // When referring to an array, this returns true if every aspect is stale
+    pub fn slice_is_stale(&self, sv_slice: &StateVarSlice, map: &Instance) -> Result<bool, String> {
 
-            Self::Array { size, elements, .. } => match state_var_ref {
-                StateIndex::Element(id) => {
-                    if *id == 0 {
-                        panic!("Invalid index 0")
-                    }
-                    let internal_id = id - 1;
-                    elements.instance(map).get(internal_id).unwrap().mark_stale()
+        log_debug!("is {:?} stale? {:?}", sv_slice, self);
+        match (self, sv_slice) {
+            (Self::Single(sv), StateVarSlice::Single(StateRef::Basic(_))) =>
+                Ok(sv.instance(map).get_state().is_stale()),
+            (Self::Array { size, .. }, StateVarSlice::Single(StateRef::SizeOf(_))) =>
+                Ok(size.instance(map).get_state().is_stale()),
+            (Self::Array { size, elements, .. }, StateVarSlice::Array(_)) =>
+                if size.instance(map).get_state().is_stale() {
+                    Ok(true)
+                } else {
+                    let elements = elements.instance(map);
+                    Ok((0..elements.len()).map(|i| elements.get(i).unwrap().get_state().is_stale()).reduce(|a,b| a || b).unwrap_or(false))
                 }
-                StateIndex::SizeOf => size.instance(map).mark_stale(),
-                _ => panic!()
+            (Self::Array { elements, .. }, StateVarSlice::Single(StateRef::ArrayElement(_, id))) => {
+                if *id == 0 {
+                    Err("requested id 0".into())
+                } else {
+                    let internal_id = id - 1;
+                    elements.instance(map).get(internal_id)
+                        .map(|elem| elem.get_state().is_stale())
+                        .ok_or("index out of range".into())
+                }
+            },
+            _ => panic!(),
+        }
+
+    }
+
+    pub fn mark_stale_slice(&self, sv_slice: &StateVarSlice, map: &Instance) {
+        match (self, sv_slice) {
+            (Self::Single(sv), StateVarSlice::Single(StateRef::Basic(_))) => {
+                sv.instance(map).mark_stale()
+            },
+            (Self::Array { size, elements, .. }, StateVarSlice::Single(StateRef::SizeOf(_))) |
+            (Self::Array { size, elements, .. }, StateVarSlice::Array(_)) => {
+                size.instance(map).mark_stale();
+                let elements = elements.instance(map);
+                for i in elements.iter() {
+                    i.mark_stale()
+                }
             }
+            (Self::Array { elements, .. }, StateVarSlice::Single(StateRef::ArrayElement(_, id))) => {
+                if *id == 0 {
+                    panic!("Invalid index 0")
+                }
+                let internal_id = id - 1;
+                elements.instance(map).get(internal_id).unwrap().mark_stale()
+            },
+            _ => panic!()
         }
     }
 

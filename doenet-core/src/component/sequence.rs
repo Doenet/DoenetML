@@ -126,17 +126,13 @@ lazy_static! {
 fn member_state_var<'a>(
     index: usize,
     state_var_slice: &'a StateVarSlice,
-    resolver: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
 ) -> Option<StateVarSlice> {
 
     let slice = match state_var_slice {
         StateVarSlice::Single(StateRef::Basic("value")) => {
-            // resolve size before giving value
-            let _ = resolver(&StateRef::SizeOf("value"));
             StateVarSlice::Single(StateRef::ArrayElement("value", index))
         }
         StateVarSlice::Single(StateRef::Basic("text")) => {
-            let _ = resolver(&StateRef::SizeOf("text"));
             StateVarSlice::Single(StateRef::ArrayElement("text", index))
         },
         _ => state_var_slice.clone(),

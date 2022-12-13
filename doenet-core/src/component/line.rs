@@ -163,7 +163,6 @@ lazy_static! {
 fn member_state_var<'a>(
     index: usize,
     state_var_slice: &'a StateVarSlice,
-    _: &'a dyn Fn(&'a StateRef) -> Option<StateVarValue>,
 ) -> Option<StateVarSlice> {
 
     match state_var_slice.name() {
