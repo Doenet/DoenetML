@@ -1987,7 +1987,7 @@ fn get_state_variables_depending_on_me(
                     };
 
                     if group_includes_component(&core.group_dependencies, component_group, sv_component)
-                    && slices_intersect(sv_slice, &state_var_slice) {
+                    && slice_depends_on_slice(&state_var_slice, sv_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.extend(
@@ -2030,7 +2030,7 @@ fn get_state_variables_depending_on_me(
 
                 Dependency::MapSources { map_sources, state_var_slice } => {
                     if sv_component == map_sources
-                    && slices_intersect(sv_slice, state_var_slice) {
+                    && slice_depends_on_slice(state_var_slice, sv_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.extend(
@@ -2102,18 +2102,16 @@ fn get_state_variables_depending_on_me(
         }
     }
 
-    fn slices_intersect(a: &StateVarSlice, b: &StateVarSlice) -> bool {
+    fn slice_depends_on_slice(a: &StateVarSlice, b: &StateVarSlice) -> bool {
+        use StateVarSlice::*;
        a.name() == b.name()
        && match (a,b) {
-           (StateVarSlice::Array(_), _) |
-           (_, StateVarSlice::Array(_)) |
-           (StateVarSlice::Single(StateRef::Basic(_)),
-            StateVarSlice::Single(StateRef::Basic(_))) |
-           (StateVarSlice::Single(StateRef::SizeOf(_)),
-            StateVarSlice::Single(StateRef::SizeOf(_))) =>
+           (Array(_), _) |
+           (_, Array(_)) |
+           (_, Single(StateRef::SizeOf(_))) |
+           (Single(StateRef::Basic(_)), Single(StateRef::Basic(_))) =>
                 true,
-           (StateVarSlice::Single(StateRef::ArrayElement(i, _)),
-           StateVarSlice::Single(StateRef::ArrayElement(j, _))) =>
+           (Single(StateRef::ArrayElement(i, _)), Single(StateRef::ArrayElement(j, _))) =>
                i == j,
            (_, _) => false
        }
