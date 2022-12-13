@@ -372,6 +372,30 @@ fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentN
             group_dependencies.insert(component_name.clone(), deps);
         }
     }
+
+    fn flat_group_dependencies(
+        component_nodes: &HashMap<String, ComponentNode>,
+        group_dependencies: &HashMap<String, Vec<String>>,
+        component: &ComponentName,
+    ) -> Vec<ComponentName> {
+        group_dependencies.get(component).unwrap()
+            .iter()
+            .flat_map(|c| {
+                let component_type = component_nodes.get(c).unwrap().definition.component_type;
+                if group_dependencies.contains_key(c)
+                && component_type != "sources" {
+                    flat_group_dependencies(component_nodes, group_dependencies, c)
+                } else {
+                    vec![c.clone()]
+                }
+            }).collect()
+    }
+
+    // flatten
+    let group_dependencies =  group_dependencies.iter()
+        .map(|(k, _v)| (k.clone(), flat_group_dependencies(component_nodes, &group_dependencies, k)))
+        .collect();
+
     group_dependencies
 }
 
@@ -1882,10 +1906,8 @@ fn mark_stale_state_var_and_dependencies(
 
     let depending_on_me = get_state_variables_depending_on_me(core, component, map, state_var_slice);
 
-    for (ref depending_comp, ref depending_slice) in depending_on_me {
-        for instance in instances_of_dependent(core, map, depending_comp) {
-            mark_stale_state_var_and_dependencies(core, depending_comp, &instance, depending_slice);
-        }
+    for (depending_comp, depending_map, depending_slice) in depending_on_me {
+        mark_stale_state_var_and_dependencies(core, &depending_comp, &depending_map, &depending_slice);
     }
 }
 
@@ -1943,9 +1965,9 @@ fn mark_stale_essential_datum_dependencies(
 fn get_state_variables_depending_on_me(
     core: &DoenetCore,
     sv_component: &ComponentName,
-    _map: &Instance,
+    map: &Instance,
     sv_slice: &StateVarSlice,
-) -> Vec<(ComponentName, StateVarSlice)> {
+) -> Vec<(ComponentName, Instance, StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
@@ -1954,19 +1976,24 @@ fn get_state_variables_depending_on_me(
 
             match dependency {
                 Dependency::StateVar { component_group, state_var_slice } => {
-                    let state_var_slice = (match component_group {
+                    let state_var_slice = match component_group {
                         ComponentGroup::Single(ComponentRef::BatchMember(n, b, i)) =>
-                            batch_state_var(core, &n, *b, state_var_slice.clone(), *i),
+                            batch_state_var(core, &n, *b, state_var_slice.clone(), *i).unwrap(),
 
                         // TODO change hack: assume batch has array state var of the same name
-                        ComponentGroup::Batch(_) => Some(StateVarSlice::Array(state_var_slice.name())),
-                        _ => None,
-                    }).unwrap_or(state_var_slice.clone());
-                    if sv_component == &component_group.name() 
+                        ComponentGroup::Batch(_) => StateVarSlice::Array(state_var_slice.name()),
+
+                        _ => state_var_slice.clone(),
+                    };
+
+                    if group_includes_component(&core.group_dependencies, component_group, sv_component)
                     && slices_intersect(sv_slice, &state_var_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
+                        depending_on_me.extend(
+                            instances_of_dependent(core, map, dependent_comp).into_iter()
+                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        );
                     }
                 },
 
@@ -1994,7 +2021,10 @@ fn get_state_variables_depending_on_me(
                     }
                     if dependent {
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
+                        depending_on_me.extend(
+                            instances_of_dependent(core, map, dependent_comp).into_iter()
+                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        );
                     }
                 },
 
@@ -2003,16 +2033,22 @@ fn get_state_variables_depending_on_me(
                     && slices_intersect(sv_slice, state_var_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
+                        depending_on_me.extend(
+                            instances_of_dependent(core, map, dependent_comp).into_iter()
+                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        );
                     }
                 },
 
                 Dependency::StateVarArrayCorrespondingElement { component_group, array_state_var_name } => {
-                    if sv_component == &component_group.name() 
+                    if group_includes_component(&core.group_dependencies, component_group, sv_component)
                     && *array_state_var_name == sv_slice.name() {
 
                         let DependencyKey::StateVar(dependent_comp, _, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), sv_slice.clone()));
+                        depending_on_me.extend(
+                            instances_of_dependent(core, map, dependent_comp).into_iter()
+                                .map(|m| (dependent_comp.clone(), m, sv_slice.clone()))
+                        );
                     }
                 },
 
@@ -2036,7 +2072,10 @@ fn get_state_variables_depending_on_me(
                     if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
+                        depending_on_me.extend(
+                            instances_of_dependent(core, map, dependent_comp).into_iter()
+                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        );
                     }
                 },
 
@@ -2044,6 +2083,22 @@ fn get_state_variables_depending_on_me(
                 Dependency::Essential { .. } => {},
 
             }
+        }
+    }
+
+    fn group_includes_component(
+        group_dependencies: &HashMap<ComponentName, Vec<ComponentName>>,
+        group: &ComponentGroup,
+        component: &ComponentName,
+    ) -> bool {
+        match group {
+            ComponentGroup::Single(ComponentRef::Basic(n)) |
+            ComponentGroup::Batch(n) |
+            ComponentGroup::Single(ComponentRef::BatchMember(n, _, _)) =>
+                n == component,
+            ComponentGroup::Single(ComponentRef::CollectionMember(n, _)) |
+            ComponentGroup::Collection(n) =>
+                group_dependencies.get(n).unwrap().contains(component),
         }
     }
 
@@ -2062,77 +2117,6 @@ fn get_state_variables_depending_on_me(
                i == j,
            (_, _) => false
        }
-    }
-
-    fn groups_depending_on_group(
-        core: &DoenetCore,
-        group_name: &ComponentName,
-    ) -> Vec<ComponentName> {
-    
-        let mut depending_on_me = vec![];
-    
-        for (comp_name, group_deps) in core.group_dependencies.iter() {
-            for group_dep in group_deps {
-                if group_dep == group_name {
-                    depending_on_me.push(comp_name.clone());
-                    depending_on_me.extend(
-                        groups_depending_on_group(core, comp_name)
-                    );
-                }
-            }
-        }
-        depending_on_me
-    }
-
-
-    fn state_vars_depending_on_group(
-        core: &DoenetCore,
-        group_name: &ComponentName,
-    ) -> Vec<(ComponentName, StateVarSlice)> {
-    
-        let mut depending_on_me = vec![];
-    
-        for (dependency_key, dependencies) in core.dependencies.iter() {
-            for dependency in dependencies {
-    
-                match dependency {
-                    Dependency::StateVar { component_group, .. } => {
-                        match component_group {
-                            ComponentGroup::Single(c) => {
-                                if c.name() == *group_name {
-                                    // depending on me directly
-                                    let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                                    depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
-                                }
-                            }
-                            ComponentGroup::Collection(name) |
-                            ComponentGroup::Batch(name) => {
-                                if name == group_name {
-                                    // depending on me as a member of a group
-                                    let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                                    depending_on_me.push((dependent_comp.clone(), dependent_slice.clone()));
-                                }
-                            },
-                        }
-                    },
-                    _ => ()
-                };
-    
-            }
-        }
-    
-        depending_on_me
-    }
-
-    // TODO: refine the search - not all depend on this state var
-
-    // a state var can depend on this through a group member
-    for comp_name in groups_depending_on_group(core, sv_component) {
-        // utils::log!("groups {} depends on {}:{}", comp_name, sv_component, sv_reference);
-        // utils::log!("and vars {:?}", state_vars_depending_on_group(core, &comp_name));
-        depending_on_me.extend(
-            state_vars_depending_on_group(core, &comp_name)
-        );
     }
 
     depending_on_me
@@ -2630,7 +2614,7 @@ fn resolve_batch_size(
     map: &Instance,
 ) -> usize {
 
-    log_debug!("resolving {} batch {:?} found def ", component_name, batch_name);
+    // log_debug!("resolving {} batch {:?} found def ", component_name, batch_name);
     let batch_def = core.component_nodes.get(component_name).unwrap()
         .definition.unwrap_batch_def(&batch_name);
     resolve_state_variable(core, component_name, map, &batch_def.size)

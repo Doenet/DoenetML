@@ -257,7 +257,7 @@ impl StateForStateVar {
     // When referring to an array, this returns true if every aspect is stale
     pub fn slice_is_stale(&self, sv_slice: &StateVarSlice, map: &Instance) -> Result<bool, String> {
 
-        log_debug!("is {:?} stale? {:?}", sv_slice, self);
+        // log_debug!("is {:?} stale? {:?}", sv_slice, self);
         match (self, sv_slice) {
             (Self::Single(sv), StateVarSlice::Single(StateRef::Basic(_))) =>
                 Ok(sv.instance(map).get_state().is_stale()),

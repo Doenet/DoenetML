@@ -502,8 +502,15 @@ fn collect_sequence_changing() {
 
     update_immediate_value_for_number(&dc, "/_numberInput1", "30");
     update_value_for_number(&dc, "/_numberInput1");
+
+    // console_log!("the update: {:?}", doenet_core::utils::json_components(&dc.component_nodes, &dc.component_states));
+    assert_state_var_stale(&dc, "seq", &vec![], &doenet_core::state_variables::StateRef::ArrayElement("value", 3));
+    assert_state_var_stale(&dc, "__mcr:seq:value(/_document1)_1", &vec![], &doenet_core::state_variables::StateRef::Basic("value"));
+
     doenet_core::update_renderers(&dc);
 
+    assert_sv_is_number(&dc, "/_numberInput1", "value", 30.0);
+    assert_sv_array_is_number_list(&dc, "seq", "value", vec![30.0, 31.0, 32.0, 33.0, 34.0, 35.0]);
     assert_sv_is_number(&dc, "__mcr:c1:value(/_document1)_1", "value", 32.0);
     assert_sv_is_number(&dc, "__mcr:seq:value(/_document1)_1", "value", 32.0);
 }
@@ -636,7 +643,8 @@ fn sequence_index_copied_based_on_number_input() {
 fn sequence_macro_component_index() {
     static DATA: &str = r#"
         <p>
-                <sequence name="seq" from="1" to="20"/>.
+                <numberInput name="n" prefill="1"/>
+                <sequence name="seq" from="$n.value" to="20"/>.
 
                 <text>Fifth:$seq[5].value.</text>
                 <text>Fifth:$seq[  5 ].value.</text>
@@ -652,6 +660,15 @@ fn sequence_macro_component_index() {
     assert_sv_is_string(&dc, "/_text2", "value", "Fifth:5.");
     assert_sv_is_string(&dc, "/_text3", "value", "Fifth: 5");
     assert_sv_is_string(&dc, "/_text4", "value", "Fifth: 5");
+
+    update_immediate_value_for_number(&dc, "n", "6");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "/_text1", "value", "Fifth:10.");
+    assert_sv_is_string(&dc, "/_text2", "value", "Fifth:10.");
+    assert_sv_is_string(&dc, "/_text3", "value", "Fifth: 10");
+    assert_sv_is_string(&dc, "/_text4", "value", "Fifth: 10");
 }
 
 #[wasm_bindgen_test]

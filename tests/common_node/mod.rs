@@ -55,7 +55,7 @@ pub fn doenet_core_with_essential_data(
     doenet_core::create_doenet_core(&program, Some(essential_data))
 }
 
-fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_ref: &StateRef, value: StateVarValue) {
+fn get_state_var(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_ref: &StateRef) -> State<StateVarValue> {
 
     let state_value = dc.component_states.get(comp_name).expect(
         &format!("Component {} does not exist", comp_name)
@@ -63,7 +63,7 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance,
         &format!("State var [{}]:[{}] does not exist", comp_name, sv_ref.name())
     );
 
-    let state = match sv_ref {
+    match sv_ref {
         StateRef::Basic(sv_name) => {
             match state_value {
                 StateForStateVar::Single(sv) => sv.instance(map).get_state(),
@@ -87,7 +87,13 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance,
                 _ => panic!("State var [{}]:[{}] is SizeOf but does not have array state", comp_name, sv_name)
             }
         },
-    };
+    }
+}
+
+
+fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_ref: &StateRef, value: StateVarValue) {
+
+    let state = get_state_var(dc, comp_name, map, sv_ref);
 
     match value {
         StateVarValue::Number(num_val) => {
@@ -113,6 +119,13 @@ fn assert_state_var_is(dc: &DoenetCore, comp_name: &'static str, map: &Instance,
             assert_eq!(State::Resolved(value), state, "Incorrect value from [{}]:[{}]", comp_name, sv_ref);
         },
     }
+}
+
+pub fn assert_state_var_stale(dc: &DoenetCore, comp_name: &'static str, map: &Instance, sv_ref: &StateRef) {
+
+    let state = get_state_var(dc, comp_name, map, sv_ref);
+
+    assert_eq!(State::Stale, state, "Expected stale for [{}]:[{}] but found {:?}", comp_name, sv_ref, state);
 }
 
 fn numbers_are_equal_or_both_nan(num1: f64, num2: f64) -> bool {
