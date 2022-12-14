@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::utils::{log_json, log_debug, log};
-use crate::Action;
+use crate::{Action, RelativeInstance};
 use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
 KeyValueIgnoreCase, AttributeName, ObjectName, ReplacementComponents};
 
@@ -199,6 +199,7 @@ pub struct MLComponent {
     pub children: Vec<ComponentChild>,
 
     pub copy_source: Option<String>,
+    pub copy_instance: Option<RelativeInstance>,
     pub copy_collection: Option<String>,
     pub copy_prop: Option<String>,
     pub static_attributes: HashMap<AttributeName, String>,
@@ -438,13 +439,15 @@ fn add_component_from_json(
         }
     }
 
+    let (copy_source, copy_instance) = convert_copy_source_name(component_tree.props.copy_source.clone());
 
     let component_node = MLComponent {
         name: name.clone(),
         parent,
         children,
 
-        copy_source: component_tree.props.copy_source.clone(),
+        copy_source,
+        copy_instance,
         copy_collection: component_tree.props.copy_collection.clone(),
         copy_prop: component_tree.props.copy_prop.clone(),
         prop_index: vec![],
@@ -466,6 +469,26 @@ fn add_component_from_json(
     return Ok(Some(name));
 }
 
+// returns (copy_source, copy_instance)
+// Ex: [1 2]my_name -> (my_name, [1, 2])
+fn convert_copy_source_name(name: Option<String>) -> (Option<String>, Option<RelativeInstance>) {
+    if let Some(name) = name {
+        if name.chars().next() == Some('(') {
+            let mut chars = name.chars();
+            chars.next();
+            let instance_indices: String = (&mut chars).take_while(|&c| c != ')').collect();
+            log_debug!("instancing {:?}", instance_indices);
+            let relative_instance = instance_indices.split(' ').map(|d| d.parse().unwrap()).collect();
+            // chars.next();
+            let component_name = chars.collect();
+            (Some(component_name), Some(relative_instance))
+        } else {
+            (Some(name), None)
+        }
+    } else {
+        (None, None)
+    }
+}
 
 
 fn parse_attributes_and_macros(
@@ -682,6 +705,9 @@ fn macro_comp_ref(
     let comp_match = regex_at(&COMPONENT, string, start)?;
 
     let copy_source = comp_match.as_str().to_string();
+    let (copy_source, copy_instance) = convert_copy_source_name(Some(copy_source.clone()));
+    let copy_source = copy_source.unwrap();
+
 
     if let Some(sources_name) = map_sources_alias.get(&copy_source) {
         // Special case: the macro references a sources component
@@ -698,6 +724,7 @@ fn macro_comp_ref(
             parent: Some(macro_parent.clone()),
             children: vec![],
             copy_source: Some(copy_source),
+            copy_instance,
             copy_collection: None,
             copy_prop: None,
             component_index: vec![],
@@ -837,12 +864,15 @@ fn macro_comp_ref(
         macro_end = comp_end;
     };
 
+    let (copy_source, copy_instance) = convert_copy_source_name(Some(copy_source));
+
     let macro_copy = MLComponent {
         name,
         parent: Some(macro_parent.clone()),
         children: vec![],
 
-        copy_source: Some(copy_source),
+        copy_source,
+        copy_instance,
         copy_collection: None,
         copy_prop,
         component_index,

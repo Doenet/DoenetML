@@ -1,3 +1,4 @@
+use crate::RelativeInstance;
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
@@ -109,8 +110,8 @@ pub struct ComponentNode {
 /// - If the component type has no primary input, a StateVar CopySource will not work.
 #[derive(Debug, Clone)]
 pub enum CopySource {
-    Component(ComponentRef),
-    StateVar(ComponentRef, StateRef),
+    Component(ComponentRef, RelativeInstance),
+    StateVar(ComponentRef, RelativeInstance, StateRef),
     MapSources(ComponentName),
     DynamicElement(ComponentName, StateVarName, MathExpression, Vec<ComponentName>),
 }
