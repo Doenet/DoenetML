@@ -30,8 +30,9 @@ fn group_dependencies(
 ) -> Vec<CollectionMembersOrCollection> {
 
     let my_attributes = &node.static_attributes;
-    let desired_type: String = my_attributes.get("componentType").unwrap().clone();
-    members_from_children_of_type(component_nodes, node, &desired_type)
+    let desired_type = my_attributes.get("componentType").unwrap();
+    let desired_type = COMPONENT_DEFINITIONS.get_key_value_ignore_case(desired_type).unwrap().0;
+    members_from_children_of_type(component_nodes, node, desired_type)
 }
 
 lazy_static! {

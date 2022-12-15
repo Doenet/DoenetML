@@ -30,9 +30,10 @@ fn group_dependencies(
 
     let my_attributes = &node.static_attributes;
     let source = my_attributes.get("source").unwrap();
-    let desired_type = my_attributes.get("componentType").unwrap().clone();
+    let desired_type = my_attributes.get("componentType").unwrap();
+    let desired_type = COMPONENT_DEFINITIONS.get_key_value_ignore_case(desired_type).unwrap().0;
     let source_node = component_nodes.get(source).unwrap();
-    members_from_children_of_type(component_nodes, source_node, &desired_type)
+    members_from_children_of_type(component_nodes, source_node, desired_type)
 }
 
 lazy_static! {

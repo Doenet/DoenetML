@@ -24,9 +24,9 @@ fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<CollectionMembersOrCollection> {
-    get_children_of_type(component_nodes, node, "case", false).into_iter().map(|c|
+    get_children_of_type(component_nodes, node, "case", false).map(|c|
         CollectionMembersOrCollection::Members(CollectionMembers::ComponentOnCondition {
-            component_name: c,
+            component_name: c.clone(),
             condition: StateRef::Basic("condition")
         })
     ).collect()

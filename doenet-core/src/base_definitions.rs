@@ -736,28 +736,28 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
 pub fn members_from_children_of_type(
     component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
     node: &crate::component::ComponentNode,
-    component_type: &str,
+    component_type: crate::ComponentType,
 ) -> Vec<CollectionMembersOrCollection> {
-    get_children_of_type(component_nodes, node, component_type, true).into_iter().map(|c|
-        match component_nodes.get(&c).unwrap().definition.replacement_components {
+    get_children_of_type(component_nodes, node, component_type, true).map(|c|
+        match component_nodes.get(c).unwrap().definition.replacement_components {
             Some(ReplacementComponents::Batch(_)) =>
-                CollectionMembersOrCollection::Members(CollectionMembers::Batch(c)),
+                CollectionMembersOrCollection::Members(CollectionMembers::Batch(c.clone())),
             Some(ReplacementComponents::Collection(_)) =>
-                CollectionMembersOrCollection::Collection(c),
+                CollectionMembersOrCollection::Collection(c.clone()),
             Some(ReplacementComponents::Children) =>
                 todo!(),
-            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(c)),
+            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(c.clone())),
         }
     ).collect()
 }
 
-pub fn get_children_of_type(
-    component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
-    node: &crate::component::ComponentNode,
-    component_type: &str,
+pub fn get_children_of_type<'a>(
+    component_nodes: &'a HashMap<crate::ComponentName, crate::ComponentNode>,
+    node: &'a crate::ComponentNode,
+    component_type: crate::ComponentType,
     include_groups: bool,
-) -> Vec<crate::component::ComponentName> {
-    node.children.iter().filter_map(|n|
+) -> impl Iterator<Item=&'a crate::ComponentName> {
+    crate::get_children_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
         match n {
             crate::component::ObjectName::String(_) => None,
             crate::component::ObjectName::Component(c) => {
@@ -769,16 +769,11 @@ pub fn get_children_of_type(
                         def.member_definition.component_type,
                     _ => comp.definition.component_type,
                 };
-                if child_type.to_lowercase() == component_type.to_lowercase() {
-                    Some(c.clone())
-                } else {
-                    None
-                }
+                (child_type.to_lowercase() == component_type.to_lowercase()).then(|| c)
             },
         }
-    ).collect()
+    )
 }
-
 
 // ========== Prop Index ============
 

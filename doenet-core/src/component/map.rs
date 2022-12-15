@@ -24,11 +24,11 @@ fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<CollectionMembersOrCollection> {
-    let templates = get_children_of_type(component_nodes, node, "template", false);
-    let sources = get_children_of_type(component_nodes, node, "sources", false);
+    let templates = get_children_of_type(component_nodes, node, "template", false).next();
+    let sources = get_children_of_type(component_nodes, node, "sources", false).next();
     vec![CollectionMembersOrCollection::Members(CollectionMembers::InstanceBySources {
-        template: templates.first().unwrap().clone(),
-        sources: sources.first().unwrap().clone(),
+        template: templates.unwrap().clone(),
+        sources: sources.unwrap().clone(),
     })]
 }
 

@@ -2768,42 +2768,32 @@ fn nth_collection_member(
 
     let mut index = index;
     for c in core.group_dependencies.get(component_name).unwrap() {
+        let (size, group_member);
         match c {
             CollectionMembers::Component(component_name) => {
-                if index > 1 {
-                    index -= 1;
-                } else {
-                    return Some((ComponentRef::Basic(component_name.clone()), map));
-                }
+                size = 1;
+                group_member = (ComponentRef::Basic(component_name.clone()), map.clone());
             },
             CollectionMembers::Batch(component_name) => {
-                let size = resolve_batch_size(core, component_name, None, &map);
-                if index > size {
-                    index -= size;
-                } else {
-                    return Some((ComponentRef::BatchMember(component_name.clone(), None, index), map));
-                }
+                size = resolve_batch_size(core, component_name, None, &map);
+                group_member = (ComponentRef::BatchMember(component_name.clone(), None, index), map.clone());
             },
             CollectionMembers::ComponentOnCondition { component_name, condition } => {
                 let condition = resolve_state_variable(core, component_name, &map, condition);
-                if let Some(StateVarValue::Boolean(true)) = condition {
-                    if index > 1 {
-                        index -= 1;
-                    } else {
-                        return Some((ComponentRef::Basic(component_name.clone()), map));
-                    }
-                }
+                size = (condition == Some(StateVarValue::Boolean(true))) as usize;
+                group_member = (ComponentRef::Basic(component_name.clone()), map.clone());
             },
             CollectionMembers::InstanceBySources { sources, template } => {
-                let size = collection_size(core, sources, &map);
-                if index > size {
-                    index -= size;
-                } else {
-                    let mut map_new = map;
-                    map_new.push(index);
-                    return Some((ComponentRef::Basic(template.clone()), map_new))
-                }
+                size = collection_size(core, sources, &map);
+                let mut map_new = map.clone();
+                map_new.push(index);
+                group_member = (ComponentRef::Basic(template.clone()), map_new)
             },
+        }
+        if index > size {
+            index -= size;
+        } else {
+            return Some(group_member);
         }
     }
     None
@@ -2976,8 +2966,8 @@ fn sources_that_instance_component(
         let child = component_nodes.get(&child).unwrap();
         if parent.definition.component_type == "map"
         && child.definition.component_type == "template" {
-            let sources_child = get_children_of_type(component_nodes, parent, "sources", false);
-            let sources_child = sources_child.first().unwrap();
+            let sources_child = get_children_of_type(component_nodes, parent, "sources", false)
+                .next().unwrap().clone();
             sources.push(sources_child.clone());
         }
     }
@@ -3098,11 +3088,11 @@ fn get_children_including_copy_and_groups<'a>(
 fn get_children_including_copy<'a>(
     components: &'a HashMap<ComponentName, ComponentNode>,
     component: &'a ComponentNode,
-) -> Vec<(ComponentChild, &'a ComponentNode)> {
+) -> Vec<(&'a ComponentChild, &'a ComponentNode)> {
 
     // log_debug!("Getting children for {}", component.name);
 
-    let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
+    let mut children_vec: Vec<(&ComponentChild, &ComponentNode)> = Vec::new();
     if let Some(CopySource::Component(ComponentRef::Basic(ref source), ..)) = component.copy_source {
 
         let source_comp = components.get(source).unwrap();
@@ -3117,7 +3107,7 @@ fn get_children_including_copy<'a>(
     children_vec.extend(
         component.children
         .iter()
-        .map(|c| (c.clone(), component))
+        .map(|c| (c, component))
     );
 
     children_vec
