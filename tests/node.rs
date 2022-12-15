@@ -1038,6 +1038,44 @@ fn map_inside_text() {
     assert_sv_is_string(&dc, "/_text1", "value", "some cow but then it answers yes then it answers no and some horse but then it answers yes then it answers no and they left");
 }
 
+// ========= <conditionalContent> ===========
+
+#[wasm_bindgen_test]
+fn conditional_content_updating() {
+    static DATA: &str = r#"
+    <numberinput name="n" prefill="2"/>
+    <text>Description: <conditionalContent>
+        <case condition="$n.value>=0.0">positive, </case>
+        <case condition="$n.value<0.0">negative, </case>
+        <case condition="$n.value>2.0">greater than 2, </case>
+        <case condition="$n.value>1.0">greater than 1, </case>
+        <case condition="$n.value<3.0">less than 3, </case>
+    </conditionalContent>ok.</text>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    doenet_core::update_renderers(&dc);
+
+    assert_sv_is_string(&dc, "/_text1", "value", "Description: positive, greater than 1, less than 3, ok.");
+
+    update_immediate_value_for_number(&dc, "n", "10");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "/_text1", "value", "Description: positive, greater than 2, greater than 1, ok.");
+
+    update_immediate_value_for_number(&dc, "n", "1");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "/_text1", "value", "Description: positive, less than 3, ok.");
+
+    update_immediate_value_for_number(&dc, "n", "-1");
+    update_value_for_number(&dc, "n");
+    doenet_core::update_renderers(&dc);
+    assert_sv_is_string(&dc, "/_text1", "value", "Description: negative, less than 3, ok.");
+}
+
+
+
 // =========== <boolean> ===========
 
 #[wasm_bindgen_test]

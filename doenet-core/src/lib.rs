@@ -758,7 +758,6 @@ fn create_dependencies_from_instruction(
                 get_recursive_copy_source_component_when_exists(components, component);
             let source = components.get(source_copy_root_name).unwrap();
             
-            log_debug!("child cop {:?}", source.copy_source);
             if let Some(CopySource::StateVar(ref source_comp_ref, ref instance, ref source_sv_ref)) = source.copy_source {
                 // copying a state var means we don't inheret its children,
                 // so we depend on it directly
@@ -2026,28 +2025,21 @@ fn get_state_variables_depending_on_me(
                 },
 
                 Dependency::UndeterminedChildren { component_name, desired_profiles } => {
-                    let component_node = core.component_nodes.get(component_name).unwrap();
-                    let mut dependent = false;
-                    if component_node.definition.component_profile_match(desired_profiles).is_some() {
-                        let mut chain = parent_chain(&core.component_nodes, component_name);
-                        let mut parent: Option<String> = chain.next();
-                        while parent.is_some()  {
-                            let parent_node = core.component_nodes.get(parent.as_ref().unwrap()).unwrap();
-                            if let Some(ReplacementComponents::Children) = parent_node.definition.replacement_components {
-                                parent = chain.next();
-                                let parent_node = core.component_nodes.get(parent.as_ref().unwrap()).unwrap();
-                                if parent_node.definition.component_type == "map" {
-                                    parent = chain.next();
-                                }
-                            } else if &parent_node.name == sv_component {
-                                dependent = true;
-                                break;
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                    if dependent {
+                    let sv_component_def = core.component_nodes.get(sv_component).unwrap().definition;
+                    let depends =
+                        if core.group_dependencies.get(component_name).unwrap().contains(sv_component) {
+                            true
+                        } else if sv_component_def.component_profile_match(desired_profiles).is_some() {
+                            let mut chain = parent_chain(&core.component_nodes, component_name);
+                            let parent = chain.find(|p| {
+                                let node_def = &core.component_nodes.get(p).unwrap().definition;
+                                !matches!(node_def.replacement_components, Some(ReplacementComponents::Children))
+                            });
+                            parent.as_ref() == Some(component_name)
+                        } else {
+                            false
+                        };
+                    if depends {
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
                         depending_on_me.extend(
                             apply_relative_instance(core, sv_component, map, dependent_comp, &RelativeInstance::default()).into_iter()
@@ -2965,7 +2957,7 @@ fn sources_that_instance_component(
     sources
 }
 
-// Vector of parents beginning with the immediate parent, ending with the root
+/// Vector of parents beginning with the immediate parent, ending with the root
 fn parent_chain(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentName,
