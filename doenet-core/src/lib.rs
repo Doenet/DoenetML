@@ -1910,27 +1910,25 @@ fn state_vars_for_undetermined_children(
 fn mark_stale_state_var_and_dependencies(
     core: &DoenetCore,
     component: &ComponentName,
-    map: &Instance,
+    map: &InstanceGroup,
     state_var_slice: &StateVarSlice,
 ) {
-    let state_var = core.component_states.get(component).unwrap()
+    let state = core.component_states.get(component).unwrap()
         .get(state_var_slice.name()).unwrap();
 
-    // No need to continue if the state var is already stale
-    let already_stale = state_var.slice_is_stale(state_var_slice, map)
-        .expect(&format!("Error accessing state of {}:{:?}", component, state_var_slice));
-    if already_stale {
-        return;
-    }
+    for instance in state.instances_where_slice_is_resolved(state_var_slice, map) {
 
-    log_debug!("Marking stale {}_map{:?}:{}", component, map, state_var_slice);
+        let instance = instance
+            .expect(&format!("Error accessing state of {}:{:?}", component, state_var_slice));
+        log_debug!("Marking stale {}_map{:?}:{}", component, instance, state_var_slice);
 
-    state_var.mark_stale_slice(state_var_slice, map);
+        state.mark_stale_slice(state_var_slice, &instance);
 
-    let depending_on_me = get_state_variables_depending_on_me(core, component, map, state_var_slice);
+        let depending_on_me = get_state_variables_depending_on_me(core, component, &instance, state_var_slice);
 
-    for (depending_comp, depending_map, depending_slice) in depending_on_me {
-        mark_stale_state_var_and_dependencies(core, &depending_comp, &depending_map, &depending_slice);
+        for (depending_comp, depending_map, depending_slice) in depending_on_me {
+            mark_stale_state_var_and_dependencies(core, &depending_comp, &depending_map, &depending_slice);
+        }
     }
 }
 
@@ -1990,7 +1988,7 @@ fn get_state_variables_depending_on_me(
     sv_component: &ComponentName,
     map: &Instance,
     sv_slice: &StateVarSlice,
-) -> Vec<(ComponentName, Instance, StateVarSlice)> {
+) -> Vec<(ComponentName, InstanceGroup, StateVarSlice)> {
 
     let mut depending_on_me = vec![];
 
@@ -2017,9 +2015,9 @@ fn get_state_variables_depending_on_me(
                     && slice_depends {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.extend(
-                            apply_relative_instance(core, sv_component, map, dependent_comp, instance).into_iter()
-                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        let instance_group = instance_relative_to_group(core, sv_component, map, dependent_comp, instance);
+                        depending_on_me.push(
+                            (dependent_comp.clone(), instance_group, dependent_slice.clone())
                         );
                     }
                 },
@@ -2041,9 +2039,10 @@ fn get_state_variables_depending_on_me(
                         };
                     if depends {
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.extend(
-                            apply_relative_instance(core, sv_component, map, dependent_comp, &RelativeInstance::default()).into_iter()
-                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        let instance_group = instance_relative_to_group(
+                            core, sv_component, map, dependent_comp, &RelativeInstance::default());
+                        depending_on_me.push(
+                            (dependent_comp.clone(), instance_group, dependent_slice.clone())
                         );
                     }
                 },
@@ -2053,9 +2052,10 @@ fn get_state_variables_depending_on_me(
                     && slice_depends_on_slice(state_var_slice, sv_slice) {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.extend(
-                            apply_relative_instance(core, sv_component, map, dependent_comp, &RelativeInstance::default()).into_iter()
-                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        let instance_group = instance_relative_to_group(
+                            core, sv_component, map, dependent_comp, &RelativeInstance::default());
+                        depending_on_me.push(
+                            (dependent_comp.clone(), instance_group, dependent_slice.clone())
                         );
                     }
                 },
@@ -2064,10 +2064,12 @@ fn get_state_variables_depending_on_me(
                     if group_includes_component(&core.group_dependencies, component_group, sv_component)
                     && *array_state_var_name == sv_slice.name() {
 
+                        let dependent_slice = sv_slice;
                         let DependencyKey::StateVar(dependent_comp, _, _) = dependency_key;
-                        depending_on_me.extend(
-                            apply_relative_instance(core, sv_component, map, dependent_comp, &RelativeInstance::default()).into_iter()
-                                .map(|m| (dependent_comp.clone(), m, sv_slice.clone()))
+                        let instance_group = instance_relative_to_group(
+                            core, sv_component, map, dependent_comp, &RelativeInstance::default());
+                        depending_on_me.push(
+                            (dependent_comp.clone(), instance_group, dependent_slice.clone())
                         );
                     }
                 },
@@ -2092,9 +2094,10 @@ fn get_state_variables_depending_on_me(
                     if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
 
                         let DependencyKey::StateVar(dependent_comp, dependent_slice, _) = dependency_key;
-                        depending_on_me.extend(
-                            apply_relative_instance(core, sv_component, map, dependent_comp, &RelativeInstance::default()).into_iter()
-                                .map(|m| (dependent_comp.clone(), m, dependent_slice.clone()))
+                        let instance_group = instance_relative_to_group(
+                            core, sv_component, map, dependent_comp, &RelativeInstance::default());
+                        depending_on_me.push(
+                            (dependent_comp.clone(), instance_group, dependent_slice.clone())
                         );
                     }
                 },
@@ -2870,6 +2873,22 @@ fn map_sources_dependency_member(
 }
 
 fn instance_relative_to_group(
+    core: &DoenetCore,
+    component: &ComponentName,
+    map: &Instance,
+    dependency: &ComponentName,
+    relative_map: &RelativeInstance,
+) -> InstanceGroup {
+    instance_relative_to_group_internal(
+        &core.component_nodes,
+        component,
+        map,
+        dependency,
+        relative_map
+    ).0
+}
+
+fn instance_relative_to_group_internal(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentName,
     map: &Instance,
@@ -2882,7 +2901,7 @@ fn instance_relative_to_group(
     if sources_for_dependency.len() <= sources_for_component.len() {
         // Find the instance of a component inside fewer maps
         let mut instance = Instance::default();
-        for i in 0..sources_for_dependency.len() {
+        for i in 0..std::cmp::min(sources_for_dependency.len(), map.len()) {
             assert_eq!(sources_for_dependency.get(i), sources_for_dependency.get(i));
             instance.push(*map.get(i).unwrap());
         }
@@ -2902,7 +2921,7 @@ fn apply_relative_instance_single(
     dependency: &ComponentName,
     relative_map: &RelativeInstance,
 ) -> Instance {
-    let (group, sources) = instance_relative_to_group(component_nodes, component, map, dependency, relative_map);
+    let (group, sources) = instance_relative_to_group_internal(component_nodes, component, map, dependency, relative_map);
     assert_eq!(group.len(), sources.len());
     group
 }
@@ -2914,7 +2933,7 @@ fn apply_relative_instance(
     dependency: &ComponentName,
     relative_map: &RelativeInstance,
 ) -> Vec<Instance> {
-    let (group, sources) = instance_relative_to_group(&core.component_nodes, component, map, dependency, relative_map);
+    let (group, sources) = instance_relative_to_group_internal(&core.component_nodes, component, map, dependency, relative_map);
     all_map_instances(core, &group, &sources[group.len()..])
 }
 

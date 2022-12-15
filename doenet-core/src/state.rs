@@ -1,6 +1,6 @@
 use enum_as_inner::EnumAsInner;
 
-use crate::{state_variables::*, utils::log_debug, Instance};
+use crate::{state_variables::*, utils::log_debug, Instance, InstanceGroup};
 use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max, iter::repeat};
 use self::State::*;
 use ndarray::{ArrayD, SliceInfoElem};
@@ -67,6 +67,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
             default: value,
         }
     }
+
     fn resize(&self, dim: &Vec<usize>) {
         let array = self.values.borrow().clone();
         let mut shape = array.shape().to_vec();
@@ -104,6 +105,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
             *value = new;
         }
     }
+
     fn instance_mut(& self, map: &Instance) -> RefMut<'_, T> {
         let dim = map_instance_to_index(map);
         self.resize(&dim);
@@ -113,6 +115,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
 
         RefMut::map(self.values.borrow_mut(), |x| x.get_mut(index.as_slice()).unwrap())
     }
+
     pub fn instance(&self, map: &Instance) -> Ref<'_, T> {
         let dim = map_instance_to_index(map);
         self.resize(&dim);
@@ -122,10 +125,47 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
 
         Ref::map(self.values.borrow(), |x| x.get(index.as_slice()).unwrap())
     }
+
     pub fn all_instances(&self) -> ArrayD<T> {
         self.values.borrow().clone()
     }
+
+    pub fn instances_existing_in_instance_group(&self, instance_group: &InstanceGroup) -> Vec<Instance> {
+        let array = self.values.borrow().clone();
+        let shape = array.shape();
+
+        if shape == [1] {
+            assert!(instance_group.is_empty());
+            return vec![vec![]];
+        }
+
+        let add_instances: Vec<std::ops::RangeInclusive<usize>> = shape.iter()
+            .skip(instance_group.len())
+            .map(|&s| 1..=s)
+            .collect();
+
+        all_group_instances(instance_group, &add_instances)
+    }
 }
+
+/// Extend the instance with every possibility of each range.
+fn all_group_instances(
+    map: &InstanceGroup,
+    add_instances: &[std::ops::RangeInclusive<usize>],
+) -> Vec<Instance> {
+    if add_instances.is_empty() {
+        return vec![map.clone()]
+    }
+    let mut vec = vec![];
+    for i in add_instances[0].clone() {
+        let mut next_map = map.clone();
+        next_map.push(i);
+        vec.extend(all_group_instances(&next_map, &add_instances[1..]));
+    }
+    vec
+}
+
+
 
 #[derive(Debug)]
 pub enum StateForStateVar {
@@ -250,6 +290,28 @@ impl StateForStateVar {
                     new_size.map(|val| Some(val))
                 },
                 _ => panic!()
+            }
+        }
+    }
+
+    pub fn instances_where_slice_is_resolved(&self, sv_slice: &StateVarSlice, instance_group: &InstanceGroup)
+        -> Vec<Result<Instance, String>> {
+        match self {
+            Self::Single(sv) => {
+                sv.instances_existing_in_instance_group(instance_group).into_iter().filter_map(|i| {
+                    match self.slice_is_stale(sv_slice, &i) {
+                        Ok(stale) => if stale { None } else { Some(Ok(i)) },
+                        Err(e) => Some(Err(e)),
+                    }
+                }).collect()
+            }
+            Self::Array { size, ..} => {
+                size.instances_existing_in_instance_group(instance_group).into_iter().filter_map(|i| {
+                    match self.slice_is_stale(sv_slice, &i) {
+                        Ok(stale) => if stale { None } else { Some(Ok(i)) },
+                        Err(e) => Some(Err(e)),
+                    }
+                }).collect()
             }
         }
     }

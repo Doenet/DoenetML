@@ -565,7 +565,7 @@ fn sequence_can_grow_and_shrink() {
 
     assert_sv_array_is_number_list(&dc, "/_sequence1", "value", vec![1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]);
 
-    update_immediate_value_for_number(&dc, "ni", "9.0");
+    update_immediate_value_for_number(&dc, "ni", "9");
     update_value_for_number(&dc, "ni");
     doenet_core::update_renderers(&dc);
 
