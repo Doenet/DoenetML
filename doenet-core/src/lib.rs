@@ -336,7 +336,7 @@ fn copy_source_for_ml_component(
         .get(source_sv_name)
         .unwrap();
 
-    let prop_index = &ml_component.component_index;
+    let prop_index = &ml_component.prop_index;
     match (prop_index.len(), prop_index.first()) {
         (1, Some(ObjectName::String(first_string))) => {
 
