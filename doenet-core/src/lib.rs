@@ -1724,29 +1724,13 @@ fn dependencies_of_state_var(
         match key {
             DependencyKey::StateVar(comp_name, sv_slice, instruct_name) => {
 
-                // Check if the key is me
-                if comp_name == component_name {
-                    if sv_slice.as_single() == Some(state_ref) {
-                        Some((*instruct_name, deps))
+                let key_is_me = comp_name == component_name && (
+                    sv_slice == &StateVarSlice::Single(state_ref.clone())
+                    || matches!(state_ref, StateRef::ArrayElement(_, _))
+                    && sv_slice == &StateVarSlice::Array(state_ref.name())
+                );
 
-                    } else if let StateRef::ArrayElement(..) = state_ref {
-
-                        // The key might also be an array who feeds into me
-                        if let StateVarSlice::Array(array_name) = sv_slice {
-                            if state_ref.name() == *array_name {
-                                Some((*instruct_name, deps))
-                            } else {
-                                None
-                            }
-                        } else {
-                            None
-                        }
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+                key_is_me.then(|| (*instruct_name, deps))
             },
         }
     );
