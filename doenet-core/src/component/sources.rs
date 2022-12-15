@@ -27,11 +27,11 @@ fn member_definition(
 fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<ComponentName> {
+) -> Vec<CollectionMembersOrCollection> {
 
     let my_attributes = &node.static_attributes;
     let desired_type: String = my_attributes.get("componentType").unwrap().clone();
-    get_children_of_type(component_nodes, node, &desired_type, true)
+    members_from_children_of_type(component_nodes, node, &desired_type)
 }
 
 lazy_static! {

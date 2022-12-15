@@ -135,7 +135,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
         let shape = array.shape();
 
         if shape == [1] {
-            assert!(instance_group.is_empty());
+            // assert!(instance_group.is_empty(), "instance: {:?}", instance_group);
             return vec![vec![]];
         }
 

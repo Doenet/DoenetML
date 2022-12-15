@@ -54,7 +54,7 @@ pub struct DoenetCore {
     pub dependencies: HashMap<DependencyKey, Vec<Dependency>>,
 
     /// This determines which components a Collection includes
-    pub group_dependencies: HashMap<ComponentName, Vec<ComponentName>>,
+    pub group_dependencies: HashMap<ComponentName, Vec<CollectionMembers>>,
 
     /// Endpoints of the dependency graph.
     /// Every update instruction will lead to these.
@@ -128,6 +128,28 @@ pub enum Dependency {
     },
 }
 
+/// Defines which components form the members of a collection.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, enum_as_inner::EnumAsInner)]
+pub enum CollectionMembers {
+    Component(ComponentName),
+
+    Batch(ComponentName),
+
+    /// Only included if the boolean state var is true
+    ComponentOnCondition {
+        component_name: ComponentName,
+        condition: StateRef, // a boolean
+    },
+
+    /// The members of this are the same component, but different instances
+    InstanceBySources {
+        template: ComponentName,
+        sources: ComponentName, // a collection
+    },
+
+    // /// Points to collection of whose members are undetermined children
+    // UndeterminedChildren(ComponentName),
+}
 
 
 
@@ -363,7 +385,7 @@ fn convert_ml_components_into_component_nodes(
 }
 
 
-fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentNode>) -> HashMap<ComponentName, Vec<ComponentName>> {
+fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentNode>) -> HashMap<ComponentName, Vec<CollectionMembers>> {
     let mut group_dependencies = HashMap::new();
     for (component_name, component) in component_nodes.iter() {
         if let Some(ReplacementComponents::Collection(group_def)) = &component.definition.replacement_components {
@@ -376,27 +398,25 @@ fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentN
         }
     }
 
-    fn flat_group_dependencies(
-        component_nodes: &HashMap<String, ComponentNode>,
-        group_dependencies: &HashMap<String, Vec<String>>,
+    // flatten so that collections do not point to other collections
+    fn flat_members_for_collection(
+        component_nodes: &HashMap<ComponentName, ComponentNode>,
+        group_dependencies: &HashMap<ComponentName, Vec<CollectionMembersOrCollection>>,
         component: &ComponentName,
-    ) -> Vec<ComponentName> {
+    ) -> Vec<CollectionMembers> {
         group_dependencies.get(component).unwrap()
             .iter()
             .flat_map(|c| {
-                let component_type = component_nodes.get(c).unwrap().definition.component_type;
-                if group_dependencies.contains_key(c)
-                && component_type != "sources" {
-                    flat_group_dependencies(component_nodes, group_dependencies, c)
-                } else {
-                    vec![c.clone()]
+                match c {
+                    CollectionMembersOrCollection::Collection(c) =>
+                        flat_members_for_collection(component_nodes, group_dependencies, c),
+                    CollectionMembersOrCollection::Members(m) => vec![m.clone()],
                 }
             }).collect()
     }
 
-    // flatten
     let group_dependencies =  group_dependencies.iter()
-        .map(|(k, _v)| (k.clone(), flat_group_dependencies(component_nodes, &group_dependencies, k)))
+        .map(|(k, _v)| (k.clone(), flat_members_for_collection(component_nodes, &group_dependencies, k)))
         .collect();
 
     group_dependencies
@@ -1916,6 +1936,7 @@ fn mark_stale_state_var_and_dependencies(
     let state = core.component_states.get(component).unwrap()
         .get(state_var_slice.name()).unwrap();
 
+    log_debug!("Check stale {}_map{:?}:{}", component, map, state_var_slice);
     for instance in state.instances_where_slice_is_resolved(state_var_slice, map) {
 
         let instance = instance
@@ -2025,7 +2046,7 @@ fn get_state_variables_depending_on_me(
                 Dependency::UndeterminedChildren { component_name, desired_profiles } => {
                     let sv_component_def = core.component_nodes.get(sv_component).unwrap().definition;
                     let depends =
-                        if core.group_dependencies.get(component_name).unwrap().contains(sv_component) {
+                        if collection_may_contain(&core.group_dependencies.get(component_name).unwrap(), sv_component) {
                             true
                         } else if sv_component_def.component_profile_match(desired_profiles).is_some() {
                             let mut chain = parent_chain(&core.component_nodes, component_name);
@@ -2110,7 +2131,7 @@ fn get_state_variables_depending_on_me(
     }
 
     fn group_includes_component(
-        group_dependencies: &HashMap<ComponentName, Vec<ComponentName>>,
+        group_dependencies: &HashMap<ComponentName, Vec<CollectionMembers>>,
         group: &ComponentGroup,
         component: &ComponentName,
     ) -> bool {
@@ -2121,7 +2142,7 @@ fn get_state_variables_depending_on_me(
                 n == component,
             ComponentGroup::Single(ComponentRef::CollectionMember(n, _)) |
             ComponentGroup::Collection(n) =>
-                group_dependencies.get(n).unwrap().contains(component),
+                collection_may_contain(group_dependencies.get(n).unwrap(), component)
         }
     }
 
@@ -2649,31 +2670,45 @@ fn collection_size(
     map: &Instance,
 ) -> usize {
 
-    let group_deps = core.group_dependencies.get(component_name).unwrap();
-    let component_def = core.component_nodes.get(component_name).unwrap().definition;
-
-    if component_def.component_type == "map" {
-        let sources = group_deps.get(MAP_GROUP_DEP_SOURCES).unwrap();
-        return collection_size(core, sources, map);
-    }
-    if component_def.component_type == "conditionalContent" {
-        let active_cases = group_deps.iter().filter(|case| {
-            let condition_sv = &StateRef::Basic("condition");
-            let condition = resolve_state_variable(core, case, map, condition_sv);
-            matches!(condition, Some(StateVarValue::Boolean(true)))
-        });
-        return active_cases.count();
-    }
-
-    group_deps.iter()
-        .map(|dep|
-            match &core.component_nodes.get(dep).unwrap().definition.replacement_components {
-                Some(ReplacementComponents::Batch(_)) => resolve_batch_size(core, dep, None, map),
-                Some(ReplacementComponents::Collection(_)) => collection_size(core, dep, map),
-                _ => 1,
-            }
-        ).sum()
+    core.group_dependencies.get(component_name).unwrap()
+        .iter()
+        .map(|c| collection_members_size(core, c, map))
+        .sum()
 }
+
+fn collection_members_size(
+    core: &DoenetCore,
+    collection_members: &CollectionMembers,
+    map: &Instance,
+) -> usize {
+    match collection_members {
+        CollectionMembers::Component(_) => 1,
+        CollectionMembers::Batch(n) => resolve_batch_size(core, n, None, map),
+        CollectionMembers::ComponentOnCondition { component_name, condition } =>
+            match resolve_state_variable(core, component_name, map, condition) {
+                Some(StateVarValue::Boolean(true)) => 1,
+                _ => 0,
+            },
+        CollectionMembers::InstanceBySources { sources, .. } => collection_size(core, sources, map),
+    }
+}
+
+/// Without resolving any state variables, is it possible that
+/// the collection contains the component?
+fn collection_may_contain(members: &Vec<CollectionMembers>, component: &ComponentName)
+    -> bool {
+
+    members.iter().any(|c|
+        match c {
+            CollectionMembers::ComponentOnCondition { component_name: n, .. } |
+            CollectionMembers::InstanceBySources { template: n, ..} |
+            CollectionMembers::Batch(n) |
+            CollectionMembers::Component(n) =>
+                n == component,
+        }
+    )
+}
+
 
 // Converts a collection into the ComponentRef it points to.
 // Returns ComponentRef of type basic or batch.
@@ -2731,64 +2766,42 @@ fn nth_collection_member(
     index: usize,
 ) -> Option<(ComponentRef, Instance)> {
 
-    let deps = core.group_dependencies.get(component_name).unwrap();
-    let component_def = core.component_nodes.get(component_name).unwrap().definition;
-    if component_def.component_type == "map" {
-        let template = deps.get(MAP_GROUP_DEP_TEMPLATE).unwrap();
-        let sources = deps.get(MAP_GROUP_DEP_SOURCES).unwrap();
-
-        if index <= collection_size(core, sources, &map) {
-            let mut map_new = map;
-            map_new.push(index);
-            return Some((ComponentRef::Basic(template.clone()), map_new))
-        } else {
-            return None
-        }
-    }
-    if component_def.component_type == "conditionalContent" {
-        let mut active_cases = deps.iter().filter(|case| {
-            let condition_sv = &StateRef::Basic("condition");
-            let condition = resolve_state_variable(core, case, &map, condition_sv);
-            matches!(condition, Some(StateVarValue::Boolean(true)))
-        });
-
-        // log_debug!("active cases of {} are {:?}", component_name, useable_cases.clone().collect::<Vec<&String>>());
-        return active_cases.nth(index - 1)
-            .map(|c| (ComponentRef::Basic(c.clone()), map.clone()));
-    }
-
-    let mut index = index; // countdown
-    nth_collection_member_internal(&mut index, component_name, &map, core)
-        .map(|c| (c, map.clone()))
-}
-
-fn nth_collection_member_internal(
-    index: &mut usize,
-    component_name: &ComponentName,
-    map: &Instance,
-    core: &DoenetCore,
-) -> Option<ComponentRef> {
-    for group_dep in core.group_dependencies.get(component_name).unwrap() {
-        let component_node = core.component_nodes.get(group_dep).unwrap();
-        match &component_node.definition.replacement_components {
-            Some(ReplacementComponents::Collection(_)) => {
-                if let Some(c) = nth_collection_member_internal(index, group_dep, map, core) {
-                    return Some(c)
-                }
-            }
-            Some(ReplacementComponents::Batch(_)) => {
-                let size = resolve_batch_size(core, &component_node.name, None, map);
-                if *index > size {
-                    *index -= size;
+    let mut index = index;
+    for c in core.group_dependencies.get(component_name).unwrap() {
+        match c {
+            CollectionMembers::Component(component_name) => {
+                if index > 1 {
+                    index -= 1;
                 } else {
-                    return Some(ComponentRef::BatchMember(group_dep.clone(), None, *index));
+                    return Some((ComponentRef::Basic(component_name.clone()), map));
                 }
             },
-            _ => {
-                if *index > 1 {
-                    *index -= 1;
+            CollectionMembers::Batch(component_name) => {
+                let size = resolve_batch_size(core, component_name, None, &map);
+                if index > size {
+                    index -= size;
                 } else {
-                    return Some(ComponentRef::Basic(group_dep.clone()));
+                    return Some((ComponentRef::BatchMember(component_name.clone(), None, index), map));
+                }
+            },
+            CollectionMembers::ComponentOnCondition { component_name, condition } => {
+                let condition = resolve_state_variable(core, component_name, &map, condition);
+                if let Some(StateVarValue::Boolean(true)) = condition {
+                    if index > 1 {
+                        index -= 1;
+                    } else {
+                        return Some((ComponentRef::Basic(component_name.clone()), map));
+                    }
+                }
+            },
+            CollectionMembers::InstanceBySources { sources, template } => {
+                let size = collection_size(core, sources, &map);
+                if index > size {
+                    index -= size;
+                } else {
+                    let mut map_new = map;
+                    map_new.push(index);
+                    return Some((ComponentRef::Basic(template.clone()), map_new))
                 }
             },
         }
@@ -2852,11 +2865,6 @@ pub type InstanceGroup = Vec<usize>;
 /// Similar to InstanceGroup, but it can be used in dependencies of
 /// components that are already inside maps.
 pub type RelativeInstance = Vec<usize>;
-
-// How maps fill their group_dependencies
-// (specified in the map component definition)
-const MAP_GROUP_DEP_TEMPLATE: usize = 0;
-const MAP_GROUP_DEP_SOURCES: usize = 1;
 
 /// Find the component that the sources dependency points to
 fn map_sources_dependency_member(

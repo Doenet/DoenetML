@@ -23,8 +23,13 @@ fn member_definition(
 fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<ComponentName> {
-    get_children_of_type(component_nodes, node, "case", false)
+) -> Vec<CollectionMembersOrCollection> {
+    get_children_of_type(component_nodes, node, "case", false).into_iter().map(|c|
+        CollectionMembersOrCollection::Members(CollectionMembers::ComponentOnCondition {
+            component_name: c,
+            condition: StateRef::Basic("condition")
+        })
+    ).collect()
 }
 
 lazy_static! {

@@ -23,10 +23,13 @@ fn member_definition(
 fn group_dependencies(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
-) -> Vec<ComponentName> {
+) -> Vec<CollectionMembersOrCollection> {
     let templates = get_children_of_type(component_nodes, node, "template", false);
     let sources = get_children_of_type(component_nodes, node, "sources", false);
-    templates.into_iter().chain(sources).collect()
+    vec![CollectionMembersOrCollection::Members(CollectionMembers::InstanceBySources {
+        template: templates.first().unwrap().clone(),
+        sources: sources.first().unwrap().clone(),
+    })]
 }
 
 lazy_static! {

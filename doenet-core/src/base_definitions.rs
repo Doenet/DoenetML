@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{state_variables::*, math_expression::MathExpression, utils::{log_debug, log}};
+use crate::{state_variables::*, math_expression::MathExpression, utils::{log_debug, log}, component::{CollectionMembersOrCollection, ReplacementComponents}, CollectionMembers};
 
 
 
@@ -733,6 +733,24 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
 }
 
 
+pub fn members_from_children_of_type(
+    component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
+    node: &crate::component::ComponentNode,
+    component_type: &str,
+) -> Vec<CollectionMembersOrCollection> {
+    get_children_of_type(component_nodes, node, component_type, true).into_iter().map(|c|
+        match component_nodes.get(&c).unwrap().definition.replacement_components {
+            Some(ReplacementComponents::Batch(_)) =>
+                CollectionMembersOrCollection::Members(CollectionMembers::Batch(c)),
+            Some(ReplacementComponents::Collection(_)) =>
+                CollectionMembersOrCollection::Collection(c),
+            Some(ReplacementComponents::Children) =>
+                todo!(),
+            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(c)),
+        }
+    ).collect()
+}
+
 pub fn get_children_of_type(
     component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
     node: &crate::component::ComponentNode,
@@ -745,9 +763,9 @@ pub fn get_children_of_type(
             crate::component::ObjectName::Component(c) => {
                 let comp = component_nodes.get(c).unwrap();
                 let child_type = match (include_groups, &comp.definition.replacement_components) {
-                    (true, Some(crate::component::ReplacementComponents::Collection(def))) =>
+                    (true, Some(ReplacementComponents::Collection(def))) =>
                         (def.member_definition)(&node.static_attributes).component_type,
-                    (true, Some(crate::component::ReplacementComponents::Batch(def))) =>
+                    (true, Some(ReplacementComponents::Batch(def))) =>
                         def.member_definition.component_type,
                     _ => comp.definition.component_type,
                 };
