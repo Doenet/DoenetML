@@ -104,9 +104,9 @@ pub fn package_subtree_as_json(
     my_json_props.insert("type".to_owned(), Value::String(component.definition.component_type.to_string()));
     my_json_props.insert("copySource".to_owned(),
         match &component.copy_source {
-            Some(CopySource::Component(copy_source_name, instance)) => Value::String(format!("{:?}{:?}", copy_source_name, instance)),
-            Some(CopySource::StateVar(source_name, instance, source_state_var)) => Value::String(
-                format!("{:?} {:?} {:?}", source_name, instance, source_state_var)
+            Some(CopySource::Component(component_relative)) => Value::String(format!("{:?}", component_relative)),
+            Some(CopySource::StateVar(component_slice_relative)) => Value::String(
+                format!("{:?}", component_slice_relative)
             ),
             Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
                 format!("{} {:?} {:?}", source_name, source_sv, math_expression)
