@@ -2248,18 +2248,15 @@ fn generate_render_tree_internal(
     if component_definition.should_render_children {
         for (child, child_map, actual_parent) in get_children_and_members(core, &component.component_ref, &component.map) {
             match child {
+                ObjectRefName::String(string) => {
+                    children_instructions.push(json!(string));
+                },
                 ObjectRefName::Component(comp_ref) => {
-                    // recurse for children
-
                     let child_component = RenderedComponent {
                         component_ref: comp_ref,
                         map: child_map.clone(),
                         child_of_copy: component.child_of_copy.clone().or(
-                            if std::ptr::eq(actual_parent, node) {
-                                None
-                            } else {
-                                Some(component_name.clone())
-                            }
+                            (!std::ptr::eq(actual_parent, node)).then(|| component_name.clone())
                         ),
                     };
 
@@ -2279,12 +2276,10 @@ fn generate_render_tree_internal(
                     let child_actions: Map<String, Value> =
                         (child_definition.action_names)()
                         .iter()
-                        .map(|action_name| 
-                            (action_name.to_string(), json!({
-                                "actionName": action_name,
-                                "componentName": action_component_name,
-                            }))
-                        ).collect();
+                        .map(|action_name| (action_name.to_string(), json!({
+                            "actionName": action_name,
+                            "componentName": action_component_name,
+                        }))).collect();
 
                     let renderer_type = match &child_definition.renderer_type {
                         RendererType::Special{ component_type, .. } => *component_type,
@@ -2300,9 +2295,6 @@ fn generate_render_tree_internal(
                     }));
 
                     generate_render_tree_internal(core, child_component, json_obj); 
-                },
-                ObjectRefName::String(string) => {
-                    children_instructions.push(json!(string));
                 },
             }
         }
