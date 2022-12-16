@@ -1571,6 +1571,35 @@ fn resolve_state_variable(
     return new_value;
 }
 
+fn resolve_slice(
+    core: &DoenetCore,
+    sv_comp: &ComponentName,
+    comp_map: &Instance,
+    sv_slice: &StateVarSlice,
+) -> Vec<Option<StateVarValue>> {
+    match sv_slice {
+        StateVarSlice::Single(ref sv_ref) => {
+            vec![resolve_state_variable(core, &sv_comp, &comp_map, sv_ref)]
+        }
+        StateVarSlice::Array(array_state_var_name) => {
+            // resolve the size before the elements
+            let size_value: usize = resolve_state_variable(
+                core, &sv_comp, &comp_map, &StateRef::SizeOf(array_state_var_name))
+            .expect("Array size should always resolve to a StateVarValue")
+            .try_into().unwrap();
+            
+            indices_for_size(size_value).map(|id|
+                resolve_state_variable(
+                    core,
+                    &sv_comp,
+                    &comp_map,
+                    &StateRef::ArrayElement(array_state_var_name, id)
+                )
+            ).collect()
+        }
+    }
+}
+
 /// This determines the state var given its dependency values.
 fn generate_update_instruction_for_state_ref(
     component: &ComponentNode,
@@ -1657,55 +1686,20 @@ fn get_dependency_values_for_state_var_slice(
     comp_map: &Instance,
     sv_slice: &StateVarSlice
 ) -> Vec<DependencyValue> {
-    let mut dependency_values = vec![];
 
-    let dependency_source = DependencySource::StateVar {
+    let source = DependencySource::StateVar {
         component_type: core.component_nodes.get(sv_comp).unwrap().definition.component_type,
         state_var_name: sv_slice.name()
     };
 
-    match sv_slice {
-        StateVarSlice::Single(ref sv_ref) => {
-
-            let depends_on_value = resolve_state_variable(core, &sv_comp, &comp_map, sv_ref);
-
-            if let Some(depends_on_value) = depends_on_value {
-                dependency_values.push(DependencyValue {
-                    source: dependency_source.clone(),
-                    value: depends_on_value,
-                });    
-            }
-        }
-        StateVarSlice::Array(array_state_var_name) => {
-
-            // important to resolve the size before the elements
-            let size_value: usize = resolve_state_variable(
-                core, &sv_comp, &comp_map, &StateRef::SizeOf(array_state_var_name))
-            .expect("Array size should always resolve to a StateVarValue")
-            .try_into()
-            .unwrap();
-            
-            for id in indices_for_size(size_value) {
-
-                let element_value = resolve_state_variable(
-                    core,
-                    &sv_comp,
-                    &comp_map,
-                    &StateRef::ArrayElement(array_state_var_name, id)
-                );
-
-                if let Some(element_value) = element_value {
-                    dependency_values.push(DependencyValue {
-                        source: dependency_source.clone(),
-                        value: element_value,
-                    });
-
-                }
-
-            }
-        }
-    }
-    dependency_values
+    resolve_slice(core, sv_comp, comp_map, sv_slice)
+        .into_iter()
+        .filter_map(|v_opt|
+            v_opt.map(|value| DependencyValue {
+                source: source.clone(),
+                value,
+            })
+        ).collect()
 }
 
 
@@ -1857,22 +1851,6 @@ fn get_dependency_sources_for_state_var(
     }
 
     dependency_sources
-}
-
-/// This must resolve the size
-fn elements_of_array(
-    core: &DoenetCore,
-    component: &ComponentName,
-    map: &Instance,
-    array_name: &StateVarName,
-) -> Vec<StateRef> {
-    let size_ref = StateRef::SizeOf(array_name);
-    let size: usize = resolve_state_variable(core, component, map, &size_ref)
-        .unwrap()
-        .try_into()
-        .unwrap();
-
-    indices_for_size(size).map(|i| StateRef::ArrayElement(array_name, i)).collect()
 }
 
 fn state_vars_for_undetermined_children(
@@ -2218,14 +2196,10 @@ fn generate_render_tree_internal(
         .state_var_definitions
         .into_iter()
         .filter_map(|(k, v)| {
-            if v.for_renderer() {
-                match v.is_array() {
-                    true => Some(StateVarSlice::Array(k)),
-                    false => Some(StateVarSlice::Single(StateRef::Basic(k))),
-                }
-            } else {
-                None
-            }
+            v.for_renderer().then(|| match v.is_array() {
+                true => StateVarSlice::Array(k),
+                false => StateVarSlice::Single(StateRef::Basic(k)),
+            })
         });
 
     let state_var_aliases = match &component_definition.renderer_type {
@@ -2242,58 +2216,29 @@ fn generate_render_tree_internal(
             state_var_slice
         ).unwrap();
 
-        match sv_slice {
-            StateVarSlice::Array(sv_name) => {
+        let sv_renderer_name = state_var_aliases
+            .get(&sv_slice.name())
+            .map(|x| *x)
+            .unwrap_or(sv_slice.name())
+            .to_string();
 
-                let sv_refs = elements_of_array(core, &component_name, &sv_map, &sv_name);
+        let values = resolve_slice(core, &sv_comp, &sv_map, &sv_slice);
 
-                let mut values: Vec<f64> = Vec::new();
-                for sv_ref in sv_refs {
-                    values.push(
-                        resolve_state_variable(core, &sv_comp, &sv_map, &sv_ref)
-                        .unwrap()
-                        .try_into()
-                        .unwrap()
-                    );
-                }
+        let mut json_value = match sv_slice {
+            StateVarSlice::Array(_) => json!(values),
+            StateVarSlice::Single(_) => json!(values.first().unwrap()),
+        };
 
-                let sv_renderer_name = state_var_aliases
-                    .get(&sv_slice.name())
-                    .map(|x| *x)
-                    .unwrap_or(sv_slice.name())
-                    .to_string();
-
-                // hardcoded exceptions
-                if sv_renderer_name == "numericalPoints" {
-                    let array_2d = [[values[0], values[1]], [values[2], values[3]]];
-                    state_values.insert(sv_renderer_name, json!(array_2d));
-                } else {
-                    state_values.insert(sv_renderer_name, json!(values));
-                }
-            },
-
-            StateVarSlice::Single(state_ref) => {
-                let state_var_value = resolve_state_variable(core, &sv_comp, &sv_map, &state_ref)
-                    .expect(&format!("state var {}:{} cannot be resolved", &sv_comp, &state_ref));
-
-                let sv_renderer_name = state_var_aliases
-                    .get(&state_ref.name())
-                    .map(|x| *x)
-                    .unwrap_or(state_ref.name())
-                    .to_string();
-
-                // hardcoded exceptions:
-                if sv_renderer_name == "selectedStyle" || sv_renderer_name == "graphicalDescendants" {
-                    if let StateVarValue::String(v) = state_var_value {
-                        // log_debug!("deserializing for renderer: {}", v);
-                        let value = serde_json::from_str(&v).unwrap();
-                        state_values.insert(sv_renderer_name, value);
-                    }
-                } else {
-                    state_values.insert(sv_renderer_name, state_var_value.into());
-                }
-            },
+        // hardcoded exceptions
+        if sv_renderer_name == "numbericalPoints"
+        && matches!(sv_slice, StateVarSlice::Array(_)) {
+            let array_2d =
+                [[values.get(0).unwrap(), values.get(1).unwrap()],
+                [values.get(2).unwrap(), values.get(3).unwrap()]];
+            json_value = json!(array_2d)
         }
+
+        state_values.insert(sv_renderer_name, json_value);
     }
 
     let name_to_render = name_rendered_component(&component, component_definition.component_type);
