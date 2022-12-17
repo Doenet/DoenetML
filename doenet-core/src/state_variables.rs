@@ -154,6 +154,7 @@ impl StateRef {
             Self::SizeOf(_) => StateIndex::SizeOf,
         }
     }
+
     pub fn from_name_and_index(name: StateVarName, index: StateIndex) -> StateRef {
         match index {
             StateIndex::Element(i) => StateRef::ArrayElement(name, i),

@@ -265,6 +265,12 @@ impl ComponentGroup {
     }
 }
 
+impl From<ComponentRef> for ComponentGroup {
+    fn from(value: ComponentRef) -> Self {
+        ComponentGroup::Single(value)
+    }
+}
+
 impl ComponentDefinition {
     pub fn unwrap_batch_def(&self, name: &Option<BatchName>) -> &BatchDefinition{
         match name {
