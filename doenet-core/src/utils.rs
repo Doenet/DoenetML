@@ -6,7 +6,6 @@ use crate::Dependency;
 use crate::component::*;
 use crate::state::State;
 use crate::state_variables::StateVarName;
-use crate::state_variables::StateVarSlice;
 use crate::state::EssentialStateVar;
 use crate::EssentialDataOrigin;
 
@@ -191,14 +190,7 @@ pub fn json_dependencies(
 
 
     for (key, deps) in dependencies {
-        let display_key = match key {
-            DependencyKey::StateVar(_, StateVarSlice::Single(single), instruct) => {
-                format!("{} \"{}\"", single, instruct)
-            },
-            DependencyKey::StateVar(_, StateVarSlice::Array(array), instruct) => {
-                format!("{} \"{}\"", array, instruct)
-            }
-        };
+        let display_key = format!("{:?}", key);
 
         display_deps.entry(key.component_name().to_string()).or_insert(HashMap::new())
             .entry(display_key).or_insert(deps.clone());

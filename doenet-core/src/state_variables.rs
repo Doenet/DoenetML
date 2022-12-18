@@ -136,6 +136,14 @@ impl StateVarSlice {
             Self::Array(_) => Self::Array(name),
         }
     }
+    pub fn specify_index(self, index: StateIndex) -> Option<StateRef> {
+        match (self, index) {
+            (StateVarSlice::Single(n), StateIndex::Basic) => Some(n),
+            (_, StateIndex::Basic) |
+            (StateVarSlice::Single(_), _) => None,
+            (StateVarSlice::Array(n), i) => Some(StateRef::from_name_and_index(n,i)),
+        }
+    }
 }
 
 impl StateRef {
