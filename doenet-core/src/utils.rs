@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 
+use crate::ComponentName;
+use crate::ComponentNode;
 use crate::DependencyKey;
 use crate::StateForStateVar;
 use crate::Dependency;
@@ -107,8 +109,8 @@ pub fn package_subtree_as_json(
             Some(CopySource::StateVar(component_slice_relative)) => Value::String(
                 format!("{:?}", component_slice_relative)
             ),
-            Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
-                format!("{} {:?} {:?}", source_name, source_sv, math_expression)
+            Some(CopySource::DynamicElement(source_name, math_expression, ..)) => Value::String(
+                format!("{:?} {:?}", source_name, math_expression)
             ),
             Some(CopySource::MapSources(sources_name)) => Value::String(sources_name.to_string()),
             None => Value::Null,
@@ -192,7 +194,7 @@ pub fn json_dependencies(
     for (key, deps) in dependencies {
         let display_key = format!("{:?}", key);
 
-        display_deps.entry(key.component_name().to_string()).or_insert(HashMap::new())
+        display_deps.entry(key.0.0.clone()).or_insert(HashMap::new())
             .entry(display_key).or_insert(deps.clone());
 
     }

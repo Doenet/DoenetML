@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::fmt::Display;
 
 use crate::component::AttributeName;
-use crate::component::ComponentRef;
+use crate::ComponentRef;
 use crate::component::ComponentProfile;
 use crate::component::ComponentType;
 

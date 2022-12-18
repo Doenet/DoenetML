@@ -1,4 +1,4 @@
-use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative};
+use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefArrayRelative};
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
@@ -63,25 +63,9 @@ pub type ComponentType = &'static str;
 /// camelCase
 pub type AttributeName = &'static str;
 
-/// A ComponentName is not static because it cannot be known at compile time.
-pub type ComponentName = String;
-
 /// camelCase
 pub type BatchName = &'static str;
 
-
-#[derive(Debug, Clone)]
-pub struct ComponentNode {
-
-    pub name: ComponentName,
-    pub parent: Option<ComponentName>,
-    pub children: Vec<ComponentChild>,
-
-    pub copy_source: Option<CopySource>,
-    pub static_attributes: HashMap<AttributeName, String>,
-
-    pub definition: &'static ComponentDefinition,
-}
 
 
 
@@ -113,7 +97,7 @@ pub enum CopySource {
     Component(ComponentRefRelative),
     StateVar(ComponentRefStateRelative),
     MapSources(ComponentName),
-    DynamicElement(ComponentName, StateVarName, MathExpression, Vec<ComponentName>),
+    DynamicElement(ComponentRefArrayRelative, MathExpression, Vec<ComponentName>),
 }
 
 
@@ -223,53 +207,6 @@ pub enum ReplacementComponents {
     Children,
 }
 
-/// A component or a member of a group.
-/// Note that a group can still be referenced as a basic component
-/// in addition to referencing its group members.
-#[derive(PartialEq, Serialize, Eq, Clone, Debug, Hash, enum_as_inner::EnumAsInner)]
-pub enum ComponentRef {
-    Basic(ComponentName),
-
-    /// No batch name refers to the replacement components batch.
-    BatchMember(ComponentName, Option<BatchName>, usize),
-
-    CollectionMember(ComponentName, usize),
-}
-
-
-/// Can refer to a component ref or replacement components
-#[derive(PartialEq, Serialize, Eq, Clone, Debug)]
-pub enum ComponentGroup {
-    Single(ComponentRef),
-    Collection(ComponentName),
-    Batch(ComponentName),
-}
-
-impl ComponentRef {
-    pub fn name(&self) -> ComponentName {
-        match self {
-            Self::Basic(name) => name.clone(),
-            Self::BatchMember(name, _, _) => name.clone(),
-            Self::CollectionMember(name, _) => name.clone(),
-        }
-    }
-}
-impl ComponentGroup {
-    /// The name of the component node
-    pub fn name(&self) -> ComponentName {
-        match self {
-            Self::Single(comp_ref) => comp_ref.name(),
-            Self::Collection(name) => name.clone(),
-            Self::Batch(name) => name.clone(),
-        }
-    }
-}
-
-impl From<ComponentRef> for ComponentGroup {
-    fn from(value: ComponentRef) -> Self {
-        ComponentGroup::Single(value)
-    }
-}
 
 impl ComponentDefinition {
     pub fn unwrap_batch_def(&self, name: &Option<BatchName>) -> &BatchDefinition{

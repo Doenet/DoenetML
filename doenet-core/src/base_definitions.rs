@@ -734,8 +734,8 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
 
 
 pub fn members_from_children_of_type(
-    component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
-    node: &crate::component::ComponentNode,
+    component_nodes: &HashMap<crate::ComponentName, crate::ComponentNode>,
+    node: &crate::ComponentNode,
     component_type: crate::ComponentType,
 ) -> Vec<CollectionMembersOrCollection> {
     get_children_of_type(component_nodes, node, component_type, true).map(|c|

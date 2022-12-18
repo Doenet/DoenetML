@@ -1,8 +1,8 @@
 use serde::{Serialize, Deserialize};
 
 use crate::utils::{log_json, log_debug, log};
-use crate::{Action, RelativeInstance};
-use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
+use crate::{Action, RelativeInstance, ComponentName};
+use crate::component::{COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
 KeyValueIgnoreCase, AttributeName, ObjectName, ReplacementComponents};
 
 use crate::ComponentChild;
