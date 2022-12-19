@@ -1142,7 +1142,8 @@ fn create_prop_index_dependencies(
     dependencies.insert(
         DependencyKey(component_slice.clone(), PROP_INDEX_VARS_INSTRUCTION),
         variable_components.iter().map(|comp_name| {
-            let component_states = ComponentGroupSliceRelative(ComponentGroup::Single(ComponentRef::from_node(comp_name)).into(),StateVarSlice::Single(StateRef::Basic("value")));
+            let slice = StateVarSlice::Single(StateRef::Basic("value"));
+            let component_states = ComponentGroupSliceRelative(ComponentGroup::Single(ComponentRef::from_node(comp_name)).into(), slice);
             Dependency::StateVar { component_states }
         }).collect()
     );
@@ -1365,7 +1366,7 @@ struct ComponentNodeInstance (ComponentName, Instance);
 pub struct ComponentNodeRelative (ComponentName, RelativeInstance);
 
 #[derive(Debug, Clone)]
-struct ComponentNodeOrBatchInstance (ComponentNodeMember, Instance);
+struct ComponentNodeMemberInstance (ComponentNodeMember, Instance);
 
 #[derive(Debug, Clone)]
 struct ComponentRefInstance (ComponentRef, Instance);
@@ -1432,7 +1433,6 @@ struct ComponentInstancesSlice (ComponentName, InstanceGroup, StateVarSlice);
 // ==== Significant Conversions (they require &DoenetCore) ====
 
 impl ComponentGroupInstance {
-
     /// Converts component group to a vector of component references.
     fn component_group_members(self, core: &DoenetCore) -> Vec<ComponentRefInstance> {
         let instance = self.1.clone();
@@ -1449,12 +1449,11 @@ impl ComponentGroupInstance {
 }
 
 impl ComponentRefSlice {
-    /// Convert (ComponentRef, Instance, StateVarSlice) -> (ComponentName, Instance, StateVarSlice).
     /// If the component reference is a group member, these are not the same.
     fn convert_component_ref_state_var(self, core: &DoenetCore) -> Option<ComponentStateSlice> {
         let component_ref_instance = self.0;
         let (name, map) = match component_ref_instance.component_ref_apply_collection(core) {
-            Some(ComponentNodeOrBatchInstance(c,m)) => (c, m),
+            Some(ComponentNodeMemberInstance(c,m)) => (c, m),
             None => return None,
         };
 
@@ -1467,34 +1466,32 @@ impl ComponentRefSlice {
 }
 
 impl ComponentRefInstance {
-    // Returns the component that the ComponentRef refers to.
     // If the ComponentRef refers to a batch member, this returns the entire component.
-    fn component_ref_original_component(self, core: &DoenetCore) -> ComponentNodeInstance {
-        let ComponentNodeOrBatchInstance(c,m) = self.clone().component_ref_apply_collection(core).expect(
+    fn component_ref_original_component(self, core: &DoenetCore) -> Option<ComponentNodeInstance> {
+        let ComponentNodeMemberInstance(c,m) = self.clone().component_ref_apply_collection(core).expect(
             &format!("no component original {:?}", self)
         );
         match c {
-            ComponentNodeMember::Basic(n) |
-            ComponentNodeMember::BatchMember(n,_,_) =>
-                ComponentNodeInstance(n, m)
+            ComponentNodeMember::Basic(n) => Some(ComponentNodeInstance(n, m)),
+            ComponentNodeMember::BatchMember(_,_,_) => None,
         }
         
     }
 
     // Converts a collection into the ComponentRef it points to.
     // Returns ComponentRef of type basic or batch.
-    fn component_ref_apply_collection(self, core: &DoenetCore) -> Option<ComponentNodeOrBatchInstance> {
+    fn component_ref_apply_collection(self, core: &DoenetCore) -> Option<ComponentNodeMemberInstance> {
         match self.0 {
             ComponentRef::CollectionMember(n, i) =>
                 nth_collection_member(core, &ComponentNodeInstance(n, self.1), i),
             ComponentRef::Component(ComponentNodeMember::Basic(n)) =>
-                Some(ComponentNodeOrBatchInstance(ComponentNodeMember::Basic(n), self.1)),
+                Some(ComponentNodeMemberInstance(ComponentNodeMember::Basic(n), self.1)),
             ComponentRef::Component(ComponentNodeMember::BatchMember(n,b,i)) =>
-                Some(ComponentNodeOrBatchInstance(ComponentNodeMember::BatchMember(n,b,i), self.1)),
+                Some(ComponentNodeMemberInstance(ComponentNodeMember::BatchMember(n,b,i), self.1)),
         }
     }
 
-    fn from_node_or_batch_instance(node_or_batch: ComponentNodeOrBatchInstance) -> Self {
+    fn from_node_member_instance(node_or_batch: ComponentNodeMemberInstance) -> Self {
         ComponentRefInstance(ComponentRef::Component(node_or_batch.0), node_or_batch.1)
     }
 }
@@ -1766,7 +1763,7 @@ fn resolve_state_variable(
                         log_debug!("map source ref: {:?}", member);
 
                         // let component_ref_instance = ComponentRef::
-                        let component_ref_instance = ComponentRefInstance::from_node_or_batch_instance(node_or_batch);
+                        let component_ref_instance = ComponentRefInstance::from_node_member_instance(node_or_batch);
                         let comp_ref_slice = ComponentRefSlice(component_ref_instance, state_var_slice);
                         let sv_slice = comp_ref_slice.convert_component_ref_state_var(core).unwrap();
 
@@ -2528,7 +2525,8 @@ fn generate_render_tree_internal(
                     let component_original =
                         child_component.component_ref_instance.clone().component_ref_original_component(core);
 
-                    let action_component_name = component_original.alias();
+                    let action_component_name = component_original.map(|x| x.alias())
+                        .unwrap_or(child_component.component_ref_instance.0.name());
 
                     let child_actions: Map<String, Value> =
                         (child_definition.action_names)()
@@ -2864,7 +2862,7 @@ fn nth_collection_member(
     core: &DoenetCore,
     component_node_instance: &ComponentNodeInstance,
     index: usize,
-) -> Option<ComponentNodeOrBatchInstance> {
+) -> Option<ComponentNodeMemberInstance> {
 
     let mut index = index;
     for c in core.group_dependencies.get(&component_node_instance.0).unwrap() {
@@ -2872,23 +2870,23 @@ fn nth_collection_member(
         match c {
             CollectionMembers::Component(component_name) => {
                 size = 1;
-                group_member = ComponentNodeOrBatchInstance(ComponentNodeMember::Basic(component_name.clone()), component_node_instance.1.clone());
+                group_member = ComponentNodeMemberInstance(ComponentNodeMember::Basic(component_name.clone()), component_node_instance.1.clone());
             },
             CollectionMembers::Batch(component_name) => {
                 size = resolve_batch_size(core, &ComponentNodeInstance(component_name.clone(), component_node_instance.1.clone()), None);
-                group_member = ComponentNodeOrBatchInstance(ComponentNodeMember::BatchMember(component_name.clone(), None, index), component_node_instance.1.clone());
+                group_member = ComponentNodeMemberInstance(ComponentNodeMember::BatchMember(component_name.clone(), None, index), component_node_instance.1.clone());
             },
             CollectionMembers::ComponentOnCondition { component_name, condition } => {
                 let condition_variable = ComponentState(ComponentNodeInstance(component_name.clone(), component_node_instance.1.clone()), condition.clone());
                 let condition = resolve_state_variable(core, &condition_variable);
                 size = (condition == Some(StateVarValue::Boolean(true))) as usize;
-                group_member = ComponentNodeOrBatchInstance(ComponentNodeMember::Basic(component_name.clone()), component_node_instance.1.clone());
+                group_member = ComponentNodeMemberInstance(ComponentNodeMember::Basic(component_name.clone()), component_node_instance.1.clone());
             },
             CollectionMembers::InstanceBySources { sources, template } => {
                 size = collection_size(core, &ComponentNodeInstance(sources.clone(), component_node_instance.1.clone()));
                 let mut map_new = component_node_instance.1.clone();
                 map_new.push(index);
-                group_member = ComponentNodeOrBatchInstance(ComponentNodeMember::Basic(template.clone()), map_new)
+                group_member = ComponentNodeMemberInstance(ComponentNodeMember::Basic(template.clone()), map_new)
             },
         }
         if index > size {
@@ -2935,7 +2933,7 @@ fn map_sources_dependency_member(
     core: &DoenetCore,
     component_node_instance: &ComponentNodeInstance,
     sources: &ComponentName,
-) -> Option<ComponentNodeOrBatchInstance> {
+) -> Option<ComponentNodeMemberInstance> {
     let sources_for_component = sources_that_instance_component(&core.component_nodes, &component_node_instance.0);
     let sources_index_in_map = sources_for_component.iter().position(|n| n == sources).unwrap();
     let index = *component_node_instance.1.get(sources_index_in_map).unwrap();
@@ -3048,76 +3046,67 @@ enum ObjectRefInstance {
     String(String),
 }
 
-// return child and actual parent
+/// An addition to get_children_including_copy that includes copying
+/// the component index of a group
 fn get_children_and_members<'a>(
     core: &'a DoenetCore,
     component_ref_instance: &ComponentRefInstance,
-) -> impl Iterator<Item=(ObjectRefInstance, &'a ComponentNode)> {
+) -> Vec<(ObjectRefInstance, &'a ComponentNode)> {
 
-    let component_node_instance = component_ref_instance.clone().component_ref_original_component(core);
-    let use_map = component_node_instance.1.clone();
-    // log_debug!("use component {} {:?}", use_component_name, use_map);
-
-    get_children_including_copy_and_groups(&core, &component_node_instance)
-    .into_iter()
-    .flat_map(move |(child, actual_parent)| match child {
-        ComponentChild::String(s) => vec![(ObjectRefInstance::String(s.clone()), actual_parent)],
-        ComponentChild::Component(comp_name) => {
-
-            match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
-                Some(ReplacementComponents::Batch(_)) => {
-                    let group = ComponentGroup::Batch(comp_name.clone());
-                    ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
-                        (ObjectRefInstance::Component(comp_ref.clone()),
-                        actual_parent)
-                    ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
-                },
-                Some(ReplacementComponents::Collection(_)) => {
-                    let group = ComponentGroup::Collection(comp_name.clone());
-                    ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
-                        (ObjectRefInstance::Component(comp_ref.clone()),
-                        actual_parent)
-                    ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
-                },
-                _ => {
-                    vec![(ObjectRefInstance::Component(ComponentRefInstance(ComponentRef::from_node(&comp_name), use_map.clone())),
-                    actual_parent)]
-                }
-            }
-        },
-    })
-}
-
-/// An addition to get_children_including_copy that includes copying
-/// the component index of a group
-fn get_children_including_copy_and_groups<'a>(
-    core: &'a DoenetCore,
-    component_node_instance: &ComponentNodeInstance,
-) -> Vec<(ComponentChild, &'a ComponentNode)> {
-
-    let mut children_vec: Vec<(ComponentChild, &ComponentNode)> = Vec::new();
+    let mut children_vec: Vec<(ObjectRefInstance, &ComponentNode)> = Vec::new();
+    let component = component_ref_instance.clone().component_ref_original_component(core);
+    if component.is_none() {
+        return vec![]
+    }
+    let component_node_instance = component.unwrap();
     let component = core.component_nodes.get(&component_node_instance.0).unwrap();
     match &component.copy_source {
         Some(CopySource::Component(component_ref_relative)) => {
-            let component_ref_instance = component_ref_relative.clone().instance_relative_to(&core.component_nodes, component_node_instance);
-            let source_instance = component_ref_instance.component_ref_original_component(core);
-            children_vec = get_children_including_copy_and_groups(core, &source_instance);
+            let copy_ref_instance = component_ref_relative.clone().instance_relative_to(&core.component_nodes, &component_node_instance);
+            children_vec = get_children_and_members(core, &copy_ref_instance);
         },
         Some(CopySource::MapSources(map_sources)) => {
-            let source_instance = map_sources_dependency_member(core, component_node_instance, &map_sources).unwrap();
+            let source_instance = map_sources_dependency_member(core, &component_node_instance, &map_sources).unwrap();
             if let ComponentNodeMember::Basic(name) = source_instance.0 {
-                let source_instance = ComponentNodeInstance(name, source_instance.1);
+                let source_instance = ComponentRefInstance(ComponentRef::from_node(&name), source_instance.1);
 
-                children_vec = get_children_including_copy_and_groups(core, &source_instance);
+                children_vec = get_children_and_members(core, &source_instance);
             }
         },
         _ => {},
     }
 
+    let use_map = &component_node_instance.1;
     children_vec.extend(
         component.children
         .iter()
-        .map(|c| (c.clone(), component))
+        .flat_map(|c| {
+            match c {
+                ComponentChild::String(s) => vec![(ObjectRefInstance::String(s.clone()), component)],
+                ComponentChild::Component(c) => {
+                    match &core.component_nodes.get(c).unwrap().definition.replacement_components {
+                        Some(ReplacementComponents::Batch(_)) => {
+                            let group = ComponentGroup::Batch(c.clone());
+                            ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
+                                (ObjectRefInstance::Component(comp_ref.clone()),
+                                component)
+                            ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
+                        },
+                        Some(ReplacementComponents::Collection(_)) => {
+                            let group = ComponentGroup::Collection(c.clone());
+                            ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
+                                (ObjectRefInstance::Component(comp_ref.clone()),
+                                component)
+                            ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
+                        },
+                        _ => {
+                            vec![(ObjectRefInstance::Component(ComponentRefInstance(ComponentRef::from_node(&c), use_map.clone())),
+                            component)]
+                        }
+                    }
+                }
+            }
+        })
     );
 
     children_vec
