@@ -2145,12 +2145,11 @@ fn state_vars_for_undetermined_children(
 ) -> Vec<(ObjectStateVarInstance, DependencySource)> {
     let mut source_and_value = vec![];
 
-    for (member_child, comp_map, _) in get_children_and_members(core, component_ref_instance) {
+    for (member_child, _) in get_children_and_members(core, component_ref_instance) {
         match member_child {
-            ObjectRefName::Component(child_ref) => {
+            ObjectRefInstance::Component(child_ref_instance) => {
 
-                let child_def = component_ref_definition(&core.component_nodes, &child_ref);
-                let child_ref_instance = ComponentRefInstance(child_ref.clone(), comp_map.clone());
+                let child_def = component_ref_definition(&core.component_nodes, &child_ref_instance.0);
 
                 match  &child_def.replacement_components {
                     Some(ReplacementComponents::Children) => {
@@ -2161,7 +2160,7 @@ fn state_vars_for_undetermined_children(
                 };
                         
                 if let Some(relevant_sv) = child_def.component_profile_match(&desired_profiles) {
-                    let comp_ref_slice = ComponentRefSlice(ComponentRefInstance(child_ref, comp_map.clone()), relevant_sv);
+                    let comp_ref_slice = ComponentRefSlice(child_ref_instance, relevant_sv);
                     let sv_slice = comp_ref_slice.convert_component_ref_state_var(core).unwrap();
 
                     let dependency_source = DependencySource::StateVar {
@@ -2171,7 +2170,7 @@ fn state_vars_for_undetermined_children(
                     source_and_value.push((ObjectStateVarInstance::Component(sv_slice), dependency_source));
                 }
             },
-            ObjectRefName::String(s) => {
+            ObjectRefInstance::String(s) => {
                 let dependency_source = DependencySource::StateVar {
                     component_type: "string",
                     state_var_name: "",
@@ -2508,14 +2507,14 @@ fn generate_render_tree_internal(
     let mut children_instructions = Vec::new();
     let node = core.component_nodes.get(&component_name).unwrap();
     if component_definition.should_render_children {
-        for (child, child_map, actual_parent) in get_children_and_members(core, &component.component_ref_instance) {
+        for (child, actual_parent) in get_children_and_members(core, &component.component_ref_instance) {
             match child {
-                ObjectRefName::String(string) => {
+                ObjectRefInstance::String(string) => {
                     children_instructions.push(json!(string));
                 },
-                ObjectRefName::Component(comp_ref) => {
+                ObjectRefInstance::Component(comp_ref_instance) => {
                     let child_component = RenderedComponent {
-                        component_ref_instance: ComponentRefInstance(comp_ref, child_map.clone()),
+                        component_ref_instance: comp_ref_instance,
                         child_of_copy: component.child_of_copy.clone().or(
                             (!std::ptr::eq(actual_parent, node)).then(|| component_name.clone())
                         ),
@@ -3044,8 +3043,8 @@ fn parent_chain(
 
 
 #[derive(Debug)]
-enum ObjectRefName {
-    Component(ComponentRef),
+enum ObjectRefInstance {
+    Component(ComponentRefInstance),
     String(String),
 }
 
@@ -3053,7 +3052,7 @@ enum ObjectRefName {
 fn get_children_and_members<'a>(
     core: &'a DoenetCore,
     component_ref_instance: &ComponentRefInstance,
-) -> impl Iterator<Item=(ObjectRefName, Instance, &'a ComponentNode)> {
+) -> impl Iterator<Item=(ObjectRefInstance, &'a ComponentNode)> {
 
     let component_node_instance = component_ref_instance.clone().component_ref_original_component(core);
     let use_map = component_node_instance.1.clone();
@@ -3062,29 +3061,26 @@ fn get_children_and_members<'a>(
     get_children_including_copy_and_groups(&core, &component_node_instance)
     .into_iter()
     .flat_map(move |(child, actual_parent)| match child {
-        ComponentChild::String(s) => vec![(ObjectRefName::String(s.clone()), use_map.clone(), actual_parent)],
+        ComponentChild::String(s) => vec![(ObjectRefInstance::String(s.clone()), actual_parent)],
         ComponentChild::Component(comp_name) => {
 
             match &core.component_nodes.get(&comp_name).unwrap().definition.replacement_components {
                 Some(ReplacementComponents::Batch(_)) => {
                     let group = ComponentGroup::Batch(comp_name.clone());
                     ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
-                        (ObjectRefName::Component(comp_ref.0.clone()),
-                        comp_ref.1.clone(),
+                        (ObjectRefInstance::Component(comp_ref.clone()),
                         actual_parent)
-                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                    ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
                 },
                 Some(ReplacementComponents::Collection(_)) => {
                     let group = ComponentGroup::Collection(comp_name.clone());
                     ComponentGroupInstance(group, use_map.clone()).component_group_members(core).iter().map(|comp_ref|
-                        (ObjectRefName::Component(comp_ref.0.clone()),
-                        comp_ref.1.clone(),
+                        (ObjectRefInstance::Component(comp_ref.clone()),
                         actual_parent)
-                    ).collect::<Vec<(ObjectRefName, Instance, &ComponentNode)>>()
+                    ).collect::<Vec<(ObjectRefInstance, &ComponentNode)>>()
                 },
                 _ => {
-                    vec![(ObjectRefName::Component(ComponentRef::from_node(&comp_name)),
-                    use_map.clone(),
+                    vec![(ObjectRefInstance::Component(ComponentRefInstance(ComponentRef::from_node(&comp_name), use_map.clone())),
                     actual_parent)]
                 }
             }
