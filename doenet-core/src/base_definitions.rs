@@ -757,7 +757,7 @@ pub fn get_children_of_type<'a>(
     component_type: crate::ComponentType,
     include_groups: bool,
 ) -> impl Iterator<Item=&'a crate::ComponentName> {
-    crate::get_children_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
+    crate::get_child_nodes_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
         match n {
             crate::component::ObjectName::String(_) => None,
             crate::component::ObjectName::Component(c) => {

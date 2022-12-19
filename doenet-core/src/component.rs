@@ -229,15 +229,16 @@ impl ComponentDefinition {
 
     /// Returns component definition of members, or itself if there are no replacement components
     /// Pass the static_attributes as a parameter
-    pub fn definition_of_members(
+    pub fn definition_as_replacement_children(
         &self,
         static_attributes: &HashMap<AttributeName, String>,
-    ) -> &ComponentDefinition {
+    ) -> Option<&ComponentDefinition> {
 
         match &self.replacement_components {
-            Some(ReplacementComponents::Batch(def))  => def.member_definition,
-            Some(ReplacementComponents::Collection(def))  => (def.member_definition)(static_attributes),
-            _  => self,
+            Some(ReplacementComponents::Batch(def))  => Some(def.member_definition),
+            Some(ReplacementComponents::Collection(def))  => Some((def.member_definition)(static_attributes)),
+            Some(ReplacementComponents::Children)  => None,
+            None  => Some(self),
         }        
     }
 
