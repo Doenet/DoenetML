@@ -1455,7 +1455,6 @@ fn macro_invalid_component_or_state_var_or_index_does_not_crash() {
 
 #[wasm_bindgen_test]
 fn reload_essential_data_after_point_moves() {
-
     static DATA: &str = r#"
     <number name='num'>2</number>
     <graph name='g'>
@@ -1481,6 +1480,42 @@ fn reload_essential_data_after_point_moves() {
     doenet_core::update_renderers(&dc);
 
     assert_sv_array_is_number_list(&dc, "p", "xs", vec![5.0, 1.0]);
+}
+
+// =============== Render tree ===================
+
+#[wasm_bindgen_test]
+fn render_tree_formats_state_vars_correctly() {
+    static DATA: &str = r#"
+    <document></document>
+    "#;
+    display_doenet_ml_on_failure!(DATA);
+    let dc = doenet_core_with_no_warnings(DATA);
+    let render_tree_string = doenet_core::update_renderers(&dc);
+    let render_tree: serde_json::Value = serde_json::from_str(&render_tree_string)
+        .expect("Render tree is not valid json.");
+    let components_list = render_tree.as_array()
+        .expect("Render tree was not a list at the top level");
+    assert_eq!(components_list.len(), 1, "Render tree is incorrect length");
+
+    let component_data = components_list[0].as_object()
+        .expect("Render tree component data was not json object");
+
+    assert_eq!(component_data.get("componentName"), Some(&serde_json::Value::String("/_document1".into())));
+
+    let state_vars = component_data.get("stateValues")
+        .expect("Render tree has no stateValues field for component")
+        .as_object()
+        .expect("Render tree stateValues is not a json object");
+    
+    // Pick one state var of each type and test the formatting
+    assert_eq!(state_vars.get("disabled"), Some(&serde_json::Value::Bool(false)),
+        "Render tree boolean state var incorrect");
+    assert_eq!(state_vars.get("creditAchieved"),
+        Some(&serde_json::Value::Number(serde_json::Number::from_f64(1.0).unwrap())),
+        "Render tree number state var incorrect");
+    assert_eq!(state_vars.get("submitLabel"), Some(&serde_json::Value::String("Check Work".into())),
+        "Render tree string state var incorrect");
 }
 
 
