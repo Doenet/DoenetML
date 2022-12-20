@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
+use crate::ComponentRefRelative;
 use crate::component::AttributeName;
-use crate::ComponentRef;
 use crate::component::ComponentProfile;
 use crate::component::ComponentType;
 
@@ -286,11 +286,11 @@ pub enum DependencyInstruction {
         parse_into_expression: bool,
     },
     StateVar {
-        component_ref: Option<ComponentRef>,
+        component_ref: Option<ComponentRefRelative>,
         state_var: StateVarSlice,
     },
     CorrespondingElements {
-        component_ref: Option<ComponentRef>,
+        component_ref: Option<ComponentRefRelative>,
         array_state_var_name: StateVarName,
     },
     Parent {
