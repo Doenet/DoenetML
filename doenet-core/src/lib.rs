@@ -131,7 +131,7 @@ pub enum Dependency {
 /// Defines which components form the members of a collection.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, enum_as_inner::EnumAsInner)]
 pub enum CollectionMembers {
-    Component(ComponentName),
+    Component(ComponentName),   
 
     Batch(ComponentName),
 
@@ -2205,7 +2205,7 @@ fn generate_render_tree_internal(
         };
 
         // hardcoded exceptions
-        if sv_renderer_name == "numbericalPoints"
+        if sv_renderer_name == "numbericalPoints"  // TODO: is this a typo?
         && matches!(sv_slice, StateVarSlice::Array(_)) {
             let array_2d =
                 [[values.get(0).unwrap(), values.get(1).unwrap()],

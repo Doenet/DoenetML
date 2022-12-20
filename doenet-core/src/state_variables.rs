@@ -253,6 +253,7 @@ pub enum StateVarVariant {
 /// This can contain the value of a state variable of any type,
 /// which is useful for function parameters.
 #[derive(Debug, Clone, PartialEq, serde::Serialize)]
+#[serde(untagged)]
 pub enum StateVarValue {
     String(String),
     Number(f64),
@@ -260,7 +261,6 @@ pub enum StateVarValue {
     Boolean(bool),
     MathExpr(MathExpression),
 }
-
 
 
 /// A DependencyInstruction is used to make a Dependency when core is created,
