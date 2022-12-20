@@ -27,8 +27,8 @@ fn group_dependencies(
     let templates = get_children_of_type(component_nodes, node, "template", false).next();
     let sources = get_children_of_type(component_nodes, node, "sources", false).next();
     vec![CollectionMembersOrCollection::Members(CollectionMembers::InstanceBySources {
-        template: templates.unwrap().clone(),
-        sources: sources.unwrap().clone(),
+        template: ComponentInstanceRelative::same_instance(templates.unwrap().clone()),
+        sources: ComponentInstanceRelative::same_instance(sources.unwrap().clone()),
     })]
 }
 

@@ -116,20 +116,20 @@ pub enum Dependency {
 /// Defines which components form the members of a collection.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, enum_as_inner::EnumAsInner)]
 pub enum CollectionMembers {
-    Component(ComponentName),
+    Component(ComponentInstanceRelative),
 
-    Batch(ComponentName),
+    Batch(ComponentInstanceRelative),
 
     /// Only included if the boolean state var is true
     ComponentOnCondition {
-        component_name: ComponentName,
+        component_name: ComponentInstanceRelative,
         condition: StateRef, // a boolean
     },
 
     /// The members of this are the same component, but different instances
     InstanceBySources {
-        template: ComponentName,
-        sources: ComponentName, // a collection
+        template: ComponentInstanceRelative,
+        sources: ComponentInstanceRelative, // a collection
     },
 
     // /// Points to collection of whose members are undetermined children
@@ -399,9 +399,9 @@ fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentN
     fn flat_members_for_collection(
         component_nodes: &HashMap<ComponentName, ComponentNode>,
         group_dependencies: &HashMap<ComponentName, Vec<CollectionMembersOrCollection>>,
-        component: &ComponentName,
+        component: &ComponentInstanceRelative,
     ) -> Vec<CollectionMembers> {
-        group_dependencies.get(component).unwrap()
+        group_dependencies.get(&component.0).unwrap()
             .iter()
             .flat_map(|c| {
                 match c {
@@ -413,8 +413,11 @@ fn create_group_dependencies(component_nodes: &HashMap<ComponentName, ComponentN
     }
 
     let group_dependencies =  group_dependencies.iter()
-        .map(|(k, _v)| (k.clone(), flat_members_for_collection(component_nodes, &group_dependencies, k)))
-        .collect();
+        .map(|(k, _v)| (k.clone(), flat_members_for_collection(
+            component_nodes,
+            &group_dependencies,
+            &ComponentInstanceRelative::same_instance(k.clone())
+        ))).collect();
 
     group_dependencies
 }
@@ -1578,7 +1581,7 @@ struct ComponentInstancesStateSlice (ComponentInstances, StateVarSlice);
 
 type RelativeInstance = Vec<usize>;
 
-type ComponentInstanceRelative = ComponentInstance;
+pub type ComponentInstanceRelative = ComponentInstance;
 type ComponentGeneratedRelative = ComponentGenerated;
 type ComponentRefRelative = ComponentRef;
 type ComponentGroupRelative = ComponentGroup;
@@ -2835,26 +2838,26 @@ fn collection_size(
 
     core.group_dependencies.get(&component_node_instance.0).unwrap()
         .iter()
-        .map(|c| collection_members_size(core, c, &component_node_instance.1))
+        .map(|c| collection_members_size(core, &component_node_instance, c))
         .sum()
 }
 
 fn collection_members_size(
     core: &DoenetCore,
+    map: &ComponentInstance,
     collection_members: &CollectionMembers,
-    map: &Instance,
 ) -> usize {
     match collection_members {
         CollectionMembers::Component(_) => 1,
-        CollectionMembers::Batch(n) => resolve_batch_size(core, &ComponentInstance(n.clone(), map.clone()), None),
+        CollectionMembers::Batch(n) => resolve_batch_size(core, &n.clone().instance_relative_to(&core.component_nodes, map), None),
         CollectionMembers::ComponentOnCondition { component_name, condition } => {
-            let condition_variable = ComponentState(ComponentInstance(component_name.clone(), map.clone()), condition.clone());
+            let condition_variable = ComponentState(component_name.clone().instance_relative_to(&core.component_nodes, map), condition.clone());
             match resolve_state_variable(core, &condition_variable) {
                 Some(StateVarValue::Boolean(true)) => 1,
                 _ => 0,
             }
         },
-        CollectionMembers::InstanceBySources { sources, .. } => collection_size(core, &ComponentInstance(sources.clone(), map.clone())),
+        CollectionMembers::InstanceBySources { sources, .. } => collection_size(core, &sources.clone().instance_relative_to(&core.component_nodes, map)),
     }
 }
 
@@ -2869,7 +2872,7 @@ fn collection_may_contain(members: &Vec<CollectionMembers>, component: &Componen
             CollectionMembers::InstanceBySources { template: n, ..} |
             CollectionMembers::Batch(n) |
             CollectionMembers::Component(n) =>
-                n == component,
+                &n.0 == component,
         }
     )
 }
@@ -2898,23 +2901,24 @@ fn nth_collection_member(
         match c {
             CollectionMembers::Component(component_name) => {
                 size = 1;
-                group_member = ComponentGenerated::Node(ComponentInstance(component_name.clone(), component_node_instance.1.clone()));
+                group_member = ComponentGenerated::Node(component_name.clone().instance_relative_to(&core. component_nodes, component_node_instance));
             },
             CollectionMembers::Batch(component_name) => {
-                size = resolve_batch_size(core, &ComponentInstance(component_name.clone(), component_node_instance.1.clone()), None);
-                group_member = ComponentGenerated::BatchMember(ComponentInstance(component_name.clone(), component_node_instance.1.clone()), None, index);
+                size = resolve_batch_size(core, &component_name.clone().instance_relative_to(&core. component_nodes, component_node_instance), None);
+                group_member = ComponentGenerated::BatchMember(component_name.clone().instance_relative_to(&core. component_nodes, component_node_instance), None, index);
             },
             CollectionMembers::ComponentOnCondition { component_name, condition } => {
-                let condition_variable = ComponentState(ComponentInstance(component_name.clone(), component_node_instance.1.clone()), condition.clone());
+                let condition_variable = ComponentState(component_name.clone().instance_relative_to(&core. component_nodes, component_node_instance), condition.clone());
                 let condition = resolve_state_variable(core, &condition_variable);
                 size = (condition == Some(StateVarValue::Boolean(true))) as usize;
-                group_member = ComponentGenerated::Node(ComponentInstance(component_name.clone(), component_node_instance.1.clone()));
+                group_member = ComponentGenerated::Node(component_name.clone().instance_relative_to(&core. component_nodes, component_node_instance));
             },
             CollectionMembers::InstanceBySources { sources, template } => {
-                size = collection_size(core, &ComponentInstance(sources.clone(), component_node_instance.1.clone()));
-                let mut map_new = component_node_instance.1.clone();
+                size = collection_size(core, &sources.clone().instance_relative_to(&core.component_nodes, component_node_instance));
+                let template_instance = template.clone().instance_relative_to(&core.component_nodes, component_node_instance);
+                let ComponentInstance(template_name, mut map_new) = template_instance;
                 map_new.push(index);
-                group_member = ComponentGenerated::Node(ComponentInstance(template.clone(), map_new))
+                group_member = ComponentGenerated::Node(ComponentInstance(template_name, map_new))
             },
         }
         if index > size {

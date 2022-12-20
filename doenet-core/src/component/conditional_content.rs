@@ -26,7 +26,7 @@ fn group_dependencies(
 ) -> Vec<CollectionMembersOrCollection> {
     get_children_of_type(component_nodes, node, "case", false).map(|c|
         CollectionMembersOrCollection::Members(CollectionMembers::ComponentOnCondition {
-            component_name: c.clone(),
+            component_name: ComponentInstanceRelative::same_instance(c.clone()),
             condition: StateRef::Basic("condition")
         })
     ).collect()

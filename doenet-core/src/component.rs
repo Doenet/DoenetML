@@ -1,4 +1,4 @@
-use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefArrayRelative};
+use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefArrayRelative, ComponentInstanceRelative};
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
@@ -172,7 +172,7 @@ pub struct CollectionDefinition {
 
 pub enum CollectionMembersOrCollection {
     Members(CollectionMembers),
-    Collection(ComponentName),
+    Collection(ComponentInstanceRelative),
 }
 
 /// A batch is a way to make one component appear like several non-existent components
