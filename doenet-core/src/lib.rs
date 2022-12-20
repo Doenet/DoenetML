@@ -601,7 +601,7 @@ fn create_all_dependencies_for_component(
                 elements.push(2)
             }
 
-            log_debug!("Will make dependencies for elements {:?} of {}:{}", elements, component.name, state_var_name);
+            log_debug!("Will make dependencies for elements {:?} of {:?}", elements, component_slice);
 
             for index in elements {
 
@@ -677,7 +677,7 @@ fn create_dependencies_from_instruction(
     should_initialize_essential_data: bool,
 ) -> Vec<Dependency> {
 
-    log_debug!("Creating dependency {}:{}:{} from instruction {:?}", component.name, state_var_slice, instruction_name, instruction);
+    log_debug!("Creating dependency {:?}:{} from instruction {:?}", component_slice, instruction_name, instruction);
 
     let component = components.get(&component_slice.0).unwrap();
     let state_var_slice = &component_slice.1;
@@ -732,7 +732,10 @@ fn create_dependencies_from_instruction(
             let component_ref = component_ref.clone()
                 .unwrap_or(ComponentRefRelative::node(component_slice.0.clone()));
 
-            let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(component_ref), state_var.clone());
+            let component_states = ComponentGroupStateSliceRelative(
+                ComponentGroupRelative::Single(component_ref),
+                state_var.clone()
+            );
             vec![Dependency::StateVar { component_states }]
         },
 
@@ -749,8 +752,8 @@ fn create_dependencies_from_instruction(
         DependencyInstruction::Parent { state_var } => {
 
             let parent_name = component.parent.clone().expect(&format!(
-                "Component {} doesn't have a parent, but the dependency instruction {}:{} asks for one.",
-                    component.name, state_var_slice, instruction_name
+                "Component {:?}:{} asks for a parent but there is none.",
+                    component_slice, instruction_name
             ));
 
             // Look up what kind of child state var it is
@@ -764,7 +767,10 @@ fn create_dependencies_from_instruction(
                 };
             let parent_ref = ComponentRefRelative::node(parent_name);
 
-            let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(parent_ref), sv_slice);
+            let component_states = ComponentGroupStateSliceRelative(
+                ComponentGroupRelative::Single(parent_ref),
+                sv_slice
+            );
             vec![Dependency::StateVar { component_states }]
         },
 
@@ -785,7 +791,10 @@ fn create_dependencies_from_instruction(
             if let Some(CopySource::StateVar(ref component_state_relative)) = source.copy_source {
                 // copying a state var means we don't inheret its children,
                 // so we depend on it directly
-                let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(component_state_relative.0.clone()), StateVarSlice::Single(component_state_relative.1.clone()));
+                let component_states = ComponentGroupStateSliceRelative(
+                    ComponentGroupRelative::Single(component_state_relative.0.clone()),
+                    StateVarSlice::Single(component_state_relative.1.clone())
+                );
                 relevant_children.push(
                     RelevantChild::StateVar(Dependency::StateVar { component_states })
                 );
@@ -799,7 +808,10 @@ fn create_dependencies_from_instruction(
             } else if let Some(CopySource::Component(ref component_ref_relative)) = source.copy_source {
                 if matches!(component_ref_relative, ComponentRefRelative::Component(ComponentGeneratedRelative::BatchMember(_, _, _))) {
                     // a batch member has no children, so we depend on it directly
-                    let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(component_ref_relative.clone()), state_var_slice.clone());
+                    let component_states = ComponentGroupStateSliceRelative(
+                        ComponentGroupRelative::Single(component_ref_relative.clone()),
+                        state_var_slice.clone()
+                    );
                     relevant_children.push(
                         RelevantChild::StateVar(Dependency::StateVar { component_states })
                     );
@@ -894,7 +906,8 @@ fn create_dependencies_from_instruction(
                 }
 
                 dependencies.push(Dependency::Essential {
-                    component_name: ComponentInstanceRelative::same_instance(component.name.clone()), origin: essential_origin,
+                    component_name: ComponentInstanceRelative::same_instance(component.name.clone()),
+                    origin: essential_origin,
                 });
 
                 // We already dealt with the essential data, so now only retain the component children
@@ -945,7 +958,7 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Attribute { attribute_name, index } => {
 
-            log_debug!("Getting attribute {} for {}:{}", attribute_name, component.name, state_var_slice);
+            log_debug!("Getting attribute {} for {:?}", attribute_name, component_slice);
             let state_var_name = state_var_slice.name();
             let state_var_ref = StateRef::from_name_and_index(state_var_name, *index);
             let sv_def = component.definition.state_var_definitions.get(state_var_name).unwrap();
@@ -973,7 +986,10 @@ fn create_dependencies_from_instruction(
                 if let Some(CopySource::Component(component_ref_relative)) = &component.copy_source {
 
                     // inherit attribute from copy source
-                    let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(component_ref_relative.clone()),StateVarSlice::Single(state_var_ref));
+                    let component_states = ComponentGroupStateSliceRelative(
+                        ComponentGroupRelative::Single(component_ref_relative.clone()),
+                        StateVarSlice::Single(state_var_ref)
+                    );
                     return vec![Dependency::StateVar { component_states }]
                 }
 
@@ -1051,7 +1067,7 @@ fn create_dependencies_from_instruction(
                     assert_eq!(attribute.keys().len(), 1);
                     let obj_list = attribute.get(&1).unwrap();
 
-                    log_debug!("Initializing non-array essential data for {}:{} from attribute data {:?}", component.name, state_var_name, obj_list);
+                    log_debug!("Initializing non-array essential data for {:?} from attribute data {:?}", component_slice, obj_list);
 
                     let value = get_value_from_object_list(obj_list);
                     initial_essential_data = InitialEssentialData::Single(value);                    
@@ -1081,8 +1097,8 @@ fn create_dependencies_from_instruction(
             };
 
             let attr_objects = attribute.get(&attribute_index)
-                .expect(&format!("attribute {}:{} does not have index {}. Attribute: {:?}",
-                    &component.name, attribute_name, &attribute_index, attribute));
+                .expect(&format!("attribute {:?} does not have index {}. Attribute: {:?}",
+                    component_slice, &attribute_index, attribute));
 
             let mut dependencies = Vec::new();
 
@@ -1117,7 +1133,10 @@ fn create_dependencies_from_instruction(
                         );
 
                         let component_group_relative = ComponentGroupRelative::Single(ComponentRefRelative::node(comp_name.clone()));
-                        let component_states = ComponentGroupStateSliceRelative(component_group_relative, StateVarSlice::Single(StateRef::Basic(primary_input_sv)));
+                        let component_states = ComponentGroupStateSliceRelative(
+                            component_group_relative,
+                            StateVarSlice::Single(StateRef::Basic(primary_input_sv))
+                        );
                         Dependency::StateVar { component_states }
                     },
                 };
@@ -1142,12 +1161,18 @@ fn create_prop_index_dependencies(
     let mut dependencies = HashMap::new();
 
     // Dependencies on source components for propIndex
-    let component_slice = ComponentStateSliceAllInstances(component.name.clone(), StateVarSlice::Single(StateRef::Basic(PROP_INDEX_SV)));
+    let component_slice = ComponentStateSliceAllInstances(
+        component.name.clone(),
+        StateVarSlice::Single(StateRef::Basic(PROP_INDEX_SV))
+    );
     dependencies.insert(
         DependencyKey(component_slice.clone(), PROP_INDEX_VARS_INSTRUCTION),
         variable_components.iter().map(|comp_name| {
             let slice = StateVarSlice::Single(StateRef::Basic("value"));
-            let component_states = ComponentGroupStateSliceRelative(ComponentGroupRelative::Single(ComponentRefRelative::node(comp_name.clone())), slice);
+            let component_states = ComponentGroupStateSliceRelative(
+                ComponentGroupRelative::Single(ComponentRefRelative::node(comp_name.clone())),
+                slice
+            );
             Dependency::StateVar { component_states }
         }).collect()
     );
@@ -1174,7 +1199,8 @@ fn create_prop_index_dependencies(
 }
 
 
-fn package_string_as_state_var_value(input_string: String, state_var_variant: &StateVarVariant) -> Result<StateVarValue, String> {
+fn package_string_as_state_var_value(input_string: String, state_var_variant: &StateVarVariant)
+    -> Result<StateVarValue, String> {
 
     match state_var_variant {
         StateVarVariant::StringArray(_) |
@@ -1410,8 +1436,9 @@ impl ComponentRefStateSlice {
 
         match generated_instance {
             ComponentGenerated::Node(n) => Some(ComponentStateSlice(n, self.1)),
-            ComponentGenerated::BatchMember(n, c, i) => batch_state_var(core, &ComponentStateSliceAllInstances(n.0.clone(), self.1), c, i)
-                .map(|sv| ComponentStateSlice(n, sv)),
+            ComponentGenerated::BatchMember(n, c, i) =>
+                batch_state_var(core, &ComponentStateSliceAllInstances(n.0.clone(), self.1), c, i)
+                    .map(|sv| ComponentStateSlice(n, sv)),
         }
     }
 }
@@ -2699,7 +2726,7 @@ fn convert_dependency_values_to_update_request(
 
         let valid_requests = match instruction_requests {
             Err(_e) => {
-                log_debug!("Inverse definition for {}:{} failed with: {}", component.name, state_var, _e);
+                log_debug!("Inverse definition for {:?} failed with: {}", component_state, _e);
                 break;
             },
             Ok(result) => result,
@@ -3191,17 +3218,17 @@ fn request_dependencies_to_update_value_including_shadow(
 
         let dependency_sources = get_dependency_sources_for_state_var(core, component_state);
 
-        log_debug!("Dependency sources for {}:{}, {:?}", component.name, state_var_ref, dependency_sources);
+        log_debug!("Dependency sources for {:?}, {:?}", component_state, dependency_sources);
 
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
             .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources)
-            .expect(&format!("Failed requesting dependencies for {}:{}", component.name, state_var_ref));
+            .expect(&format!("Failed requesting dependencies for {:?}", component_state));
 
-        log_debug!("{}:{} wants its dependency to update to: {:?}", component.name, state_var_ref, requests);
+        log_debug!("{:?} wants its dependency to update to: {:?}", component_state, requests);
 
         let update_requests = convert_dependency_values_to_update_request(core, component_state, requests);
 
-        log_debug!("{}:{} generated update requests: {:#?}", component.name, state_var_ref, update_requests);
+        log_debug!("{:?} generated update requests: {:#?}", component_state, update_requests);
 
         update_requests
     }
