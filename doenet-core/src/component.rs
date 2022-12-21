@@ -1,4 +1,4 @@
-use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefArrayRelative, ComponentInstanceRelative};
+use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefStateArrayRelative, ComponentInstanceRelative};
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
@@ -97,7 +97,7 @@ pub enum CopySource {
     Component(ComponentRefRelative),
     StateVar(ComponentRefStateRelative),
     MapSources(ComponentName),
-    DynamicElement(ComponentRefArrayRelative, MathExpression, Vec<ComponentName>),
+    DynamicElement(ComponentRefStateArrayRelative, MathExpression, Vec<ComponentName>),
 }
 
 
