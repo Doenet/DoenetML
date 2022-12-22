@@ -1,4 +1,4 @@
-use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefStateArrayRelative, ComponentInstanceRelative};
+use crate::{CollectionMembers, ComponentRefRelative, ComponentRefStateRelative, ComponentNode, ComponentName, ComponentRefStateArrayRelative, ComponentRelative};
 use crate::math_expression::MathExpression;
 use enum_as_inner::EnumAsInner;
 use serde::Serialize;
@@ -160,7 +160,7 @@ pub struct ComponentDefinition {
 /// A collection is a way to group several existing components of the same type under one component
 /// It is like a CopySource with multiple sources.
 pub struct CollectionDefinition {
-    pub group_dependencies: fn(
+    pub collection_members: fn(
         node: &ComponentNode,
         component_nodes: &HashMap<ComponentName, ComponentNode>,
     ) -> Vec<CollectionMembersOrCollection>,
@@ -172,7 +172,7 @@ pub struct CollectionDefinition {
 
 pub enum CollectionMembersOrCollection {
     Members(CollectionMembers),
-    Collection(ComponentInstanceRelative),
+    Collection(ComponentRelative),
 }
 
 /// A batch is a way to make one component appear like several non-existent components

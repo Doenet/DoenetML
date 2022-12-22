@@ -741,12 +741,12 @@ pub fn members_from_children_of_type(
     get_children_of_type(component_nodes, node, component_type, true).map(|c|
         match component_nodes.get(c).unwrap().definition.replacement_components {
             Some(ReplacementComponents::Batch(_)) =>
-                CollectionMembersOrCollection::Members(CollectionMembers::Batch(crate::ComponentInstanceRelative::same_instance(c.clone()))),
+                CollectionMembersOrCollection::Members(CollectionMembers::Batch(crate::ComponentRelative::same_instance(c.clone()))),
             Some(ReplacementComponents::Collection(_)) =>
-                CollectionMembersOrCollection::Collection(crate::ComponentInstanceRelative::same_instance(c.clone())),
+                CollectionMembersOrCollection::Collection(crate::ComponentRelative::same_instance(c.clone())),
             Some(ReplacementComponents::Children) =>
                 todo!(),
-            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(crate::ComponentInstanceRelative::same_instance(c.clone()))),
+            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(crate::ComponentRelative::same_instance(c.clone()))),
         }
     ).collect()
 }

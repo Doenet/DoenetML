@@ -23,7 +23,7 @@ fn member_definition(
     COMPONENT_DEFINITIONS.get_key_value_ignore_case(component_type.as_str()).unwrap().1
 }
 
-fn group_dependencies(
+fn collection_members(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<CollectionMembersOrCollection> {
@@ -56,7 +56,7 @@ lazy_static! {
 
         replacement_components: Some(ReplacementComponents::Collection(CollectionDefinition {
             member_definition,
-            group_dependencies,
+            collection_members,
         })),
 
         ..Default::default()
