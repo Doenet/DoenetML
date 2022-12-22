@@ -19,7 +19,7 @@ lazy_static!{
 fn member_definition(
     values: &HashMap<AttributeName, String>,
 ) -> &'static ComponentDefinition {
-    log_debug!("{:?}", values);
+    // log_debug!("{:?}", values);
     let component_type = values.get("componentType").unwrap();
     COMPONENT_DEFINITIONS.get_key_value_ignore_case(component_type.as_str()).unwrap().1
 }

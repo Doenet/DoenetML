@@ -75,7 +75,7 @@ lazy_static! {
 
                 let xs = dependency_values.dep_value("xs")?
                     .into_number_list()?;
-                log_debug!("xs: {:?}", xs);
+                // log_debug!("xs: {:?}", xs);
                 let x = xs.get(0).unwrap();
                 let y = xs.get(1).unwrap();
                 let set_value = format!("({}, {})", x, y);

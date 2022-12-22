@@ -619,7 +619,7 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(Dependen
         split_dependency_sources_into_expression_and_variables(sources)?;
     
     if variables.len() == 0 {
-        log_debug!("Math expression has only constants: {:?}", expression.1.tree);
+        // log_debug!("Math expression has only constants: {:?}", expression.1.tree);
 
         return Ok(vec![
             DependencyValue {
@@ -637,7 +637,7 @@ pub fn DETERMINE_NUMBER_DEPENDENCIES(desired_value: f64, sources: &Vec<(Dependen
             if child.children().is_empty() && matches!(child.operator(), Operator::VariableIdentifierRead { ..}) {
                 
                 // syntax tree is only the one variable
-                log_debug!("Math expression has one variable and no constants: {:?}", tree);
+                // log_debug!("Math expression has one variable and no constants: {:?}", tree);
 
                 let sv_value = DependencyValue {
                     source: variables[0].0.clone(),

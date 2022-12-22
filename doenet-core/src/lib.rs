@@ -20,7 +20,7 @@ use component::*;
 use state_variables::*;
 
 use crate::math_expression::MathExpression;
-use crate::utils::{log_json, log_debug};
+use crate::utils::{log_json, log_debug, log};
 use serde::Serialize;
 
 
@@ -159,6 +159,8 @@ pub fn create_doenet_core(
     existing_essential_data: Option<HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>>,
 ) -> Result<(DoenetCore, Vec<DoenetMLWarning>), DoenetMLError> {
 
+    log!("===== DoenetCore creation =====");
+
     // Create component nodes and attributes
     let (ml_components, component_attributes, root_component_name, map_sources_alias) =
         parse_json::create_components_tree_from_json(program)?;
@@ -181,8 +183,7 @@ pub fn create_doenet_core(
 
     let component_states = create_stale_component_states(&component_nodes);
 
-
-    log_json!("Components upon core creation",
+    log_json!("Component tree upon core creation",
         utils::json_components(&component_nodes, &component_states));
     log_json!("Dependencies upon core creation",
         utils::json_dependencies(&dependencies));
@@ -978,7 +979,7 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Attribute { attribute_name, index } => {
 
-            log_debug!("Getting attribute {} for {}:{}", attribute_name, component.name, state_var_slice);
+            // log_debug!("Getting attribute {} for {}:{}", attribute_name, component.name, state_var_slice);
             let state_var_name = state_var_slice.name();
             let state_var_ref = StateRef::from_name_and_index(state_var_name, *index);
             let sv_def = component.definition.state_var_definitions.get(state_var_name).unwrap();
@@ -1031,7 +1032,7 @@ fn create_dependencies_from_instruction(
             // attribute specified
             let attribute = attribute.unwrap();
 
-            log_debug!("attribute {:?}", attribute);
+            // log_debug!("attribute {:?}", attribute);
 
             // Create the essential data if it does not exist yet
             if should_initialize_essential_data && !essential_data_exists_for(&component.name, &essential_origin, essential_data) {
@@ -1078,7 +1079,7 @@ fn create_dependencies_from_instruction(
                         essential_attr_objs[id - 1] = value;
                     }
 
-                    log_debug!("essential attributes {:?}", essential_attr_objs);
+                    // log_debug!("essential attributes {:?}", essential_attr_objs);
 
                     initial_essential_data = InitialEssentialData::Array(essential_attr_objs, default_value);
 
@@ -1087,7 +1088,7 @@ fn create_dependencies_from_instruction(
                     assert_eq!(attribute.keys().len(), 1);
                     let obj_list = attribute.get(&1).unwrap();
 
-                    log_debug!("Initializing non-array essential data for {}:{} from attribute data {:?}", component.name, state_var_name, obj_list);
+                    // log_debug!("Initializing non-array essential data for {}:{} from attribute data {:?}", component.name, state_var_name, obj_list);
 
                     let value = get_value_from_object_list(obj_list);
                     initial_essential_data = InitialEssentialData::Single(value);                    
@@ -1376,10 +1377,10 @@ fn resolve_state_variable(
         return None
     }
 
-    log_debug!("Resolving {}:{} ({:?})", component, state_var_ref, map);
 
     let my_dependencies = dependencies_of_state_var(&core.dependencies, component, state_var_ref);
-    log_debug!("Dependencies of {}:{} {:?}", component, state_var_ref, my_dependencies);
+
+    log_debug!(">> Resolving {}:{} ({:?}) \nIt has dependencies {:?}", component, state_var_ref, map, my_dependencies);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
     for (dep_name, deps) in my_dependencies {
@@ -1447,7 +1448,7 @@ fn resolve_state_variable(
                     let member = map_sources_dependency_member(core, component, map, &map_sources);
 
                     if let Some((component_ref, comp_map)) = member {
-                        log_debug!("map source ref: {:?} map{:?}", component_ref, comp_map);
+                        // log_debug!("map source ref: {:?} map{:?}", component_ref, comp_map);
 
                         let (sv_comp, comp_map, sv_slice) = convert_component_ref_state_var(core, component_ref, comp_map, state_var_slice.clone()).unwrap();
 
@@ -1513,7 +1514,7 @@ fn resolve_state_variable(
 
                     if let Some(index) = index {
 
-                        log_debug!("got prop index which is {}", index);
+                        // log_debug!("got prop index which is {}", index);
 
                         let sv_slice = StateVarSlice::Single(StateRef::ArrayElement(array_state_var_name, index));
 
@@ -1650,7 +1651,7 @@ fn handle_update_instruction(
 
     };
 
-    log_debug!("Updated {}_map{:?}:{} to {:?}", component_name, map, state_var_ref, updated_value);
+    log_debug!("Updated {}:{} to {:?}", component_name, state_var_ref, updated_value);
 
     return updated_value;
 }
@@ -1886,12 +1887,12 @@ fn mark_stale_state_var_and_dependencies(
     let state = core.component_states.get(component).unwrap()
         .get(state_var_slice.name()).unwrap();
 
-    log_debug!("Check stale {}_map{:?}:{}", component, map, state_var_slice);
+    // log_debug!("Check stale {}_map{:?}:{}", component, map, state_var_slice);
     for instance in state.instances_where_slice_is_resolved(state_var_slice, map) {
 
         let instance = instance
             .expect(&format!("Error accessing state of {}:{:?}", component, state_var_slice));
-        log_debug!("Marking stale {}_map{:?}:{}", component, instance, state_var_slice);
+        // log_debug!("Marking stale {}_map{:?}:{}", component, instance, state_var_slice);
 
         state.mark_stale_slice(state_var_slice, &instance);
 
@@ -2146,6 +2147,7 @@ fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
     };
     let mut json_obj: Vec<serde_json::Value> = vec![];
 
+    log!("===== Render tree ======");
     generate_render_tree_internal(core, root_comp_rendered, &mut json_obj);
 
     serde_json::Value::Array(json_obj)
@@ -3066,7 +3068,7 @@ fn request_dependencies_to_update_value_including_shadow(
 
         let dependency_sources = get_dependency_sources_for_state_var(core, &component.name, map, &state_var_ref.clone());
 
-        log_debug!("Dependency sources for {}:{}, {:?}", component.name, state_var_ref, dependency_sources);
+        // log_debug!("Dependency sources for {}:{}, {:?}", component.name, state_var_ref, dependency_sources);
 
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
             .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources)

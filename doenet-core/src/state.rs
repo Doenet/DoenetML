@@ -473,7 +473,7 @@ impl EssentialStateVar {
     // }
 
     pub fn new_array_with_state_var_values(values: Vec<StateVarValue>, default_fill_value: StateVarValue) -> Self {
-        log_debug!("Initializing essential state with elements {:?} and default value {:?}", values, default_fill_value);
+        // log_debug!("Initializing essential state with elements {:?} and default value {:?}", values, default_fill_value);
 
         Self::Array {
             size: ForEachMap::new(values.len()),

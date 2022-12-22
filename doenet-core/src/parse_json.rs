@@ -477,7 +477,7 @@ fn convert_copy_source_name(name: Option<String>) -> (Option<String>, Option<Rel
             let mut chars = name.chars();
             chars.next();
             let instance_indices: String = (&mut chars).take_while(|&c| c != ')').collect();
-            log_debug!("instancing {:?}", instance_indices);
+            // log_debug!("instancing {:?}", instance_indices);
             let relative_instance = instance_indices.split(' ').map(|d| d.parse().unwrap()).collect();
             // chars.next();
             let component_name = chars.collect();
@@ -700,7 +700,7 @@ fn macro_comp_ref(
     components_to_add: &mut Vec<MLComponent>,
 ) -> Result<(ComponentName, usize), String> {
 
-    log_debug!("macro at {} of {}", start, string);
+    // log_debug!("macro at {} of {}", start, string);
 
     let comp_match = regex_at(&COMPONENT, string, start)?;
 
