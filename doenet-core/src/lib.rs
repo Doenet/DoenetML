@@ -12,7 +12,7 @@ use lazy_static::lazy_static;
 use parse_json::{DoenetMLError, DoenetMLWarning, MLComponent};
 use state::StateForStateVar;
 use std::collections::HashMap;
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::hash::Hash;
 
 use state::{State, EssentialStateVar};
@@ -117,7 +117,7 @@ pub enum ComponentRef {
 #[derive(Debug)]
 struct RenderedComponent {
     component_ref: ComponentRef,
-    child_of_copy: Option<ComponentName>,
+    child_of_copy: Option<ComponentRef>,
 }
 
 
@@ -668,7 +668,7 @@ fn create_all_dependencies_for_component(
                 elements.push(2)
             }
 
-            log_debug!("Will make dependencies for elements {:?} of {:?}", elements, component_slice);
+            log_debug!("Will make dependencies for elements {:?} of {}", elements, component_slice);
 
             for index in elements {
 
@@ -743,7 +743,7 @@ fn create_dependencies_from_instruction(
     should_initialize_essential_data: bool,
 ) -> Vec<Dependency> {
 
-    log_debug!("Creating dependency {:?}:{} from instruction {:?}", component_slice, instruction_name, instruction);
+    log_debug!("Creating dependency {}:{} from instruction {:?}", component_slice, instruction_name, instruction);
 
     let component = components.get(&component_slice.0).unwrap();
     let state_var_slice = &component_slice.1;
@@ -819,7 +819,7 @@ fn create_dependencies_from_instruction(
         DependencyInstruction::Parent { state_var } => {
 
             let parent_name = component.parent.clone().expect(&format!(
-                "Component {:?}:{} asks for a parent but there is none.",
+                "Component {}:{} asks for a parent but there is none.",
                     component_slice, instruction_name
             ));
 
@@ -1027,7 +1027,7 @@ fn create_dependencies_from_instruction(
 
         DependencyInstruction::Attribute { attribute_name, index } => {
 
-            // log_debug!("Getting attribute {} for {:?}", attribute_name, component_slice);
+            // log_debug!("Getting attribute {} for {}", attribute_name, component_slice);
             let state_var_name = state_var_slice.name();
             let state_var_ref = StateRef::from_name_and_index(state_var_name, *index);
             let sv_def = component.definition.state_var_definitions.get(state_var_name).unwrap();
@@ -1137,7 +1137,7 @@ fn create_dependencies_from_instruction(
                     assert_eq!(attribute.keys().len(), 1);
                     let obj_list = attribute.get(&1).unwrap();
 
-                    // log_debug!("Initializing non-array essential data for {:?} from attribute data {:?}", component_slice, obj_list);
+                    // log_debug!("Initializing non-array essential data for {} from attribute data {:?}", component_slice, obj_list);
 
                     let value = get_value_from_object_list(obj_list);
                     initial_essential_data = InitialEssentialData::Single(value);                    
@@ -1168,7 +1168,7 @@ fn create_dependencies_from_instruction(
             };
 
             let attr_objects = attribute.get(&attribute_index)
-                .expect(&format!("attribute {:?} does not have index {}. Attribute: {:?}",
+                .expect(&format!("attribute {} does not have index {}. Attribute: {:?}",
                     component_slice, &attribute_index, attribute));
 
             let mut dependencies = Vec::new();
@@ -1494,12 +1494,12 @@ fn resolve_state_variable(
         return Some(current_value);
     } else if current_state.is_none() {
         // There is nothing to resolve
-        log_debug!("{:?} does not exist", component_state);
+        log_debug!("{} does not exist", component_state);
         return None
     }
 
     let my_dependencies = dependencies_of_state_var(&core.dependencies, &component_state.clone().ignore_instance());
-    log_debug!(">> Resolving {:?} \nIt has dependencies {:?}", component_state, my_dependencies);
+    log_debug!(">> Resolving {} \nIt has dependencies {:?}", component_state, my_dependencies);
 
     let mut dependency_values: HashMap<InstructionName, Vec<DependencyValue>> = HashMap::new();
     for (dep_name, deps) in my_dependencies {
@@ -1562,7 +1562,7 @@ fn resolve_state_variable(
 
                     let component_ref = map_sources_dependency_member(core, &component_state.0, map_sources);
 
-                    // log_debug!("map source ref: {:?}", component_ref);
+                    // log_debug!("map source ref: {}", component_ref);
                     let comp_ref_slice = ComponentRefStateSlice(component_ref, state_var_slice);
                     let sv_slice = comp_ref_slice.convert_to_state_slice(core).unwrap();
 
@@ -1637,7 +1637,7 @@ fn resolve_state_variable(
     }
 
 
-    log_debug!("Dependency values for {:?}: {:#?}", component_state, dependency_values);
+    log_debug!("Dependency values for {}: {:#?}", component_state, dependency_values);
 
     let node = core.component_nodes.get(&component_state.0.0).unwrap();
 
@@ -1645,7 +1645,7 @@ fn resolve_state_variable(
         core,
         component_state,
         dependency_values,
-    ).expect(&format!("Can't resolve {:?} (a {} component type)",
+    ).expect(&format!("Can't resolve {} (a {} component type)",
         component_state, node.definition.component_type)
     );
 
@@ -1672,7 +1672,7 @@ fn resolve_state_variable(
 
     };
 
-    log_debug!("Updated {:?} to {:?}", component_state, updated_value);
+    log_debug!("Updated {} to {:?}", component_state, updated_value);
 
     return updated_value;
 }
@@ -1778,8 +1778,6 @@ fn dependencies_of_state_var(
         key_is_me.then(|| (key.1, deps))
     });
 
-    // log_debug!("Deps for {}:{} with possible duplicates {:?}", component_name, state_var_slice, deps.clone().collect::<HashMap<InstructionName, &Vec<Dependency>>>());
-
     let mut combined: HashMap<InstructionName, Vec<Dependency>> = HashMap::new();
     for (k, v) in deps {
         if let Some(accum) = combined.get_mut(k) {
@@ -1790,8 +1788,6 @@ fn dependencies_of_state_var(
         }
     }
     
-    // log_debug!("Dependencies for {}:{} {:?}", component_name, state_var_slice, combined);
-
     combined
 }
 
@@ -2247,9 +2243,7 @@ fn generate_render_tree_internal(
 ) {
     use serde_json::{Map, Value, json};
 
-    let component_name = component.component_ref.of_node().0.clone();
-
-    log_debug!("generating render tree for {:?}", component);
+    log_debug!("generating render tree for {}", component);
 
     let component_definition = component.component_ref
         .component_definition(&core.component_nodes);
@@ -2306,7 +2300,6 @@ fn generate_render_tree_internal(
     let name_to_render = name_rendered_component(&component, component_definition.component_type);
 
     let mut children_instructions = Vec::new();
-    let node = core.component_nodes.get(&component_name).unwrap();
     if component_definition.should_render_children {
         for (child, actual_parent) in get_child_refs_including_copy_and_members(core, &component.component_ref) {
             match child {
@@ -2317,7 +2310,7 @@ fn generate_render_tree_internal(
                     let child_component = RenderedComponent {
                         component_ref: comp_ref_instance,
                         child_of_copy: component.child_of_copy.clone().or(
-                            (!std::ptr::eq(actual_parent, node)).then(|| component_name.clone())
+                            (actual_parent != component.component_ref).then(|| component.component_ref.clone())
                         ),
                     };
 
@@ -2465,7 +2458,7 @@ fn convert_dependency_values_to_update_request(
 
         let valid_requests = match instruction_requests {
             Err(_e) => {
-                log_debug!("Inverse definition for {:?} failed with: {}", component_state, _e);
+                log_debug!("Inverse definition for {} failed with: {}", component_state, _e);
                 break;
             },
             Ok(result) => result,
@@ -2605,17 +2598,17 @@ fn request_dependencies_to_update_value_including_shadow(
 
         let dependency_sources = get_dependency_sources_for_state_var(core, component_state);
 
-        log_debug!("Dependency sources for {:?}, {:?}", component_state, dependency_sources);
+        log_debug!("Dependency sources for {}, {:?}", component_state, dependency_sources);
 
         let requests = component.definition.state_var_definitions.get(state_var_ref.name()).unwrap()
             .request_dependencies_to_update_value(state_var_ref, new_value, dependency_sources)
-            .expect(&format!("Failed requesting dependencies for {:?}", component_state));
+            .expect(&format!("Failed requesting dependencies for {}", component_state));
 
-        log_debug!("{:?} wants its dependency to update to: {:?}", component_state, requests);
+        log_debug!("{} wants its dependency to update to: {:?}", component_state, requests);
 
         let update_requests = convert_dependency_values_to_update_request(core, component_state, requests);
 
-        log_debug!("{:?} generated update requests: {:#?}", component_state, update_requests);
+        log_debug!("{} generated update requests: {:#?}", component_state, update_requests);
 
         update_requests
     }
@@ -2669,12 +2662,12 @@ enum ObjectRef {
     String(String),
 }
 
-fn get_child_refs_including_copy_and_members<'a>(
-    core: &'a DoenetCore,
+fn get_child_refs_including_copy_and_members(
+    core: &DoenetCore,
     component_ref: &ComponentRef,
-) -> Vec<(ObjectRef, &'a ComponentNode)> {
+) -> Vec<(ObjectRef, ComponentRef)> {
 
-    let mut children_vec: Vec<(ObjectRef, &ComponentNode)> = Vec::new();
+    let mut children_vec: Vec<(ObjectRef, ComponentRef)> = Vec::new();
     let component = component_ref.clone().convert_to_node_instance(core);
     if component.is_none() {
         return vec![]
@@ -2698,7 +2691,7 @@ fn get_child_refs_including_copy_and_members<'a>(
         component.children
         .iter()
         .flat_map(|c| match c {
-            ComponentChild::String(s) => vec![(ObjectRef::String(s.clone()), component)],
+            ComponentChild::String(s) => vec![(ObjectRef::String(s.clone()), component_ref.clone())],
             ComponentChild::Component(c) => {
                 let node = ComponentInstance(c.clone(), use_map.clone());
                 match &core.component_nodes.get(c).unwrap().definition.replacement_components {
@@ -2706,19 +2699,19 @@ fn get_child_refs_including_copy_and_members<'a>(
                         ComponentGroup::Batch(node)
                         .group_members(core).iter().map(|comp_ref|
                             (ObjectRef::Component(comp_ref.clone()),
-                            component)
-                        ).collect::<Vec<(ObjectRef, &ComponentNode)>>()
+                            component_ref.clone())
+                        ).collect::<Vec<(ObjectRef, ComponentRef)>>()
                     },
                     Some(ReplacementComponents::Collection(_)) => {
                         ComponentGroup::Collection(node)
                         .group_members(core).iter().map(|comp_ref|
                             (ObjectRef::Component(comp_ref.clone()),
-                            component)
-                        ).collect::<Vec<(ObjectRef, &ComponentNode)>>()
+                            component_ref.clone())
+                        ).collect::<Vec<(ObjectRef, ComponentRef)>>()
                     },
                     _ => {
                         vec![(ObjectRef::Component(ComponentRef::Component(Node(node))),
-                        component)]
+                        component_ref.clone())]
                     }
                 }
             }
@@ -2815,16 +2808,16 @@ impl ComponentState {
         -> Option<State<StateVarValue>> {
         component_states.get(&self.0.0).unwrap()
             .get(&self.1.name())
-            .expect(&format!("Component {} has no state var '{:?}'", self.0.0, self.1))
+            .expect(&format!("Component {} has no state var '{}'", self.0.0, self.1))
             .get_single_state(&self.1.index(), &self.0.1)
-            .expect(&format!("Error accessing state of {:?}", self))
+            .expect(&format!("Error accessing state of {}", self))
     }
 
     fn set_value(&self, component_states: &HashMap<ComponentName, HashMap<StateVarName, StateForStateVar>>, new_value: StateVarValue)
         -> Option<StateVarValue> {
             component_states.get(&self.0.0).unwrap()
                 .get(&self.1.name())
-                .expect(&format!("Component {} has no state var '{:?}'", self.0.0, self.1))
+                .expect(&format!("Component {} has no state var '{}'", self.0.0, self.1))
                 .set_single_state(&self.1.index(), new_value, &self.0.1)
                 .unwrap()
     }
@@ -2897,6 +2890,56 @@ impl ComponentRefRelative {
     }
 }
 
+impl Display for ComponentInstance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.1.is_empty() {
+            write!(f, "{}", self.0)
+        } else {
+            write!(f, "{}(instance {:?})", self.0, self.1)
+        }
+    }
+}
+
+impl Display for ComponentState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.0, self.1)
+    }
+}
+
+impl Display for ComponentStateSliceAllInstances {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}:{}", self.0, self.1)
+    }
+}
+
+impl Display for ComponentGenerated {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComponentGenerated::Node(n) => write!(f, "{}", n),
+            ComponentGenerated::BatchMember(n, None, i) => write!(f, "{}[{}]", n, i),
+            ComponentGenerated::BatchMember(n, Some(c), i) => write!(f, "{}:{}[{}]", c, n, i)
+        }
+    }
+}
+
+impl Display for ComponentRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComponentRef::Component(n) => write!(f, "{}", n),
+            ComponentRef::CollectionMember(n, i) => write!(f, "{}[{}]", n, i)
+        }
+    }
+}
+
+impl Display for RenderedComponent {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if let Some(child_of_copy) = &self.child_of_copy {
+            write!(f, "{}(child of {})", self.component_ref, child_of_copy)
+        } else {
+            write!(f, "{}", self.component_ref)
+        }
+    }
+}
 
 
 // ==== Groups (Batches/Collections) ====
@@ -3182,7 +3225,6 @@ fn instance_relative_to_node(
     component_relative: &ComponentRelative,
 ) -> Instance {
     let (instance_group, sources) = instance_group_relative_to_node(component_nodes, component_instance, component_relative);
-    log_debug!("assume equal {:?} {:?}", instance_group, sources);
     assert_eq!(instance_group.len(), sources.len());
     instance_group
 }
