@@ -525,7 +525,7 @@ fn create_all_dependencies_for_component(
         // We can't immediately figure out the index, so we need to use the state
         // var propIndex
         dependencies.extend(
-            create_prop_index_dependencies(component, expression, variable_components, essential_data)
+            create_prop_index_dependencies(component, components, expression, variable_components, essential_data)
         );
     }
 
@@ -730,6 +730,7 @@ fn create_dependencies_from_instruction(
     
                 create_essential_data_for(
                     &source_comp_name,
+                    components,
                     essential_origin.clone(),
                     initial_data,
                     essential_data
@@ -919,6 +920,7 @@ fn create_dependencies_from_instruction(
                 if should_initialize_essential_data {
                     create_essential_data_for(
                         &component.name,
+                        components,
                         essential_origin.clone(),
                         InitialEssentialData::Single(
                             StateVarValue::MathExpr(expression),
@@ -958,6 +960,7 @@ fn create_dependencies_from_instruction(
                             let value = StateVarValue::String(string_value.clone());
                             create_essential_data_for(
                                 actual_parent,
+                                components,
                                 essential_origin.clone(),
                                 InitialEssentialData::Single(value),
                                 essential_data
@@ -1017,6 +1020,7 @@ fn create_dependencies_from_instruction(
                 if should_initialize_essential_data {
                     create_essential_data_for(
                         &component.name,
+                        components,
                         EssentialDataOrigin::StateVar(state_var_name),
                         InitialEssentialData::Single(default_value),
                         essential_data
@@ -1055,7 +1059,7 @@ fn create_dependencies_from_instruction(
                         }
                         match first_obj {
                             ObjectName::String(str_val) => {
-                                package_string_as_state_var_value(str_val.to_string(), sv_def).unwrap()
+                                package_string_as_state_var_value(str_val.to_string(), &sv_def).unwrap()
                             }
                             _ => default_value.clone()
                         }
@@ -1096,6 +1100,7 @@ fn create_dependencies_from_instruction(
 
                 create_essential_data_for(
                     &component.name,
+                    components,
                     essential_origin.clone(),
                     initial_essential_data,
                     essential_data,
@@ -1171,6 +1176,7 @@ fn create_dependencies_from_instruction(
 
 fn create_prop_index_dependencies(
     component: &ComponentNode,
+    components: &HashMap<ComponentName, ComponentNode>,
     math_expression: &MathExpression,
     variable_components: &Vec<ComponentName>,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
@@ -1200,6 +1206,7 @@ fn create_prop_index_dependencies(
 
     create_essential_data_for(
         &component.name,
+        components,
         origin.clone(),
         InitialEssentialData::Single(StateVarValue::MathExpr(math_expression.clone())),
         essential_data,
@@ -1281,6 +1288,7 @@ enum InitialEssentialData {
 /// Add essential data for a state variable or string child
 fn create_essential_data_for(
     component_name: &ComponentName,
+    components: &HashMap<ComponentName, ComponentNode>,
     origin: EssentialDataOrigin,
     initial_values: InitialEssentialData,
     essential_data: &mut HashMap<ComponentName, HashMap<EssentialDataOrigin, EssentialStateVar>>,
@@ -1289,12 +1297,13 @@ fn create_essential_data_for(
     if let Some(comp_essential_data) = essential_data.get(component_name) {
         assert!( !comp_essential_data.contains_key(&origin) );
     }
+    let inside_maps = sources_that_instance_component(components, component_name).len();
 
     let essential_state = match initial_values {
         InitialEssentialData::Single(value) =>
-            EssentialStateVar::new_single_basic_with_state_var_value(value),
+            EssentialStateVar::new_single_basic_with_state_var_value(value, inside_maps),
         InitialEssentialData::Array(values, default_fill_value) =>
-            EssentialStateVar::new_array_with_state_var_values(values, default_fill_value),
+            EssentialStateVar::new_array_with_state_var_values(values, default_fill_value, inside_maps),
     };
 
     log_debug!("New essential data for {} {:?} {:?}", component_name, origin, essential_state);
@@ -1329,14 +1338,17 @@ fn create_stale_component_states(component_nodes: &HashMap<ComponentName, Compon
 
     let mut component_states = HashMap::new();
     for (component_name, component_node) in component_nodes.iter() {
+        let inside_maps = sources_that_instance_component(component_nodes, component_name).len();
+
         let mut state_for_this_component: HashMap<StateVarName, StateForStateVar> =
             component_node.definition.state_var_definitions.iter()
-            .map(|(&sv_name, sv_variant)| (sv_name, StateForStateVar::new(&sv_variant)))
+            .map(|(&sv_name, sv_variant)| (sv_name, StateForStateVar::new(&sv_variant, inside_maps)))
             .collect();
 
         if let Some(CopySource::DynamicElement(_, _, _, _)) = component_node.copy_source {
             state_for_this_component.insert(PROP_INDEX_SV, StateForStateVar::new(
-                &StateVarVariant::Number(StateVarDefinition::default())
+                &StateVarVariant::Number(StateVarDefinition::default()),
+                inside_maps,
             ));
         }
         component_states.insert(
@@ -1358,6 +1370,7 @@ fn resolve_state_variable(
     state_var_ref: &StateRef,
 ) -> Option<StateVarValue> {
 
+    log_debug!("maybe resolving {}:{} ({:?})", component, state_var_ref, map);
     if let StateRef::ArrayElement(sv_name, _) = state_var_ref {
         resolve_state_variable(core, component, map, &StateRef::SizeOf(sv_name));
     }
@@ -2207,12 +2220,16 @@ fn generate_render_tree_internal(
         };
 
         // hardcoded exceptions
-        if sv_renderer_name == "numbericalPoints"  // TODO: is this a typo?
+        if sv_renderer_name == "numericalPoints"
         && matches!(sv_slice, StateVarSlice::Array(_)) {
             let array_2d =
                 [[values.get(0).unwrap(), values.get(1).unwrap()],
                 [values.get(2).unwrap(), values.get(3).unwrap()]];
             json_value = json!(array_2d)
+        }
+        if sv_renderer_name == "selectedStyle" {
+            let string: String = values.get(0).unwrap().clone().unwrap().try_into().unwrap();
+            json_value = serde_json::from_str(&string).unwrap();
         }
 
         state_values.insert(sv_renderer_name, json_value);
@@ -2876,7 +2893,7 @@ fn sources_that_instance_component(
         let parent = component_nodes.get(&parent).unwrap();
         let child = component_nodes.get(&child).unwrap();
         if parent.definition.component_type == "map"
-        && child.definition.component_type == "template" {
+        && child.definition.component_type != "sources" {
             let sources_child = get_children_of_type(component_nodes, parent, "sources", false)
                 .next().unwrap().clone();
             sources.push(sources_child.clone());
@@ -2885,12 +2902,12 @@ fn sources_that_instance_component(
     sources
 }
 
-/// Vector of parents beginning with the immediate parent, ending with the root
+/// Vector of parents beginning with the component, then its parent, and so on until the root
 fn parent_chain(
     component_nodes: &HashMap<ComponentName, ComponentNode>,
     component: &ComponentName,
 ) -> impl DoubleEndedIterator<Item=ComponentName> + Clone {
-    let mut parent_chain = vec![];
+    let mut parent_chain = vec![component.clone()];
     let mut loop_component = component_nodes.get(component).unwrap();
     while loop_component.parent.is_some() {
         let loop_parent = loop_component.parent.clone().unwrap();

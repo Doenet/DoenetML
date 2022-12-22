@@ -49,31 +49,24 @@ impl From<&StateVar> for serde_json::Value {
 pub struct ForEachMap<T: Clone + std::fmt::Debug> {
     values: RefCell<ArrayD<T>>,
     default: T,
-}
-
-// with index starting at 1
-fn map_instance_to_index(map: &Instance) -> Vec<usize> {
-    if map.len() == 0 {
-        vec![1]
-    } else {
-        map.clone()
-    }
+    dimensions: usize,
 }
 
 impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
-    fn new(value: T) -> Self {
+    fn new(value: T, dimensions: usize) -> Self {
+        let shape_vec = vec![0; dimensions];
         ForEachMap {
-            values: RefCell::new(ArrayD::<T>::from_elem(vec![0], value.clone())),
+            values: RefCell::new(ArrayD::<T>::from_elem(shape_vec, value.clone())),
             default: value,
+            dimensions,
         }
     }
 
     fn resize(&self, dim: &Vec<usize>) {
         let array = self.values.borrow().clone();
-        let mut shape = array.shape().to_vec();
-        let add_dimensions: usize = max(dim.len(), shape.len()) - shape.len();
+        let shape = array.shape().to_vec();
 
-        let required_shape: Vec<usize> = (0..(shape.len() + add_dimensions))
+        let required_shape: Vec<usize> = (0..shape.len())
             .map(|i| {
                 match (shape.get(i),dim.get(i)) {
                     (Some(&x), Some(&y)) => max(x,y),
@@ -85,9 +78,8 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
 
         // log_debug!("should have size: {:?} vs shape {:?}", required_shape, current_shape);
 
-        if add_dimensions > 0 || shape != required_shape {
+        if shape != required_shape {
 
-            shape.extend(repeat(1).take(add_dimensions));
             let array_reshape = array.to_shape(shape.clone()).unwrap();
             let slice_info_elements: Vec<SliceInfoElem> = shape.iter()
                 .map(|&i| SliceInfoElem::Slice {
@@ -107,7 +99,9 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
     }
 
     fn instance_mut(& self, map: &Instance) -> RefMut<'_, T> {
-        let dim = map_instance_to_index(map);
+        assert_eq!(map.len(), self.dimensions);
+
+        let dim = map.clone();
         self.resize(&dim);
 
         let index: Vec<usize> = dim.iter().map(|&i| i-1)
@@ -117,7 +111,9 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
     }
 
     pub fn instance(&self, map: &Instance) -> Ref<'_, T> {
-        let dim = map_instance_to_index(map);
+        assert_eq!(map.len(), self.dimensions);
+
+        let dim = map.clone();
         self.resize(&dim);
 
         let index: Vec<usize> = dim.iter().map(|&i| i-1)
@@ -134,7 +130,7 @@ impl<T: Clone + std::fmt::Debug> ForEachMap<T> {
         let array = self.values.borrow().clone();
         let shape = array.shape();
 
-        if shape == [1] {
+        if shape.is_empty() {
             // assert!(instance_group.is_empty(), "instance: {:?}", instance_group);
             return vec![vec![]];
         }
@@ -180,45 +176,41 @@ pub enum StateForStateVar {
 impl StateForStateVar {
 
     /// Stale StateVar of the given type
-    pub fn new(value_type: &StateVarVariant) -> Self {
+    pub fn new(value_type: &StateVarVariant, inside_maps: usize) -> Self {
 
         match value_type {
             StateVarVariant::Boolean(_) => Self::Single(ForEachMap::new(StateVar {
                 value_type_protector: RefCell::new(ValueTypeProtector::Boolean(Stale))
-            })),
+            }, inside_maps)),
             StateVarVariant::Integer(_) => Self::Single(ForEachMap::new(StateVar {
                 value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale))
-            })),
+            }, inside_maps)),
             StateVarVariant::Number(_) =>  Self::Single(ForEachMap::new(StateVar {
                 value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale))
-            })),
+            }, inside_maps)),
             StateVarVariant::String(_) =>  Self::Single(ForEachMap::new(StateVar {
                 value_type_protector: RefCell::new(ValueTypeProtector::String(Stale))
-            })),
+            }, inside_maps)),
             StateVarVariant::NumberArray(_) => {
                 Self::Array {
                     size: ForEachMap::new(StateVar {
                         value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale)),
-                    }),
+                    }, inside_maps),
                     stale_resize: StateVar {
                         value_type_protector: RefCell::new(ValueTypeProtector::Number(Stale)),
                     },
-                    elements: ForEachMap::new(
-                        vec![]
-                    )
+                    elements: ForEachMap::new(vec![], inside_maps)
                 }
             }
             StateVarVariant::StringArray(_) => {
                 Self::Array {
                     size: ForEachMap::new(StateVar {
                         value_type_protector: RefCell::new(ValueTypeProtector::Integer(Stale)),
-                    }),
+                    }, inside_maps),
                     stale_resize: StateVar {
                         value_type_protector: RefCell::new(ValueTypeProtector::String(Stale)),
                     },
-                    elements: ForEachMap::new(
-                        vec![]
-                    )
+                    elements: ForEachMap::new(vec![], inside_maps)
                 }
             }
         }
@@ -227,7 +219,7 @@ impl StateForStateVar {
 
     pub fn get_single_state(&self, sv_ref: &StateIndex, map: &Instance) -> Result<Option<State<StateVarValue>>, String> {
 
-        // log_debug!("Getting single state of {:?}, current value is {:?}", sv_ref, self);
+        // log_debug!("Getting single state of {:?} map {:?}. Current value: {:?}", sv_ref, map, self);
 
         match self {
             Self::Single(sv) => {
@@ -257,6 +249,7 @@ impl StateForStateVar {
 
 
     pub fn set_single_state(&self, state_var_ref: &StateIndex, val: StateVarValue, map: &Instance) -> Result<Option<StateVarValue>, String> {
+        // log_debug!("set single state of {:?} map {:?}. Current value: {:?}", state_var_ref, map, self);
         match self {
             Self::Single(sv) => sv.instance(map).set_value(val).map(|new_val| Some(new_val)),
 
@@ -472,18 +465,18 @@ impl EssentialStateVar {
     //     }
     // }
 
-    pub fn new_array_with_state_var_values(values: Vec<StateVarValue>, default_fill_value: StateVarValue) -> Self {
+    pub fn new_array_with_state_var_values(values: Vec<StateVarValue>, default_fill_value: StateVarValue, inside_maps: usize) -> Self {
         // log_debug!("Initializing essential state with elements {:?} and default value {:?}", values, default_fill_value);
 
         Self::Array {
-            size: ForEachMap::new(values.len()),
-            elements: ForEachMap::new(values),
+            size: ForEachMap::new(values.len(), inside_maps),
+            elements: ForEachMap::new(values, inside_maps),
             extension: default_fill_value,
         }
     }
 
-    pub fn new_single_basic_with_state_var_value(value: StateVarValue) -> Self {
-        Self::Single(ForEachMap::new(value))
+    pub fn new_single_basic_with_state_var_value(value: StateVarValue, inside_maps: usize) -> Self {
+        Self::Single(ForEachMap::new(value, inside_maps))
     }
 
     pub fn set_value(&self, state_index: StateIndex, new_value: StateVarValue, map: &Instance) -> Result<(), String> {
