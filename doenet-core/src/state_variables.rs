@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use std::fmt::Display;
 
+use crate::ComponentRefRelative;
 use crate::component::AttributeName;
-use crate::component::ComponentRef;
 use crate::component::ComponentProfile;
 use crate::component::ComponentType;
 
@@ -136,6 +136,14 @@ impl StateVarSlice {
             Self::Array(_) => Self::Array(name),
         }
     }
+    pub fn specify_index(self, index: StateIndex) -> Option<StateRef> {
+        match (self, index) {
+            (StateVarSlice::Single(n), StateIndex::Basic) => Some(n),
+            (_, StateIndex::Basic) |
+            (StateVarSlice::Single(_), _) => None,
+            (StateVarSlice::Array(n), i) => Some(StateRef::from_name_and_index(n,i)),
+        }
+    }
 }
 
 impl StateRef {
@@ -154,6 +162,7 @@ impl StateRef {
             Self::SizeOf(_) => StateIndex::SizeOf,
         }
     }
+
     pub fn from_name_and_index(name: StateVarName, index: StateIndex) -> StateRef {
         match index {
             StateIndex::Element(i) => StateRef::ArrayElement(name, i),
@@ -277,11 +286,11 @@ pub enum DependencyInstruction {
         parse_into_expression: bool,
     },
     StateVar {
-        component_ref: Option<ComponentRef>,
+        component_ref: Option<ComponentRefRelative>,
         state_var: StateVarSlice,
     },
     CorrespondingElements {
-        component_ref: Option<ComponentRef>,
+        component_ref: Option<ComponentRefRelative>,
         array_state_var_name: StateVarName,
     },
     Parent {

@@ -734,19 +734,19 @@ pub fn DETERMINE_STRING(dependency_values: Vec<DependencyValue>)
 
 
 pub fn members_from_children_of_type(
-    component_nodes: &HashMap<crate::component::ComponentName, crate::component::ComponentNode>,
-    node: &crate::component::ComponentNode,
+    component_nodes: &HashMap<crate::ComponentName, crate::ComponentNode>,
+    node: &crate::ComponentNode,
     component_type: crate::ComponentType,
 ) -> Vec<CollectionMembersOrCollection> {
     get_children_of_type(component_nodes, node, component_type, true).map(|c|
         match component_nodes.get(c).unwrap().definition.replacement_components {
             Some(ReplacementComponents::Batch(_)) =>
-                CollectionMembersOrCollection::Members(CollectionMembers::Batch(c.clone())),
+                CollectionMembersOrCollection::Members(CollectionMembers::Batch(crate::ComponentRelative::same_instance(c.clone()))),
             Some(ReplacementComponents::Collection(_)) =>
-                CollectionMembersOrCollection::Collection(c.clone()),
+                CollectionMembersOrCollection::Collection(crate::ComponentRelative::same_instance(c.clone())),
             Some(ReplacementComponents::Children) =>
                 todo!(),
-            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(c.clone())),
+            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(crate::ComponentRelative::same_instance(c.clone()))),
         }
     ).collect()
 }
@@ -757,7 +757,7 @@ pub fn get_children_of_type<'a>(
     component_type: crate::ComponentType,
     include_groups: bool,
 ) -> impl Iterator<Item=&'a crate::ComponentName> {
-    crate::get_children_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
+    crate::get_child_nodes_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
         match n {
             crate::component::ObjectName::String(_) => None,
             crate::component::ObjectName::Component(c) => {

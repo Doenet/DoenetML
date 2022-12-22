@@ -20,15 +20,15 @@ fn member_definition(
     COMPONENT_DEFINITIONS.get_key_value_ignore_case("template").unwrap().1
 }
 
-fn group_dependencies(
+fn collection_members(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<CollectionMembersOrCollection> {
     let templates = get_children_of_type(component_nodes, node, "template", false).next();
     let sources = get_children_of_type(component_nodes, node, "sources", false).next();
     vec![CollectionMembersOrCollection::Members(CollectionMembers::InstanceBySources {
-        template: templates.unwrap().clone(),
-        sources: sources.unwrap().clone(),
+        template: ComponentRelative::same_instance(templates.unwrap().clone()),
+        sources: ComponentRelative::same_instance(sources.unwrap().clone()),
     })]
 }
 
@@ -45,7 +45,7 @@ lazy_static! {
 
         replacement_components: Some(ReplacementComponents::Collection(CollectionDefinition {
             member_definition,
-            group_dependencies,
+            collection_members,
         })),
 
         valid_children_profiles: ValidChildTypes::AllComponents,

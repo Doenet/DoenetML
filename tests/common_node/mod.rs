@@ -6,7 +6,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 
 use doenet_core::{EssentialDataOrigin, Action, Instance};
-use doenet_core::component::ComponentName;
+use doenet_core::ComponentName;
 use doenet_core::parse_json::{DoenetMLError, DoenetMLWarning};
 use doenet_core::state::EssentialStateVar;
 use doenet_core::state_variables::StateRef;

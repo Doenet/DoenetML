@@ -1,8 +1,8 @@
 use serde::{Serialize, Deserialize};
 
 use crate::utils::{log_json, log_debug, log};
-use crate::{Action, RelativeInstance};
-use crate::component::{ComponentName, COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
+use crate::{Action, RelativeInstance, ComponentName};
+use crate::component::{COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
 KeyValueIgnoreCase, AttributeName, ObjectName, ReplacementComponents};
 
 use crate::ComponentChild;
@@ -280,7 +280,7 @@ pub fn create_components_tree_from_json(program: &str)
         } else {
             // log!("{} is <source> without componentType attr, child is {}", comp_name, comp_children[0].name);
             let first_comp_child_def = comp_children[0].definition;
-            let child_type = first_comp_child_def.definition_of_members(&HashMap::new()).component_type;
+            let child_type = first_comp_child_def.definition_as_replacement_children(&HashMap::new()).unwrap().component_type;
             sources_component_types.insert(comp_name.clone(), child_type);
         }
     }

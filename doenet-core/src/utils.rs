@@ -1,12 +1,13 @@
 use std::collections::HashMap;
 
+use crate::ComponentName;
+use crate::ComponentNode;
 use crate::DependencyKey;
 use crate::StateForStateVar;
 use crate::Dependency;
 use crate::component::*;
 use crate::state::State;
 use crate::state_variables::StateVarName;
-use crate::state_variables::StateVarSlice;
 use crate::state::EssentialStateVar;
 use crate::EssentialDataOrigin;
 
@@ -104,12 +105,12 @@ pub fn package_subtree_as_json(
     my_json_props.insert("type".to_owned(), Value::String(component.definition.component_type.to_string()));
     my_json_props.insert("copySource".to_owned(),
         match &component.copy_source {
-            Some(CopySource::Component(copy_source_name, instance)) => Value::String(format!("{:?}{:?}", copy_source_name, instance)),
-            Some(CopySource::StateVar(source_name, instance, source_state_var)) => Value::String(
-                format!("{:?} {:?} {:?}", source_name, instance, source_state_var)
+            Some(CopySource::Component(component_relative)) => Value::String(format!("{:?}", component_relative)),
+            Some(CopySource::StateVar(component_slice_relative)) => Value::String(
+                format!("{:?}", component_slice_relative)
             ),
-            Some(CopySource::DynamicElement(source_name, source_sv, math_expression, ..)) => Value::String(
-                format!("{} {:?} {:?}", source_name, source_sv, math_expression)
+            Some(CopySource::DynamicElement(source_name, math_expression, ..)) => Value::String(
+                format!("{:?} {:?}", source_name, math_expression)
             ),
             Some(CopySource::MapSources(sources_name)) => Value::String(sources_name.to_string()),
             None => Value::Null,
@@ -191,16 +192,9 @@ pub fn json_dependencies(
 
 
     for (key, deps) in dependencies {
-        let display_key = match key {
-            DependencyKey::StateVar(_, StateVarSlice::Single(single), instruct) => {
-                format!("{} \"{}\"", single, instruct)
-            },
-            DependencyKey::StateVar(_, StateVarSlice::Array(array), instruct) => {
-                format!("{} \"{}\"", array, instruct)
-            }
-        };
+        let display_key = format!("{:?}", key);
 
-        display_deps.entry(key.component_name().to_string()).or_insert(HashMap::new())
+        display_deps.entry(key.0.0.clone()).or_insert(HashMap::new())
             .entry(display_key).or_insert(deps.clone());
 
     }
