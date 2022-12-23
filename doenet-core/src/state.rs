@@ -1,7 +1,7 @@
 use enum_as_inner::EnumAsInner;
 use serde::{ser::SerializeStruct, Serialize};
 
-use crate::{state_variables::*, utils::log_debug, Instance, InstanceGroup};
+use crate::{state_variables::*, Instance, InstanceGroup};
 use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max, iter::repeat};
 use self::State::*;
 use ndarray::{ArrayD, SliceInfoElem};
