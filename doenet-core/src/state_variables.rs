@@ -974,7 +974,7 @@ impl Display for StateRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Basic(sv_name) => write!(f, "{}", sv_name),
-            Self::SizeOf(sv_name) => write!(f, "{}.size", sv_name),
+            Self::SizeOf(sv_name) => write!(f, "{}(size)", sv_name),
             Self::ArrayElement(sv_name, i) => write!(f, "{}[{}]", sv_name, i),
         }
     }
@@ -982,8 +982,8 @@ impl Display for StateRef {
 impl Display for StateVarSlice {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Single(sv_ref) => write!(f, "Single::{}", sv_ref),
-            Self::Array(sv_name) => write!(f, "Array::{}", sv_name),
+            Self::Single(sv_ref) => write!(f, "{}", sv_ref),
+            Self::Array(sv_name) => write!(f, "{}(array)", sv_name),
         }
     }
 }

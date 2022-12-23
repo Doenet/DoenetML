@@ -81,7 +81,7 @@ pub type ComponentName = String;
 /// An instance is specified to refer to an instance of the component,
 /// in case it is inside <map> components.
 /// Component states are associated with this type.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ComponentInstance (ComponentName, Instance);
 
 /// Components inside a <map> are assigned this vector.
@@ -150,7 +150,7 @@ struct ComponentStateSliceAllInstances (ComponentName, StateVarSlice);
 /// in the map, then each instance of A depends on a different instance of B.
 /// But their relative instance is the same, and that is what to store
 /// in the dependency graph.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, enum_as_inner::EnumAsInner)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Dependency {
     Essential {
         component: ComponentRelative,
@@ -2941,6 +2941,32 @@ impl Display for RenderedComponent {
     }
 }
 
+impl Display for ComponentGroup {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ComponentGroup::Single(n) => write!(f, "{}", n),
+            ComponentGroup::Batch(n) => write!(f, "{}(Batch)", n),
+            ComponentGroup::Collection(n) => write!(f, "{}(Collection)", n),
+        }
+    }
+}
+
+impl Serialize for ComponentInstance {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: serde::Serializer {
+        serializer.serialize_str(&format!("{}", self))
+    }
+}
+
+impl Serialize for GroupStateSliceRelative {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        serializer.serialize_str(&format!("{}:{}", self.0, self.1))
+    }
+}
+
 
 // ==== Groups (Batches/Collections) ====
 
@@ -3123,7 +3149,7 @@ pub struct ComponentRefStateArrayRelative (ComponentRefRelative, StateVarName);
 
 /// A StateVarSlice of every member of a group, and the instance
 /// of the group is calculated relatively.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct GroupStateSliceRelative (ComponentGroupRelative, StateVarSlice);
 
 impl ComponentRelative {

@@ -1,4 +1,5 @@
 use enum_as_inner::EnumAsInner;
+use serde::{ser::SerializeStruct, Serialize};
 
 use crate::{state_variables::*, utils::log_debug, Instance, InstanceGroup};
 use std::{cell::{RefCell, RefMut, Ref}, fmt, cmp::max, iter::repeat};
@@ -45,7 +46,7 @@ impl From<&StateVar> for serde_json::Value {
 }
 
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(Debug, Clone)]
 pub struct ForEachMap<T: Clone + std::fmt::Debug> {
     values: RefCell<ArrayD<T>>,
     default: T,
@@ -436,7 +437,7 @@ impl StateVar {
 /// A special endpoint on the dependency graph which is associated with a
 /// particular state var. Actions often update these.
 /// An EssentialStateVar cannot be stale so it does not need a ValueTypeProtector
-#[derive(Clone, serde::Serialize)]
+#[derive(Clone)]
 pub enum EssentialStateVar {
     Single(ForEachMap<StateVarValue>),
     Array {
@@ -567,6 +568,44 @@ impl fmt::Debug for EssentialStateVar {
             Self::Single(v) => format!("{:?}", v.all_instances()),
             Self::Array { elements, ..} => format!("{:?}", elements.all_instances()),
         })
+    }
+}
+
+impl Serialize for EssentialStateVar {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        match self {
+            Self::Single(single) => {
+                serializer.serialize_newtype_struct("single", single)
+
+            }
+            Self::Array{size, elements, extension} => {
+                let mut state = serializer.serialize_struct("array", 3)?;
+                state.serialize_field("elements", elements)?;
+                state.serialize_field("size", size)?;
+                state.serialize_field("default", extension)?;
+                state.end()
+            }
+        }
+    }
+}
+impl<T> Serialize for ForEachMap<T>
+where T: std::fmt::Debug + Serialize + Clone
+{
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where S: serde::Serializer
+    {
+        if self.dimensions == 0 {
+            let value = self.instance(&Instance::default()).clone();
+            serializer.serialize_newtype_struct("value", &value)
+        } else {
+            let mut state = serializer.serialize_struct("instances", 3)?;
+            state.serialize_field("data", &self.values)?;
+            state.serialize_field("maps", &self.dimensions)?;
+            state.serialize_field("default", &self.default)?;
+            state.end()
+        }
     }
 }
 

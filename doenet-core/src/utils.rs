@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use crate::ComponentName;
 use crate::ComponentNode;
+use crate::ComponentStateSliceAllInstances;
 use crate::DependencyKey;
 use crate::StateForStateVar;
 use crate::Dependency;
@@ -190,11 +191,11 @@ pub fn json_dependencies(
 
     let mut display_deps = HashMap::new();
 
-
     for (key, deps) in dependencies {
-        let display_key = format!("{:?}", key);
+        let DependencyKey(ComponentStateSliceAllInstances(component, state_var), instruction_name) = key;
+        let display_key = format!("{} \"{}\"", state_var, instruction_name);
 
-        display_deps.entry(key.0.0.clone()).or_insert(HashMap::new())
+        display_deps.entry(component.clone()).or_insert(HashMap::new())
             .entry(display_key).or_insert(deps.clone());
 
     }
@@ -207,9 +208,10 @@ pub fn json_essential_data(
 ) -> HashMap<String, HashMap<String, EssentialStateVar>> {
     essential_data.iter().map(|(comp, h)|
         (comp.clone(),
-             h.iter().map(|(origin, var)|
-                (format!("From {:?}", origin), var.clone())
-            ).collect::<HashMap<String, EssentialStateVar>>()
+             h.iter().map(|(origin, var)| {
+                let origin_name = format!("From {:?}", origin);
+                (origin_name, var.clone())
+             }).collect::<HashMap<String, EssentialStateVar>>()
         )
     ).collect()
 }
