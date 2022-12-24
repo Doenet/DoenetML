@@ -739,14 +739,14 @@ pub fn members_from_children_of_type(
     component_type: crate::ComponentType,
 ) -> Vec<CollectionMembersOrCollection> {
     get_children_of_type(component_nodes, node, component_type, true).map(|c|
-        match component_nodes.get(c).unwrap().definition.replacement_components {
+        match c.definition.replacement_components {
             Some(ReplacementComponents::Batch(_)) =>
-                CollectionMembersOrCollection::Members(CollectionMembers::Batch(crate::ComponentRelative::same_instance(c.clone()))),
+                CollectionMembersOrCollection::Members(CollectionMembers::Batch(crate::ComponentRelative::same_instance(c.name.clone()))),
             Some(ReplacementComponents::Collection(_)) =>
-                CollectionMembersOrCollection::Collection(crate::ComponentRelative::same_instance(c.clone())),
+                CollectionMembersOrCollection::Collection(crate::ComponentRelative::same_instance(c.name.clone())),
             Some(ReplacementComponents::Children) =>
                 todo!(),
-            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(crate::ComponentRelative::same_instance(c.clone()))),
+            None => CollectionMembersOrCollection::Members(CollectionMembers::Component(crate::ComponentRelative::same_instance(c.name.clone()))),
         }
     ).collect()
 }
@@ -756,7 +756,7 @@ pub fn get_children_of_type<'a>(
     node: &'a crate::ComponentNode,
     component_type: crate::ComponentType,
     include_groups: bool,
-) -> impl Iterator<Item=&'a crate::ComponentName> {
+) -> impl Iterator<Item=&'a crate::ComponentNode> {
     crate::get_child_nodes_including_copy(component_nodes, node).into_iter().filter_map(move |(n, _)|
         match n {
             crate::component::ObjectName::String(_) => None,
@@ -769,7 +769,8 @@ pub fn get_children_of_type<'a>(
                         def.member_definition.component_type,
                     _ => comp.definition.component_type,
                 };
-                (child_type.to_lowercase() == component_type.to_lowercase()).then(|| c)
+                (child_type.to_lowercase() == component_type.to_lowercase())
+                    .then(|| component_nodes.get(c).unwrap())
             },
         }
     )

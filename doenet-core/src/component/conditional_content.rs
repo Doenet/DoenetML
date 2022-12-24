@@ -26,7 +26,7 @@ fn collection_members(
 ) -> Vec<CollectionMembersOrCollection> {
     get_children_of_type(component_nodes, node, "case", false).map(|c|
         CollectionMembersOrCollection::Members(CollectionMembers::ComponentOnCondition {
-            component: ComponentRelative::same_instance(c.clone()),
+            component: ComponentRelative::same_instance(c.name.clone()),
             condition: StateRef::Basic("condition")
         })
     ).collect()

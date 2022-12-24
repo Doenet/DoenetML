@@ -24,11 +24,11 @@ fn collection_members(
     node: &ComponentNode,
     component_nodes: &HashMap<ComponentName, ComponentNode>,
 ) -> Vec<CollectionMembersOrCollection> {
-    let templates = get_children_of_type(component_nodes, node, "template", false).next();
-    let sources = get_children_of_type(component_nodes, node, "sources", false).next();
+    let templates = get_children_of_type(component_nodes, node, "template", false).next().unwrap();
+    let sources = get_children_of_type(component_nodes, node, "sources", false).next().unwrap();
     vec![CollectionMembersOrCollection::Members(CollectionMembers::InstanceBySources {
-        template: ComponentRelative::same_instance(templates.unwrap().clone()),
-        sources: ComponentRelative::same_instance(sources.unwrap().clone()),
+        template: ComponentRelative::same_instance(templates.name.clone()),
+        sources: ComponentRelative::same_instance(sources.name.clone()),
     })]
 }
 

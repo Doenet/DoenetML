@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use crate::ComponentName;
 use crate::ComponentNode;
-use crate::ComponentStateSliceAllInstances;
 use crate::DependencyKey;
 use crate::StateForStateVar;
 use crate::Dependency;
@@ -185,15 +184,15 @@ pub fn package_subtree_as_json(
 // }
 
 
-pub fn json_dependencies(
-    dependencies: &HashMap<DependencyKey, Vec<Dependency>>,
-) -> HashMap<String, HashMap<String,Vec<Dependency>>> {
+pub fn json_dependencies<'a>(
+    dependencies: &'a HashMap<DependencyKey, Vec<Dependency>>,
+) -> HashMap<String, HashMap<String, &'a Vec<Dependency>>> {
 
     let mut display_deps = HashMap::new();
 
     for (key, deps) in dependencies {
-        let DependencyKey(ComponentStateSliceAllInstances(component, state_var), instruction_name) = key;
-        let display_key = format!("{} \"{}\"", state_var, instruction_name);
+        let DependencyKey(component, state_var, instruction_name) = key;
+        let display_key = format!("{}:{} \"{}\"", component, state_var, instruction_name);
 
         display_deps.entry(component.clone()).or_insert(HashMap::new())
             .entry(display_key).or_insert(deps.clone());
