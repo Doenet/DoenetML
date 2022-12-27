@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::utils::{log_json, log_debug, log};
-use crate::{Action, RelativeInstance, ComponentName};
+use crate::{Action, ComponentName};
 use crate::component::{COMPONENT_DEFINITIONS, ComponentType, ComponentDefinition,
 KeyValueIgnoreCase, AttributeName, ObjectName, ReplacementComponents};
 
@@ -199,7 +199,7 @@ pub struct MLComponent {
     pub children: Vec<ComponentChild>,
 
     pub copy_source: Option<String>,
-    pub copy_instance: Option<RelativeInstance>,
+    pub copy_instance: Option<Vec<usize>>,
     pub copy_collection: Option<String>,
     pub copy_prop: Option<String>,
     pub static_attributes: HashMap<AttributeName, String>,
@@ -469,17 +469,17 @@ fn add_component_from_json(
     return Ok(Some(name));
 }
 
-// returns (copy_source, copy_instance)
-// Ex: [1 2]my_name -> (my_name, [1, 2])
-fn convert_copy_source_name(name: Option<String>) -> (Option<String>, Option<RelativeInstance>) {
+/// Temporary implementation to test if maps are working.
+/// returns (copy source, copy instance)
+/// Ex: [1 2]myname -> (myname, [1, 2])
+/// TODO: The final implementation should incorporate namespaces, not just map instancing.
+fn convert_copy_source_name(name: Option<String>) -> (Option<String>, Option<Vec<usize>>) {
     if let Some(name) = name {
         if name.chars().next() == Some('(') {
             let mut chars = name.chars();
             chars.next();
             let instance_indices: String = (&mut chars).take_while(|&c| c != ')').collect();
-            // log_debug!("instancing {:?}", instance_indices);
             let relative_instance = instance_indices.split(' ').map(|d| d.parse().unwrap()).collect();
-            // chars.next();
             let component_name = chars.collect();
             (Some(component_name), Some(relative_instance))
         } else {
