@@ -96,7 +96,7 @@ pub type BatchName = &'static str;
 pub enum CopySource {
     Component(ComponentRefRelative),
     StateVar(ComponentRefStateRelative),
-    MapSources(ComponentName),
+    MapSources(ComponentRelative),
     DynamicElement(ComponentRefStateArrayRelative, MathExpression, Vec<ComponentName>),
 }
 

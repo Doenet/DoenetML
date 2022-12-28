@@ -82,7 +82,10 @@ pub type ComponentName = String;
 /// in case it is inside <map> components.
 /// Component states are associated with this type.
 #[derive(Debug, Clone)]
-pub struct ComponentInstance<'a> (&'a ComponentNode, Instance);
+pub struct ComponentInstance<'a> {
+    node: &'a ComponentNode,
+    instance: Instance,
+}
 
 /// Components inside a <map> are assigned this vector.
 /// The length is the number of maps a component is inside,
@@ -163,7 +166,7 @@ pub enum Dependency {
         index_state_var: StateRef, // an integer from the component that carries this dependency
     },
     MapSources {
-        map_sources: ComponentName, // sources component, a collection
+        map_sources: ComponentRelative, // sources component, a collection
         state_var_slice: StateVarSlice,
     },
     /// Necessary when a child dependency instruction encounters a groups
@@ -298,7 +301,17 @@ fn copy_source_for_ml_component(
     let source_comp_name = source_comp_name.unwrap();
 
     if let Some(map_source) = map_sources_alias.get(source_comp_name) {
-        return Ok(Some(CopySource::MapSources(map_source.to_string())));
+        let source_comp = ml_components
+            .get(map_source)
+            .ok_or(DoenetMLError::ComponentDoesNotExist {
+                comp_name: source_comp_name.clone()
+            })?;
+        let relative_instance = calculate_relative_instance(ml_components, ml_component, source_comp, vec![]);
+        let copy_map_source = ComponentRelative {
+            name: map_source.clone(),
+            relative_instance,
+        };
+        return Ok(Some(CopySource::MapSources(copy_map_source)));
     }
 
     let source_comp = ml_components
@@ -306,11 +319,14 @@ fn copy_source_for_ml_component(
         .ok_or(DoenetMLError::ComponentDoesNotExist {
             comp_name: source_comp_name.clone()
         })?;
-
-    let component_index = &ml_component.component_index;
     let copy_instance = ml_component.copy_instance.clone().unwrap_or_default();
     let relative_instance = calculate_relative_instance(ml_components, ml_component, source_comp, copy_instance);
-    let copy_node_relative = ComponentRelative(source_comp_name.clone(), relative_instance);
+    let copy_node_relative = ComponentRelative {
+        name: source_comp_name.clone(),
+        relative_instance,
+    };
+
+    let component_index = &ml_component.component_index;
     let (copy_ref_relative, source_def) = match (component_index.len(), component_index.first()) {
         (1, Some(ObjectName::String(first_string))) => {
 
@@ -406,7 +422,7 @@ fn copy_source_for_ml_component(
 
             if !source_sv_def.is_array() {
                 return Err(DoenetMLError::CannotCopyIndexForStateVar {
-                    source_comp_name: copy_ref_relative.of_node_relative().0.clone(),
+                    source_comp_name: copy_ref_relative.of_node_relative().name.clone(),
                     source_sv_name,
                 });
             }
@@ -421,7 +437,7 @@ fn copy_source_for_ml_component(
             // no index
             if source_sv_def.is_array() {
                 return Err(DoenetMLError::CannotCopyArrayStateVar {
-                    source_comp_name: copy_ref_relative.of_node_relative().0.clone(),
+                    source_comp_name: copy_ref_relative.of_node_relative().name.clone(),
                     source_sv_name,
                 });
             }
@@ -467,7 +483,7 @@ fn fill_collection_members(component_nodes: &HashMap<ComponentName, ComponentNod
         collection_members: &HashMap<ComponentName, Vec<CollectionMembersOrCollection>>,
         component: &ComponentRelative,
     ) -> Vec<CollectionMembers> {
-        collection_members.get(&component.0).unwrap()
+        collection_members.get(&component.name).unwrap()
             .iter()
             .flat_map(|c| {
                 match c {
@@ -514,7 +530,7 @@ fn create_dependencies_and_essential_data(
             Some(my_own_comp_attrs)
         } else if let Some(CopySource::Component(..)) = comp.copy_source {
             let component_relative = get_recursive_copy_source_component_when_exists(&component_nodes, comp);
-            component_attributes.get(&component_relative.0)
+            component_attributes.get(&component_relative.name)
         } else {
             None
         };
@@ -751,7 +767,7 @@ fn create_dependencies_from_instruction(
             let source_relative = get_recursive_copy_source_component_when_exists(components, component);
             let essential_origin = EssentialDataOrigin::StateVar(state_var_slice.name());
 
-            if should_initialize_essential_data && source_relative.0 == component.name {
+            if should_initialize_essential_data && source_relative.name == component.name {
                 // Components only create their own essential data
 
                 let sv_def = component.definition.state_var_definitions.get(state_var_slice.name()).unwrap();
@@ -776,7 +792,7 @@ fn create_dependencies_from_instruction(
                 };
     
                 create_essential_data_for(
-                    &source_relative.0,
+                    &source_relative.name,
                     components,
                     essential_origin.clone(),
                     initial_data,
@@ -835,7 +851,10 @@ fn create_dependencies_from_instruction(
                 } else {
                     RelativeInstance::default()
                 };
-            let parent_ref = ComponentRefRelative::Component(NodeRel(ComponentRelative(parent_name, relative_instance)));
+            let parent_ref = ComponentRefRelative::Component(NodeRel(ComponentRelative {
+                name: parent_name,
+                relative_instance,
+            }));
 
             let states = GroupStateSliceRelative(
                 ComponentGroupRelative::Single(parent_ref),
@@ -856,7 +875,7 @@ fn create_dependencies_from_instruction(
             
             let source_relative =
                 get_recursive_copy_source_component_when_exists(components, component);
-            let source = components.get(&source_relative.0).unwrap();
+            let source = components.get(&source_relative.name).unwrap();
             
             if let Some(CopySource::StateVar(ref component_state_relative)) = source.copy_source {
                 // copying a state var means we don't inheret its children,
@@ -904,8 +923,11 @@ fn create_dependencies_from_instruction(
                     (ComponentChild::Component(child_name), _) => {
 
                         let child_node = components.get(child_name).unwrap();
-                        let instance = source_relative.1.clone();
-                        let child_node_relative = ComponentRelative(child_name.clone(), instance);
+                        let instance = source_relative.relative_instance.clone();
+                        let child_node_relative = ComponentRelative {
+                            name: child_name.clone(),
+                            relative_instance: instance,
+                        };
 
                         let child_group = match child_node.definition.replacement_components {
                             Some(ReplacementComponents::Batch(_)) =>
@@ -1323,10 +1345,13 @@ fn get_recursive_copy_source_component_when_exists(
         Some(CopySource::Component(ComponentRefRelative::Component(NodeRel(source)))) => {
             let component_relative = get_recursive_copy_source_component_when_exists(
                 components,
-                &components.get(&source.0).unwrap(),
+                &components.get(&source.name).unwrap(),
             );
-            let instance = source.1.clone().add_relative(component_relative.1);
-            ComponentRelative(component_relative.0, instance)
+            let instance = source.relative_instance.clone().add_relative(component_relative.relative_instance);
+            ComponentRelative {
+                name: component_relative.name,
+                relative_instance: instance,
+            }
         },
         _ => ComponentRelative::same_instance(component.name.clone()),
     }
@@ -1458,7 +1483,7 @@ impl<'a> ComponentGeneratedStateSlice<'a> {
         match self.0 {
             Node(n) => Some(ComponentStateSlice(n, self.1)),
             BatchMember(n, c, i) =>
-                batch_state_var(&ComponentStateSliceAllInstances(n.0, self.1), c, i)
+                batch_state_var(&ComponentStateSliceAllInstances(n.node, self.1), c, i)
                     .map(|sv| ComponentStateSlice(n, sv)),
         }
     }
@@ -1559,7 +1584,6 @@ fn resolve_state_variable(
 
                 Dependency::MapSources { map_sources, state_var_slice } => {
 
-                    let map_sources = core.component_nodes.get(map_sources).unwrap();
                     let component_ref = map_sources_dependency_member(core, &component_state.0, map_sources);
 
                     // log_debug!("map source ref: {}", component_ref);
@@ -1593,10 +1617,10 @@ fn resolve_state_variable(
                     };
 
                     let value = core.essential_data
-                        .get(&dependency_map.0.name).unwrap()
+                        .get(&dependency_map.node.name).unwrap()
                         .get(&origin).unwrap()
                         .clone()
-                        .get_value(index, &dependency_map.1);
+                        .get_value(index, &dependency_map.instance);
     
                     if let Some(value) = value {
                         values_for_this_dep.push(DependencyValue {
@@ -1639,7 +1663,7 @@ fn resolve_state_variable(
 
     log_debug!("Dependency values for {}: {:#?}", component_state, dependency_values);
 
-    let node = &component_state.0.0;
+    let node = &component_state.0.node;
 
     let update_instruction = generate_update_instruction_for_state_ref(
         component_state,
@@ -1714,7 +1738,7 @@ fn generate_update_instruction_for_state_ref(
         })
     } else {
 
-        let state_var_def = &component_state.0.0.definition
+        let state_var_def = &component_state.0.node.definition
             .state_var_definitions.get(component_state.1.name()).unwrap();
 
         match component_state.1 {
@@ -1739,7 +1763,7 @@ fn get_dependency_values_for_state_var_slice(
 ) -> Vec<DependencyValue> {
 
     let source = DependencySource::StateVar {
-        component_type: &sv_slice.0.0.definition.component_type,
+        component_type: &sv_slice.0.node.definition.component_type,
         state_var_name: sv_slice.1.name()
     };
 
@@ -1806,7 +1830,7 @@ fn get_source_for_dependency(
     match dependency {
         Dependency::Essential { component, origin } => {
 
-                let data = essential_data.get(&component.0).unwrap().get(origin).unwrap();
+                let data = essential_data.get(&component.name).unwrap().get(origin).unwrap();
 
                 DependencySource::Essential {
                     value_type: data.get_type_as_str()
@@ -1841,7 +1865,7 @@ fn get_source_for_dependency(
             }
         },
         Dependency::MapSources { map_sources, state_var_slice } => {
-            let component_type = ComponentGroupRelative::Collection(ComponentRelative::same_instance(map_sources.clone()))
+            let component_type = ComponentGroupRelative::Collection(map_sources.clone())
                 .definition_member(component_nodes)
                 .component_type;
 
@@ -1870,7 +1894,7 @@ fn get_dependency_sources_for_state_var(
     component_state: &ComponentState,
 ) -> HashMap<InstructionName, Vec<(DependencySource, Option<StateVarValue>)>> {
 
-    let map = &component_state.0.1;
+    let map = &component_state.0.instance;
     let state_ref = &component_state.1;
     
     let my_dependencies = dependencies_of_state_var(&core.dependencies, &component_state.clone().ignore_instance());
@@ -1882,7 +1906,7 @@ fn get_dependency_sources_for_state_var(
 
             let essential_value = if let Dependency::Essential { origin, .. } = dependency {
                 let data = core.essential_data
-                    .get(&component_state.0.0.name).unwrap()
+                    .get(&component_state.0.node.name).unwrap()
                     .get(origin).unwrap();
                 let value = data.get_value(state_ref.index(), map).unwrap();
                 Some(value)
@@ -1954,13 +1978,15 @@ fn state_vars_for_undetermined_children<'a>(
 fn map_sources_dependency_member<'a>(
     core: &'a DoenetCore,
     component_instance: &ComponentInstance,
-    sources: &'a ComponentNode,
+    sources: &'a ComponentRelative,
 ) -> ComponentRef<'a> {
-    let sources_for_component = sources_that_instance_component(&core.component_nodes, &component_instance.0);
-    let sources_index_in_map = sources_for_component.iter().position(|n| std::ptr::eq(*n, sources)).unwrap();
-    let index = *component_instance.1.get(sources_index_in_map).unwrap();
-    let sources_map = component_instance.1[0..sources_index_in_map].to_vec();
-    ComponentRef::CollectionMember(ComponentInstance(sources, sources_map), index)
+    let sources_instance = sources.relative_instance.relative_to(&component_instance.instance);
+    let collection_index = *component_instance.instance.get(sources_instance.len()).unwrap();
+    let component_instance = ComponentInstance {
+        node: &core.component_nodes.get(&sources.name).unwrap(),
+        instance: sources_instance,
+    };
+    ComponentRef::CollectionMember(component_instance, collection_index)
 }
 
 
@@ -1973,7 +1999,7 @@ fn mark_stale_state_var_and_dependencies(
     states: &ComponentInstancesStateSlice,
 ) {
     let state = states.ignore_instance().get_state_var_state_var(core);
-    let instances = state.instances_where_slice_is_resolved(&states.1, &states.0.1);
+    let instances = state.instances_where_slice_is_resolved(&states.1, &states.0.instance_group);
 
     // log_debug!("Check stale {:?}", states);
     for instance in instances {
@@ -1982,7 +2008,7 @@ fn mark_stale_state_var_and_dependencies(
         let component_state_slice = states.specify_instance(instance);
         log_debug!("Marking stale {}", component_state_slice);
 
-        state.mark_stale_slice(&component_state_slice.1, &component_state_slice.0.1);
+        state.mark_stale_slice(&component_state_slice.1, &component_state_slice.0.instance);
 
         let depending_on_me = get_state_variables_depending_on_me(core, &component_state_slice);
 
@@ -1996,8 +2022,8 @@ fn mark_stale_essential_datum_dependencies(
     core: &DoenetCore,
     essential_state: &EssentialState,
 ) {
-    let component = ComponentRelative::same_instance(essential_state.0.0.name.clone());
-    let map = &essential_state.0.1;
+    let component = ComponentRelative::same_instance(essential_state.0.node.name.clone());
+    let map = &essential_state.0.instance;
     let origin = essential_state.1.clone();
     let state_index = &essential_state.2;
 
@@ -2015,7 +2041,10 @@ fn mark_stale_essential_datum_dependencies(
                 StateVarSlice::Array(_) => key.1.clone().specify_index(state_index.clone())
             };
             state_ref_option.map (|state_var_ref|
-                ComponentInstancesStateSlice(ComponentInstances(core.component_nodes.get(&key.0).unwrap(), map.clone()), StateVarSlice::Single(state_var_ref))
+                ComponentInstancesStateSlice(ComponentInstances {
+                    node: core.component_nodes.get(&key.0).unwrap(),
+                    instance_group: map.clone(),
+                }, StateVarSlice::Single(state_var_ref))
             )
         } else {
             None
@@ -2033,7 +2062,7 @@ fn get_state_variables_depending_on_me<'a>(
     component_states: &'a ComponentStateSlice,
 ) -> Vec<ComponentInstancesStateSlice<'a>> {
 
-    let sv_component = &component_states.0.0;
+    let sv_component = &component_states.0.node;
     let sv_slice = &component_states.1;
 
     let mut depending_on_me = vec![];
@@ -2046,12 +2075,12 @@ fn get_state_variables_depending_on_me<'a>(
                 Dependency::StateVar { states } => {
                     let slice_depends = match &states.0 {
                         ComponentGroupRelative::Single(ComponentRefRelative::Component(BatchMemberRel(n, b, i))) => {
-                            let component_state_slice = ComponentStateSliceAllInstances(core.component_nodes.get(&n.0).unwrap(), states.1.clone());
+                            let component_state_slice = ComponentStateSliceAllInstances(core.component_nodes.get(&n.name).unwrap(), states.1.clone());
                             let state_var_slice = batch_state_var(&component_state_slice, *b, *i).unwrap();
                             slice_depends_on_slice(&state_var_slice, sv_slice)
                         },
                         ComponentGroupRelative::Batch(n) => {
-                            let component_state_slice = ComponentStateSliceAllInstances(core.component_nodes.get(&n.0).unwrap(), states.1.clone());
+                            let component_state_slice = ComponentStateSliceAllInstances(core.component_nodes.get(&n.name).unwrap(), states.1.clone());
                             // TODO: check if any index depends on sv_slice, not just some range
                             (1..4).filter_map(|i| batch_state_var(&component_state_slice, None, i))
                                 .any(|s| slice_depends_on_slice(&s, sv_slice))
@@ -2062,7 +2091,7 @@ fn get_state_variables_depending_on_me<'a>(
                     if group_includes_component(&core.collection_members, &states.0, sv_component)
                     && slice_depends {
                         add_dependent = Some((
-                            states.0.of_node_relative().1.clone(),
+                            states.0.of_node_relative().relative_instance.clone(),
                             &dependency_key.1,
                         ));
                     }
@@ -2071,10 +2100,10 @@ fn get_state_variables_depending_on_me<'a>(
                 Dependency::UndeterminedChildren { component, desired_profiles } => {
                     let sv_component_def = sv_component.definition;
                     let depends =
-                        if collection_may_contain(&core.collection_members.get(&component.0).unwrap(), sv_component) {
+                        if collection_may_contain(&core.collection_members.get(&component.name).unwrap(), sv_component) {
                             true
                         } else if sv_component_def.component_profile_match(desired_profiles).is_some() {
-                            let component_node = core.component_nodes.get(&component.0).unwrap();
+                            let component_node = core.component_nodes.get(&component.name).unwrap();
                             let mut chain = parent_chain(&core.component_nodes, component_node);
                             let parent = chain.find(|p| {
                                 !matches!(p.definition.replacement_components, Some(ReplacementComponents::Children))
@@ -2085,14 +2114,14 @@ fn get_state_variables_depending_on_me<'a>(
                         };
                     if depends {
                         add_dependent = Some((
-                            component.1.clone(),
+                            component.relative_instance.clone(),
                             &dependency_key.1,
                         ));
                     }
                 },
 
                 Dependency::MapSources { map_sources, state_var_slice } => {
-                    if sv_component.name == *map_sources
+                    if sv_component.name == *map_sources.name
                     && slice_depends_on_slice(state_var_slice, sv_slice) {
                         add_dependent = Some((
                             RelativeInstance::default(),
@@ -2105,7 +2134,7 @@ fn get_state_variables_depending_on_me<'a>(
                     if group_includes_component(&core.collection_members, &ComponentGroupRelative::Single(array_state.0.clone()), sv_component)
                     && array_state.1 == sv_slice.name() {
                         add_dependent = Some((
-                            array_state.0.of_node_relative().1.clone(),
+                            array_state.0.of_node_relative().relative_instance.clone(),
                             &sv_slice,
                         ));
                     }
@@ -2126,7 +2155,7 @@ fn get_state_variables_depending_on_me<'a>(
 
                     if this_array_refers_to_me || i_am_prop_index_of_this_dependency {
                         add_dependent = Some((
-                            array_state.0.of_node_relative().1.clone(),
+                            array_state.0.of_node_relative().relative_instance.clone(),
                             &dependency_key.1,
                         ));
                     }
@@ -2138,8 +2167,11 @@ fn get_state_variables_depending_on_me<'a>(
             }
             if let Some((relative_instance, slice)) = add_dependent {
                 let dependency_component = &core.component_nodes.get(&dependency_key.0).unwrap();
-                let instance_group = relative_instance.relative_to_inverse(&component_states.0.1);
-                let instance_group = ComponentInstances(dependency_component, instance_group);
+                let instance_group = relative_instance.relative_to_inverse(&component_states.0.instance);
+                let instance_group = ComponentInstances {
+                    node: dependency_component,
+                    instance_group,
+                };
                 depending_on_me.push(ComponentInstancesStateSlice(instance_group, slice.clone()));
             }
         }
@@ -2154,10 +2186,10 @@ fn get_state_variables_depending_on_me<'a>(
             ComponentGroupRelative::Batch(n) |
             ComponentGroupRelative::Single(ComponentRefRelative::Component(NodeRel(n))) |
             ComponentGroupRelative::Single(ComponentRefRelative::Component(BatchMemberRel(n, _, _))) =>
-                n.0 == component.name,
+                n.name == component.name,
             ComponentGroupRelative::Single(ComponentRefRelative::CollectionMember(n, _)) |
             ComponentGroupRelative::Collection(n) =>
-                collection_may_contain(collections.get(&n.0).unwrap(), component)
+                collection_may_contain(collections.get(&n.name).unwrap(), component)
         }
     }
 
@@ -2184,7 +2216,10 @@ fn get_state_variables_depending_on_me<'a>(
 pub type InstanceGroup = Vec<usize>;
 
 #[derive(Debug, Clone)]
-struct ComponentInstances<'a> (&'a ComponentNode, InstanceGroup);
+struct ComponentInstances<'a> {
+    node: &'a ComponentNode,
+    instance_group: InstanceGroup
+}
 
 /// Used to mark stale in bulk
 #[derive(Debug, Clone)]
@@ -2192,10 +2227,14 @@ struct ComponentInstancesStateSlice<'a> (ComponentInstances<'a>, StateVarSlice);
 
 impl ComponentInstancesStateSlice<'_> {
     fn specify_instance(&self, instance: Instance) -> ComponentStateSlice {
-        ComponentStateSlice(ComponentInstance(self.0.0, instance), self.1.clone())
+        let component_instance = ComponentInstance {
+            node: self.0.node,
+            instance,
+        };
+        ComponentStateSlice(component_instance, self.1.clone())
     }
     fn ignore_instance(&self) -> ComponentStateSliceAllInstances {
-        ComponentStateSliceAllInstances(self.0.0, self.1.clone())
+        ComponentStateSliceAllInstances(self.0.node, self.1.clone())
     }
 }
 
@@ -2226,8 +2265,12 @@ pub fn update_renderers(core: &DoenetCore) -> String {
 fn generate_render_tree(core: &DoenetCore) -> serde_json::Value {
 
     let root_node = core.component_nodes.get(&core.root_component_name).unwrap();
+    let component_instance = ComponentInstance {
+        node: root_node,
+        instance: Instance::default(),
+    };
     let root_comp_rendered = RenderedComponent {
-        component_ref: ComponentRef::Component(Node(ComponentInstance(root_node, Instance::default()))),
+        component_ref: ComponentRef::Component(Node(component_instance)),
         child_of_copy: None
     };
     let mut json_obj: Vec<serde_json::Value> = vec![];
@@ -2324,7 +2367,7 @@ fn generate_render_tree_internal(
                     let action_component_name = child_component.component_ref.clone()
                         .convert_to_node_instance(core)
                         .map(|x| x.alias())
-                        .unwrap_or(child_component.component_ref.of_node().0.name.clone());
+                        .unwrap_or(child_component.component_ref.of_node().node.name.clone());
 
                     let child_actions: Map<String, Value> =
                         (child_definition.action_names)()
@@ -2365,8 +2408,8 @@ fn name_rendered_component(component: &RenderedComponent, component_type: &str) 
     let name_to_render = match &component.component_ref {
         ComponentRef::CollectionMember(n, i) |
         ComponentRef::Component(BatchMember(n, _, i)) =>
-            format!("__{}_from_({}[{}])", component_type, n.0.name, *i),
-        ComponentRef::Component(Node(n)) => n.0.name.clone(),
+            format!("__{}_from_({}[{}])", component_type, n.node.name, *i),
+        ComponentRef::Component(Node(n)) => n.node.name.clone(),
     };
     let name_to_render = match &component.child_of_copy {
         Some(copy_name) => format!("__cp:{}({})", name_to_render, copy_name),
@@ -2416,7 +2459,7 @@ pub fn handle_action(core: &DoenetCore, action: Action) {
 
     let component_instance  = ComponentInstance::dealias(&core.component_nodes, &action.component_name);
 
-    let component = component_instance.0;
+    let component = component_instance.node;
 
     let state_var_resolver = | state_var_ref: &StateRef | {
         let component_state = ComponentState(component_instance.clone(), state_var_ref.clone());
@@ -2448,7 +2491,7 @@ fn convert_dependency_values_to_update_request<'a>(
     requests: HashMap<InstructionName, Result<Vec<DependencyValue>, String>>,
 ) -> Vec<UpdateRequest<'a>> {
 
-    let component = component_state.0.0;
+    let component = component_state.0.node;
     let state_var = &component_state.1;
 
     let my_dependencies = dependencies_of_state_var(&core.dependencies, &component_state.clone().ignore_instance());
@@ -2497,11 +2540,11 @@ fn convert_dependency_values_to_update_request<'a>(
                     // TODO: recieving multiple dependencies because of multiple instances
                     let component_ref = match &states.0 {
                         ComponentGroupRelative::Batch(n) => {
-                            group_index = increment(group_index, &n.0);
+                            group_index = increment(group_index, &n.name);
                             ComponentRefRelative::Component(BatchMemberRel(n.clone(), None, group_index.1 - 1))
                         },
                         ComponentGroupRelative::Collection(n) => {
-                            group_index = increment(group_index, &n.0);
+                            group_index = increment(group_index, &n.name);
                             ComponentRefRelative::CollectionMember(n.clone(), group_index.1 - 1)
                         },
                         ComponentGroupRelative::Single(comp_ref) => {
@@ -2509,7 +2552,7 @@ fn convert_dependency_values_to_update_request<'a>(
                         },
                     };
 
-                    let component_ref = component_ref.replace_instance(&core.component_nodes, component_state.0.1.clone());
+                    let component_ref = component_ref.replace_instance(&core.component_nodes, component_state.0.instance.clone());
                     let comp_ref_slice = ComponentRefStateSlice(component_ref, states.1.clone());
                     if let Some(sv_slice) = comp_ref_slice.convert_to_state_slice(core) {
                         if let StateVarSlice::Single(state_var_ref) = sv_slice.1 {
@@ -2539,13 +2582,13 @@ fn process_update_request(
         UpdateRequest::SetEssentialValue(essential_state, requested_value) => {
 
             let essential_var = core.essential_data
-                .get(&essential_state.0.0.name).unwrap()
+                .get(&essential_state.0.node.name).unwrap()
                 .get(&essential_state.1).unwrap();
 
             essential_var.set_value(
                     essential_state.2.clone(),
                     requested_value.clone(),
-                    &essential_state.0.1,
+                    &essential_state.0.instance,
                 ).expect(
                     &format!("Failed to set essential value for {:?}", essential_state)
                 );
@@ -2579,7 +2622,7 @@ fn request_dependencies_to_update_value_including_shadow<'a>(
     new_value: StateVarValue,
 ) -> Vec<UpdateRequest<'a>> {
 
-    let component = component_state.0.0;
+    let component = component_state.0.node;
     let state_var_ref = &component_state.1;
 
     if let Some(component_ref_slice_relative) = state_var_is_shadowing(&component_state.clone().ignore_instance()) {
@@ -2674,28 +2717,30 @@ fn get_child_refs_including_copy_and_members<'a>(
         return vec![]
     }
     let component_instance = component.unwrap();
-    let component = component_instance.0;
+    let component = component_instance.node;
     match &component.copy_source {
         Some(CopySource::Component(component_ref_relative)) => {
             let copy_ref_instance = component_ref_relative.instance_relative_to(&core.component_nodes, &component_instance);
             children_vec = get_child_refs_including_copy_and_members(core, copy_ref_instance);
         },
         Some(CopySource::MapSources(map_sources)) => {
-            let map_sources = core.component_nodes.get(map_sources).unwrap();
             let source_instance = map_sources_dependency_member(core, &component_instance, map_sources);
             children_vec = get_child_refs_including_copy_and_members(core, source_instance);
         },
         _ => {},
     }
 
-    let use_map = &component_instance.1;
+    let use_map = &component_instance.instance;
     children_vec.extend(
         component.children
         .iter()
         .flat_map(|c| match c {
             ComponentChild::String(s) => vec![(ObjectRef::String(s.clone()), component_ref.clone())],
             ComponentChild::Component(c) => {
-                let node = ComponentInstance(core.component_nodes.get(c).unwrap(), use_map.clone());
+                let node = ComponentInstance {
+                    node: core.component_nodes.get(c).unwrap(),
+                    instance: use_map.clone(),
+                };
                 match &core.component_nodes.get(c).unwrap().definition.replacement_components {
                     Some(ReplacementComponents::Batch(_)) => {
                         ComponentGroup::Batch(node)
@@ -2731,7 +2776,7 @@ fn get_child_nodes_including_copy<'a>(
     let mut children_vec: Vec<(&ComponentChild, &ComponentNode)> = Vec::new();
     if let Some(CopySource::Component(ComponentRefRelative::Component(NodeRel(ref source)), ..)) = component.copy_source {
 
-        let source_comp = components.get(&source.0).unwrap();
+        let source_comp = components.get(&source.name).unwrap();
 
         children_vec = get_child_nodes_including_copy(components, source_comp);
     }
@@ -2767,7 +2812,7 @@ impl<'a> ComponentGenerated<'a> {
 
 impl<'a> ComponentRef<'a> {
     fn component_definition(&self) -> &'static ComponentDefinition {
-        let node = self.of_node().0;
+        let node = self.of_node().node;
         match self {
             ComponentRef::CollectionMember(_, _) =>
                 (node.definition.unwrap_collection_def().member_definition)(&node.static_attributes),
@@ -2788,14 +2833,14 @@ impl<'a> ComponentRef<'a> {
         match self {
             ComponentRef::Component(Node(n)) |
             ComponentRef::Component(BatchMember(n, _, _)) |
-            ComponentRef::CollectionMember(n, _) => n.1.clone()
+            ComponentRef::CollectionMember(n, _) => n.instance.clone()
         }
     }
 }
 
 impl<'a> ComponentState<'a> {
     fn ignore_instance(self) -> ComponentStateAllInstances<'a> {
-        ComponentStateAllInstances(self.0.0, self.1)
+        ComponentStateAllInstances(self.0.node, self.1)
     }
     fn replace_index(&self, index: StateIndex) -> Self {
         ComponentState(self.0.clone(), StateRef::from_name_and_index(self.1.name(), index))
@@ -2806,19 +2851,19 @@ impl<'a> ComponentState<'a> {
 
     fn get_value(&self, component_states: &HashMap<ComponentName, HashMap<StateVarName, StateForStateVar>>)
         -> Option<State<StateVarValue>> {
-        component_states.get(&self.0.0.name).unwrap()
+        component_states.get(&self.0.node.name).unwrap()
             .get(&self.1.name())
-            .expect(&format!("Component {} has no state var '{}'", self.0.0.name, self.1))
-            .get_single_state(&self.1.index(), &self.0.1)
+            .expect(&format!("Component {} has no state var '{}'", self.0.node.name, self.1))
+            .get_single_state(&self.1.index(), &self.0.instance)
             .expect(&format!("Error accessing state of {}", self))
     }
 
     fn set_value(&self, component_states: &HashMap<ComponentName, HashMap<StateVarName, StateForStateVar>>, new_value: StateVarValue)
         -> Option<StateVarValue> {
-            component_states.get(&self.0.0.name).unwrap()
+            component_states.get(&self.0.node.name).unwrap()
                 .get(&self.1.name())
-                .expect(&format!("Component {} has no state var '{}'", self.0.0.name, self.1))
-                .set_single_state(&self.1.index(), new_value, &self.0.1)
+                .expect(&format!("Component {} has no state var '{}'", self.0.node.name, self.1))
+                .set_single_state(&self.1.index(), new_value, &self.0.instance)
                 .unwrap()
     }
 }
@@ -2837,10 +2882,10 @@ impl<'a> ComponentStateSlice<'a> {
 impl ComponentInstance<'_> {
     /// Used for action names
     fn alias(&self) -> String {
-        if self.1.is_empty() {
-            self.0.name.clone()
+        if self.instance.is_empty() {
+            self.node.name.clone()
         } else {
-            format!("{:?}{}", self.1, self.0.name)
+            format!("{:?}{}", self.instance, self.node.name)
         }
     }
 
@@ -2848,7 +2893,10 @@ impl ComponentInstance<'_> {
         let chars: Vec<char> = alias.chars().collect();
 
         if chars[0] != '[' {
-            return ComponentInstance(component_nodes.get(alias).unwrap(), Instance::default());
+            return ComponentInstance {
+                node: component_nodes.get(alias).unwrap(),
+                instance: Instance::default(),
+            };
         }
 
         let end_bracket = chars.iter().position(|&c| c == ']').unwrap();
@@ -2859,13 +2907,16 @@ impl ComponentInstance<'_> {
             .split(", ")
             .map(|s| s.parse().unwrap() )
             .collect();
-        ComponentInstance(component_nodes.get(&name).unwrap(), instance)
+        ComponentInstance {
+            node: component_nodes.get(&name).unwrap(),
+            instance,
+        }
     }
 }
 
 impl PartialEq for ComponentInstance<'_> {
     fn eq(&self, other: &Self) -> bool {
-        std::ptr::eq(self.0, other.0) && self.1 == other.1
+        std::ptr::eq(self.node, other.node) && self.instance == other.instance
     }
 }
 impl Eq for ComponentInstance<'_> {}
@@ -2878,7 +2929,10 @@ impl ComponentRefStateArrayRelative {
 
 impl ComponentRelative {
     fn same_instance(name: ComponentName) -> Self {
-        ComponentRelative(name, RelativeInstance::default())
+        ComponentRelative {
+            name,
+            relative_instance: RelativeInstance::default(),
+        }
     }
 }
 
@@ -2896,19 +2950,19 @@ impl ComponentRefRelative {
 
 impl Display for ComponentInstance<'_> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.1.is_empty() {
-            write!(f, "{}", self.0.name)
+        if self.instance.is_empty() {
+            write!(f, "{}", self.node.name)
         } else {
-            write!(f, "{}(instance {:?})", self.0.name, self.1)
+            write!(f, "{}(instance {:?})", self.node.name, self.instance)
         }
     }
 }
 impl Display for ComponentRelative {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        if self.1.is_empty() {
-            write!(f, "{}", self.0)
+        if self.relative_instance.is_empty() {
+            write!(f, "{}", self.name)
         } else {
-            write!(f, "{}(instance {:?})", self.0, self.1)
+            write!(f, "{}(instance {:?})", self.name, self.relative_instance)
         }
     }
 }
@@ -3046,7 +3100,7 @@ fn resolve_batch_size(
     batch_name: Option<BatchName>,
 ) -> usize {
 
-    let batch_def = component_instance.0.definition.unwrap_batch_def(&batch_name);
+    let batch_def = component_instance.node.definition.unwrap_batch_def(&batch_name);
     let size_variable = ComponentState(component_instance.clone(), batch_def.size.clone());
     resolve_state_variable(core, &size_variable)
         .unwrap().try_into().unwrap()
@@ -3057,7 +3111,7 @@ fn collection_size(
     component_instance: &ComponentInstance,
 ) -> usize {
 
-    core.collection_members.get(&component_instance.0.name).unwrap()
+    core.collection_members.get(&component_instance.node.name).unwrap()
         .iter()
         .map(|c| collection_members_size(core, &component_instance, c))
         .sum()
@@ -3093,7 +3147,7 @@ fn collection_may_contain(members: &Vec<CollectionMembers>, component: &Componen
             CollectionMembers::InstanceBySources { template: n, ..} |
             CollectionMembers::Batch(n) |
             CollectionMembers::Component(n) =>
-                n.0 == component.name,
+                n.name == component.name,
         }
     )
 }
@@ -3116,7 +3170,7 @@ fn nth_collection_member<'a>(
 ) -> Option<ComponentGenerated<'a>> {
 
     let mut index = index;
-    for c in core.collection_members.get(&component_instance.0.name).unwrap() {
+    for c in core.collection_members.get(&component_instance.node.name).unwrap() {
         let (size, group_member);
         match c {
             CollectionMembers::Component(component) => {
@@ -3139,9 +3193,12 @@ fn nth_collection_member<'a>(
             },
             CollectionMembers::InstanceBySources { sources, template } => {
                 size = collection_size(core, &sources.instance_relative_to(&core.component_nodes, component_instance));
-                let mut map_new = template.1.relative_to(&component_instance.1);
+                let mut map_new = template.relative_instance.relative_to(&component_instance.instance);
                 map_new.push(index);
-                group_member = Node(ComponentInstance(core.component_nodes.get(&template.0).unwrap(), map_new))
+                group_member = Node(ComponentInstance {
+                    node: core.component_nodes.get(&template.name).unwrap(),
+                    instance: map_new,
+                });
             },
         }
         if index > size {
@@ -3171,7 +3228,10 @@ fn definition_as_replacement_child(component: &ComponentNode) -> &'static Compon
 struct RelativeInstance (usize, Vec<usize>);
 
 #[derive(PartialEq, Serialize, Eq, Clone, Debug)]
-pub struct ComponentRelative (ComponentName, RelativeInstance);
+pub struct ComponentRelative {
+    name: ComponentName,
+    relative_instance: RelativeInstance,
+}
 
 #[derive(PartialEq, Serialize, Eq, Clone, Debug)]
 pub enum ComponentGeneratedRelative {
@@ -3212,8 +3272,11 @@ impl ComponentRelative {
         component_nodes: &'a HashMap<ComponentName, ComponentNode>,
         component_instance: &ComponentInstance,
     ) -> ComponentInstance<'a> {
-        let instance = self.1.relative_to(&component_instance.1);
-        ComponentInstance(component_nodes.get(&self.0).unwrap(), instance)
+        let instance = self.relative_instance.relative_to(&component_instance.instance);
+        ComponentInstance {
+            node: component_nodes.get(&self.name).unwrap(),
+            instance,
+        }
     }
 }
 
@@ -3224,25 +3287,34 @@ impl ComponentRefRelative {
         component_instance: &ComponentInstance,
     ) -> ComponentRef<'a> {
         let component_relative = self.of_node_relative();
-        let instance = component_relative.1.relative_to(&component_instance.1);
+        let instance = component_relative.relative_instance.relative_to(&component_instance.instance);
         self.replace_instance(component_nodes, instance)
     }
 
     fn replace_instance<'a>(&self, component_nodes: &'a HashMap<ComponentName, ComponentNode>, instance: Instance) -> ComponentRef<'a> {
         match self {
             Self::Component(NodeRel(n)) =>
-                ComponentRef::Component(Node(ComponentInstance(component_nodes.get(&n.0).unwrap(), instance))),
+                ComponentRef::Component(Node(ComponentInstance {
+                    node: component_nodes.get(&n.name).unwrap(),
+                    instance,
+                })),
             Self::Component(BatchMemberRel(n, c, i)) =>
-                ComponentRef::Component(BatchMember(ComponentInstance(component_nodes.get(&n.0).unwrap(), instance), *c, *i)),
+                ComponentRef::Component(BatchMember(ComponentInstance {
+                    node: component_nodes.get(&n.name).unwrap(),
+                    instance,
+                }, *c, *i)),
             Self::CollectionMember(n, i) =>
-                ComponentRef::CollectionMember(ComponentInstance(component_nodes.get(&n.0).unwrap(), instance), *i),
+                ComponentRef::CollectionMember(ComponentInstance {
+                    node: component_nodes.get(&n.name).unwrap(),
+                    instance,
+                }, *i),
         }
     }
 
     fn component_definition(&self, component_nodes: &HashMap<ComponentName, ComponentNode>)
         -> &'static ComponentDefinition {
 
-        let node = component_nodes.get(&self.of_node_relative().0).unwrap();
+        let node = component_nodes.get(&self.of_node_relative().name).unwrap();
         match self {
             Self::CollectionMember(_, _) =>
                 (node.definition.unwrap_collection_def().member_definition)(&node.static_attributes),
@@ -3276,15 +3348,21 @@ impl ComponentGroupRelative {
         component_instance: &'a ComponentInstance,
     ) -> ComponentGroup<'a> {
         let component_relative = self.of_node_relative(); 
-        let instance = component_relative.1.relative_to(&component_instance.1);
+        let instance = component_relative.relative_instance.relative_to(&component_instance.instance);
         self.replace_instance(component_nodes, instance)
     }
 
     fn replace_instance<'a>(&self, component_nodes: &'a HashMap<ComponentName, ComponentNode>, instance: Instance) -> ComponentGroup<'a> {
         match self {
             Self::Single(comp_ref) => ComponentGroup::Single(comp_ref.replace_instance(component_nodes, instance)),
-            Self::Batch(n) => ComponentGroup::Batch(ComponentInstance(component_nodes.get(&n.0).unwrap(), instance)),
-            Self::Collection(n) => ComponentGroup::Collection(ComponentInstance(component_nodes.get(&n.0).unwrap(), instance)),
+            Self::Batch(n) => ComponentGroup::Batch(ComponentInstance {
+                node: component_nodes.get(&n.name).unwrap(),
+                instance,
+            }),
+            Self::Collection(n) => ComponentGroup::Collection(ComponentInstance {
+                node: component_nodes.get(&n.name).unwrap(),
+                instance,
+            }),
         }
     }
 
@@ -3294,7 +3372,7 @@ impl ComponentGroupRelative {
             Self::Single(comp_ref) => comp_ref.component_definition(component_nodes),
             Self::Batch(c) |
             Self::Collection(c) =>
-                definition_as_replacement_child(component_nodes.get(&c.0).unwrap()),
+                definition_as_replacement_child(component_nodes.get(&c.name).unwrap()),
         }
     }
 
@@ -3308,6 +3386,7 @@ impl ComponentGroupRelative {
 }
 
 impl RelativeInstance {
+    /// Convert RelativeInstance into Instance
     fn relative_to(&self, instance: &Instance) -> Instance {
         if self.is_empty() {
             return instance.clone();
@@ -3319,6 +3398,7 @@ impl RelativeInstance {
             .chain(forward.clone().into_iter())
             .collect()
     }
+
     fn add_relative(self, other: Self) -> Self {
         let RelativeInstance(back, forward) = self;
         let RelativeInstance(other_back, other_forward) = other;
@@ -3334,10 +3414,12 @@ impl RelativeInstance {
             RelativeInstance(new_back, other_forward)
         }
     }
+
     fn relative_to_inverse(&self, instance: &Instance) -> Instance {
         let take = instance.len() - self.1.len();
         instance.clone().into_iter().take(take).collect()
     }
+
     fn is_empty(&self) -> bool {
         self.0 == 0 && self.1.is_empty()
     }
@@ -3530,7 +3612,7 @@ fn check_cyclic_copy_source_component(
         } else {
 
             chain.push(current_comp.name.clone());
-            current_comp = components.get(&component_ref_relative.of_node_relative().0).unwrap();
+            current_comp = components.get(&component_ref_relative.of_node_relative().name).unwrap();
         }
     }
 
@@ -3594,7 +3676,7 @@ fn check_for_cyclical_dependency_chain(
         for dep in dep_list {
             let new_link = match dep {
                 Dependency::StateVar { states } => {
-                    Some((states.0.of_node_relative().0.clone(), states.1.clone()))
+                    Some((states.0.of_node_relative().name.clone(), states.1.clone()))
                 },
                 _ => None,
             };
