@@ -1,0 +1,7 @@
+<graph name="graph">
+	<point name="p1" xs="2 3"/>
+	<point name="p2" xs="$p1.y $p1.x"/>
+</graph>
+<text>
+	<collect source="graph" componentType="point"/>
+</text>
