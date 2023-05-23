@@ -17,6 +17,11 @@ Semantic markup for building interactive web activities.
 
 
 ## Quickstart
+
+First, install [Node](https://nodejs.org/en/download),
+[Rust](https://rustup.rs/),
+and [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/).
+
 In the project folder:
 
 `$ npm install`
@@ -25,9 +30,17 @@ In the project folder:
 
 `$ npm run dev`
 
-Paste demo code into `src/test/testCode.doenet`
+Paste demo code into `./src/test/testCode.doenet`
+(or copy `./src/test/.testCode.doenet` to `./src/test/testCode.doenet`).
 
-Navigate to `localhost:3000/src/test/index.html`
+Navigate to <http://localhost:3000/src/test/index.html>
+
+## Codespaces quickstart
+
+All the above steps should happen automatically. Once that is ready
+(after "Your applicaiton running on port 3000 is available"),
+just visit <http://localhost:3000/src/test/index.html> (may need to
+Ctrl-click to open GitHub Codespaces link).
 
 ## Demos
 
