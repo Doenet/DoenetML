@@ -637,7 +637,7 @@ export default function PageViewer(props) {
 
       try {
         localInfo = await idb_get(
-          `${props.doenetId}|${pageNumber}|${attemptNumber}|${cid}`,
+          `${props.activityId}|${pageNumber}|${attemptNumber}|${cid}`,
         );
       } catch (e) {
         // ignore error
@@ -716,7 +716,7 @@ export default function PageViewer(props) {
           cid,
           pageNumber,
           attemptNumber,
-          doenetId: props.doenetId,
+          activityId: props.activityId,
           userId: props.userId,
           requestedVariantIndex,
           allowLoadState: props.flags.allowLoadState,
@@ -804,7 +804,7 @@ export default function PageViewer(props) {
 
   async function saveLoadedLocalStateToDatabase(localInfo) {
     let serverSaveId = await idb_get(
-      `${props.doenetId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
+      `${props.activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
     );
 
     let pageStateToBeSavedToDatabase = {
@@ -823,7 +823,7 @@ export default function PageViewer(props) {
       ),
       pageNumber,
       attemptNumber,
-      doenetId: props.doenetId,
+      activityId: props.activityId,
       saveId: localInfo.saveId,
       serverSaveId,
       updateDataOnContentChange: props.updateDataOnContentChange,
@@ -849,7 +849,7 @@ export default function PageViewer(props) {
     }
 
     await idb_set(
-      `${props.doenetId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
+      `${props.activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
       data.saveId,
     );
 
@@ -865,7 +865,7 @@ export default function PageViewer(props) {
       };
 
       await idb_set(
-        `${props.doenetId}|${pageNumber}|${data.attemptNumber}|${data.cid}`,
+        `${props.activityId}|${pageNumber}|${data.attemptNumber}|${data.cid}`,
         newLocalInfo,
       );
 
@@ -897,7 +897,7 @@ export default function PageViewer(props) {
         coreId: coreId.current,
         userId: props.userId,
         doenetML,
-        doenetId: props.doenetId,
+        activityId: props.activityId,
         previousComponentTypeCounts: props.previousComponentTypeCounts,
         activityCid: props.activityCid,
         flags: props.flags,

@@ -95,7 +95,23 @@ const theme = extendTheme({
     },
   },
 });
-export default function DoenetML({ doenetML }) {
+export default function DoenetML({ doenetML, flags={} }) {
+
+  const defaultFlags = {
+    showCorrectness: true,
+    readOnly: false,
+    showFeedback: true,
+    showHints: true,
+    allowLoadState: false,
+    allowSaveState: false,
+    allowLocalState: false,
+    allowSaveSubmissions: false,
+    allowSaveEvents: false,
+    autoSubmit: false,
+  }
+
+  flags = {...defaultFlags, ...flags};
+
   return (
     <ChakraProvider theme={theme}>
       <RecoilRoot>
@@ -114,27 +130,12 @@ export default function DoenetML({ doenetML }) {
                   >
                     <ActivityViewer
                       activityDefinition={doenetML}
-                      // cid={"185fd09b6939d867d4faee82393d4a879a2051196b476acdca26140864bc967a"}
                       updateDataOnContentChange={true}
-                      flags={{
-                        showCorrectness: true,
-                        readOnly: false,
-                        showFeedback: true,
-                        showHints: true,
-                        allowLoadState: false,
-                        allowSaveState: false,
-                        allowLocalState: false,
-                        allowSaveSubmissions: false,
-                        allowSaveEvents: false,
-                        autoSubmit: false,
-                      }}
+                      flags={flags}
                       attemptNumber={1}
                       requestedVariantIndex={1}
-                      doenetId=""
+                      activityId=""
                       paginate={true}
-                      // collaborate={true}
-                      // viewerExternalFunctions = {{ allAnswersSubmitted: this.setAnswersSubmittedTrueCallback}}
-                      // functionsSuppliedByChild = {this.functionsSuppliedByChild}
                     />
                     <VirtualKeyboard />
                   </MathJaxContext>

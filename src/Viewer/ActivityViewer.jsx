@@ -488,7 +488,7 @@ export default function ActivityViewer(props) {
       let localInfo;
 
       try {
-        localInfo = await idb_get(`${props.doenetId}|${attemptNumber}|${cid}`);
+        localInfo = await idb_get(`${props.activityId}|${attemptNumber}|${cid}`);
       } catch (e) {
         // ignore error
       }
@@ -561,7 +561,7 @@ export default function ActivityViewer(props) {
         params: {
           cid,
           attemptNumber,
-          doenetId: props.doenetId,
+          activityId: props.activityId,
           userId: props.userId,
           allowLoadState: props.flags.allowLoadState,
         },
@@ -664,7 +664,7 @@ export default function ActivityViewer(props) {
 
   async function saveLoadedLocalStateToDatabase(localInfo) {
     let serverSaveId = await idb_get(
-      `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`,
+      `${props.activityId}|${attemptNumber}|${cid}|ServerSaveId`,
     );
 
     let activityStateToBeSavedToDatabase = {
@@ -673,7 +673,7 @@ export default function ActivityViewer(props) {
       activityState: JSON.stringify(localInfo.activityState),
       variantIndex: localInfo.variantIndex,
       attemptNumber,
-      doenetId: props.doenetId,
+      activityId: props.activityId,
       saveId: localInfo.saveId,
       serverSaveId,
       updateDataOnContentChange: props.updateDataOnContentChange,
@@ -707,7 +707,7 @@ export default function ActivityViewer(props) {
     }
 
     await idb_set(
-      `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`,
+      `${props.activityId}|${attemptNumber}|${cid}|ServerSaveId`,
       data.saveId,
     );
 
@@ -720,7 +720,7 @@ export default function ActivityViewer(props) {
       };
 
       await idb_set(
-        `${props.doenetId}|${data.attemptNumber}|${data.cid}`,
+        `${props.activityId}|${data.attemptNumber}|${data.cid}`,
         newLocalInfo,
       );
 
@@ -760,7 +760,7 @@ export default function ActivityViewer(props) {
 
     if (props.flags.allowLocalState) {
       await idb_set(
-        `${props.doenetId}|${attemptNumberRef.current}|${cidRef.current}`,
+        `${props.activityId}|${attemptNumberRef.current}|${cidRef.current}`,
         {
           activityInfo: activityInfo.current,
           activityState: { currentPage: currentPageRef.current },
@@ -780,7 +780,7 @@ export default function ActivityViewer(props) {
       activityState: JSON.stringify({ currentPage: currentPageRef.current }),
       variantIndex: variantIndexRef.current,
       attemptNumber: attemptNumberRef.current,
-      doenetId: props.doenetId,
+      activityId: props.activityId,
       saveId,
       serverSaveId: serverSaveId.current,
       updateDataOnContentChange: props.updateDataOnContentChange,
@@ -882,7 +882,7 @@ export default function ActivityViewer(props) {
 
     if (props.flags.allowLocalState) {
       await idb_set(
-        `${props.doenetId}|${attemptNumberRef.current}|${cidRef.current}|ServerSaveId`,
+        `${props.activityId}|${attemptNumberRef.current}|${cidRef.current}|ServerSaveId`,
         data.saveId,
       );
     }
@@ -917,7 +917,7 @@ export default function ActivityViewer(props) {
     if (flags.allowSaveSubmissions) {
       try {
         let resp = await axios.post("/api/initAssignmentAttempt.php", {
-          doenetId: props.doenetId,
+          activityId: props.activityId,
           weights: newItemWeights,
           attemptNumber,
         });
@@ -950,7 +950,7 @@ export default function ActivityViewer(props) {
       let resp = await axios.get("/api/checkForChangedAssignment.php", {
         params: {
           currentCid: cid,
-          doenetId: props.doenetId,
+          activityId: props.activityId,
         },
       });
 
@@ -1000,7 +1000,7 @@ export default function ActivityViewer(props) {
     }
 
     const payload = {
-      doenetId: props.doenetId,
+      activityId: props.activityId,
       activityCid: cid,
       attemptNumber,
       activityVariantIndex: variantIndex,
@@ -1246,7 +1246,7 @@ export default function ActivityViewer(props) {
       let pageViewer = (
         <PageViewer
           userId={props.userId}
-          doenetId={props.doenetId}
+          activityId={props.activityId}
           activityCid={cid}
           cid={page.cid}
           doenetML={page.doenetML}

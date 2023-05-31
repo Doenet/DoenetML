@@ -54,6 +54,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.9.0",
     "react-mathquill": "^1.0.3",
+    "react-measure": "^2.5.2",
     "react-router": "^6.11.2",
     "react-router-dom": "^6.11.2",
     "react-simple-code-editor": "^0.13.0",

@@ -67,7 +67,7 @@ export const toastType = Object.freeze({
 export default class Core {
   constructor({
     doenetML,
-    doenetId,
+    activityId,
     activityCid,
     pageNumber,
     attemptNumber = 1,
@@ -87,7 +87,7 @@ export default class Core {
     // console.time('core');
 
     this.coreId = coreId;
-    this.doenetId = doenetId;
+    this.activityId = activityId;
     this.activityCid = activityCid;
     this.pageNumber = pageNumber;
     this.attemptNumber = attemptNumber;
@@ -9749,7 +9749,7 @@ export default class Core {
     }
 
     const payload = {
-      doenetId: this.doenetId,
+      activityId: this.activityId,
       activityCid: this.activityCid,
       pageCid: this.cid,
       pageNumber: this.pageNumber,
@@ -11101,7 +11101,7 @@ export default class Core {
 
     if (this.flags.allowLocalState) {
       await idb_set(
-        `${this.doenetId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}`,
+        `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}`,
         {
           coreState: this.cumulativeStateVariableChanges,
           rendererState: this.rendererState,
@@ -11133,7 +11133,7 @@ export default class Core {
       ),
       pageNumber: this.pageNumber,
       attemptNumber: this.attemptNumber,
-      doenetId: this.doenetId,
+      activityId: this.activityId,
       saveId,
       serverSaveId: this.serverSaveId,
       updateDataOnContentChange: this.updateDataOnContentChange,
@@ -11234,7 +11234,7 @@ export default class Core {
 
     if (this.flags.allowLocalState) {
       await idb_set(
-        `${this.doenetId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}|ServerSaveId`,
+        `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}|ServerSaveId`,
         data.saveId,
       );
     }
@@ -11248,7 +11248,7 @@ export default class Core {
       ) {
         if (this.flags.allowLocalState) {
           await idb_set(
-            `${this.doenetId}|${this.pageNumber}|${data.attemptNumber}|${data.cid}`,
+            `${this.activityId}|${this.pageNumber}|${data.attemptNumber}|${data.cid}`,
             {
               coreState: JSON.parse(
                 data.coreState,
@@ -11299,7 +11299,7 @@ export default class Core {
     }
 
     const payload = {
-      doenetId: this.doenetId,
+      activityId: this.activityId,
       attemptNumber: this.attemptNumber,
       credit: pageCreditAchieved,
       itemNumber: this.itemNumber,
@@ -11540,7 +11540,7 @@ export default class Core {
 
     try {
       const resp = await axios.post("/api/reportSolutionViewed.php", {
-        doenetId: this.doenetId,
+        activityId: this.activityId,
         itemNumber: this.itemNumber,
         pageNumber: this.pageNumber,
         attemptNumber: this.attemptNumber,

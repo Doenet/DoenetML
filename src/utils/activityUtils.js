@@ -17,7 +17,6 @@ export function parseActivityDefinition(activityDefDoenetML) {
     (x) => typeof x !== "string" || /\S/.test(x),
   );
 
-  console.log(`serializedDefinition`, serializedDefinition)
   if (
     serializedDefinition.length !== 1 ||
     serializedDefinition[0].componentType !== "document"
