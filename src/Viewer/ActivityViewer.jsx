@@ -42,10 +42,9 @@ export const itemWeightsAtom = atom({
   default: [],
 });
 
-const toast = (msg) => console.log(msg);
+const sendAlert = (msg, type) => console.log(msg);
 
 export default function ActivityViewer(props) {
-
   const [errMsg, setErrMsg] = useState(null);
 
   const [
@@ -364,8 +363,9 @@ export default function ActivityViewer(props) {
 
     if (newAttemptNumber !== attemptNumber) {
       if (props.updateAttemptNumber) {
-        toast(
+        sendAlert(
           `Reverted activity as attempt number changed on other device`,
+          "info",
         );
         props.updateAttemptNumber(newAttemptNumber);
       } else {
@@ -387,7 +387,7 @@ export default function ActivityViewer(props) {
       // we ignore the change
     }
 
-    // toast(`Reverted page to state saved on device ${changedOnDevice}`, toastType.ERROR);
+    // sendAlert(`Reverted page to state saved on device ${changedOnDevice}`, "error");
 
     // if (cid && newCid !== cid) {
     //   if (props.setIsInErrorState) {
@@ -488,7 +488,9 @@ export default function ActivityViewer(props) {
       let localInfo;
 
       try {
-        localInfo = await idb_get(`${props.activityId}|${attemptNumber}|${cid}`);
+        localInfo = await idb_get(
+          `${props.activityId}|${attemptNumber}|${cid}`,
+        );
       } catch (e) {
         // ignore error
       }
@@ -519,7 +521,7 @@ export default function ActivityViewer(props) {
             // if just the localInfo changed, use that instead
             localInfo = result.newLocalInfo;
 
-            // no need to send toast, as state is just page number
+            // no need to send sendAlert, as state is just page number
           }
         }
 
@@ -827,15 +829,7 @@ export default function ActivityViewer(props) {
     setSaveStateToDBTimerId(newTimeoutId);
 
     // TODO: find out how to test if not online
-    // and send this toast if not online:
-
-    // postMessage({
-    //   messageType: "sendToast",
-    //   args: {
-    //     message: "You're not connected to the internet. Changes are not saved. ",
-    //     toastType: toastType.ERROR
-    //   }
-    // })
+    // and send this sendAlert if not online:
 
     let resp;
 
@@ -850,10 +844,11 @@ export default function ActivityViewer(props) {
       );
     } catch (e) {
       console.log(
-        `sending toast: Error synchronizing data.  Changes not saved to the server.`,
+        `sending sendAlert: Error synchronizing data.  Changes not saved to the server.`,
       );
-      toast(
+      sendAlert(
         "Error synchronizing data.  Changes not saved to the server.",
+        "error",
       );
       return;
     }
@@ -862,10 +857,11 @@ export default function ActivityViewer(props) {
 
     if (resp.status === null) {
       console.log(
-        `sending toast: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
+        `sending sendAlert: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
       );
-      toast(
+      sendAlert(
         "Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?",
+        "error",
       );
       return;
     }
@@ -873,8 +869,8 @@ export default function ActivityViewer(props) {
     let data = resp.data;
 
     if (!data.success) {
-      console.log(`sending toast: ${data.message}`);
-      toast(data.message);
+      console.log(`sending sendAlert: ${data.message}`);
+      sendAlert(data.message, "error");
       return;
     }
 
@@ -923,17 +919,20 @@ export default function ActivityViewer(props) {
         });
 
         if (resp.status === null) {
-          toast(
+          sendAlert(
             `Could not initialize assignment tables.  Are you connected to the internet?`,
+            "error",
           );
         } else if (!resp.data.success) {
-          toast(
+          sendAlert(
             `Could not initialize assignment tables: ${resp.data.message}.`,
+            "error",
           );
         }
       } catch (e) {
-        toast(
+        sendAlert(
           `Could not initialize assignment tables: ${e.message}.`,
+          "error",
         );
       }
     }
@@ -1019,13 +1018,6 @@ export default function ActivityViewer(props) {
       })
       .catch((e) => {
         console.error(`Error saving event: ${e.message}`);
-        // postMessage({
-        //   messageType: "sendToast",
-        //   args: {
-        //     message: `Error saving event: ${e.message}`,
-        //     toastType: toastType.ERROR
-        //   }
-        // })
       });
   }
 
@@ -1347,7 +1339,6 @@ export default function ActivityViewer(props) {
       );
     }
   }
-
 
   return (
     <div style={{ paddingBottom: "50vh" }} id="activityTop" ref={nodeRef}>

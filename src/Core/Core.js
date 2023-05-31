@@ -29,40 +29,7 @@ import { gatherVariantComponents, getNumberOfVariants } from "./utils/variants";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
 
-export const toastType = Object.freeze({
-  //Color contrast with accessibility -- no text on color
-  ERROR: {
-    // process failed or error occured, user must dissmis
-    timeout: -1,
-    background: "rgba(193, 41, 46, 1)",
-    gradientEnd: "rgba()",
-  },
-  ALERT: {
-    // user attetion reqired to dissmiss
-    timeout: -1,
-    background: "rgba(255, 230, 0, 1)",
-  },
-  ACTION: {
-    // requires user interaction
-    timeout: -1,
-    background: "rgba()",
-  },
-  INFO: {
-    // non-interactive information
-    timeout: 3000,
-    background: "rgba(26, 90, 153,1)",
-  },
-  SUCCESS: {
-    // confirm action
-    timeout: 3000,
-    background: "rgba(41, 193, 67,  1)",
-  },
-  CONFIRMATION: {
-    //confirm action and offer undo
-    timeout: 5000,
-    background: "rgba(26,90,153,1)",
-  },
-});
+
 
 export default class Core {
   constructor({
@@ -83,6 +50,7 @@ export default class Core {
     stateVariableChanges = {},
     coreId,
     updateDataOnContentChange,
+    apiURLS,
   }) {
     // console.time('core');
 
@@ -102,6 +70,21 @@ export default class Core {
     // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
     this.flags = flags;
     this.theme = theme;
+
+    this.apiURLs = {
+      recordEvent: null,
+      savePageState: null,
+      saveItemCredit: null,
+      reportSolutionViewed: null,
+    };
+
+    if (apiURLS) {
+      for (let key in this.apiURLS) {
+        if (typeof apiURLS[key] === "string") {
+          this.apiURLS[key] = apiURLS[key];
+        }
+      }
+    }
 
     this.finishCoreConstruction = this.finishCoreConstruction.bind(this);
     this.getStateVariableValue = this.getStateVariableValue.bind(this);
@@ -6449,7 +6432,8 @@ export default class Core {
             } else {
               component.state[
                 arrayEntryName
-              ].shadowingInstructions.createComponentOfType = arrayComponentType;
+              ].shadowingInstructions.createComponentOfType =
+                arrayComponentType;
             }
           }
         }
@@ -9737,7 +9721,7 @@ export default class Core {
   }
 
   async performRecordEvent({ event }) {
-    if (!this.flags.allowSaveEvents) {
+    if (!this.flags.allowSaveEvents || !this.apiURLs.recordEvent) {
       return;
     }
 
@@ -9774,16 +9758,16 @@ export default class Core {
     };
 
     try {
-      let resp = await axios.post("/api/recordEvent.php", payload);
+      let resp = await axios.post(this.apiURLs.recordEvent, payload);
       // console.log(">>>>resp from record event", resp.data)
     } catch (e) {
       console.error(`Error saving event: ${e.message}`);
       // postMessage({
-      //   messageType: "sendToast",
+      //   messageType: "sendAlert",
       //   coreId: this.coreId,
       //   args: {
       //     message: `Error saving event: ${e.message}`,
-      //     toastType: toastType.ERROR
+      //     alertType: "error"
       //   }
       // })
     }
@@ -11150,7 +11134,11 @@ export default class Core {
   async saveChangesToDatabase(overrideThrottle) {
     // throttle save to database at 60 seconds
 
-    if (!this.changesToBeSaved) {
+    if (
+      !this.changesToBeSaved ||
+      !this.flags.allowSaveState ||
+      !this.apiURLs.savePageState
+    ) {
       return;
     }
 
@@ -11174,11 +11162,11 @@ export default class Core {
     // and send this toast if not online:
 
     // postMessage({
-    //   messageType: "sendToast",
+    //   messageType: "sendAlert",
     //   coreId: this.coreId,
     //   args: {
     //     message: "You're not connected to the internet. Changes are not saved. ",
-    //     toastType: toastType.ERROR
+    //     alertType: "error"
     //   }
     // })
 
@@ -11186,17 +11174,17 @@ export default class Core {
 
     try {
       resp = await axios.post(
-        "/api/savePageState.php",
+        this.apiURLs.savePageState,
         this.pageStateToBeSavedToDatabase,
       );
     } catch (e) {
       postMessage({
-        messageType: "sendToast",
+        messageType: "sendAlert",
         coreId: this.coreId,
         args: {
           message:
             "Error synchronizing data.  Changes not saved to the server.",
-          astType: toastType.ERROR,
+          astType: "error",
         },
       });
       return;
@@ -11206,11 +11194,11 @@ export default class Core {
 
     if (resp.status === null) {
       postMessage({
-        messageType: "sendToast",
+        messageType: "sendAlert",
         coreId: this.coreId,
         args: {
           message: `Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
-          toastType: toastType.ERROR,
+          alertType: "error",
         },
       });
       return;
@@ -11220,11 +11208,11 @@ export default class Core {
 
     if (!data.success) {
       postMessage({
-        messageType: "sendToast",
+        messageType: "sendAlert",
         coreId: this.coreId,
         args: {
           message: data.message,
-          toastType: toastType.ERROR,
+          alertType: "error",
         },
       });
       return;
@@ -11294,7 +11282,7 @@ export default class Core {
   }
 
   saveSubmissions({ pageCreditAchieved, suppressToast = false }) {
-    if (!this.flags.allowSaveSubmissions) {
+    if (!this.flags.allowSaveSubmissions || !this.apiURLs.saveItemCredit) {
       return;
     }
 
@@ -11305,29 +11293,29 @@ export default class Core {
       itemNumber: this.itemNumber,
     };
 
-    console.log("payload for save credit for item", payload);
+    // console.log("payload for save credit for item", payload);
 
     axios
-      .post("/api/saveCreditForItem.php", payload)
+      .post(this.apiURLs.saveItemCredit, payload)
       .then((resp) => {
         // console.log('>>>>saveCreditForItem resp', resp.data);
 
         if (resp.status === null) {
           postMessage({
-            messageType: "sendToast",
+            messageType: "sendAlert",
             coreId: this.coreId,
             args: {
               message: `Credit not saved due to error.  Are you connected to the internet?`,
-              toastType: toastType.ERROR,
+              alertType: "error",
             },
           });
         } else if (!resp.data.success) {
           postMessage({
-            messageType: "sendToast",
+            messageType: "sendAlert",
             coreId: this.coreId,
             args: {
               message: `Credit not saved due to error: ${resp.data.message}`,
-              toastType: toastType.ERROR,
+              alertType: "error",
             },
           });
         } else {
@@ -11349,11 +11337,11 @@ export default class Core {
           if (data.viewedSolution) {
             if (!suppressToast) {
               postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
                   message: "No credit awarded since solution was viewed.",
-                  toastType: toastType.INFO,
+                  alertType: "info",
                 },
               });
             }
@@ -11361,12 +11349,12 @@ export default class Core {
           if (data.timeExpired) {
             if (!suppressToast) {
               postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
                   message:
                     "No credit awarded since the time allowed has expired.",
-                  toastType: toastType.INFO,
+                  alertType: "info",
                 },
               });
             }
@@ -11374,11 +11362,11 @@ export default class Core {
           if (data.pastDueDate) {
             if (!suppressToast) {
               postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
                   message: "No credit awarded since the due date has passed.",
-                  toastType: toastType.INFO,
+                  alertType: "info",
                 },
               });
             }
@@ -11386,23 +11374,23 @@ export default class Core {
           if (data.exceededAttemptsAllowed) {
             if (!suppressToast) {
               postMessage({
-                messageType: "sendToast",
+                messageType: "sendAlert",
                 coreId: this.coreId,
                 args: {
                   message:
                     "No credit awarded since no more attempts are allowed.",
-                  toastType: toastType.INFO,
+                  alertType: "info",
                 },
               });
             }
           }
           if (data.databaseError) {
             postMessage({
-              messageType: "sendToast",
+              messageType: "sendAlert",
               coreId: this.coreId,
               args: {
                 message: "Credit not saved due to database error.",
-                toastType: toastType.ERROR,
+                alertType: "error",
               },
             });
           }
@@ -11410,11 +11398,11 @@ export default class Core {
       })
       .catch((e) => {
         postMessage({
-          messageType: "sendToast",
+          messageType: "sendAlert",
           coreId: this.coreId,
           args: {
             message: `Credit not saved due to error: ${e.message}`,
-            toastType: toastType.ERROR,
+            alertType: "error",
           },
         });
       });
@@ -11530,7 +11518,7 @@ export default class Core {
     // TODO: check if student was actually allowed to view solution.
 
     // if not allowed to save submissions, then allow view but don't record it
-    if (!this.flags.allowSaveSubmissions) {
+    if (!this.flags.allowSaveSubmissions || !this.apiURLS.reportSolutionViewed) {
       return {
         allowView: true,
         message: "",
@@ -11539,7 +11527,7 @@ export default class Core {
     }
 
     try {
-      const resp = await axios.post("/api/reportSolutionViewed.php", {
+      const resp = await axios.post(this.apiURLS.reportSolutionViewed, {
         activityId: this.activityId,
         itemNumber: this.itemNumber,
         pageNumber: this.pageNumber,
@@ -11549,11 +11537,11 @@ export default class Core {
       if (resp.status === null) {
         let message = `Cannot show solution due to error.  Are you connected to the internet?`;
         postMessage({
-          messageType: "sendToast",
+          messageType: "sendAlert",
           coreId: this.coreId,
           args: {
             message,
-            toastType: toastType.ERROR,
+            alertType: "error",
           },
         });
         return {
@@ -11582,11 +11570,11 @@ export default class Core {
       let message = `Cannot show solution due to error.`;
 
       postMessage({
-        messageType: "sendToast",
+        messageType: "sendAlert",
         coreId: this.coreId,
         args: {
           message,
-          toastType: toastType.ERROR,
+          alertType: "error",
         },
       });
 

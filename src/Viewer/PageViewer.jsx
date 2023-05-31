@@ -27,7 +27,7 @@ export const scrollableContainerAtom = atom({
   default: null,
 });
 
-const toast = (msg) => console.log(msg);
+const sendAlert = (msg, type) => console.log(msg);
 
 // Two notes about props.flags of PageViewer
 // 1. In Core, flags.allowSaveState implies flags.allowLoadState
@@ -220,9 +220,9 @@ export default function PageViewer(props) {
           props.updateCreditAchievedCallback?.(e.data.args);
         } else if (e.data.messageType === "savedState") {
           props.saveStateCallback?.();
-        } else if (e.data.messageType === "sendToast") {
-          console.log(`Sending toast message: ${e.data.args.message}`);
-          toast(e.data.args.message);
+        } else if (e.data.messageType === "sendAlert") {
+          console.log(`Sending alert message: ${e.data.args.message}`);
+          sendAlert(e.data.args.message, e.data.args.alertType);
         } else if (e.data.messageType === "resolveAction") {
           resolveAction(e.data.args);
         } else if (e.data.messageType === "returnAllStateVariables") {
@@ -546,7 +546,10 @@ export default function PageViewer(props) {
     // console.log('resetPage', changedOnDevice, newCid, newAttemptNumber);
 
     if (newAttemptNumber !== attemptNumber) {
-      toast(`Reverted activity as attempt number changed on other device`);
+      sendAlert(
+        `Reverted activity as attempt number changed on other device`,
+        "info",
+      );
       if (props.updateAttemptNumber) {
         props.updateAttemptNumber(newAttemptNumber);
       } else {
@@ -560,7 +563,10 @@ export default function PageViewer(props) {
       }
     } else {
       // TODO: are there cases where will get an infinite loop here?
-      toast(`Reverted page to state saved on device ${changedOnDevice}`);
+      sendAlert(
+        `Reverted page to state saved on device ${changedOnDevice}`,
+        "info",
+      );
 
       coreId.current = nanoid();
       setPageContentChanged(true);
@@ -669,10 +675,11 @@ export default function PageViewer(props) {
             // if just the localInfo changed, use that instead
             localInfo = result.newLocalInfo;
             console.log(
-              `sending toast: Reverted page to state saved on device ${result.changedOnDevice}`,
+              `sending alert: Reverted page to state saved on device ${result.changedOnDevice}`,
             );
-            toast(
+            sendAlert(
               `Reverted page to state saved on device ${result.changedOnDevice}`,
+              "info",
             );
           }
         }
