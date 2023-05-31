@@ -1,27 +1,53 @@
-import React, { useEffect } from 'react';
-import useDoenetRender from './useDoenetRenderer';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faComment as thoughtBubble } from '@fortawesome/free-regular-svg-icons';
-import VisibilitySensor from 'react-visibility-sensor-v2';
-
+import React, { useEffect } from "react";
+import useDoenetRender from "../useDoenetRenderer";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faComment as thoughtBubble } from "@fortawesome/free-regular-svg-icons";
+import VisibilitySensor from "react-visibility-sensor-v2";
+import styled from "styled-components";
+const FeedbackStyling = styled.aside`
+  background-color: var(--canvas);
+  margin: 0px 4px 12px 4px;
+  padding: 1em;
+  border: 2px solid var(--canvastext);
+  border-top: 0px;
+  border-bottom-left-radius: 5px;
+  border-bottom-right-radius: 5px;
+  //   &: focus {
+  //   outline: 2px solid var(--canvastext);
+  //   outline-offset: 2px;
+  //  }
+`;
+const SpanStyling = styled.span`
+  display: block;
+  margin: 12px 4px 0px 4px;
+  padding: 6px;
+  border: 2px solid var(--canvastext);
+  border-top-left-radius: 5px;
+  border-top-right-radius: 5px;
+  background-color: var(--mainGray);
+  &: focus {
+    outline: 2px solid var(--canvastext);
+    outline-offset: 2px;
+  }
+`;
 export default React.memo(function Feedback(props) {
-  let { name, SVs, children, actions, callAction } = useDoenetRender(props);
+  let { name, id, SVs, children, actions, callAction } = useDoenetRender(props);
 
-  let onChangeVisibility = isVisible => {
+  let onChangeVisibility = (isVisible) => {
     callAction({
       action: actions.recordVisibilityChange,
-      args: { isVisible }
-    })
-  }
+      args: { isVisible },
+    });
+  };
 
   useEffect(() => {
     return () => {
       callAction({
         action: actions.recordVisibilityChange,
-        args: { isVisible: false }
-      })
-    }
-  }, [])
+        args: { isVisible: false },
+      });
+    };
+  }, []);
 
   if (SVs.hidden) {
     return null;
@@ -30,37 +56,19 @@ export default React.memo(function Feedback(props) {
   let icon = <FontAwesomeIcon icon={thoughtBubble} />;
 
   return (
-    <VisibilitySensor partialVisibility={true} onChange={onChangeVisibility}><>
-      <span
-        style={{
-          display: 'block',
-          margin: '12px 4px 0px 4px',
-          padding: '6px',
-          border: '2px solid black',
-          borderTopLeftRadius: '5px',
-          borderTopRightRadius: '5px',
-          backgroundColor: 'var(--mainGray)',
-        }}
-      >
-        {icon} Feedback
-      </span>
-      <aside
-        id={name}
-        style={{
-          backgroundColor: 'white',
-          margin: '0px 4px 12px 4px',
-          padding: '1em',
-          border: '2px solid black',
-          borderTop: '0px',
-          borderBottomLeftRadius: '5px',
-          borderBottomRightRadius: '5px',
-        }}
-      >
-        <a name={name} />
+    <VisibilitySensor partialVisibility={true} onChange={onChangeVisibility}>
+      <>
+        <SpanStyling tabIndex="0">{icon} Feedback</SpanStyling>
+        <FeedbackStyling
+          id={id}
+          // tabIndex="0"
+        >
+          <a name={id} />
 
-        {SVs.feedbackText}
-        {children}
-      </aside>
-    </></VisibilitySensor>
+          {SVs.feedbackText}
+          {children}
+        </FeedbackStyling>
+      </>
+    </VisibilitySensor>
   );
-})
+});

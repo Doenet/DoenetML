@@ -1,14 +1,55 @@
-import React from 'react';
-import { useRecoilValue } from 'recoil';
-import { pageToolViewAtom } from '../../Tools/_framework/NewToolRoot';
-import { itemByDoenetId } from '../../_reactComponents/Course/CourseActions';
-import useDoenetRender from './useDoenetRenderer';
+import React from "react";
+import { useLocation, useNavigate } from "react-router";
+import { Link } from "react-router-dom";
+import { useRecoilValue } from "recoil";
+import { getURLFromRef, scrollableContainerAtom } from "../PageViewer";
+import useDoenetRender from "../useDoenetRenderer";
+import styled from "styled-components";
+
+// const LinkStyling = styled.a`
+//     color: var(--mainBlue);
+//     border-radius: 5px;
+//     &: focus {
+//       outline: 2px solid var(--mainBlue);
+//     }
+//   `;
+
+const RefButton = styled.button`
+  position: relative;
+  height: 24px;
+  display: inline-block;
+  color: white;
+  color: ${(props) => (props.disabled ? "var(--canvastext)" : "var(--canvas)")};
+  background-color: ${(props) =>
+    props.disabled ? "var(--mainGray)" : "var(--mainBlue)"};
+
+  padding: 2px;
+  border: none;
+  border-radius: var(--mainBorderRadius);
+  cursor: pointer;
+  cursor: ${(props) => (props.disabled ? "not-allowed" : "pointer")};
+  padding: 1px 6px 1px 6px;
+
+  &:hover {
+    background-color: ${(props) =>
+      props.disabled ? "var(--mainGray)" : "var(--lightBlue)"};
+    color: ${(props) =>
+      props.disabled ? "var(--canvastext)" : "var(--canvas)"};
+  }
+
+  &:focus {
+    outline: 2px solid var(--mainBlue);
+    outline-offset: 2px;
+  }
+`;
 
 export default React.memo(function Ref(props) {
-  let { name, SVs, children } = useDoenetRender(props);
+  let { name, id, SVs, children } = useDoenetRender(props);
 
-  const pageToolView = useRecoilValue(pageToolViewAtom);
-  const itemInCourse = useRecoilValue(itemByDoenetId(SVs.doenetId));
+  const scrollableContainer = useRecoilValue(scrollableContainerAtom);
+
+  let { search } = useLocation();
+  let navigate = useNavigate();
 
   if (SVs.hidden) {
     return null;
@@ -19,66 +60,92 @@ export default React.memo(function Ref(props) {
     linkContent = SVs.linkText;
   }
 
-  let url = "";
-  let targetForATag = "_blank";
-  let haveValidTarget = false;
-  if (SVs.cid || SVs.doenetId) {
-    if (SVs.cid) {
-      url = `cid=${SVs.cid}`
-    } else {
-      url = `doenetId=${SVs.doenetId}`
-    }
-    if (SVs.pageNumber) {
-      url += `&page=${SVs.pageNumber}`
-    }
-    if (SVs.variantIndex) {
-      url += `&variant=${SVs.variantIndex}`;
-    }
-
-    let usePublic = false;
-    if (pageToolView.page === "public") {
-      usePublic = true;
-    } else if (Object.keys(itemInCourse).length === 0) {
-      usePublic = true;
-    }
-    if (usePublic) {
-      if (SVs.edit === true || SVs.edit === null && pageToolView.page === "public" && pageToolView.tool === "editor") {
-        url = `tool=editor&${url}`;
-      }
-      url = `/public?${url}`
-    } else {
-      url = `/course?tool=assignment&${url}`
-    }
-
-    haveValidTarget = true;
-
-    if (SVs.targetName) {
-      url += "#" + SVs.targetName;
-    }
-  } else if (SVs.uri) {
-    url = SVs.uri;
-    if (url.substring(0, 8) === "https://" || url.substring(0, 7) === "http://") {
-      haveValidTarget = true;
-    }
-  } else {
-    url = "#" + SVs.targetName;
-    targetForATag = null;
-    haveValidTarget = true;
-  }
-
+  let { targetForATag, url, haveValidTarget, externalUri } = getURLFromRef({
+    cid: SVs.cid,
+    doenetId: SVs.doenetId,
+    variantIndex: SVs.variantIndex,
+    edit: SVs.edit,
+    hash: SVs.hash,
+    page: SVs.page,
+    givenUri: SVs.uri,
+    targetName: SVs.targetName,
+    search,
+    id,
+  });
 
   if (SVs.createButton) {
-    return <span id={name}><a name={name} />
-      <button id={name + "_button"} onClick={() => window.location.href = url} disabled={SVs.disabled}>{SVs.linkText}</button>
-    </span>;
-
+    if (targetForATag === "_blank") {
+      return (
+        <span id={id}>
+          <a name={id} />
+          <RefButton
+            id={id + "_button"}
+            onClick={() => window.open(url, targetForATag)}
+            disabled={SVs.disabled}
+          >
+            {SVs.linkText}
+          </RefButton>
+        </span>
+      );
+    } else {
+      return (
+        <span id={id}>
+          <a name={id} />
+          <RefButton
+            id={id + "_button"}
+            onClick={() => navigate(url)}
+            disabled={SVs.disabled}
+          >
+            {SVs.linkText}
+          </RefButton>
+        </span>
+      );
+    }
   } else {
     if (haveValidTarget) {
-      return <a target={targetForATag} id={name} name={name} href={url}>{linkContent}</a>
+      if (externalUri || url === "#") {
+        // for some reason, if url = "#", the <Link>, below, causes a refresh
+        // as it removes the # from the url.  So we use a <a> directly in this case.
+        return (
+          <a
+            style={{
+              color: "var(--mainBlue)",
+              borderRadius: "5px",
+            }}
+            target={targetForATag}
+            id={id}
+            name={id}
+            href={url}
+          >
+            {linkContent}
+          </a>
+        );
+      } else {
+        let scrollAttribute =
+          scrollableContainer === window ? "scrollY" : "scrollTop";
+        let stateObj = { fromLink: true };
+        Object.defineProperty(stateObj, "previousScrollPosition", {
+          get: () => scrollableContainer?.[scrollAttribute],
+          enumerable: true,
+        });
+        return (
+          <Link
+            style={{
+              color: "var(--mainBlue)",
+              borderRadius: "5px",
+            }}
+            target={targetForATag}
+            id={id}
+            name={id}
+            to={url}
+            state={stateObj}
+          >
+            {linkContent}
+          </Link>
+        );
+      }
     } else {
-      return <span id={name}>{linkContent}</span>
+      return <span id={id}>{linkContent}</span>;
     }
   }
-
-})
-
+});
