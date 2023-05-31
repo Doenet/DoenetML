@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef } from "react";
 import useDoenetRender from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, POINT_LAYER_OFFSET } from "./graph";
 import { useRecoilValue } from "recoil";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 import {
   characterizeOffGraphCircleArc,
   characterizeOffGraphPoint,

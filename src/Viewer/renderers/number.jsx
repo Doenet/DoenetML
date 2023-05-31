@@ -5,7 +5,7 @@ import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRender from "../useDoenetRenderer";
 import me from "math-expressions";
 import { useRecoilValue } from "recoil";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 import { textRendererStyle } from "../../Core/utils/style";
 import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
 

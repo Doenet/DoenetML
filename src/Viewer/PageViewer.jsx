@@ -14,8 +14,8 @@ import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import axios from "axios";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
 import { useLocation, useNavigate } from "react-router";
-import { darkModeAtom } from "../Tools/_framework/DarkmodeController";
-import { cesc } from "../_utils/url";
+import { darkModeAtom } from "../Tools/DarkmodeController";
+import { cesc } from "../utils/url";
 
 const rendererUpdatesToIgnore = atomFamily({
   key: "rendererUpdatesToIgnore",

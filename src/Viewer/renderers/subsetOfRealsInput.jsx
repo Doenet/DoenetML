@@ -1,10 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
 import styled from "styled-components";
 import useDoenetRender from "../useDoenetRenderer";
-import ActionButton from "../../_reactComponents/PanelHeaderComponents/ActionButton";
-import ActionButtonGroup from "../../_reactComponents/PanelHeaderComponents/ActionButtonGroup";
-import ToggleButton from "../../_reactComponents/PanelHeaderComponents/ToggleButton";
-import ToggleButtonGroup from "../../_reactComponents/PanelHeaderComponents/ToggleButtonGroup";
+import ActionButton from "../../uiComponents/ActionButton";
+import ActionButtonGroup from "../../uiComponents/ActionButtonGroup";
+import ToggleButton from "../../uiComponents/ToggleButton";
+import ToggleButtonGroup from "../../uiComponents/ToggleButtonGroup";
 import VisibilitySensor from "react-visibility-sensor-v2";
 
 const TextNoSelect = styled.text`

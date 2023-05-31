@@ -10,7 +10,7 @@ import { nanoid } from "nanoid";
 import {
   calculateOrderAndVariants,
   parseActivityDefinition,
-} from "../_utils/activityUtils";
+} from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { useLocation, useNavigate } from "react-router";
 import {
@@ -19,10 +19,7 @@ import {
   useRecoilState,
   useSetRecoilState,
 } from "recoil";
-import Button from "../_reactComponents/PanelHeaderComponents/Button";
-import ActionButton from "../_reactComponents/PanelHeaderComponents/ActionButton";
-import ButtonGroup from "../_reactComponents/PanelHeaderComponents/ButtonGroup";
-import { pageToolViewAtom } from "../Tools/_framework/NewToolRoot";
+import Button from "../uiComponents/Button";
 import { clear as idb_clear } from "idb-keyval";
 
 export const saveStateToDBTimerIdAtom = atom({
@@ -48,7 +45,6 @@ export const itemWeightsAtom = atom({
 const toast = (msg) => console.log(msg);
 
 export default function ActivityViewer(props) {
-  const setPageToolView = useSetRecoilState(pageToolViewAtom);
 
   const [errMsg, setErrMsg] = useState(null);
 
@@ -599,7 +595,7 @@ export default function ActivityViewer(props) {
         }
       }
 
-      if (resp.data.loadedState) {
+      if (resp?.data.loadedState) {
         let newActivityInfo = JSON.parse(resp.data.activityInfo);
         let activityState = JSON.parse(resp.data.activityState);
 
@@ -1086,83 +1082,6 @@ export default function ActivityViewer(props) {
     }
   }
 
-  async function submitAllAndFinishAssessment() {
-    setProcessingSubmitAll(true);
-
-    let terminatePromises = [];
-
-    for (let coreWorker of pageInfo.pageCoreWorker) {
-      if (coreWorker) {
-        let actionId = nanoid();
-        let resolveTerminatePromise;
-
-        terminatePromises.push(
-          new Promise((resolve, reject) => {
-            resolveTerminatePromise = resolve;
-          }),
-        );
-
-        coreWorker.onmessage = function (e) {
-          if (
-            e.data.messageType === "resolveAction" &&
-            e.data.args.actionId === actionId
-          ) {
-            // posting terminate will make sure page state gets saved
-            // (as navigating to another URL will not initiate a state save)
-            coreWorker.postMessage({
-              messageType: "terminate",
-            });
-          } else if (e.data.messageType === "terminated") {
-            // resolve promise
-            resolveTerminatePromise();
-          }
-        };
-
-        coreWorker.postMessage({
-          messageType: "submitAllAnswers",
-          args: { actionId },
-        });
-      }
-    }
-
-    await Promise.all(terminatePromises);
-
-    await saveState({ overrideThrottle: true });
-
-    // console.log("activityInfo here",activityInfo)
-
-    //Clear out history of exam if canViewAfterCompleted setting set as false
-    if (!activityInfo.canViewAfterCompleted) {
-      // console.log("CLEAR state from viewer and cache")
-      //Simple answer for now - lose all state info
-      //TODO: When should we clear this
-      //await idb_clear();
-    }
-    //Set assignment as completed for the user in the Data Base and Recoil
-    let resp = await axios.get("/api/saveCompleted.php", {
-      params: { doenetId: props.doenetId, isCompleted: true },
-    });
-    // console.log("resp",resp.data)
-    if (resp.data.success) {
-      //Mark activity as completed in Recoil
-      props?.setActivityAsCompleted();
-
-      //Go to end exam for the specific page
-      setPageToolView((prev) => {
-        return {
-          page: prev.page,
-          tool: "endExam",
-          view: "",
-          params: {
-            doenetId: props.doenetId,
-            attemptNumber,
-            itemWeights: itemWeights.join(","),
-          },
-        };
-      });
-    }
-  }
-
   if (errMsg !== null) {
     let errorIcon = (
       <span style={{ fontSize: "1em", color: "#C1292E" }}>
@@ -1429,84 +1348,6 @@ export default function ActivityViewer(props) {
     }
   }
 
-  let finishAssessmentPrompt = null;
-
-  if (props.showFinishButton) {
-    if (finishAssessmentMessageOpen) {
-      finishAssessmentPrompt = (
-        <div
-          style={{
-            marginLeft: "1px",
-            marginRight: "5px",
-            marginBottom: "5px",
-            marginTop: "80px",
-            border: "var(--mainBorder)",
-            borderRadius: "var(--mainBorderRadius)",
-            padding: "5px",
-            display: "flex",
-            flexFlow: "column wrap",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "5px",
-            }}
-          >
-            Are you sure you want to finish this assessment?
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: "5px",
-            }}
-          >
-            <ButtonGroup>
-              <Button
-                onClick={submitAllAndFinishAssessment}
-                dataTest="ConfirmFinishAssessment"
-                value="Yes"
-                disabled={processingSubmitAll}
-              ></Button>
-              <Button
-                onClick={() => setFinishAssessmentMessageOpen(false)}
-                dataTest="CancelFinishAssessment"
-                value="No"
-                alert
-                disabled={processingSubmitAll}
-              ></Button>
-            </ButtonGroup>
-          </div>
-        </div>
-      );
-    } else {
-      finishAssessmentPrompt = (
-        <div
-          style={{
-            marginLeft: "1px",
-            marginRight: "5px",
-            marginBottom: "5px",
-            marginTop: "80px",
-          }}
-        >
-          <div
-            data-test="centerone"
-            style={{ display: "flex", justifyContent: "center" }}
-          >
-            <div style={{ width: "240px" }}>
-              <ActionButton
-                onClick={() => setFinishAssessmentMessageOpen(true)}
-                dataTest="FinishAssessmentPrompt"
-                value="Finish assessment"
-              ></ActionButton>
-            </div>
-          </div>
-        </div>
-      );
-    }
-  }
 
   return (
     <div style={{ paddingBottom: "50vh" }} id="activityTop" ref={nodeRef}>
@@ -1514,7 +1355,6 @@ export default function ActivityViewer(props) {
       {title}
       {pages}
       {pageControlsBottom}
-      {finishAssessmentPrompt}
     </div>
   );
 }

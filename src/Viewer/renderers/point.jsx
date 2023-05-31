@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState, useRef } from "react";
 import useDoenetRender from "../useDoenetRenderer";
 import { BoardContext, POINT_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 import { useRecoilValue } from "recoil";
 import { textRendererStyle } from "../../Core/utils/style";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";

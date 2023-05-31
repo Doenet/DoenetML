@@ -20,7 +20,7 @@ import {
 } from "@codemirror/language";
 import { HighlightStyle } from "@codemirror/highlight";
 import { completeFromSchema } from "@codemirror/lang-xml";
-import { parser } from "../../Parser/doenet";
+import { parser } from "../Parser/doenet";
 import { atom, useRecoilValue } from "recoil";
 import { getRenderer } from "handsontable/renderers";
 

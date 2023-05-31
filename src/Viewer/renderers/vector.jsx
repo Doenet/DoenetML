@@ -4,7 +4,7 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import me from "math-expressions";
 import { MathJax } from "better-react-mathjax";
 import { useRecoilValue } from "recoil";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 import { textRendererStyle } from "../../Core/utils/style";
 
 export default React.memo(function Vector(props) {

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import Button from "../../_reactComponents/PanelHeaderComponents/Button";
+import Button from "../../uiComponents/Button";
 import VisibilitySensor from "react-visibility-sensor-v2";
 
 export default React.memo(function CodeViewer(props) {

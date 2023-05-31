@@ -1,12 +1,12 @@
 import "./DoenetML.css";
 import React from "react";
-import PageViewer from "./Viewer/PageViewer.jsx";
+import ActivityViewer from "./Viewer/ActivityViewer.jsx";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "./Core/utils/math.js";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import DarkmodeController from "./Tools/_framework/DarkmodeController.jsx";
-import VirtualKeyboard from "./Tools/_framework/Footers/VirtualKeyboard";
+import DarkmodeController from "./Tools/DarkmodeController.jsx";
+import VirtualKeyboard from "./Tools/Footers/VirtualKeyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 /**
@@ -112,8 +112,8 @@ export default function DoenetML({ doenetML }) {
                       (mathJax.Hub.processSectionDelay = 0)
                     }
                   >
-                    <PageViewer
-                      doenetML={doenetML}
+                    <ActivityViewer
+                      activityDefinition={doenetML}
                       // cid={"185fd09b6939d867d4faee82393d4a879a2051196b476acdca26140864bc967a"}
                       updateDataOnContentChange={true}
                       flags={{
@@ -131,7 +131,7 @@ export default function DoenetML({ doenetML }) {
                       attemptNumber={1}
                       requestedVariantIndex={1}
                       doenetId=""
-                      pageIsActive={true}
+                      paginate={true}
                       // collaborate={true}
                       // viewerExternalFunctions = {{ allAnswersSubmitted: this.setAnswersSubmittedTrueCallback}}
                       // functionsSuppliedByChild = {this.functionsSuppliedByChild}

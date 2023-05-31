@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import useDoenetRenderer, { rendererState } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import CodeMirror from "../../Tools/_framework/CodeMirror";
+import CodeMirror from "../../Tools/CodeMirror";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { useSetRecoilState } from "recoil";
 

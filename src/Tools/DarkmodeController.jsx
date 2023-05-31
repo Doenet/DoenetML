@@ -1,6 +1,5 @@
 import React from "react";
 import { atom, useRecoilValue } from "recoil";
-// import useMediaQuery from '../../_utils/hooks/useMediaQuery';
 
 export const darkModeAtom = atom({
   key: "darkModeAtom",

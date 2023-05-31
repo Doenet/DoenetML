@@ -8,7 +8,7 @@ import {
   VERTEX_LAYER_OFFSET,
 } from "./graph";
 import { useRecoilValue } from "recoil";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 
 export default React.memo(function Curve(props) {
   let { name, id, SVs, actions, sourceOfUpdate, callAction } =

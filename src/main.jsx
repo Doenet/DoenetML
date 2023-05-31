@@ -10,6 +10,13 @@ let doenetML = `Hi Duane <graph><regularPolygon center="($s, 0)"/></graph><mathi
   <choiceInput inline><choice>dog</choice><choice>not dog</choice></choiceInput>
   <ref />
   `;
+
+// let doenetML = `<document Xmlns="https://doenet.org/spec/doenetml/v0.1.0" type="activity">
+//  <order behavior="sequence">
+//    <page><variantControl uniqueVariants /><selectFromSequence length="3" name="n" /> <answer>$n</answer></page>
+//    <page><graph><point>(4,-7)</point></graph><mathinput /></page>
+//  </order>
+// </document>`
 //let doenetML = "<graph><regularPolygon /></graph>";
 ReactDOM.createRoot(document.getElementById("root")).render(
   <DoenetML doenetML={doenetML} />,

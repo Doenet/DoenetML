@@ -10,7 +10,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { rendererState } from "../useDoenetRenderer";
 import { useSetRecoilState } from "recoil";
-import ToggleButton from "../../_reactComponents/PanelHeaderComponents/ToggleButton";
+import ToggleButton from "../../uiComponents/ToggleButton";
 import styled from "styled-components";
 import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";

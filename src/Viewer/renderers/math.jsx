@@ -4,10 +4,10 @@ import useDoenetRender from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { useRecoilValue } from "recoil";
-import { darkModeAtom } from "../../Tools/_framework/DarkmodeController";
+import { darkModeAtom } from "../../Tools/DarkmodeController";
 import { textRendererStyle } from "../../Core/utils/style";
 import { getPositionFromAnchorByCoordinate } from "../../Core/utils/graphical";
-import { cesc } from "../../_utils/url";
+import { cesc } from "../../utils/url";
 
 export default React.memo(function MathComponent(props) {
   let { name, id, SVs, actions, sourceOfUpdate, callAction } =
