@@ -712,7 +712,7 @@ export default function PageViewer(props) {
       }
     }
 
-    if (!loadedState && props.flags.allowLoadState) {
+    if (!loadedState && props.apiURLs?.loadPageState) {
       // if didn't load state from local storage, try to load from database
 
       // even if allowLoadState is false,
@@ -736,7 +736,7 @@ export default function PageViewer(props) {
       };
 
       try {
-        let resp = await axios.get("/api/loadPageState.php", payload);
+        let resp = await axios.get(props.apiURLs.loadPageState, payload);
         if (!resp.data.success) {
           if (props.flags.allowLoadState) {
             if (props.setIsInErrorState) {
@@ -810,6 +810,10 @@ export default function PageViewer(props) {
   }
 
   async function saveLoadedLocalStateToDatabase(localInfo) {
+    if (!props.flags.allowSaveState || !props.apiURLs?.savePageState) {
+      return;
+    }
+
     let serverSaveId = await idb_get(
       `${props.activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
     );
@@ -840,7 +844,7 @@ export default function PageViewer(props) {
 
     try {
       resp = await axios.post(
-        "/api/savePageState.php",
+        props.apiURLs.savePageState,
         pageStateToBeSavedToDatabase,
       );
     } catch (e) {
@@ -920,6 +924,7 @@ export default function PageViewer(props) {
         stateVariableChanges: initialCoreData.current.coreState
           ? initialCoreData.current.coreState
           : undefined,
+        apiURLs: props.apiURLs,
       },
     });
 

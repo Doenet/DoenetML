@@ -20,6 +20,8 @@ import {
   useSetRecoilState,
 } from "recoil";
 import Button from "../uiComponents/Button";
+import ButtonGroup from "../uiComponents/ButtonGroup";
+import ActionButton from "../uiComponents/ActionButton";
 import { clear as idb_clear } from "idb-keyval";
 
 export const saveStateToDBTimerIdAtom = atom({
@@ -484,7 +486,7 @@ export default function ActivityViewer(props) {
     let newVariantIndex;
     let loadedFromInitialState = false;
 
-    if (props.flags.allowLocalState) {
+    if (flags.allowLocalState) {
       let localInfo;
 
       try {
@@ -496,7 +498,7 @@ export default function ActivityViewer(props) {
       }
 
       if (localInfo) {
-        if (props.flags.allowSaveState) {
+        if (flags.allowSaveState) {
           // attempt to save local info to database,
           // reseting data to that from database if it has changed since last save
 
@@ -565,35 +567,37 @@ export default function ActivityViewer(props) {
           attemptNumber,
           activityId: props.activityId,
           userId: props.userId,
-          allowLoadState: props.flags.allowLoadState,
+          allowLoadState: flags.allowLoadState,
         },
       };
 
       let resp;
 
-      try {
-        resp = await axios.get("/api/loadActivityState.php", payload);
+      if (props.apiURLs?.loadActivityState) {
+        try {
+          resp = await axios.get(props.apiURLs.loadActivityState, payload);
 
-        if (!resp.data.success) {
-          if (props.flags.allowLoadState) {
+          if (!resp.data.success) {
+            if (flags.allowLoadState) {
+              if (props.setIsInErrorState) {
+                props.setIsInErrorState(true);
+              }
+              setErrMsg(`Error loading activity state: ${resp.data.message}`);
+              return;
+            } else {
+              // ignore this error if didn't allow loading of page state
+            }
+          }
+        } catch (e) {
+          if (flags.allowLoadState) {
             if (props.setIsInErrorState) {
               props.setIsInErrorState(true);
             }
-            setErrMsg(`Error loading activity state: ${resp.data.message}`);
+            setErrMsg(`Error loading activity state: ${e.message}`);
             return;
           } else {
             // ignore this error if didn't allow loading of page state
           }
-        }
-      } catch (e) {
-        if (props.flags.allowLoadState) {
-          if (props.setIsInErrorState) {
-            props.setIsInErrorState(true);
-          }
-          setErrMsg(`Error loading activity state: ${e.message}`);
-          return;
-        } else {
-          // ignore this error if didn't allow loading of page state
         }
       }
 
@@ -665,6 +669,10 @@ export default function ActivityViewer(props) {
   }
 
   async function saveLoadedLocalStateToDatabase(localInfo) {
+    if (!flags.allowSaveState || !props.apiURLs?.saveActivityState) {
+      return;
+    }
+
     let serverSaveId = await idb_get(
       `${props.activityId}|${attemptNumber}|${cid}|ServerSaveId`,
     );
@@ -689,7 +697,7 @@ export default function ActivityViewer(props) {
         activityStateToBeSavedToDatabase,
       );
       resp = await axios.post(
-        "/api/saveActivityState.php",
+        props.apiURLs.saveActivityState,
         activityStateToBeSavedToDatabase,
       );
     } catch (e) {
@@ -741,7 +749,7 @@ export default function ActivityViewer(props) {
     overrideThrottle = false,
     overrideStage = false,
   } = {}) {
-    if (!props.flags.allowSaveState && !props.flags.allowLocalState) {
+    if (!flags.allowSaveState && !flags.allowLocalState) {
       return;
     }
 
@@ -760,7 +768,7 @@ export default function ActivityViewer(props) {
 
     let saveId = nanoid();
 
-    if (props.flags.allowLocalState) {
+    if (flags.allowLocalState) {
       await idb_set(
         `${props.activityId}|${attemptNumberRef.current}|${cidRef.current}`,
         {
@@ -772,7 +780,7 @@ export default function ActivityViewer(props) {
       );
     }
 
-    if (!props.flags.allowSaveState) {
+    if (!flags.allowSaveState) {
       return;
     }
 
@@ -799,7 +807,11 @@ export default function ActivityViewer(props) {
   async function saveChangesToDatabase(overrideThrottle) {
     // throttle save to database at 60 seconds
 
-    if (!changesToBeSaved.current) {
+    if (
+      !changesToBeSaved.current ||
+      !flags.allowSaveState ||
+      !props.apiURLs?.saveActivityState
+    ) {
       return;
     }
 
@@ -839,7 +851,7 @@ export default function ActivityViewer(props) {
         activityStateToBeSavedToDatabase.current,
       );
       resp = await axios.post(
-        "/api/saveActivityState.php",
+        props.apiURLs.saveActivityState,
         activityStateToBeSavedToDatabase.current,
       );
     } catch (e) {
@@ -876,7 +888,7 @@ export default function ActivityViewer(props) {
 
     serverSaveId.current = data.saveId;
 
-    if (props.flags.allowLocalState) {
+    if (flags.allowLocalState) {
       await idb_set(
         `${props.activityId}|${attemptNumberRef.current}|${cidRef.current}|ServerSaveId`,
         data.saveId,
@@ -910,9 +922,9 @@ export default function ActivityViewer(props) {
 
   async function initializeUserAssignmentTables(newItemWeights) {
     //Initialize user_assignment tables
-    if (flags.allowSaveSubmissions) {
+    if (flags.allowSaveSubmissions && props.apiURLs?.initAssignmentAttempt) {
       try {
-        let resp = await axios.post("/api/initAssignmentAttempt.php", {
+        let resp = await axios.post(props.apiURLs.initAssignmentAttempt, {
           activityId: props.activityId,
           weights: newItemWeights,
           attemptNumber,
@@ -944,21 +956,7 @@ export default function ActivityViewer(props) {
       setStage("saving");
     }
 
-    // check if cid changed
-    try {
-      let resp = await axios.get("/api/checkForChangedAssignment.php", {
-        params: {
-          currentCid: cid,
-          activityId: props.activityId,
-        },
-      });
-
-      if (resp.data.cidChanged === true) {
-        props.cidChangedCallback();
-      }
-    } catch (e) {
-      // ignore any errors
-    }
+    props.checkIfCidChanged?.(cid);
 
     if (viewerWasUnmounted.current) {
       await saveState({ overrideThrottle: true, overrideStage: true });
@@ -994,7 +992,7 @@ export default function ActivityViewer(props) {
   }
 
   function recordEvent(event) {
-    if (!flags.allowSaveEvents) {
+    if (!flags.allowSaveEvents || !props.apiURLs?.recordEvent) {
       return;
     }
 
@@ -1012,7 +1010,7 @@ export default function ActivityViewer(props) {
     };
 
     axios
-      .post("/api/recordEvent.php", payload)
+      .post(props.apiURLs.recordEvent, payload)
       .then((resp) => {
         // console.log(">>>>Activity Viewer resp",resp.data)
       })
@@ -1072,6 +1070,52 @@ export default function ActivityViewer(props) {
     ) {
       allPagesRendered.current = true;
     }
+  }
+
+  async function submitAllAndFinishAssessment() {
+    setProcessingSubmitAll(true);
+
+    let terminatePromises = [];
+
+    for (let coreWorker of pageInfo.pageCoreWorker) {
+      if (coreWorker) {
+        let actionId = nanoid();
+        let resolveTerminatePromise;
+
+        terminatePromises.push(
+          new Promise((resolve, reject) => {
+            resolveTerminatePromise = resolve;
+          }),
+        );
+
+        coreWorker.onmessage = function (e) {
+          if (
+            e.data.messageType === "resolveAction" &&
+            e.data.args.actionId === actionId
+          ) {
+            // posting terminate will make sure page state gets saved
+            // (as navigating to another URL will not initiate a state save)
+            coreWorker.postMessage({
+              messageType: "terminate",
+            });
+          } else if (e.data.messageType === "terminated") {
+            // resolve promise
+            resolveTerminatePromise();
+          }
+        };
+
+        coreWorker.postMessage({
+          messageType: "submitAllAnswers",
+          args: { actionId },
+        });
+      }
+    }
+
+    await Promise.all(terminatePromises);
+
+    await saveState({ overrideThrottle: true });
+
+    props.setActivityAsCompleted?.(itemWeights);
   }
 
   if (errMsg !== null) {
@@ -1268,6 +1312,7 @@ export default function ActivityViewer(props) {
           renderersInitializedCallback={() => pageRenderedCallback(ind)}
           hideWhenNotCurrent={props.paginate}
           prefixForIds={prefixForIds}
+          apiURLs={props.apiURLs}
         />
       );
 
@@ -1340,12 +1385,92 @@ export default function ActivityViewer(props) {
     }
   }
 
+  let finishAssessmentPrompt = null;
+
+  if (props.showFinishButton) {
+    if (finishAssessmentMessageOpen) {
+      finishAssessmentPrompt = (
+        <div
+          style={{
+            marginLeft: "1px",
+            marginRight: "5px",
+            marginBottom: "5px",
+            marginTop: "80px",
+            border: "var(--mainBorder)",
+            borderRadius: "var(--mainBorderRadius)",
+            padding: "5px",
+            display: "flex",
+            flexFlow: "column wrap",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "5px",
+            }}
+          >
+            Are you sure you want to finish this assessment?
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              padding: "5px",
+            }}
+          >
+            <ButtonGroup>
+              <Button
+                onClick={submitAllAndFinishAssessment}
+                dataTest="ConfirmFinishAssessment"
+                value="Yes"
+                disabled={processingSubmitAll}
+              ></Button>
+              <Button
+                onClick={() => setFinishAssessmentMessageOpen(false)}
+                dataTest="CancelFinishAssessment"
+                value="No"
+                alert
+                disabled={processingSubmitAll}
+              ></Button>
+            </ButtonGroup>
+          </div>
+        </div>
+      );
+    } else {
+      finishAssessmentPrompt = (
+        <div
+          style={{
+            marginLeft: "1px",
+            marginRight: "5px",
+            marginBottom: "5px",
+            marginTop: "80px",
+          }}
+        >
+          <div
+            data-test="centerone"
+            style={{ display: "flex", justifyContent: "center" }}
+          >
+            <div style={{ width: "240px" }}>
+              <ActionButton
+                onClick={() => setFinishAssessmentMessageOpen(true)}
+                dataTest="FinishAssessmentPrompt"
+                value="Finish assessment"
+              ></ActionButton>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
+
   return (
     <div style={{ paddingBottom: "50vh" }} id="activityTop" ref={nodeRef}>
       {pageControlsTop}
       {title}
       {pages}
       {pageControlsBottom}
+      {finishAssessmentPrompt}
     </div>
   );
 }
