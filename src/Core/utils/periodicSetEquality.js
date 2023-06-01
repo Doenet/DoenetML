@@ -147,8 +147,6 @@ export default function periodicSetEquality(
 
     // return full_equals(expr.context.from(generated_list), other.context.from(the_list));
 
-    return false;
-
     // check if other is a list than ends in 'ldots'
     // let other_tree = other.tree;
 

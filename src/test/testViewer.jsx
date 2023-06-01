@@ -123,7 +123,13 @@ export default function TestViewer() {
 
   return (
     <div>
-      <div style={{ backgroundColor: "#e3e3e3", marginBottom: "12px", padding: "8px" }}>
+      <div
+        style={{
+          backgroundColor: "#e3e3e3",
+          marginBottom: "12px",
+          padding: "8px",
+        }}
+      >
         <h3>
           <div style={{ display: "flex" }}>
             Test DoenetML
@@ -145,6 +151,7 @@ export default function TestViewer() {
           showFeedback,
           showHints,
         }}
+        addVirtualKeyboard={true}
       />
     </div>
   );

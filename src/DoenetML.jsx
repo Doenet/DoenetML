@@ -95,11 +95,30 @@ const theme = extendTheme({
     },
   },
 });
-export default function DoenetML({ doenetML, flags={} }) {
 
+export default function DoenetML({
+  doenetML,
+  flags = {},
+  cid,
+  activityId,
+  attemptNumber,
+  requestedVariantIndex,
+  updateCreditAchievedCallback,
+  updateAttemptNumber,
+  pageChangedCallback,
+  paginate,
+  showFinishButton,
+  cidChangedCallback,
+  checkIfCidChanged,
+  setActivityAsCompleted,
+  apiURLs,
+  generatedVariantCallback,
+  addVirtualKeyboard = false,
+}) {
   const defaultFlags = {
     showCorrectness: true,
     readOnly: false,
+    solutionDisplayMode: "button",
     showFeedback: true,
     showHints: true,
     allowLoadState: false,
@@ -108,43 +127,50 @@ export default function DoenetML({ doenetML, flags={} }) {
     allowSaveSubmissions: false,
     allowSaveEvents: false,
     autoSubmit: false,
+  };
+
+  flags = { ...defaultFlags, ...flags };
+
+  let keyboard = null;
+
+  if (addVirtualKeyboard) {
+    keyboard = (
+      <ChakraProvider theme={theme}>
+        <VirtualKeyboard />
+      </ChakraProvider>
+    );
   }
 
-  flags = {...defaultFlags, ...flags};
-
   return (
-    <ChakraProvider theme={theme}>
-      <RecoilRoot>
-        <Router>
-          <Routes>
-            <Route
-              path="*"
-              element={
-                <DarkmodeController>
-                  <MathJaxContext
-                    version={2}
-                    config={mathjaxConfig}
-                    onStartup={(mathJax) =>
-                      (mathJax.Hub.processSectionDelay = 0)
-                    }
-                  >
-                    <ActivityViewer
-                      activityDefinition={doenetML}
-                      updateDataOnContentChange={true}
-                      flags={flags}
-                      attemptNumber={1}
-                      requestedVariantIndex={1}
-                      activityId=""
-                      paginate={true}
-                    />
-                    <VirtualKeyboard />
-                  </MathJaxContext>
-                </DarkmodeController>
-              }
-            />
-          </Routes>
-        </Router>
-      </RecoilRoot>
-    </ChakraProvider>
+    <RecoilRoot>
+      <DarkmodeController>
+        <MathJaxContext
+          version={2}
+          config={mathjaxConfig}
+          onStartup={(mathJax) => (mathJax.Hub.processSectionDelay = 0)}
+        >
+          <ActivityViewer
+            activityDefinition={doenetML}
+            updateDataOnContentChange={true}
+            flags={flags}
+            cid={cid}
+            activityId={activityId}
+            attemptNumber={attemptNumber}
+            requestedVariantIndex={requestedVariantIndex}
+            updateCreditAchievedCallback={updateCreditAchievedCallback}
+            updateAttemptNumber={updateAttemptNumber}
+            pageChangedCallback={pageChangedCallback}
+            paginate={paginate}
+            showFinishButton={showFinishButton}
+            cidChangedCallback={cidChangedCallback}
+            checkIfCidChanged={checkIfCidChanged}
+            setActivityAsCompleted={setActivityAsCompleted}
+            apiURLs={apiURLs}
+            generatedVariantCallback={generatedVariantCallback}
+          />
+          {keyboard}
+        </MathJaxContext>
+      </DarkmodeController>
+    </RecoilRoot>
   );
 }

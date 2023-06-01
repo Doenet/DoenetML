@@ -706,7 +706,7 @@ export default function ActivityViewer(props) {
     }
 
     if (resp.data.cidChanged === true) {
-      props.cidChangedCallback();
+      props?.cidChangedCallback();
     }
 
     let data = resp.data;

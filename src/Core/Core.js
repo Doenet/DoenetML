@@ -29,8 +29,6 @@ import { gatherVariantComponents, getNumberOfVariants } from "./utils/variants";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
 
-
-
 export default class Core {
   constructor({
     doenetML,
@@ -50,7 +48,7 @@ export default class Core {
     stateVariableChanges = {},
     coreId,
     updateDataOnContentChange,
-    apiURLS,
+    apiURLs,
   }) {
     // console.time('core');
 
@@ -78,10 +76,10 @@ export default class Core {
       reportSolutionViewed: null,
     };
 
-    if (apiURLS) {
-      for (let key in this.apiURLS) {
-        if (typeof apiURLS[key] === "string") {
-          this.apiURLS[key] = apiURLS[key];
+    if (apiURLs) {
+      for (let key in this.apiURLs) {
+        if (typeof apiURLs[key] === "string") {
+          this.apiURLs[key] = apiURLs[key];
         }
       }
     }
@@ -6432,8 +6430,7 @@ export default class Core {
             } else {
               component.state[
                 arrayEntryName
-              ].shadowingInstructions.createComponentOfType =
-                arrayComponentType;
+              ].shadowingInstructions.createComponentOfType = arrayComponentType;
             }
           }
         }
@@ -11518,7 +11515,10 @@ export default class Core {
     // TODO: check if student was actually allowed to view solution.
 
     // if not allowed to save submissions, then allow view but don't record it
-    if (!this.flags.allowSaveSubmissions || !this.apiURLS.reportSolutionViewed) {
+    if (
+      !this.flags.allowSaveSubmissions ||
+      !this.apiURLs.reportSolutionViewed
+    ) {
       return {
         allowView: true,
         message: "",
@@ -11527,7 +11527,7 @@ export default class Core {
     }
 
     try {
-      const resp = await axios.post(this.apiURLS.reportSolutionViewed, {
+      const resp = await axios.post(this.apiURLs.reportSolutionViewed, {
         activityId: this.activityId,
         itemNumber: this.itemNumber,
         pageNumber: this.pageNumber,
