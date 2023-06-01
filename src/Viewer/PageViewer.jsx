@@ -13,7 +13,6 @@ import { cidFromText } from "../Core/utils/cid";
 import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import axios from "axios";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
-import { useLocation, useNavigate } from "react-router";
 import { darkModeAtom } from "../Tools/DarkmodeController";
 import { cesc } from "../utils/url";
 
@@ -164,9 +163,9 @@ export default function PageViewer(props) {
 
   const scrollableContainer = useRecoilValue(scrollableContainerAtom);
 
-  let navigate = useNavigate();
+  let navigate = props.navigate;
 
-  let location = useLocation();
+  let location = props.location || {};
   let hash = location.hash;
 
   useEffect(() => {
@@ -1029,7 +1028,7 @@ export default function PageViewer(props) {
         // let stateObj = { fromLink: true }
         // Object.defineProperty(stateObj, 'previousScrollPosition', { get: () => scrollableContainer?.[scrollAttribute], enumerable: true });
 
-        navigate(url);
+        navigate?.(url);
       }
     }
 

@@ -12,7 +12,6 @@ import {
   parseActivityDefinition,
 } from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { useLocation, useNavigate } from "react-router";
 import {
   atom,
   useRecoilCallback,
@@ -23,6 +22,7 @@ import Button from "../uiComponents/Button";
 import ButtonGroup from "../uiComponents/ButtonGroup";
 import ActionButton from "../uiComponents/ActionButton";
 import { clear as idb_clear } from "idb-keyval";
+import { cesc } from "../utils/url";
 
 export const saveStateToDBTimerIdAtom = atom({
   key: "saveStateToDBTimerIdAtom",
@@ -135,7 +135,7 @@ export default function ActivityViewer(props) {
   const ignoreNextScroll = useRef(false);
   const stillNeedToScrollTo = useRef(null);
 
-  let location = useLocation();
+  let location = props.location || {};
   let hash = location.hash;
   const previousLocations = useRef({});
   const currentLocationKey = useRef(null);
@@ -145,7 +145,7 @@ export default function ActivityViewer(props) {
     useState(false);
   const [processingSubmitAll, setProcessingSubmitAll] = useState(false);
 
-  let navigate = useNavigate();
+  let navigate = props.navigate;
 
   useEffect(() => {
     return () => {
@@ -267,7 +267,7 @@ export default function ActivityViewer(props) {
 
           navigateAttrs.state = { doNotScroll: true };
         }
-        navigate(location.search + pageAnchor, navigateAttrs);
+        navigate?.(location.search + pageAnchor, navigateAttrs);
       }
       if (stillNeedToScrollTo.current) {
         document.getElementById(stillNeedToScrollTo.current)?.scrollIntoView();
@@ -333,13 +333,14 @@ export default function ActivityViewer(props) {
     // since the <Link> from react router doesn't seem to scroll into hashes
     // always scroll to the hash the first time we get a location from a <Link>
     if (
+      hash &&
       !location.state?.doNotScroll &&
       (location.key === "default" || !foundNewInPrevious)
     ) {
       let scrollTo = hash.slice(1);
       if (props.paginate && hash.match(/^#page(\d+)$/)) {
         // if paginate, want to scroll to top of activity so can still see page controls
-        scrollTo = "activityTop";
+        scrollTo = `${activityPrefix}top`;
       }
       if (
         props.paginate &&
@@ -1246,6 +1247,11 @@ export default function ActivityViewer(props) {
 
   saveState();
 
+  let activityPrefix = "";
+  if (props.idsIncludeActivityId) {
+    activityPrefix = cesc(props.activityId);
+  }
+
   let title = <h1>{activityDefinition.title}</h1>;
 
   let pages = [];
@@ -1277,7 +1283,7 @@ export default function ActivityViewer(props) {
         thisPageIsActive = pageInfo.pageIsActive[ind];
       }
 
-      let prefixForIds = nPages > 1 ? `page${ind + 1}` : "";
+      let prefixForIds = activityPrefix + (nPages > 1 ? `page${ind + 1}` : "");
 
       let pageViewer = (
         <PageViewer
@@ -1313,6 +1319,8 @@ export default function ActivityViewer(props) {
           hideWhenNotCurrent={props.paginate}
           prefixForIds={prefixForIds}
           apiURLs={props.apiURLs}
+          location={location}
+          navigate={navigate}
         />
       );
 
@@ -1465,7 +1473,11 @@ export default function ActivityViewer(props) {
   }
 
   return (
-    <div style={{ paddingBottom: "50vh" }} id="activityTop" ref={nodeRef}>
+    <div
+      style={{ paddingBottom: "50vh" }}
+      id={`${activityPrefix}top`}
+      ref={nodeRef}
+    >
       {pageControlsTop}
       {title}
       {pages}

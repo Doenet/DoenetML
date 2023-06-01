@@ -1,16 +1,12 @@
 export { default } from "./src/DoenetML.jsx";
 
 export {
-  default as ActivityViewer,
   activityAttemptNumberSetUpAtom,
   currentPageAtom,
   itemWeightsAtom,
   saveStateToDBTimerIdAtom,
 } from "./src/Viewer/ActivityViewer";
-export {
-  default as PageViewer,
-  scrollableContainerAtom,
-} from "./src/Viewer/PageViewer";
+export { scrollableContainerAtom } from "./src/Viewer/PageViewer";
 export { mathjaxConfig } from "./src/Core/utils/math";
 export { cidFromText } from "./src/Core/utils/cid";
 export { retrieveTextFileForCid } from "./src/Core/utils/retrieveTextFile";

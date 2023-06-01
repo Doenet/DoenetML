@@ -4,7 +4,6 @@ import ActivityViewer from "./Viewer/ActivityViewer.jsx";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "./Core/utils/math.js";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import DarkmodeController from "./Tools/DarkmodeController.jsx";
 import VirtualKeyboard from "./Tools/Footers/VirtualKeyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
@@ -100,7 +99,7 @@ export default function DoenetML({
   doenetML,
   flags = {},
   cid,
-  activityId,
+  activityId = "",
   attemptNumber,
   requestedVariantIndex,
   updateCreditAchievedCallback,
@@ -111,9 +110,15 @@ export default function DoenetML({
   cidChangedCallback,
   checkIfCidChanged,
   setActivityAsCompleted,
+  setIsInErrorState,
   apiURLs,
   generatedVariantCallback,
-  addVirtualKeyboard = false,
+  addVirtualKeyboard = true,
+  location,
+  navigate,
+  allowMultipageActivities = true,
+  updateDataOnContentChange = false,
+  idsIncludeActivityId = true,
 }) {
   const defaultFlags = {
     showCorrectness: true,
@@ -134,43 +139,51 @@ export default function DoenetML({
   let keyboard = null;
 
   if (addVirtualKeyboard) {
-    keyboard = (
-      <ChakraProvider theme={theme}>
-        <VirtualKeyboard />
-      </ChakraProvider>
-    );
+    keyboard = <VirtualKeyboard />;
   }
 
   return (
-    <RecoilRoot>
-      <DarkmodeController>
-        <MathJaxContext
-          version={2}
-          config={mathjaxConfig}
-          onStartup={(mathJax) => (mathJax.Hub.processSectionDelay = 0)}
-        >
-          <ActivityViewer
-            activityDefinition={doenetML}
-            updateDataOnContentChange={true}
-            flags={flags}
-            cid={cid}
-            activityId={activityId}
-            attemptNumber={attemptNumber}
-            requestedVariantIndex={requestedVariantIndex}
-            updateCreditAchievedCallback={updateCreditAchievedCallback}
-            updateAttemptNumber={updateAttemptNumber}
-            pageChangedCallback={pageChangedCallback}
-            paginate={paginate}
-            showFinishButton={showFinishButton}
-            cidChangedCallback={cidChangedCallback}
-            checkIfCidChanged={checkIfCidChanged}
-            setActivityAsCompleted={setActivityAsCompleted}
-            apiURLs={apiURLs}
-            generatedVariantCallback={generatedVariantCallback}
-          />
-          {keyboard}
-        </MathJaxContext>
-      </DarkmodeController>
-    </RecoilRoot>
+    <ChakraProvider
+      theme={theme}
+      resetScope=".before-keyboard"
+      disableGlobalStyle
+    >
+      <RecoilRoot>
+        <DarkmodeController>
+          <MathJaxContext
+            version={2}
+            config={mathjaxConfig}
+            onStartup={(mathJax) => (mathJax.Hub.processSectionDelay = 0)}
+          >
+            <ActivityViewer
+              activityDefinition={doenetML}
+              updateDataOnContentChange={updateDataOnContentChange}
+              flags={flags}
+              cid={cid}
+              activityId={activityId}
+              attemptNumber={attemptNumber}
+              requestedVariantIndex={requestedVariantIndex}
+              updateCreditAchievedCallback={updateCreditAchievedCallback}
+              updateAttemptNumber={updateAttemptNumber}
+              pageChangedCallback={pageChangedCallback}
+              paginate={paginate}
+              showFinishButton={showFinishButton}
+              cidChangedCallback={cidChangedCallback}
+              checkIfCidChanged={checkIfCidChanged}
+              setActivityAsCompleted={setActivityAsCompleted}
+              setIsInErrorState={setIsInErrorState}
+              apiURLs={apiURLs}
+              generatedVariantCallback={generatedVariantCallback}
+              location={location}
+              navigate={navigate}
+              allowMultipageActivities={allowMultipageActivities}
+              idsIncludeActivityId={idsIncludeActivityId}
+            />
+            <div className="before-keyboard" />
+            {keyboard}
+          </MathJaxContext>
+        </DarkmodeController>
+      </RecoilRoot>
+    </ChakraProvider>
   );
 }

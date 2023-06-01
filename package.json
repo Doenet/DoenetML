@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.0.19",
-    "@chakra-ui/react": "^2.6.1",
+    "@chakra-ui/react": "^2.7.0",
     "@codemirror/basic-setup": "^0.19.0",
     "@codemirror/commands": "^0.19.5",
     "@codemirror/gutter": "^0.19.9",
