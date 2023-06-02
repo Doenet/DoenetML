@@ -161,7 +161,7 @@ export default function PageViewer(props) {
 
   const darkMode = useRecoilValue(darkModeAtom);
 
-  const scrollableContainer = useRecoilValue(scrollableContainerAtom);
+  // const scrollableContainer = useRecoilValue(scrollableContainerAtom);
 
   let navigate = props.navigate;
 
@@ -462,13 +462,16 @@ export default function PageViewer(props) {
     coreInfo.current = args.coreInfo;
 
     if (props.generatedVariantCallback) {
-      props.generatedVariantCallback(
-        JSON.parse(
-          coreInfo.current.generatedVariantString,
-          serializedComponentsReviver,
-        ),
-        coreInfo.current.allPossibleVariants,
-      );
+      props.generatedVariantCallback({
+        pageVariant: {
+          variantInfo: JSON.parse(
+            coreInfo.current.generatedVariantString,
+            serializedComponentsReviver,
+          ),
+          allPossibleVariants: coreInfo.current.allPossibleVariants,
+          itemNumber: props.itemNumber,
+        },
+      });
     }
 
     let renderPromises = [];

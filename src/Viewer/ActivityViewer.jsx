@@ -12,37 +12,11 @@ import {
   parseActivityDefinition,
 } from "../utils/activityUtils";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import {
-  atom,
-  useRecoilCallback,
-  useRecoilState,
-  useSetRecoilState,
-} from "recoil";
+import { useRecoilState } from "recoil";
 import Button from "../uiComponents/Button";
 import ButtonGroup from "../uiComponents/ButtonGroup";
 import ActionButton from "../uiComponents/ActionButton";
-import { clear as idb_clear } from "idb-keyval";
 import { cesc } from "../utils/url";
-
-export const saveStateToDBTimerIdAtom = atom({
-  key: "saveStateToDBTimerIdAtom",
-  default: null,
-});
-
-export const currentPageAtom = atom({
-  key: "currentPageAtom",
-  default: 0,
-});
-
-export const activityAttemptNumberSetUpAtom = atom({
-  key: "activityAttemptNumberSetUpAtom",
-  default: 0,
-});
-
-export const itemWeightsAtom = atom({
-  key: "itemWeightsAtom",
-  default: [],
-});
 
 const sendAlert = (msg, type) => console.log(msg);
 
@@ -92,18 +66,16 @@ export default function ActivityViewer(props) {
   const [flags, setFlags] = useState(props.flags);
 
   const [currentPage, setCurrentPage] = useState(0);
-  const setRecoilCurrentPage = useSetRecoilState(currentPageAtom);
   const currentPageRef = useRef(currentPage); // so that event listener can get new current page
   currentPageRef.current = currentPage; // so updates on every refresh
 
-  const setActivityAttemptNumberSetUp = useSetRecoilState(
-    activityAttemptNumberSetUpAtom,
-  );
+  const [activityAttemptNumberSetUp, setActivityAttemptNumberSetUp] =
+    useState(0);
 
   const [nPages, setNPages] = useState(0);
 
   const [variantsByPage, setVariantsByPage] = useState(null);
-  const [itemWeights, setItemWeights] = useRecoilState(itemWeightsAtom);
+  const [itemWeights, setItemWeights] = useState([]);
   const previousComponentTypeCountsByPage = useRef([]);
 
   const serverSaveId = useRef(null);
@@ -111,7 +83,7 @@ export default function ActivityViewer(props) {
   const activityStateToBeSavedToDatabase = useRef(null);
   const changesToBeSaved = useRef(false);
 
-  const setSaveStateToDBTimerId = useSetRecoilState(saveStateToDBTimerIdAtom);
+  const saveStateToDBTimerId = useRef(null);
   const [scrollableContainer, setScrollableContainer] = useRecoilState(
     scrollableContainerAtom,
   );
@@ -145,6 +117,8 @@ export default function ActivityViewer(props) {
     useState(false);
   const [processingSubmitAll, setProcessingSubmitAll] = useState(false);
 
+  const updateActivityStatusCallback = props.updateActivityStatusCallback;
+
   let navigate = props.navigate;
 
   useEffect(() => {
@@ -153,6 +127,19 @@ export default function ActivityViewer(props) {
       viewerWasUnmounted.current = true;
     };
   }, []);
+
+  useEffect(() => {
+    updateActivityStatusCallback?.({
+      itemWeights,
+      currentPage,
+      activityAttemptNumberSetUp,
+    });
+  }, [
+    updateActivityStatusCallback,
+    itemWeights,
+    currentPage,
+    activityAttemptNumberSetUp,
+  ]);
 
   useEffect(() => {
     let newFlags = { ...props.flags };
@@ -228,7 +215,6 @@ export default function ActivityViewer(props) {
 
             if (topPage && topPage !== currentPageRef.current) {
               setCurrentPage(topPage);
-              setRecoilCurrentPage(topPage);
             }
           }
         });
@@ -247,7 +233,6 @@ export default function ActivityViewer(props) {
         let newPage = Math.max(1, Math.min(nPages, match[1]));
         if (newPage !== currentPage) {
           setCurrentPage(newPage);
-          setRecoilCurrentPage(newPage);
         }
       }
     }
@@ -352,14 +337,6 @@ export default function ActivityViewer(props) {
       }
     }
   }, [location]);
-
-  const getValueOfTimeoutWithoutARefresh = useRecoilCallback(
-    ({ snapshot }) =>
-      async () => {
-        return await snapshot.getPromise(saveStateToDBTimerIdAtom);
-      },
-    [saveStateToDBTimerIdAtom],
-  );
 
   function resetActivity({ changedOnDevice, newCid, newAttemptNumber }) {
     console.log("resetActivity", changedOnDevice, newCid, newAttemptNumber);
@@ -534,7 +511,6 @@ export default function ActivityViewer(props) {
         // if hash doesn't already specify a page, set page from activityState
         if (!hash?.match(/^#page(\d+)/)) {
           setCurrentPage(localInfo.activityState.currentPage);
-          setRecoilCurrentPage(localInfo.activityState.currentPage);
         }
 
         // activityInfo is orderWithCids, variantsByPage, itemWeights, and numberOfVariants
@@ -610,7 +586,6 @@ export default function ActivityViewer(props) {
         // if hash doesn't already specify a page, set page from activityState
         if (!hash?.match(/^#page(\d+)/)) {
           setCurrentPage(activityState.currentPage);
-          setRecoilCurrentPage(activityState.currentPage);
         }
 
         // activityInfo is orderWithCids, variantsByPage, itemWeights, and numberOfVariants
@@ -635,7 +610,6 @@ export default function ActivityViewer(props) {
         // if hash doesn't already specify a page, set page to 1
         if (!hash?.match(/^#page(\d+)/)) {
           setCurrentPage(1);
-          setRecoilCurrentPage(1);
         }
 
         let results;
@@ -820,7 +794,7 @@ export default function ActivityViewer(props) {
 
     // just use the ref
 
-    let oldTimeoutId = await getValueOfTimeoutWithoutARefresh();
+    let oldTimeoutId = saveStateToDBTimerId.current;
 
     if (oldTimeoutId !== null) {
       if (overrideThrottle) {
@@ -834,12 +808,10 @@ export default function ActivityViewer(props) {
     pageAtPreviousSaveToDatabase.current = currentPageRef.current;
 
     // check for changes again after 60 seconds
-    let newTimeoutId = setTimeout(() => {
-      setSaveStateToDBTimerId(null);
+    saveStateToDBTimerId.current = setTimeout(() => {
+      saveStateToDBTimerId.current = null;
       saveChangesToDatabase();
     }, 60000);
-
-    setSaveStateToDBTimerId(newTimeoutId);
 
     // TODO: find out how to test if not online
     // and send this sendAlert if not online:
@@ -966,7 +938,6 @@ export default function ActivityViewer(props) {
 
   function clickNext() {
     setCurrentPage((was) => Math.min(nPages, was + 1));
-    setRecoilCurrentPage((was) => Math.min(nPages, was + 1));
 
     let event = {
       verb: "interacted",
@@ -980,7 +951,6 @@ export default function ActivityViewer(props) {
 
   function clickPrevious() {
     setCurrentPage((was) => Math.max(1, was - 1));
-    setRecoilCurrentPage((was) => Math.max(1, was - 1));
 
     let event = {
       verb: "interacted",
@@ -1234,10 +1204,12 @@ export default function ActivityViewer(props) {
         }
         setStage("continue");
         setActivityAttemptNumberSetUp(attemptNumber);
-        props.generatedVariantCallback?.(
-          results.newVariantIndex,
-          activityInfo.current.numberOfVariants,
-        );
+        props.generatedVariantCallback?.({
+          activityVariant: {
+            variantIndex: results.newVariantIndex,
+            numberOfVariants: activityInfo.current.numberOfVariants,
+          },
+        });
       }
       settingUp.current = false;
     });
@@ -1304,6 +1276,7 @@ export default function ActivityViewer(props) {
           forceShowCorrectness={props.forceShowCorrectness}
           forceShowSolution={props.forceShowSolution}
           forceUnsuppressCheckwork={props.forceUnsuppressCheckwork}
+          generatedVariantCallback={props.generatedVariantCallback}
           flags={flags}
           activityVariantIndex={variantIndex}
           requestedVariantIndex={variantsByPage[ind]}

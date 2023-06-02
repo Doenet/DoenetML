@@ -103,6 +103,7 @@ export default function DoenetML({
   attemptNumber,
   requestedVariantIndex,
   updateCreditAchievedCallback,
+  updateActivityStatusCallback,
   updateAttemptNumber,
   pageChangedCallback,
   paginate,
@@ -113,6 +114,10 @@ export default function DoenetML({
   setIsInErrorState,
   apiURLs,
   generatedVariantCallback,
+  forceDisable,
+  forceShowCorrectness,
+  forceShowSolution,
+  forceUnsuppressCheckwork,
   addVirtualKeyboard = true,
   location,
   navigate,
@@ -164,6 +169,7 @@ export default function DoenetML({
               attemptNumber={attemptNumber}
               requestedVariantIndex={requestedVariantIndex}
               updateCreditAchievedCallback={updateCreditAchievedCallback}
+              updateActivityStatusCallback={updateActivityStatusCallback}
               updateAttemptNumber={updateAttemptNumber}
               pageChangedCallback={pageChangedCallback}
               paginate={paginate}
@@ -174,6 +180,10 @@ export default function DoenetML({
               setIsInErrorState={setIsInErrorState}
               apiURLs={apiURLs}
               generatedVariantCallback={generatedVariantCallback}
+              forceDisable={forceDisable}
+              forceShowCorrectness={forceShowCorrectness}
+              forceShowSolution={forceShowSolution}
+              forceUnsuppressCheckwork={forceUnsuppressCheckwork}
               location={location}
               navigate={navigate}
               allowMultipageActivities={allowMultipageActivities}
