@@ -386,7 +386,7 @@ export default function ActivityViewer(props) {
   }
 
   function calculateCidDefinition() {
-    if (activityDefinitionFromProps) {
+    if (typeof activityDefinitionFromProps === "string" || !cidFromProps) {
       if (cidFromProps) {
         // check to see if activityDefinition matches cid
         cidFromText(JSON.stringify(activityDefinitionFromProps)).then(
@@ -415,24 +415,33 @@ export default function ActivityViewer(props) {
           },
         );
       } else {
-        // if have activityDefinition and no cid, then calculate cid
-        cidFromText(JSON.stringify(activityDefinitionFromProps)).then((cid) => {
-          setCid(cid);
-          activityDefinitionDoenetML.current = activityDefinitionFromProps;
-          let result = parseActivityDefinition(activityDefinitionFromProps);
-          if (result.success) {
-            setActivityDefinition(result.activityJSON);
-            setStage("continue");
-          } else {
-            if (props.setIsInErrorState) {
-              props.setIsInErrorState(true);
+        // if have no cid, then calculate cid
+        const activityDefinitionOrEmptyString =
+          typeof activityDefinitionFromProps === "string"
+            ? activityDefinitionFromProps
+            : "";
+        cidFromText(JSON.stringify(activityDefinitionOrEmptyString)).then(
+          (cid) => {
+            setCid(cid);
+            activityDefinitionDoenetML.current =
+              activityDefinitionOrEmptyString;
+            let result = parseActivityDefinition(
+              activityDefinitionOrEmptyString,
+            );
+            if (result.success) {
+              setActivityDefinition(result.activityJSON);
+              setStage("continue");
+            } else {
+              if (props.setIsInErrorState) {
+                props.setIsInErrorState(true);
+              }
+              setErrMsg(result.message);
             }
-            setErrMsg(result.message);
-          }
-        });
+          },
+        );
       }
     } else {
-      // if don't have activityDefinition, then retrieve activityDefinition from cid
+      // if have cid but not activityDefinition, then retrieve activityDefinition from cid
 
       retrieveTextFileForCid(cidFromProps, "doenet")
         .then((retrievedActivityDefinition) => {
