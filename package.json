@@ -1,7 +1,7 @@
 {
-  "name": "doenetml",
+  "name": "@doenet/doenetml",
   "description": "Semantic markup for building interactive web activities",
-  "version": "0.6.0",
+  "version": "0.6.0-alpha1",
   "license": "AGPL-3.0-or-later",
   "homepage": "https://github.com/Doenet/DoenetML#readme",
   "private": false,
