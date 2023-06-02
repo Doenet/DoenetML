@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import DoenetML from "../DoenetML";
-import { plainText as doenetML } from "./testCode.doenet";
+import { DoenetML } from "../../dist/doenetml";
+import doenetML from "./testCode.doenet?raw";
 import Button from "../uiComponents/Button";
 
 export default function TestViewer() {

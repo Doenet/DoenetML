@@ -1,4 +1,4 @@
-export { default } from "./src/DoenetML.jsx";
+export { default as DoenetML } from "./src/DoenetML.jsx";
 
 export { mathjaxConfig } from "./src/Core/utils/math";
 export { cidFromText } from "./src/Core/utils/cid";
