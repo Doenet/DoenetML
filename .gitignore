@@ -37,6 +37,4 @@ target
 pkg
 Cargo.lock
 
-src/test/testCode.doenet
-
 cypress/screenshots

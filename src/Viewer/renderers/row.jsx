@@ -1,8 +1,8 @@
-import React from 'react';
-import useDoenetRender from './useDoenetRenderer';
+import React from "react";
+import useDoenetRender from "../useDoenetRenderer";
 
 export default React.memo(function Row(props) {
-  let { name, SVs, children } = useDoenetRender(props);
+  let { name, id, SVs, children } = useDoenetRender(props);
 
   if (SVs.hidden) {
     return null;
@@ -10,22 +10,22 @@ export default React.memo(function Row(props) {
 
   let style = {};
 
-    if (SVs.valign !== null) {
-      style.verticalAlign = SVs.valign;
+  if (SVs.valign !== null) {
+    style.verticalAlign = SVs.valign;
+  }
+  if (SVs.left !== "none") {
+    style.borderLeftStyle = "solid";
+    if (SVs.left === "minor") {
+      style.borderLeftWidth = "thin";
+    } else if (SVs.left === "medium") {
+      style.borderLeftWidth = "medium";
+    } else {
+      style.borderLeftWidth = "thick";
     }
-    if (SVs.left !== "none") {
-      style.borderLeftStyle = "solid";
-      if (SVs.left === "minor") {
-        style.borderLeftWidth = "thin";
-      } else if (SVs.left === "medium") {
-        style.borderLeftWidth = "medium";
-      } else {
-        style.borderLeftWidth = "thick";
-      }
-    }
-    return <tr id={name} style={style}>{children}</tr>
-
-
-})
-
-
+  }
+  return (
+    <tr id={id} style={style}>
+      {children}
+    </tr>
+  );
+});

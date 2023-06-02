@@ -1,6 +1,6 @@
 import React from 'react';
 import useDoenetRender from './useDoenetRenderer';
-import Button from '../../_reactComponents/PanelHeaderComponents/Button';
+import Button from '../../uiComponents/Button';
 
 export default React.memo(function CallAction(props) {
   let { name, SVs, actions, callAction } = useDoenetRender(props);
