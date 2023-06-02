@@ -1,15 +1,15 @@
 import React, { useEffect } from "react";
 import useDoenetRenderer from "../useDoenetRenderer";
 import VisibilitySensor from "react-visibility-sensor-v2";
-import { useLocation } from "react-router";
 import { Link } from "react-router-dom";
 import { cesc } from "../../utils/url";
 
 export default React.memo(function ContentBrowser(props) {
-  let { name, id, SVs, children, actions, callAction } =
+  let { name, id, SVs, children, actions, callAction, location } =
     useDoenetRenderer(props);
 
-  let { hash, search } = useLocation();
+  let search = location.search || "";
+  let hash = location.hash || "";
 
   let onChangeVisibility = (isVisible) => {
     if (actions.recordVisibilityChange) {

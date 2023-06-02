@@ -499,6 +499,8 @@ export default function PageViewer(props) {
             flags: props.flags,
             coreId: coreId.current,
             callAction,
+            navigate,
+            location
           }),
         );
 

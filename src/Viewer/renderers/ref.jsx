@@ -1,5 +1,4 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router";
 import { Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { getURLFromRef, scrollableContainerAtom } from "../PageViewer";
@@ -44,12 +43,11 @@ const RefButton = styled.button`
 `;
 
 export default React.memo(function Ref(props) {
-  let { name, id, SVs, children } = useDoenetRender(props);
+  let { name, id, SVs, children, location, navigate } = useDoenetRender(props);
 
   const scrollableContainer = useRecoilValue(scrollableContainerAtom);
 
-  let { search } = useLocation();
-  let navigate = useNavigate();
+  let search = location.search || "";
 
   if (SVs.hidden) {
     return null;
