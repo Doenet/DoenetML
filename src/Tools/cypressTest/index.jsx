@@ -4,7 +4,7 @@ import CypressTest from './CypressTest.jsx';
 import axios from 'axios';
 import { RecoilRoot } from 'recoil';
 import { MathJaxContext } from 'better-react-mathjax';
-import { mathjaxConfig } from '../utils/math.js';
+import { mathjaxConfig } from '../../utils/math.js';
 
 const root = createRoot(document.getElementById('root'));
 

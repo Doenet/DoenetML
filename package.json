@@ -12,6 +12,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
+    "test-cypress": "cypress open",
     "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
@@ -69,7 +70,9 @@
     "@types/react": "^18.0.37",
     "@types/react-dom": "^18.0.11",
     "@vitejs/plugin-react": "^4.0.0",
-    "cypress": "^10.3.1",
+    "cypress": "^12.13.0",
+    "cypress-parallel": "^0.13.0",
+    "cypress-wait-until": "^1.7.2",
     "eslint": "^8.38.0",
     "eslint-plugin-react": "^7.32.2",
     "eslint-plugin-react-hooks": "^4.6.0",
