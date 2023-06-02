@@ -100,6 +100,7 @@ export default function DoenetML({
   flags = {},
   cid,
   activityId = "",
+  userId,
   attemptNumber,
   requestedVariantIndex,
   updateCreditAchievedCallback,
@@ -166,6 +167,7 @@ export default function DoenetML({
               flags={flags}
               cid={cid}
               activityId={activityId}
+              userId={userId}
               attemptNumber={attemptNumber}
               requestedVariantIndex={requestedVariantIndex}
               updateCreditAchievedCallback={updateCreditAchievedCallback}
