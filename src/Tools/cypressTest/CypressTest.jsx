@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import DoenetML from "../../DoenetML.jsx";
+import Button from "../../uiComponents/Button";
 // import testCodeDoenetML from './testCode.doenet';
 
 function Test() {
