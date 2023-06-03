@@ -21,15 +21,6 @@ import {
 import { HighlightStyle } from "@codemirror/highlight";
 import { completeFromSchema } from "@codemirror/lang-xml";
 import { parser } from "../Parser/doenet";
-import { atom, useRecoilValue } from "recoil";
-import { getRenderer } from "handsontable/renderers";
-
-const editorConfigStateAtom = atom({
-  key: "editorConfigStateAtom",
-  default: {
-    matchTag: false,
-  },
-});
 
 export default function CodeMirror({
   setInternalValueTo,
@@ -80,7 +71,9 @@ export default function CodeMirror({
     },
   });
 
-  let editorConfig = useRecoilValue(editorConfigStateAtom);
+  let [editorConfig, setEditorConfig] = useState({
+    matchTag: false,
+  });
   let view = useRef(null);
   let parent = useRef(null);
   const [count, setCount] = useState(0);
