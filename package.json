@@ -93,10 +93,5 @@
     "styled-components": "^5.3.11",
     "vite": "^4.3.9",
     "vite-plugin-lib-inject-css": "^1.2.0"
-  },
-  "optionalDependencies": {
-    "cypress": "^12.13.0",
-    "cypress-parallel": "^0.13.0",
-    "cypress-wait-until": "^1.7.2"
   }
 }
