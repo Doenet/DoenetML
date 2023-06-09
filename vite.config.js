@@ -3,7 +3,7 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
-import { libInjectCss } from 'vite-plugin-lib-inject-css';
+import { libInjectCss } from "vite-plugin-lib-inject-css";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -50,18 +50,18 @@ export default defineConfig({
   worker: {
     format: "iife",
   },
-  commonjsOptions: {
-    transformMixedEsModules: true,
-    // Bugfix required to handle issue with vite, rollup and libs (like react-datetime)
-    // https://github.com/vitejs/vite/issues/2139#issuecomment-1399098579
-    defaultIsModuleExports(id) {
-      try {
-        const module = require(id);
-        if (module?.default) return false;
-        return "auto";
-      } catch (error) {
-        return "auto";
-      }
-    },
-  },
+  // commonjsOptions: {
+  //   transformMixedEsModules: true,
+  //   // Bugfix required to handle issue with vite, rollup and libs (like react-datetime)
+  //   // https://github.com/vitejs/vite/issues/2139#issuecomment-1399098579
+  //   defaultIsModuleExports(id) {
+  //     try {
+  //       const module = require(id);
+  //       if (module?.default) return false;
+  //       return "auto";
+  //     } catch (error) {
+  //       return "auto";
+  //     }
+  //   },
+  // },
 });
