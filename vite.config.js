@@ -3,12 +3,11 @@ import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfil
 import react from "@vitejs/plugin-react";
 import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
-import { libInjectCss } from "vite-plugin-lib-inject-css";
 
 // https://vitejs.dev/config/
 export default defineConfig({
   base: "./",
-  plugins: [react(), libInjectCss()],
+  plugins: [react()],
   server: {
     port: 8012,
   },
