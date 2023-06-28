@@ -1,7 +1,6 @@
 import { NodeGlobalsPolyfillPlugin } from "@esbuild-plugins/node-globals-polyfill";
 import { NodeModulesPolyfillPlugin } from "@esbuild-plugins/node-modules-polyfill";
 import react from "@vitejs/plugin-react";
-import nodePolyfills from "rollup-plugin-polyfill-node";
 import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
@@ -24,29 +23,6 @@ export default defineConfig({
       }),
       NodeModulesPolyfillPlugin(),
     ],
-  },
-  build: {
-    minify: true,
-    lib: {
-      entry: "index.js",
-      name: "DoenetML",
-      fileName: "doenetml",
-      formats: ["es", "umd"],
-    },
-    rollupOptions: {
-      plugins: [nodePolyfills()],
-      external: ["react", "react-dom", "styled-components"],
-      output: {
-        globals: {
-          react: "react",
-          "react-dom": "react-dom",
-          "styled-components": "styled-components",
-        },
-      },
-    },
-  },
-  worker: {
-    format: "iife",
   },
   commonjsOptions: {
     transformMixedEsModules: true,
