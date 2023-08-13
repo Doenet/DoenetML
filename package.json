@@ -1,32 +1,33 @@
 {
-    "name": "doenetml",
-    "private": true,
-    "version": "1.0.0",
-    "description": "Monorepo for the DoenetML project",
-    "workspaces": [
-        "./packages/*"
-    ],
-    "scripts": {
-        "build": "npm run build -ws",
-        "test": "npm run test -ws -- run"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Doenet/DoenetML/"
-    },
-    "author": "",
-    "license": "ISC",
-    "bugs": {
-        "url": "https://github.com/Doenet/DoenetML/issues"
-    },
-    "homepage": "https://github.com/Doenet/DoenetML/README.md",
-    "devDependencies": {
-        "jsdom": "^22.1.0",
-        "prettier": "^3.0.0",
-        "typescript": "^5.1.6",
-        "vitest": "^0.34.1"
-    },
-    "prettier": {
-        "tabWidth": 2
-    }
+  "name": "doenetml",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Monorepo for the DoenetML project",
+  "workspaces": [
+    "./packages/doenetml-worker",
+    "./packages/*"
+  ],
+  "scripts": {
+    "build": "npm run build -ws",
+    "test": "npm run test -ws -- run"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Doenet/DoenetML/"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Doenet/DoenetML/issues"
+  },
+  "homepage": "https://github.com/Doenet/DoenetML/README.md",
+  "devDependencies": {
+    "jsdom": "^22.1.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.1.6",
+    "vitest": "^0.34.1"
+  },
+  "prettier": {
+    "tabWidth": 2
+  }
 }
