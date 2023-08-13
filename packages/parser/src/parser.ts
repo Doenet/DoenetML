@@ -1,6 +1,9 @@
 import { SyntaxNode, TreeCursor } from "@lezer/common";
 import { parser } from "./generated-assets/lezer-doenet";
 
+// Re-export parser for CodeMirror instances
+export { parser };
+
 export type Element = {
   componentType: string;
   props: Record<string, string | boolean>;

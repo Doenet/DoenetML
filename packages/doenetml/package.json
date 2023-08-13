@@ -20,7 +20,6 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
         "test-cypress": "cypress open",
         "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
@@ -46,9 +45,6 @@
         "@fortawesome/free-solid-svg-icons": "^6.1.1",
         "@fortawesome/react-fontawesome": "^0.2.0",
         "@handsontable/react": "^12.4.0",
-        "@lezer/common": "^1.0.3",
-        "@lezer/lr": "^1.3.9",
-        "@lezer/xml": "^1.0.2",
         "axios": "^1.4.0",
         "better-react-mathjax": "^2.0.1",
         "compromise": "^14.9.0",
@@ -78,7 +74,6 @@
         "@doenet/doenetml-worker": "file:doenetlml-worker"
     },
     "devDependencies": {
-        "@lezer/generator": "^1.4.0",
         "@types/react": "^18.0.37",
         "@types/react-dom": "^18.0.11",
         "@vitejs/plugin-react": "^4.0.0",
