@@ -1,0 +1,30 @@
+{
+    "name": "@doenet/test-viewer",
+    "type": "module",
+    "description": "Sample app showing how to use DoenetML",
+    "version": "1.0.0",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "styled-components": "^5.3.11"
+    },
+    "dependencies": {
+        "@doenet/doenetml": "file:doenetml",
+        "@doenet/doenetml-worker": "file:doenetml-worker"
+    },
+    "devDependencies": {
+        "vite": "^4.3.9"
+    }
+}

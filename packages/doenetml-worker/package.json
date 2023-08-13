@@ -1,0 +1,45 @@
+{
+    "name": "@doenet/doenetml-worker",
+    "type": "module",
+    "description": "Repo for compiled WebWorker code for DoenetML",
+    "version": "0.6.0-alpha3",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/doenetml.js",
+            "require": "./dist/doenetml.js"
+        },
+        "./*": {
+            "import": "./dist/*",
+            "require": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar"
+    },
+    "peerDependencies": {
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "styled-components": "^5.3.11"
+    },
+    "dependencies": {
+        "@doenet/doenetlml": "file:doenetlml"
+    },
+    "devDependencies": {
+        "node-stdlib-browser": "^1.2.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "rollup-plugin-polyfill-node": "^0.12.0",
+        "vite": "^4.3.9",
+        "vite-plugin-static-copy": "^0.17.0"
+    }
+}
