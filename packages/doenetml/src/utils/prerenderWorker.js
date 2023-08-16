@@ -215,7 +215,7 @@ function calculateInitialRendererState({
     flags = {},
 }) {
     let coreWorker = new Worker(
-        new URL("../Core/CoreWorker.js", import.meta.url),
+        new URL("doenetml-worker/CoreWorker.js", window.location),
         { type: "module" }
     );
 

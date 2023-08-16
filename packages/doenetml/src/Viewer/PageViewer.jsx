@@ -1107,7 +1107,7 @@ export function PageViewer({
 
         // console.log(`send message to create core ${pageNumber}`)
         coreWorker.current = new Worker(
-            new URL("../Core/CoreWorker.js", import.meta.url),
+            new URL("doenetml-worker/CoreWorker.js", window.location),
             { type: "module" }
         );
 

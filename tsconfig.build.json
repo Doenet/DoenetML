@@ -4,7 +4,8 @@
         "**/*.stub.ts",
         "node_modules",
         "**/tests/",
-        "**/dist/**/*"
+        "**/dist/**/*",
+        "vite.config.ts"
     ],
     "compilerOptions": {
         // We will use esbuild to make the actual js files.

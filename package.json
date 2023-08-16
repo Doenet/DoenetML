@@ -30,5 +30,8 @@
     },
     "prettier": {
         "tabWidth": 4
+    },
+    "dependencies": {
+        "plotly.js": "^2.25.2"
     }
 }
