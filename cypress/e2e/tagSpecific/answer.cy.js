@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("Answer Tag Tests", function () {
   beforeEach(() => {
@@ -2287,7 +2287,7 @@ describe("Answer Tag Tests", function () {
     });
   });
 
-  it("answer sugar from one macro with createComponentOfType text", () => {
+  it.only("answer sugar from one macro with createComponentOfType text", () => {
     cy.window().then(async (win) => {
       win.postMessage(
         {

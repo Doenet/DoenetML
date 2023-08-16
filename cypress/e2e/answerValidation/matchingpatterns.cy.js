@@ -1,4 +1,4 @@
-import { cesc } from "../../../../src/utils/url";
+import { cesc } from "../../../src/utils/url";
 
 describe("matching patterns answer tests", function () {
   beforeEach(() => {

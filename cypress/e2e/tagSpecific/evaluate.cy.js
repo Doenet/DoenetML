@@ -1,6 +1,6 @@
 import me from "math-expressions";
-import { createFunctionFromDefinition } from "../../../../src/Core/utils/function";
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("Evaluate Tag Tests", function () {
   beforeEach(() => {

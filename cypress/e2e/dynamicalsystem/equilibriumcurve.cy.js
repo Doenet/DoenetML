@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { cesc } from "../../../../src/utils/url";
+import { cesc } from "../../../src/utils/url";
 
 describe("Equilibriumcurve Tag Tests", function () {
   beforeEach(() => {

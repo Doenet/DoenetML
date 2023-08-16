@@ -1,5 +1,5 @@
-import { widthsBySize } from "../../../../src/Core/utils/size";
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { widthsBySize } from "../../../src/Core/utils/size";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("Image Tag Tests", function () {
   beforeEach(() => {

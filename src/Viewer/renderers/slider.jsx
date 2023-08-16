@@ -3,8 +3,8 @@ import me from "math-expressions";
 import styled from "styled-components";
 // import { Spring } from '@react-spring/web';
 import useDoenetRenderer from "../useDoenetRenderer";
-import ActionButton from "../../_reactComponents/PanelHeaderComponents/ActionButton";
-import ActionButtonGroup from "../../_reactComponents/PanelHeaderComponents/ActionButtonGroup";
+import ActionButton from "../../uiComponents/ActionButton";
+import ActionButtonGroup from "../../uiComponents/ActionButtonGroup";
 import { useSetRecoilState } from "recoil";
 import { rendererState } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
@@ -392,7 +392,6 @@ export default React.memo(function Slider(props) {
   if (SVs.disabled) {
     let controls = "";
 
-    // Imported ActionButton and ActionButtonGroup from PanelHeaderComponents
     if (SVs.showControls) {
       controls = (
         <ActionButtonGroup style={{ marginBottom: "12px" }}>
@@ -710,7 +709,6 @@ export default React.memo(function Slider(props) {
     ticksAndLabels = labels;
   }
 
-  // Imported ActionButton and ActionButtonGroup from PanelHeaderComponents
   let controls = "";
   if (SVs.showControls) {
     controls = (

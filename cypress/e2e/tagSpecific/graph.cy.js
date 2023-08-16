@@ -1,6 +1,6 @@
-import { createFunctionFromDefinition } from "../../../../src/Core/utils/function";
-import { widthsBySize } from "../../../../src/Core/utils/size";
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
+import { widthsBySize } from "../../../src/Core/utils/size";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("Graph Tag Tests", function () {
   beforeEach(() => {

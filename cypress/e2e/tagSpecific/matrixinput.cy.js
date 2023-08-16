@@ -1,4 +1,4 @@
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("MatrixInput Tag Tests", function () {
   beforeEach(() => {

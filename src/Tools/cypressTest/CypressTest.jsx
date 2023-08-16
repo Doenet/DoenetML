@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { DoenetML } from "../../Viewer/DoenetML.jsx";
+import { DoenetML } from "../../DoenetML.jsx";
 import { useRecoilState } from "recoil";
 // import testCodeDoenetML from './testCode.doenet?raw';
 import { useLocation, useNavigate } from "react-router";

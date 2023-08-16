@@ -23,6 +23,7 @@
     "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
     "test-cypress": "cypress open",
     "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
+    "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e",
     "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
   },
   "peerDependencies": {
@@ -85,6 +86,7 @@
     "@vitejs/plugin-react": "^4.0.0",
     "cypress": "^12.13.0",
     "cypress-parallel": "^0.13.0",
+    "cypress-plugin-tab": "^1.0.5",
     "cypress-wait-until": "^1.7.2",
     "eslint": "^8.38.0",
     "eslint-plugin-react": "^7.32.2",

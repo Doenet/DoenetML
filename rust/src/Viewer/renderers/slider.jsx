@@ -3,8 +3,8 @@ import me from 'math-expressions';
 import styled from "styled-components";
 // import { Spring } from '@react-spring/web';
 import useDoenetRender from './useDoenetRenderer';
-import ActionButton from "../../_reactComponents/PanelHeaderComponents/ActionButton";
-import ActionButtonGroup from "../../_reactComponents/PanelHeaderComponents/ActionButtonGroup";
+import ActionButton from "../../uiComponents/ActionButton";
+import ActionButtonGroup from "../../uiComponents/ActionButtonGroup";
 import { useSetRecoilState } from 'recoil';
 import { rendererState } from './useDoenetRenderer';
 

@@ -1,4 +1,4 @@
-import { cesc } from "../../../../src/utils/url";
+import { cesc } from "../../../src/utils/url";
 
 describe("TriggerSet Tag Tests", function () {
   beforeEach(() => {

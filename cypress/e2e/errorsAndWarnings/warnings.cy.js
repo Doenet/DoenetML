@@ -1,4 +1,4 @@
-import { cesc2 } from "../../../../src/utils/url";
+import { cesc2 } from "../../../src/utils/url";
 
 describe("Warning Tests", function () {
   beforeEach(() => {

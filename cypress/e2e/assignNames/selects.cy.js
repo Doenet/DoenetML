@@ -1,5 +1,5 @@
-import { numberToLetters } from "../../../../src/Core/utils/sequence";
-import { cesc, cesc2 } from "../../../../src/utils/url";
+import { numberToLetters } from "../../../src/Core/utils/sequence";
+import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("selects assignName Tests", function () {
   beforeEach(() => {

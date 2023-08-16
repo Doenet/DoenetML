@@ -29,7 +29,6 @@ import {
   focusedMathFieldReturn,
 } from "./MathInputSelector";
 
-// import { doenetMainBlue } from '../../../_reactComponents/PanelHeaderComponents/theme';
 
 import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";

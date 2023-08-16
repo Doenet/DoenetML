@@ -1,5 +1,5 @@
-import { createFunctionFromDefinition } from "../../../../src/Core/utils/function";
-import { cesc } from "../../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
+import { cesc } from "../../../src/utils/url";
 
 describe("Parameterized Curve Tag Tests", function () {
   beforeEach(() => {

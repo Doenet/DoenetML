@@ -39,4 +39,7 @@ Cargo.lock
 
 src/test/testCode.doenet
 
+cypress/videos
 cypress/screenshots
+runner-results
+parallel-weights.json

@@ -1,6 +1,6 @@
 import me from "math-expressions";
-import { createFunctionFromDefinition } from "../../../../src/Core/utils/function";
-import { cesc } from "../../../../src/utils/url";
+import { createFunctionFromDefinition } from "../../../src/Core/utils/function";
+import { cesc } from "../../../src/utils/url";
 
 describe("Curve Tag Tests", function () {
   beforeEach(() => {

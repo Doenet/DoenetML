@@ -1,4 +1,4 @@
-import { cesc } from "../../../../src/utils/url";
+import { cesc } from "../../../src/utils/url";
 
 describe("Paragraph Markup Tag Tests", function () {
   beforeEach(() => {
