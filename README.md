@@ -1,5 +1,9 @@
 # DoenetML
 
+Monorepo for DoenetML Components. See the `packages/*` folders for individual components.
+
+# What is DoenetML?
+
 Semantic markup for building interactive web activities.
 [Read more about Doenet](https://www.doenet.org)
 
