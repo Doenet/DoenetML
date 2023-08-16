@@ -6,11 +6,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 const root = createRoot(document.getElementById("root"));
 root.render(
-  <RecoilRoot>
-    <Router>
-      <Routes>
-        <Route path="*" element={<DoenetTest />} />
-      </Routes>
-    </Router>
-  </RecoilRoot>,
+    <RecoilRoot>
+        <Router>
+            <Routes>
+                <Route path="*" element={<DoenetTest />} />
+            </Routes>
+        </Router>
+    </RecoilRoot>
 );

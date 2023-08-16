@@ -1,29 +1,29 @@
-import React, { useEffect } from 'react';
-import useDoenetRender from './useDoenetRenderer';
-import VisibilitySensor from 'react-visibility-sensor-v2';
+import React, { useEffect } from "react";
+import useDoenetRender from "./useDoenetRenderer";
+import VisibilitySensor from "react-visibility-sensor-v2";
 
 export default React.memo(function Table(props) {
-  let { name, SVs, children, actions, callAction } = useDoenetRender(props);
+    let { name, SVs, children, actions, callAction } = useDoenetRender(props);
 
-  let onChangeVisibility = isVisible => {
-    callAction({
-      action: actions.recordVisibilityChange,
-      args: { isVisible }
-    })
-  }
+    let onChangeVisibility = (isVisible) => {
+        callAction({
+            action: actions.recordVisibilityChange,
+            args: { isVisible },
+        });
+    };
 
-  useEffect(() => {
-    return () => {
-      callAction({
-        action: actions.recordVisibilityChange,
-        args: { isVisible: false }
-      })
+    useEffect(() => {
+        return () => {
+            callAction({
+                action: actions.recordVisibilityChange,
+                args: { isVisible: false },
+            });
+        };
+    }, []);
+
+    if (SVs.hidden) {
+        return null;
     }
-  }, [])
-
-  if (SVs.hidden) {
-    return null;
-  }
 
     let heading = null;
 
@@ -35,37 +35,48 @@ export default React.memo(function Table(props) {
 
     let title;
     if (SVs.titleChildName) {
-      let titleChildInd;
-      for (let [ind, child] of children.entries()) {
-        if (typeof child !== "string" && child.props.componentInstructions.componentName === SVs.titleChildName) {
-          titleChildInd = ind;
-          break;
+        let titleChildInd;
+        for (let [ind, child] of children.entries()) {
+            if (
+                typeof child !== "string" &&
+                child.props.componentInstructions.componentName ===
+                    SVs.titleChildName
+            ) {
+                titleChildInd = ind;
+                break;
+            }
         }
-      }
-      title = children[titleChildInd];
-      childrenToRender.splice(titleChildInd, 1); // remove title
+        title = children[titleChildInd];
+        childrenToRender.splice(titleChildInd, 1); // remove title
     } else {
-      title = SVs.title;
+        title = SVs.title;
     }
 
     if (!SVs.suppressTableNameInTitle) {
-      let tableName = <strong>{SVs.tableName}</strong>
-      if (title) {
-        title = <>{tableName}: {title}</>
-      } else {
-        title = tableName;
-      }
+        let tableName = <strong>{SVs.tableName}</strong>;
+        if (title) {
+            title = (
+                <>
+                    {tableName}: {title}
+                </>
+            );
+        } else {
+            title = tableName;
+        }
     }
 
-    heading = <div id={name + "_title"}>{title}</div>
+    heading = <div id={name + "_title"}>{title}</div>;
 
     return (
-      <VisibilitySensor partialVisibility={true} onChange={onChangeVisibility}>
-      <div id={name} style={{ margin: "12px 0" }}>
-        <a name={name} />
-        {heading}
-        {childrenToRender}
-      </div>
-      </VisibilitySensor>
-    )
-})
+        <VisibilitySensor
+            partialVisibility={true}
+            onChange={onChangeVisibility}
+        >
+            <div id={name} style={{ margin: "12px 0" }}>
+                <a name={name} />
+                {heading}
+                {childrenToRender}
+            </div>
+        </VisibilitySensor>
+    );
+});

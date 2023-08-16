@@ -1,16 +1,16 @@
 import { cesc } from "../../../src/utils/url";
 
 describe("Boolean Tag Tests", function () {
-  beforeEach(() => {
-    cy.clearIndexedDB();
-    cy.visit("/src/Tools/cypressTest/");
-  });
+    beforeEach(() => {
+        cy.clearIndexedDB();
+        cy.visit("/src/Tools/cypressTest/");
+    });
 
-  it("basic boolean evaluation", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("basic boolean evaluation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <p>
@@ -89,75 +89,75 @@ describe("Boolean Tag Tests", function () {
     </p>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("contain.text", "a");
+
+        let nTrues = 37,
+            nFalses = 31;
+        for (let i = 1; i <= nTrues; i++) {
+            cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
+        }
+
+        for (let i = 1; i <= nFalses; i++) {
+            cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
+        }
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            for (let i = 1; i <= nTrues; i++) {
+                expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            }
+            for (let i = 1; i <= nFalses; i++) {
+                expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            }
+        });
     });
 
-    cy.get(cesc("#\\/_text1")).should("contain.text", "a");
-
-    let nTrues = 37,
-      nFalses = 31;
-    for (let i = 1; i <= nTrues; i++) {
-      cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
-    }
-
-    for (let i = 1; i <= nFalses; i++) {
-      cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
-    }
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      for (let i = 1; i <= nTrues; i++) {
-        expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
-      }
-      for (let i = 1; i <= nFalses; i++) {
-        expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
-      }
-    });
-  });
-
-  it("boolean based on math", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean based on math", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <mathinput prefill="0" />
 
     <text hide="$_mathinput1">
       Hello there!
     </text>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
+
+        cy.get(cesc("#\\/_mathinput1") + " textarea").type(
+            "{end}{backspace}3{enter}",
+            { force: true }
+        );
+        cy.get(cesc("#\\/_text1")).should("not.exist");
+
+        cy.get(cesc("#\\/_mathinput1") + " textarea").type(
+            "{end}{backspace}2x{enter}",
+            { force: true }
+        );
+        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
+
+        cy.get(cesc("#\\/_mathinput1") + " textarea").type("{end}-x-x{enter}", {
+            force: true,
+        });
+        cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
     });
 
-    cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
-
-    cy.get(cesc("#\\/_mathinput1") + " textarea").type(
-      "{end}{backspace}3{enter}",
-      { force: true },
-    );
-    cy.get(cesc("#\\/_text1")).should("not.exist");
-
-    cy.get(cesc("#\\/_mathinput1") + " textarea").type(
-      "{end}{backspace}2x{enter}",
-      { force: true },
-    );
-    cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
-
-    cy.get(cesc("#\\/_mathinput1") + " textarea").type("{end}-x-x{enter}", {
-      force: true,
-    });
-    cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
-  });
-
-  it("boolean based on complex numbers", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean based on complex numbers", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <p><number name="a">3+4i</number> <number name="b">3i</number> <number name="c">pi+e i</number></p>
 
     <p><boolean name="t1">isnumber(re($c))</boolean></p>
@@ -180,37 +180,37 @@ describe("Boolean Tag Tests", function () {
     <p><boolean name="f9">abs($a) < 5</boolean></p>
         
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        let nTrues = 9,
+            nFalses = 9;
+        for (let i = 1; i <= nTrues; i++) {
+            cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
+        }
+
+        for (let i = 1; i <= nFalses; i++) {
+            cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
+        }
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            for (let i = 1; i <= nTrues; i++) {
+                expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
+            }
+            for (let i = 1; i <= nFalses; i++) {
+                expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
+            }
+        });
     });
 
-    let nTrues = 9,
-      nFalses = 9;
-    for (let i = 1; i <= nTrues; i++) {
-      cy.get(cesc(`#\\/t${i}`)).should("have.text", "true");
-    }
-
-    for (let i = 1; i <= nFalses; i++) {
-      cy.get(cesc(`#\\/f${i}`)).should("have.text", "false");
-    }
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      for (let i = 1; i <= nTrues; i++) {
-        expect(stateVariables[`/t${i}`].stateValues.value).to.be.true;
-      }
-      for (let i = 1; i <= nFalses; i++) {
-        expect(stateVariables[`/f${i}`].stateValues.value).to.be.false;
-      }
-    });
-  });
-
-  it("boolean from computation", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean from computation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <mathinput prefill="1" name="i" />
 
     <boolean>mod($i,2) = 1</boolean>
@@ -219,47 +219,47 @@ describe("Boolean Tag Tests", function () {
     <boolean>floor(($i+1)/2) = ceil(($i-1)/2)</boolean>
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
+
+        cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}4{enter}", {
+            force: true,
+        });
+        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
+
+        cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}-7{enter}", {
+            force: true,
+        });
+        cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
+
+        cy.get(cesc("#\\/i") + " textarea").type(
+            "{end}{backspace}{backspace}0{enter}",
+            { force: true }
+        );
+        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
-
-    cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}4{enter}", {
-      force: true,
-    });
-    cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
-
-    cy.get(cesc("#\\/i") + " textarea").type("{end}{backspace}-7{enter}", {
-      force: true,
-    });
-    cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean4")).should("have.text", "false");
-
-    cy.get(cesc("#\\/i") + " textarea").type(
-      "{end}{backspace}{backspace}0{enter}",
-      { force: true },
-    );
-    cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean3")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
-  });
-
-  it("boolean with lists", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean with lists", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <boolean name="t1"><math>1,2</math> = <mathlist>1 2</mathlist></boolean>
     <boolean name="t2"><math>1,2</math> = <mathlist unordered>2 1</mathlist></boolean>
     <boolean name="t3"><math unordered>1,2</math> = <mathlist>2 1</mathlist></boolean>
@@ -303,59 +303,59 @@ describe("Boolean Tag Tests", function () {
     <boolean name="f19"><text>a, b</text> = <textlist>b a</textlist></boolean>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/t1")).should("have.text", "true");
+        cy.get(cesc("#\\/t2")).should("have.text", "true");
+        cy.get(cesc("#\\/t3")).should("have.text", "true");
+        cy.get(cesc("#\\/t4")).should("have.text", "true");
+        cy.get(cesc("#\\/t5")).should("have.text", "true");
+        cy.get(cesc("#\\/t6")).should("have.text", "true");
+        cy.get(cesc("#\\/t7")).should("have.text", "true");
+        cy.get(cesc("#\\/t8")).should("have.text", "true");
+        cy.get(cesc("#\\/t9")).should("have.text", "true");
+        cy.get(cesc("#\\/t10")).should("have.text", "true");
+        cy.get(cesc("#\\/t11")).should("have.text", "true");
+        cy.get(cesc("#\\/t12")).should("have.text", "true");
+        cy.get(cesc("#\\/t13")).should("have.text", "true");
+        cy.get(cesc("#\\/t14")).should("have.text", "true");
+        cy.get(cesc("#\\/t15")).should("have.text", "true");
+        cy.get(cesc("#\\/t16")).should("have.text", "true");
+        cy.get(cesc("#\\/t17")).should("have.text", "true");
+        cy.get(cesc("#\\/t18")).should("have.text", "true");
+        cy.get(cesc("#\\/t19")).should("have.text", "true");
+        cy.get(cesc("#\\/t20")).should("have.text", "true");
+        cy.get(cesc("#\\/t21")).should("have.text", "true");
+
+        cy.get(cesc("#\\/f1")).should("have.text", "false");
+        cy.get(cesc("#\\/f2")).should("have.text", "false");
+        cy.get(cesc("#\\/f3")).should("have.text", "false");
+        cy.get(cesc("#\\/f4")).should("have.text", "false");
+        cy.get(cesc("#\\/f5")).should("have.text", "false");
+        cy.get(cesc("#\\/f6")).should("have.text", "false");
+        cy.get(cesc("#\\/f7")).should("have.text", "false");
+        cy.get(cesc("#\\/f8")).should("have.text", "false");
+        cy.get(cesc("#\\/f9")).should("have.text", "false");
+        cy.get(cesc("#\\/f10")).should("have.text", "false");
+        cy.get(cesc("#\\/f11")).should("have.text", "false");
+        cy.get(cesc("#\\/f12")).should("have.text", "false");
+        cy.get(cesc("#\\/f13")).should("have.text", "false");
+        cy.get(cesc("#\\/f14")).should("have.text", "false");
+        cy.get(cesc("#\\/f15")).should("have.text", "false");
+        cy.get(cesc("#\\/f16")).should("have.text", "false");
+        cy.get(cesc("#\\/f17")).should("have.text", "false");
+        cy.get(cesc("#\\/f18")).should("have.text", "false");
+        cy.get(cesc("#\\/f19")).should("have.text", "false");
     });
 
-    cy.get(cesc("#\\/t1")).should("have.text", "true");
-    cy.get(cesc("#\\/t2")).should("have.text", "true");
-    cy.get(cesc("#\\/t3")).should("have.text", "true");
-    cy.get(cesc("#\\/t4")).should("have.text", "true");
-    cy.get(cesc("#\\/t5")).should("have.text", "true");
-    cy.get(cesc("#\\/t6")).should("have.text", "true");
-    cy.get(cesc("#\\/t7")).should("have.text", "true");
-    cy.get(cesc("#\\/t8")).should("have.text", "true");
-    cy.get(cesc("#\\/t9")).should("have.text", "true");
-    cy.get(cesc("#\\/t10")).should("have.text", "true");
-    cy.get(cesc("#\\/t11")).should("have.text", "true");
-    cy.get(cesc("#\\/t12")).should("have.text", "true");
-    cy.get(cesc("#\\/t13")).should("have.text", "true");
-    cy.get(cesc("#\\/t14")).should("have.text", "true");
-    cy.get(cesc("#\\/t15")).should("have.text", "true");
-    cy.get(cesc("#\\/t16")).should("have.text", "true");
-    cy.get(cesc("#\\/t17")).should("have.text", "true");
-    cy.get(cesc("#\\/t18")).should("have.text", "true");
-    cy.get(cesc("#\\/t19")).should("have.text", "true");
-    cy.get(cesc("#\\/t20")).should("have.text", "true");
-    cy.get(cesc("#\\/t21")).should("have.text", "true");
-
-    cy.get(cesc("#\\/f1")).should("have.text", "false");
-    cy.get(cesc("#\\/f2")).should("have.text", "false");
-    cy.get(cesc("#\\/f3")).should("have.text", "false");
-    cy.get(cesc("#\\/f4")).should("have.text", "false");
-    cy.get(cesc("#\\/f5")).should("have.text", "false");
-    cy.get(cesc("#\\/f6")).should("have.text", "false");
-    cy.get(cesc("#\\/f7")).should("have.text", "false");
-    cy.get(cesc("#\\/f8")).should("have.text", "false");
-    cy.get(cesc("#\\/f9")).should("have.text", "false");
-    cy.get(cesc("#\\/f10")).should("have.text", "false");
-    cy.get(cesc("#\\/f11")).should("have.text", "false");
-    cy.get(cesc("#\\/f12")).should("have.text", "false");
-    cy.get(cesc("#\\/f13")).should("have.text", "false");
-    cy.get(cesc("#\\/f14")).should("have.text", "false");
-    cy.get(cesc("#\\/f15")).should("have.text", "false");
-    cy.get(cesc("#\\/f16")).should("have.text", "false");
-    cy.get(cesc("#\\/f17")).should("have.text", "false");
-    cy.get(cesc("#\\/f18")).should("have.text", "false");
-    cy.get(cesc("#\\/f19")).should("have.text", "false");
-  });
-
-  it("boolean with texts", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean with texts", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <boolean name="t1"><text>hello there</text> = hello there</boolean>
     <boolean name="t2"><text>hello there</text> = <text>hello</text> <text>there</text></boolean>
     <boolean name="t3"><text>hello there</text> = hello  there</boolean>
@@ -377,36 +377,36 @@ describe("Boolean Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/t1")).should("have.text", "true");
+        cy.get(cesc("#\\/t2")).should("have.text", "true");
+        cy.get(cesc("#\\/t3")).should("have.text", "true");
+        cy.get(cesc("#\\/t4")).should("have.text", "true");
+        cy.get(cesc("#\\/t5")).should("have.text", "true");
+        cy.get(cesc("#\\/t5")).should("have.text", "true");
+        cy.get(cesc("#\\/t6")).should("have.text", "true");
+        cy.get(cesc("#\\/t7")).should("have.text", "true");
+        cy.get(cesc("#\\/t8")).should("have.text", "true");
+        cy.get(cesc("#\\/t9")).should("have.text", "true");
+        cy.get(cesc("#\\/t10")).should("have.text", "true");
+        cy.get(cesc("#\\/t11")).should("have.text", "true");
+
+        cy.get(cesc("#\\/f1")).should("have.text", "false");
+        cy.get(cesc("#\\/f2")).should("have.text", "false");
+        cy.get(cesc("#\\/f3")).should("have.text", "false");
+        cy.get(cesc("#\\/f4")).should("have.text", "false");
+        cy.get(cesc("#\\/f5")).should("have.text", "false");
     });
 
-    cy.get(cesc("#\\/t1")).should("have.text", "true");
-    cy.get(cesc("#\\/t2")).should("have.text", "true");
-    cy.get(cesc("#\\/t3")).should("have.text", "true");
-    cy.get(cesc("#\\/t4")).should("have.text", "true");
-    cy.get(cesc("#\\/t5")).should("have.text", "true");
-    cy.get(cesc("#\\/t5")).should("have.text", "true");
-    cy.get(cesc("#\\/t6")).should("have.text", "true");
-    cy.get(cesc("#\\/t7")).should("have.text", "true");
-    cy.get(cesc("#\\/t8")).should("have.text", "true");
-    cy.get(cesc("#\\/t9")).should("have.text", "true");
-    cy.get(cesc("#\\/t10")).should("have.text", "true");
-    cy.get(cesc("#\\/t11")).should("have.text", "true");
-
-    cy.get(cesc("#\\/f1")).should("have.text", "false");
-    cy.get(cesc("#\\/f2")).should("have.text", "false");
-    cy.get(cesc("#\\/f3")).should("have.text", "false");
-    cy.get(cesc("#\\/f4")).should("have.text", "false");
-    cy.get(cesc("#\\/f5")).should("have.text", "false");
-  });
-
-  it("math errors and invalid targets are not equal", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("math errors and invalid targets are not equal", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
 
     <boolean><math></math> = <math></math></boolean>
     <boolean><math></math> != <math></math></boolean>
@@ -419,27 +419,27 @@ describe("Boolean Tag Tests", function () {
     <boolean>$nothing != $nada</boolean>
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
+
+        cy.get(cesc("#\\/_boolean5")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean6")).should("have.text", "true");
+        cy.get(cesc("#\\/_boolean7")).should("have.text", "false");
+        cy.get(cesc("#\\/_boolean8")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean2")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean3")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean4")).should("have.text", "true");
-
-    cy.get(cesc("#\\/_boolean5")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean6")).should("have.text", "true");
-    cy.get(cesc("#\\/_boolean7")).should("have.text", "false");
-    cy.get(cesc("#\\/_boolean8")).should("have.text", "true");
-  });
-
-  it("boolean with number strings for text", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean with number strings for text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <choiceinput name="c">
       <choice>1</choice>
@@ -453,133 +453,133 @@ describe("Boolean Tag Tests", function () {
     <boolean name="three">$c = three</boolean>
     <boolean name="four">$c = <text>four</text></boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/one")).should("have.text", "false");
+        cy.get(cesc("#\\/two")).should("have.text", "false");
+        cy.get(cesc("#\\/three")).should("have.text", "false");
+        cy.get(cesc("#\\/four")).should("have.text", "false");
+
+        cy.get(cesc(`#\\/c_choice1_input`)).click();
+        cy.get(cesc("#\\/one")).should("have.text", "true");
+        cy.get(cesc("#\\/two")).should("have.text", "false");
+        cy.get(cesc("#\\/three")).should("have.text", "false");
+        cy.get(cesc("#\\/four")).should("have.text", "false");
+
+        cy.get(cesc(`#\\/c_choice2_input`)).click();
+        cy.get(cesc("#\\/one")).should("have.text", "false");
+        cy.get(cesc("#\\/two")).should("have.text", "true");
+        cy.get(cesc("#\\/three")).should("have.text", "false");
+        cy.get(cesc("#\\/four")).should("have.text", "false");
+
+        cy.get(cesc(`#\\/c_choice3_input`)).click();
+        cy.get(cesc("#\\/one")).should("have.text", "false");
+        cy.get(cesc("#\\/two")).should("have.text", "false");
+        cy.get(cesc("#\\/three")).should("have.text", "true");
+        cy.get(cesc("#\\/four")).should("have.text", "false");
+
+        cy.get(cesc(`#\\/c_choice4_input`)).click();
+        cy.get(cesc("#\\/one")).should("have.text", "false");
+        cy.get(cesc("#\\/two")).should("have.text", "false");
+        cy.get(cesc("#\\/three")).should("have.text", "false");
+        cy.get(cesc("#\\/four")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/one")).should("have.text", "false");
-    cy.get(cesc("#\\/two")).should("have.text", "false");
-    cy.get(cesc("#\\/three")).should("have.text", "false");
-    cy.get(cesc("#\\/four")).should("have.text", "false");
-
-    cy.get(cesc(`#\\/c_choice1_input`)).click();
-    cy.get(cesc("#\\/one")).should("have.text", "true");
-    cy.get(cesc("#\\/two")).should("have.text", "false");
-    cy.get(cesc("#\\/three")).should("have.text", "false");
-    cy.get(cesc("#\\/four")).should("have.text", "false");
-
-    cy.get(cesc(`#\\/c_choice2_input`)).click();
-    cy.get(cesc("#\\/one")).should("have.text", "false");
-    cy.get(cesc("#\\/two")).should("have.text", "true");
-    cy.get(cesc("#\\/three")).should("have.text", "false");
-    cy.get(cesc("#\\/four")).should("have.text", "false");
-
-    cy.get(cesc(`#\\/c_choice3_input`)).click();
-    cy.get(cesc("#\\/one")).should("have.text", "false");
-    cy.get(cesc("#\\/two")).should("have.text", "false");
-    cy.get(cesc("#\\/three")).should("have.text", "true");
-    cy.get(cesc("#\\/four")).should("have.text", "false");
-
-    cy.get(cesc(`#\\/c_choice4_input`)).click();
-    cy.get(cesc("#\\/one")).should("have.text", "false");
-    cy.get(cesc("#\\/two")).should("have.text", "false");
-    cy.get(cesc("#\\/three")).should("have.text", "false");
-    cy.get(cesc("#\\/four")).should("have.text", "true");
-  });
-
-  it("boolean adapts to text", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean adapts to text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <booleaninput name="bi" />
     <p><text name="t">You are hungry. $bi</text></p>
     <p>Are you sure? <textinput bindvalueto="$bi" name="ti" /></p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+
+        cy.get(cesc("#\\/bi")).click();
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("false{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("tRuE{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("0{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("1=0{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("f{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("FALSE{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("1{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+
+        cy.get(cesc("#\\/ti_input")).clear().type("t{enter}");
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
+
+        cy.get(cesc("#\\/bi")).click();
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "true");
+
+        cy.get(cesc("#\\/bi")).click();
+        cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
+        cy.get(cesc("#\\/ti_input")).should("have.value", "false");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-
-    cy.get(cesc("#\\/bi")).click();
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("false{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("tRuE{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("0{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("1=0{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("f{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("FALSE{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("1{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-
-    cy.get(cesc("#\\/ti_input")).clear().type("t{enter}");
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-
-    cy.get(cesc("#\\/bi")).click();
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. true");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "true");
-
-    cy.get(cesc("#\\/bi")).click();
-    cy.get(cesc("#\\/t")).should("have.text", "You are hungry. false");
-    cy.get(cesc("#\\/ti_input")).should("have.value", "false");
-  });
-
-  it("boolean does not adapt while number adapts", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean does not adapt while number adapts", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean name="b1"><number>3</number> != 1 and <boolean>true</boolean></boolean>
     <boolean name="b2"><number>3</number> != 1 and <boolean>true</boolean> and <number>4</number> = <math>4</math></boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/b1")).should("have.text", "true");
+        cy.get(cesc("#\\/b2")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/b1")).should("have.text", "true");
-    cy.get(cesc("#\\/b2")).should("have.text", "true");
-  });
-
-  it("overwrite properties when copying", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("overwrite properties when copying", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean name="b">x+x = 2x</boolean>
 
@@ -591,27 +591,27 @@ describe("Boolean Tag Tests", function () {
     $b4{simplifyOnCompare="false" name="b5"}
     $b5{simplifyOnCompare="true" name="b6"}
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/b")).should("have.text", "true");
+        cy.get(cesc("#\\/b1")).should("have.text", "false");
+        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        cy.get(cesc("#\\/b3")).should("have.text", "false");
+        cy.get(cesc("#\\/b4")).should("have.text", "true");
+        cy.get(cesc("#\\/b5")).should("have.text", "false");
+        cy.get(cesc("#\\/b6")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/b")).should("have.text", "true");
-    cy.get(cesc("#\\/b1")).should("have.text", "false");
-    cy.get(cesc("#\\/b2")).should("have.text", "true");
-    cy.get(cesc("#\\/b3")).should("have.text", "false");
-    cy.get(cesc("#\\/b4")).should("have.text", "true");
-    cy.get(cesc("#\\/b5")).should("have.text", "false");
-    cy.get(cesc("#\\/b6")).should("have.text", "true");
-  });
-
-  it("boolean simplifyOnCompare bug", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean simplifyOnCompare bug", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean simplifyOnCompare symbolicEquality name="b1">
       <math>-5e^(-t)</math> = <math simplify>-5e^(-t)</math>
@@ -620,22 +620,22 @@ describe("Boolean Tag Tests", function () {
       <math name="orig">-5e^(-t)</math> = $orig.value{simplify}
     </boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/b1")).should("have.text", "true");
+        cy.get(cesc("#\\/b2")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/b1")).should("have.text", "true");
-    cy.get(cesc("#\\/b2")).should("have.text", "true");
-  });
-
-  it("case insensitive match", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("case insensitive match", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean name="b1">a/B = A/b</boolean>
     <boolean name="b2" caseInsensitiveMatch>a/B = A/b</boolean>
@@ -644,26 +644,26 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b5"><text>one Word</text> = <text>One word</text></boolean>
     <boolean name="b6" caseInsensitiveMatch><text>one Word</text> = <text>One word</text></boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/b1")).should("have.text", "false");
+        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        cy.get(cesc("#\\/b3")).should("have.text", "false");
+        cy.get(cesc("#\\/b4")).should("have.text", "true");
+        cy.get(cesc("#\\/b5")).should("have.text", "false");
+        cy.get(cesc("#\\/b6")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/b1")).should("have.text", "false");
-    cy.get(cesc("#\\/b2")).should("have.text", "true");
-    cy.get(cesc("#\\/b3")).should("have.text", "false");
-    cy.get(cesc("#\\/b4")).should("have.text", "true");
-    cy.get(cesc("#\\/b5")).should("have.text", "false");
-    cy.get(cesc("#\\/b6")).should("have.text", "true");
-  });
-
-  it("match blanks", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("match blanks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean name="b1">/a = /a</boolean>
     <boolean name="b2" matchBlanks>/a = /a</boolean>
@@ -674,28 +674,28 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b7"><math>_6^14C</math> = <math>_6^14C</math></boolean>
     <boolean name="b8" matchBlanks><math>_6^14C</math> = <math>_6^14C</math></boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/b1")).should("have.text", "false");
+        cy.get(cesc("#\\/b2")).should("have.text", "true");
+        cy.get(cesc("#\\/b3")).should("have.text", "false");
+        cy.get(cesc("#\\/b4")).should("have.text", "true");
+        cy.get(cesc("#\\/b5")).should("have.text", "false");
+        cy.get(cesc("#\\/b6")).should("have.text", "true");
+        cy.get(cesc("#\\/b7")).should("have.text", "false");
+        cy.get(cesc("#\\/b8")).should("have.text", "true");
     });
 
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/b1")).should("have.text", "false");
-    cy.get(cesc("#\\/b2")).should("have.text", "true");
-    cy.get(cesc("#\\/b3")).should("have.text", "false");
-    cy.get(cesc("#\\/b4")).should("have.text", "true");
-    cy.get(cesc("#\\/b5")).should("have.text", "false");
-    cy.get(cesc("#\\/b6")).should("have.text", "true");
-    cy.get(cesc("#\\/b7")).should("have.text", "false");
-    cy.get(cesc("#\\/b8")).should("have.text", "true");
-  });
-
-  it("boolean with symbolic functions", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("boolean with symbolic functions", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <boolean name="t1">
       <math>(f(a)-g(b))(x)</math> = <math>(g(b)-f(a))(-x)</math>
@@ -722,21 +722,21 @@ describe("Boolean Tag Tests", function () {
       <math>(f^3(a)-g^2(b))(x)</math> = <math>(g^3(b)-f^2(a))(-x)</math>
     </boolean>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
+
+        cy.get(cesc("#\\/t1")).should("have.text", "true");
+        cy.get(cesc("#\\/t2")).should("have.text", "true");
+        cy.get(cesc("#\\/t3")).should("have.text", "true");
+        cy.get(cesc("#\\/t4")).should("have.text", "true");
+
+        cy.get(cesc("#\\/f1")).should("have.text", "false");
+        cy.get(cesc("#\\/f2")).should("have.text", "false");
+        cy.get(cesc("#\\/f3")).should("have.text", "false");
+        cy.get(cesc("#\\/f4")).should("have.text", "false");
     });
-
-    cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
-
-    cy.get(cesc("#\\/t1")).should("have.text", "true");
-    cy.get(cesc("#\\/t2")).should("have.text", "true");
-    cy.get(cesc("#\\/t3")).should("have.text", "true");
-    cy.get(cesc("#\\/t4")).should("have.text", "true");
-
-    cy.get(cesc("#\\/f1")).should("have.text", "false");
-    cy.get(cesc("#\\/f2")).should("have.text", "false");
-    cy.get(cesc("#\\/f3")).should("have.text", "false");
-    cy.get(cesc("#\\/f4")).should("have.text", "false");
-  });
 });

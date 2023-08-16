@@ -14,18 +14,16 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import "./commands";
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
 
-
-
-Cypress.on("window:before:load", win => {
-    cy.stub(win.console, "error").callsFake(msg => {
-      // log out to the terminal
-      cy.now("task", "error", msg)
-      // log to Command Log and fail the test
-      throw new Error(msg)
-    })
-  })
+Cypress.on("window:before:load", (win) => {
+    cy.stub(win.console, "error").callsFake((msg) => {
+        // log out to the terminal
+        cy.now("task", "error", msg);
+        // log to Command Log and fail the test
+        throw new Error(msg);
+    });
+});

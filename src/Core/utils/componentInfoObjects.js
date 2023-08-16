@@ -1,100 +1,113 @@
 import * as ComponentTypes from "../ComponentTypes";
 
 export default function createComponentInfoObjects() {
-  let allComponentClasses = ComponentTypes.allComponentClasses();
-  let componentTypesCreatingVariants =
-    ComponentTypes.componentTypesCreatingVariants();
+    let allComponentClasses = ComponentTypes.allComponentClasses();
+    let componentTypesCreatingVariants =
+        ComponentTypes.componentTypesCreatingVariants();
 
-  let componentTypeLowerCaseMapping = {};
-  for (let componentType in allComponentClasses) {
-    componentTypeLowerCaseMapping[componentType.toLowerCase()] = componentType;
-  }
+    let componentTypeLowerCaseMapping = {};
+    for (let componentType in allComponentClasses) {
+        componentTypeLowerCaseMapping[componentType.toLowerCase()] =
+            componentType;
+    }
 
-  let stateVariableInfo = {};
-  for (let componentType in allComponentClasses) {
-    Object.defineProperty(stateVariableInfo, componentType, {
-      get: function () {
-        let info = allComponentClasses[componentType].returnStateVariableInfo();
-        delete stateVariableInfo[componentType];
-        return (stateVariableInfo[componentType] = info);
-      }.bind(this),
-      configurable: true,
-    });
-  }
-
-  let publicStateVariableInfo = {};
-  for (let componentType in allComponentClasses) {
-    Object.defineProperty(publicStateVariableInfo, componentType, {
-      get: function () {
-        let info = allComponentClasses[componentType].returnStateVariableInfo({
-          onlyPublic: true,
+    let stateVariableInfo = {};
+    for (let componentType in allComponentClasses) {
+        Object.defineProperty(stateVariableInfo, componentType, {
+            get: function () {
+                let info =
+                    allComponentClasses[
+                        componentType
+                    ].returnStateVariableInfo();
+                delete stateVariableInfo[componentType];
+                return (stateVariableInfo[componentType] = info);
+            }.bind(this),
+            configurable: true,
         });
-        delete publicStateVariableInfo[componentType];
-        return (publicStateVariableInfo[componentType] = info);
-      }.bind(this),
-      configurable: true,
-    });
-  }
-
-  function isInheritedComponentType({
-    inheritedComponentType,
-    baseComponentType,
-  }) {
-    if (inheritedComponentType === baseComponentType) {
-      return true;
-    }
-    if (inheritedComponentType === "string") {
-      return baseComponentType === "_base" || baseComponentType === "_inline";
-    } else if (baseComponentType === "string") {
-      return false;
     }
 
-    let baseClass = allComponentClasses[baseComponentType];
-    if (!baseClass) {
-      return false;
+    let publicStateVariableInfo = {};
+    for (let componentType in allComponentClasses) {
+        Object.defineProperty(publicStateVariableInfo, componentType, {
+            get: function () {
+                let info = allComponentClasses[
+                    componentType
+                ].returnStateVariableInfo({
+                    onlyPublic: true,
+                });
+                delete publicStateVariableInfo[componentType];
+                return (publicStateVariableInfo[componentType] = info);
+            }.bind(this),
+            configurable: true,
+        });
     }
-    return baseClass.isPrototypeOf(allComponentClasses[inheritedComponentType]);
-  }
 
-  function isCompositeComponent({ componentType, includeNonStandard = true }) {
-    let componentClass = allComponentClasses[componentType];
-    if (!componentClass) {
-      return false;
+    function isInheritedComponentType({
+        inheritedComponentType,
+        baseComponentType,
+    }) {
+        if (inheritedComponentType === baseComponentType) {
+            return true;
+        }
+        if (inheritedComponentType === "string") {
+            return (
+                baseComponentType === "_base" || baseComponentType === "_inline"
+            );
+        } else if (baseComponentType === "string") {
+            return false;
+        }
+
+        let baseClass = allComponentClasses[baseComponentType];
+        if (!baseClass) {
+            return false;
+        }
+        return baseClass.isPrototypeOf(
+            allComponentClasses[inheritedComponentType]
+        );
     }
 
-    let isComposite = isInheritedComponentType({
-      inheritedComponentType: componentType,
-      baseComponentType: "_composite",
-    });
+    function isCompositeComponent({
+        componentType,
+        includeNonStandard = true,
+    }) {
+        let componentClass = allComponentClasses[componentType];
+        if (!componentClass) {
+            return false;
+        }
 
-    return (
-      isComposite &&
-      (includeNonStandard ||
-        !componentClass.treatAsComponentForRecursiveReplacements)
-    );
-  }
+        let isComposite = isInheritedComponentType({
+            inheritedComponentType: componentType,
+            baseComponentType: "_composite",
+        });
 
-  let componentTypeIsSpecifiedType = (cType, specifiedCType) =>
-    isInheritedComponentType({
-      inheritedComponentType: cType,
-      baseComponentType: specifiedCType,
-    });
+        return (
+            isComposite &&
+            (includeNonStandard ||
+                !componentClass.treatAsComponentForRecursiveReplacements)
+        );
+    }
 
-  let componentIsSpecifiedType = (comp, specifiedCType) =>
-    componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
-    componentTypeIsSpecifiedType(
-      comp.attributes?.createComponentOfType?.primitive,
-      specifiedCType,
-    );
+    let componentTypeIsSpecifiedType = (cType, specifiedCType) =>
+        isInheritedComponentType({
+            inheritedComponentType: cType,
+            baseComponentType: specifiedCType,
+        });
 
-  return {
-    allComponentClasses,
-    componentTypesCreatingVariants,
-    componentTypeLowerCaseMapping,
-    isInheritedComponentType,
-    isCompositeComponent,
-    stateVariableInfo,
-    publicStateVariableInfo,
-    componentIsSpecifiedType,
-  };
+    let componentIsSpecifiedType = (comp, specifiedCType) =>
+        componentTypeIsSpecifiedType(comp.componentType, specifiedCType) ||
+        componentTypeIsSpecifiedType(
+            comp.attributes?.createComponentOfType?.primitive,
+            specifiedCType
+        );
+
+    return {
+        allComponentClasses,
+        componentTypesCreatingVariants,
+        componentTypeLowerCaseMapping,
+        isInheritedComponentType,
+        isCompositeComponent,
+        stateVariableInfo,
+        publicStateVariableInfo,
+        componentIsSpecifiedType,
+    };
 }

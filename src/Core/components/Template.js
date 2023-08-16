@@ -1,10 +1,10 @@
 import Group from "./Group";
 
 export default class Template extends Group {
-  static componentType = "template";
+    static componentType = "template";
 
-  static inSchemaOnlyInheritAs = [];
-  static allowInSchemaAsComponent = undefined;
+    static inSchemaOnlyInheritAs = [];
+    static allowInSchemaAsComponent = undefined;
 
-  static renderedDefault = false;
+    static renderedDefault = false;
 }

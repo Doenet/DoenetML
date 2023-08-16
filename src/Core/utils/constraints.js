@@ -1,23 +1,25 @@
 export function applyConstraintFromComponentConstraints(
-  variables,
-  applyComponentConstraint,
+    variables,
+    applyComponentConstraint
 ) {
-  let newVariables = {};
-  let constrained = false;
+    let newVariables = {};
+    let constrained = false;
 
-  for (let varName in variables) {
-    let result = applyComponentConstraint({ [varName]: variables[varName] });
-    if (result.constrained) {
-      constrained = true;
-      newVariables[varName] = result.variables[varName];
+    for (let varName in variables) {
+        let result = applyComponentConstraint({
+            [varName]: variables[varName],
+        });
+        if (result.constrained) {
+            constrained = true;
+            newVariables[varName] = result.variables[varName];
+        }
     }
-  }
-  if (constrained) {
-    return {
-      constrained,
-      variables: newVariables,
-    };
-  } else {
-    return {};
-  }
+    if (constrained) {
+        return {
+            constrained,
+            variables: newVariables,
+        };
+    } else {
+        return {};
+    }
 }

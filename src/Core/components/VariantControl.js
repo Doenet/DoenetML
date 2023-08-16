@@ -1,36 +1,36 @@
 import BaseComponent from "./abstract/BaseComponent";
 
 export default class VariantControl extends BaseComponent {
-  static componentType = "variantControl";
-  static rendererType = undefined;
+    static componentType = "variantControl";
+    static rendererType = undefined;
 
-  static createAttributesObject() {
-    let attributes = super.createAttributesObject();
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
 
-    attributes.numVariants = {
-      createPrimitiveOfType: "integer",
-    };
+        attributes.numVariants = {
+            createPrimitiveOfType: "integer",
+        };
 
-    attributes.uniqueVariants = {
-      createPrimitiveOfType: "boolean",
-    };
+        attributes.uniqueVariants = {
+            createPrimitiveOfType: "boolean",
+        };
 
-    attributes.variantsToInclude = {
-      createComponentOfType: "textListFromString",
-    };
+        attributes.variantsToInclude = {
+            createComponentOfType: "textListFromString",
+        };
 
-    attributes.variantsToExclude = {
-      createComponentOfType: "textListFromString",
-    };
+        attributes.variantsToExclude = {
+            createComponentOfType: "textListFromString",
+        };
 
-    attributes.variantNames = {
-      createComponentOfType: "textListFromString",
-    };
+        attributes.variantNames = {
+            createComponentOfType: "textListFromString",
+        };
 
-    attributes.seeds = {
-      createComponentOfType: "textListFromString",
-    };
+        attributes.seeds = {
+            createComponentOfType: "textListFromString",
+        };
 
-    return attributes;
-  }
+        return attributes;
+    }
 }

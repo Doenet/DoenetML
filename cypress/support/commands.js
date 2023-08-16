@@ -27,8 +27,6 @@
 import "cypress-wait-until";
 import { clear as idb_clear } from "idb-keyval";
 
-
-
 Cypress.Commands.add("clearIndexedDB", () => {
-  return idb_clear();
+    return idb_clear();
 });

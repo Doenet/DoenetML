@@ -1,16 +1,16 @@
 import { cesc } from "../../../src/utils/url";
 
 describe("When Tag Tests", function () {
-  beforeEach(() => {
-    cy.clearIndexedDB();
-    cy.visit("/src/Tools/cypressTest/");
-  });
+    beforeEach(() => {
+        cy.clearIndexedDB();
+        cy.visit("/src/Tools/cypressTest/");
+    });
 
-  it("value, fractionSatisfied, conditionSatisfied are public", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("value, fractionSatisfied, conditionSatisfied are public", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <text>a</text>
   <mathinput name="n" />
   <when matchPartial name="w">
@@ -22,39 +22,41 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied: $w.fractionSatisfied{assignNames="fs"}</p>
 
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc("#\\/v")).should("have.text", "false");
+        cy.get(cesc("#\\/cs")).should("have.text", "false");
+        cy.get(cesc("#\\/fs")).should("have.text", "0");
+
+        cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
+        cy.get(cesc("#\\/fs")).should("have.text", "0.5");
+        cy.get(cesc("#\\/v")).should("have.text", "false");
+        cy.get(cesc("#\\/cs")).should("have.text", "false");
+
+        cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
+        cy.get(cesc("#\\/v")).should("have.text", "true");
+        cy.get(cesc("#\\/cs")).should("have.text", "true");
+        cy.get(cesc("#\\/fs")).should("have.text", "1");
+
+        cy.get(cesc("#\\/n") + " textarea").type("{home}-{enter}", {
+            force: true,
+        });
+        cy.get(cesc("#\\/v")).should("have.text", "false");
+        cy.get(cesc("#\\/cs")).should("have.text", "false");
+        cy.get(cesc("#\\/fs")).should("have.text", "0");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc("#\\/v")).should("have.text", "false");
-    cy.get(cesc("#\\/cs")).should("have.text", "false");
-    cy.get(cesc("#\\/fs")).should("have.text", "0");
-
-    cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-    cy.get(cesc("#\\/fs")).should("have.text", "0.5");
-    cy.get(cesc("#\\/v")).should("have.text", "false");
-    cy.get(cesc("#\\/cs")).should("have.text", "false");
-
-    cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
-    cy.get(cesc("#\\/v")).should("have.text", "true");
-    cy.get(cesc("#\\/cs")).should("have.text", "true");
-    cy.get(cesc("#\\/fs")).should("have.text", "1");
-
-    cy.get(cesc("#\\/n") + " textarea").type("{home}-{enter}", { force: true });
-    cy.get(cesc("#\\/v")).should("have.text", "false");
-    cy.get(cesc("#\\/cs")).should("have.text", "false");
-    cy.get(cesc("#\\/fs")).should("have.text", "0");
-  });
-
-  it("fraction satisfied on 2x2 matrix compare", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("fraction satisfied on 2x2 matrix compare", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <text>a</text>
   <math name="A" format="latex">\\begin{pmatrix}1 & 2\\\\ 3 & 4\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}5 & 6\\\\ 7 & 8\\end{pmatrix}</math>
@@ -96,40 +98,40 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
 
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc("#\\/fsAA")).should("have.text", "1");
+        cy.get(cesc("#\\/fsAB")).should("have.text", "0");
+        cy.get(cesc("#\\/fsAC")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
+
+        cy.get(cesc("#\\/fsBA")).should("have.text", "0");
+        cy.get(cesc("#\\/fsBB")).should("have.text", "1");
+        cy.get(cesc("#\\/fsBC")).should("have.text", "0.75");
+        cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
+
+        cy.get(cesc("#\\/fsCA")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsCB")).should("have.text", "0.75");
+        cy.get(cesc("#\\/fsCC")).should("have.text", "1");
+        cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
+
+        cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsDD")).should("have.text", "1");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc("#\\/fsAA")).should("have.text", "1");
-    cy.get(cesc("#\\/fsAB")).should("have.text", "0");
-    cy.get(cesc("#\\/fsAC")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
-
-    cy.get(cesc("#\\/fsBA")).should("have.text", "0");
-    cy.get(cesc("#\\/fsBB")).should("have.text", "1");
-    cy.get(cesc("#\\/fsBC")).should("have.text", "0.75");
-    cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
-
-    cy.get(cesc("#\\/fsCA")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsCB")).should("have.text", "0.75");
-    cy.get(cesc("#\\/fsCC")).should("have.text", "1");
-    cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
-
-    cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsDD")).should("have.text", "1");
-  });
-
-  it("fraction satisfied on mismatched size matrix compare", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("fraction satisfied on mismatched size matrix compare", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <text>a</text>
   <math name="A" format="latex">\\begin{pmatrix}1\\end{pmatrix}</math>
   <math name="B" format="latex">\\begin{pmatrix}1 & 8\\end{pmatrix}</math>
@@ -171,32 +173,32 @@ describe("When Tag Tests", function () {
   <p>Fraction satisfied DD: <number name="fsDD" copySource="DD.fractionSatisfied" /></p>
 
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc("#\\/fsAA")).should("have.text", "1");
+        cy.get(cesc("#\\/fsAB")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsAC")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
+
+        cy.get(cesc("#\\/fsBA")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsBB")).should("have.text", "1");
+        cy.get(cesc("#\\/fsBC")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
+
+        cy.get(cesc("#\\/fsCA")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsCB")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsCC")).should("have.text", "1");
+        cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
+
+        cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
+        cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
+        cy.get(cesc("#\\/fsDD")).should("have.text", "1");
     });
-
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc("#\\/fsAA")).should("have.text", "1");
-    cy.get(cesc("#\\/fsAB")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsAC")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsAD")).should("have.text", "0.25");
-
-    cy.get(cesc("#\\/fsBA")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsBB")).should("have.text", "1");
-    cy.get(cesc("#\\/fsBC")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsBD")).should("have.text", "0.25");
-
-    cy.get(cesc("#\\/fsCA")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsCB")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsCC")).should("have.text", "1");
-    cy.get(cesc("#\\/fsCD")).should("have.text", "0.5");
-
-    cy.get(cesc("#\\/fsDA")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsDB")).should("have.text", "0.25");
-    cy.get(cesc("#\\/fsDC")).should("have.text", "0.5");
-    cy.get(cesc("#\\/fsDD")).should("have.text", "1");
-  });
 });

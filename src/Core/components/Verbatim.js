@@ -1,150 +1,157 @@
 import {
-  returnSelectedStyleStateVariableDefinition,
-  returnTextStyleDescriptionDefinitions,
+    returnSelectedStyleStateVariableDefinition,
+    returnTextStyleDescriptionDefinitions,
 } from "../utils/style";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
 
 export class Pre extends BlockComponent {
-  constructor(args) {
-    super(args);
+    constructor(args) {
+        super(args);
 
-    Object.assign(this.actions, {
-      recordVisibilityChange: this.recordVisibilityChange.bind(this),
-    });
-  }
-  static componentType = "pre";
-  static renderChildren = true;
+        Object.assign(this.actions, {
+            recordVisibilityChange: this.recordVisibilityChange.bind(this),
+        });
+    }
+    static componentType = "pre";
+    static renderChildren = true;
 
-  static includeBlankStringChildren = true;
+    static includeBlankStringChildren = true;
 
-  static returnChildGroups() {
-    return [
-      {
-        group: "allChildren",
-        componentTypes: ["_base"],
-      },
-    ];
-  }
+    static returnChildGroups() {
+        return [
+            {
+                group: "allChildren",
+                componentTypes: ["_base"],
+            },
+        ];
+    }
 
-  static returnStateVariableDefinitions() {
-    let stateVariableDefinitions = super.returnStateVariableDefinitions();
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-    stateVariableDefinitions.displayDoenetMLIndices = {
-      forRenderer: true,
-      returnDependencies: () => ({
-        allChildren: {
-          dependencyType: "child",
-          childGroups: ["allChildren"],
-        },
-      }),
-      definition({ dependencyValues }) {
-        let displayDoenetMLIndices = [];
-        for (let [ind, child] of dependencyValues.allChildren.entries()) {
-          if (child.componentType === "displayDoenetML") {
-            displayDoenetMLIndices.push(ind);
-          }
-        }
+        stateVariableDefinitions.displayDoenetMLIndices = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    childGroups: ["allChildren"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                let displayDoenetMLIndices = [];
+                for (let [
+                    ind,
+                    child,
+                ] of dependencyValues.allChildren.entries()) {
+                    if (child.componentType === "displayDoenetML") {
+                        displayDoenetMLIndices.push(ind);
+                    }
+                }
 
-        return { setValue: { displayDoenetMLIndices } };
-      },
-    };
+                return { setValue: { displayDoenetMLIndices } };
+            },
+        };
 
-    return stateVariableDefinitions;
-  }
+        return stateVariableDefinitions;
+    }
 
-  recordVisibilityChange({ isVisible }) {
-    this.coreFunctions.requestRecordEvent({
-      verb: "visibilityChanged",
-      object: {
-        componentName: this.componentName,
-        componentType: this.componentType,
-      },
-      result: { isVisible },
-    });
-  }
+    recordVisibilityChange({ isVisible }) {
+        this.coreFunctions.requestRecordEvent({
+            verb: "visibilityChanged",
+            object: {
+                componentName: this.componentName,
+                componentType: this.componentType,
+            },
+            result: { isVisible },
+        });
+    }
 }
 
 export class DisplayDoenetML extends InlineComponent {
-  constructor(args) {
-    super(args);
+    constructor(args) {
+        super(args);
 
-    Object.assign(this.actions, {
-      recordVisibilityChange: this.recordVisibilityChange.bind(this),
-    });
-  }
-  static componentType = "displayDoenetML";
-  static rendererType = "text";
-
-  static keepChildrenSerialized({ serializedComponent }) {
-    if (serializedComponent.children === undefined) {
-      return [];
-    } else {
-      return Object.keys(serializedComponent.children);
+        Object.assign(this.actions, {
+            recordVisibilityChange: this.recordVisibilityChange.bind(this),
+        });
     }
-  }
+    static componentType = "displayDoenetML";
+    static rendererType = "text";
 
-  static includeBlankStringChildren = true;
+    static keepChildrenSerialized({ serializedComponent }) {
+        if (serializedComponent.children === undefined) {
+            return [];
+        } else {
+            return Object.keys(serializedComponent.children);
+        }
+    }
 
-  static returnChildGroups() {
-    return [
-      {
-        group: "allChildren",
-        componentTypes: ["_base"],
-      },
-    ];
-  }
+    static includeBlankStringChildren = true;
 
-  static returnStateVariableDefinitions() {
-    let stateVariableDefinitions = super.returnStateVariableDefinitions();
+    static returnChildGroups() {
+        return [
+            {
+                group: "allChildren",
+                componentTypes: ["_base"],
+            },
+        ];
+    }
 
-    let selectedStyleDefinition = returnSelectedStyleStateVariableDefinition();
-    Object.assign(stateVariableDefinitions, selectedStyleDefinition);
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-    let styleDescriptionDefinitions = returnTextStyleDescriptionDefinitions();
-    Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
+        let selectedStyleDefinition =
+            returnSelectedStyleStateVariableDefinition();
+        Object.assign(stateVariableDefinitions, selectedStyleDefinition);
 
-    stateVariableDefinitions.value = {
-      shadowVariable: true,
-      returnDependencies: () => ({
-        childrenDoenetML: {
-          dependencyType: "doenetML",
-          displayOnlyChildren: true,
-        },
-      }),
-      definition({ dependencyValues }) {
-        return { setValue: { value: dependencyValues.childrenDoenetML } };
-      },
-    };
+        let styleDescriptionDefinitions =
+            returnTextStyleDescriptionDefinitions();
+        Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
-    stateVariableDefinitions.text = {
-      public: true,
-      shadowingInstructions: {
-        createComponentOfType: "text",
-      },
-      forRenderer: true,
-      returnDependencies: () => ({
-        value: {
-          dependencyType: "stateVariable",
-          variableName: "value",
-        },
-      }),
-      definition: ({ dependencyValues }) => ({
-        setValue: { text: dependencyValues.value },
-      }),
-    };
+        stateVariableDefinitions.value = {
+            shadowVariable: true,
+            returnDependencies: () => ({
+                childrenDoenetML: {
+                    dependencyType: "doenetML",
+                    displayOnlyChildren: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: { value: dependencyValues.childrenDoenetML },
+                };
+            },
+        };
 
-    return stateVariableDefinitions;
-  }
+        stateVariableDefinitions.text = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            forRenderer: true,
+            returnDependencies: () => ({
+                value: {
+                    dependencyType: "stateVariable",
+                    variableName: "value",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { text: dependencyValues.value },
+            }),
+        };
 
-  recordVisibilityChange({ isVisible }) {
-    this.coreFunctions.requestRecordEvent({
-      verb: "visibilityChanged",
-      object: {
-        componentName: this.componentName,
-        componentType: this.componentType,
-      },
-      result: { isVisible },
-    });
-  }
+        return stateVariableDefinitions;
+    }
+
+    recordVisibilityChange({ isVisible }) {
+        this.coreFunctions.requestRecordEvent({
+            verb: "visibilityChanged",
+            object: {
+                componentName: this.componentName,
+                componentType: this.componentType,
+            },
+            result: { isVisible },
+        });
+    }
 }

@@ -1,24 +1,24 @@
 import { cesc, cesc2 } from "../../../src/utils/url";
 
 function nInDOM(n) {
-  if (n < 0) {
-    return `−${Math.abs(n)}`;
-  } else {
-    return String(n);
-  }
+    if (n < 0) {
+        return `−${Math.abs(n)}`;
+    } else {
+        return String(n);
+    }
 }
 
 describe("Copy Tag Tests", function () {
-  beforeEach(() => {
-    cy.clearIndexedDB();
-    cy.visit("/src/Tools/cypressTest/");
-  });
+    beforeEach(() => {
+        cy.clearIndexedDB();
+        cy.visit("/src/Tools/cypressTest/");
+    });
 
-  it("source attributes to ignore", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("source attributes to ignore", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <p name="p1" newNamespace fixed isResponse>The text: <text name="hidden" hide fixed isResponse>secret</text></p>
@@ -32,34 +32,34 @@ describe("Copy Tag Tests", function () {
     <p name="p7">Check attributes: $p5.hidden $p5.fixed $p5.isResponse $(p5/hidden.hidden) $(p5/hidden.fixed) $(p5/hidden.isResponse)</p>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc("#\\/p1")).should("have.text", "The text: ");
+
+        cy.get(cesc("#\\/p2")).should("have.text", "The text: ");
+        cy.get(cesc("#\\/p4")).should(
+            "have.text",
+            "Check attributes: false true false true true false"
+        );
+
+        cy.get(cesc("#\\/p5")).should("have.text", "The text: secret");
+        cy.get(cesc("#\\/p7")).should(
+            "have.text",
+            "Check attributes: false false true false false true"
+        );
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc("#\\/p1")).should("have.text", "The text: ");
-
-    cy.get(cesc("#\\/p2")).should("have.text", "The text: ");
-    cy.get(cesc("#\\/p4")).should(
-      "have.text",
-      "Check attributes: false true false true true false",
-    );
-
-    cy.get(cesc("#\\/p5")).should("have.text", "The text: secret");
-    cy.get(cesc("#\\/p7")).should(
-      "have.text",
-      "Check attributes: false false true false false true",
-    );
-  });
-
-  it("copySource", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph name="g1">
       <point name="P">(1,2)</point>
@@ -104,266 +104,270 @@ describe("Copy Tag Tests", function () {
     <graph copySource="g12" name="g28" newNamespace />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        let P1 = [1, 2];
+        let P2 = [3, 4];
+
+        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
+            let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
+            let g13PName =
+                stateVariables["/g13"].activeChildren[0].componentName;
+            let g15PName =
+                stateVariables["/g15"].activeChildren[0].componentName;
+            let g21PName =
+                stateVariables["/g21"].activeChildren[0].componentName;
+            let g23PName =
+                stateVariables["/g23"].activeChildren[0].componentName;
+
+            expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+
+            cy.log(`move P1 to (4,5)`);
+            cy.window().then(async (win) => {
+                P1 = [4, 5];
+
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/P",
+                    args: { x: P1[0], y: P1[1] },
+                });
+
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P2 to (7,0)`);
+            cy.window().then(async (win) => {
+                P2 = [7, 0];
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/g2/P",
+                    args: { x: P2[0], y: P2[1] },
+                });
+
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P1 via Pa to (2,9)`);
+            cy.window().then(async (win) => {
+                P1 = [2, 0];
+
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/Pa",
+                    args: { x: P1[0], y: P1[1] },
+                });
+
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P2 via graph 4's Pa to (8, 6)`);
+            cy.window().then(async (win) => {
+                P2 = [8, 6];
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/g4/Pa",
+                    args: { x: P2[0], y: P2[1] },
+                });
+
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    let P1 = [1, 2];
-    let P2 = [3, 4];
-
-    cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-    cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
-      let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
-      let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
-      let g15PName = stateVariables["/g15"].activeChildren[0].componentName;
-      let g21PName = stateVariables["/g21"].activeChildren[0].componentName;
-      let g23PName = stateVariables["/g23"].activeChildren[0].componentName;
-
-      expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-
-      cy.log(`move P1 to (4,5)`);
-      cy.window().then(async (win) => {
-        P1 = [4, 5];
-
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/P",
-          args: { x: P1[0], y: P1[1] },
-        });
-
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P2 to (7,0)`);
-      cy.window().then(async (win) => {
-        P2 = [7, 0];
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/g2/P",
-          args: { x: P2[0], y: P2[1] },
-        });
-
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P1 via Pa to (2,9)`);
-      cy.window().then(async (win) => {
-        P1 = [2, 0];
-
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/Pa",
-          args: { x: P1[0], y: P1[1] },
-        });
-
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P2 via graph 4's Pa to (8, 6)`);
-      cy.window().then(async (win) => {
-        P2 = [8, 6];
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/g4/Pa",
-          args: { x: P2[0], y: P2[1] },
-        });
-
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-    });
-  });
-
-  it("copySource and copies with newNamespace", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource and copies with newNamespace", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph name="g1">
       <point name="P">(1,2)</point>
@@ -408,266 +412,270 @@ describe("Copy Tag Tests", function () {
     $g12{name="g28" newNamespace}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        let P1 = [1, 2];
+        let P2 = [3, 4];
+
+        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
+            let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
+            let g13PName =
+                stateVariables["/g13"].activeChildren[0].componentName;
+            let g15PName =
+                stateVariables["/g15"].activeChildren[0].componentName;
+            let g21PName =
+                stateVariables["/g21"].activeChildren[0].componentName;
+            let g23PName =
+                stateVariables["/g23"].activeChildren[0].componentName;
+
+            expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+            expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+            expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+            expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+
+            cy.log(`move P1 to (4,5)`);
+            cy.window().then(async (win) => {
+                P1 = [4, 5];
+
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/P",
+                    args: { x: P1[0], y: P1[1] },
+                });
+
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P2 to (7,0)`);
+            cy.window().then(async (win) => {
+                P2 = [7, 0];
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/g2/P",
+                    args: { x: P2[0], y: P2[1] },
+                });
+
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P1 via Pa to (2,9)`);
+            cy.window().then(async (win) => {
+                P1 = [2, 0];
+
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/Pa",
+                    args: { x: P1[0], y: P1[1] },
+                });
+
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+
+            cy.log(`move P2 via graph 4's Pa to (8, 6)`);
+            cy.window().then(async (win) => {
+                P2 = [8, 6];
+                await win.callAction1({
+                    actionName: "movePoint",
+                    componentName: "/g4/Pa",
+                    args: { x: P2[0], y: P2[1] },
+                });
+
+                cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
+                cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
+            });
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+
+                expect(stateVariables["/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
+
+                expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
+                expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
+                expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
+            });
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    let P1 = [1, 2];
-    let P2 = [3, 4];
-
-    cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-    cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      let g5PName = stateVariables["/g5"].activeChildren[0].componentName;
-      let g7PName = stateVariables["/g7"].activeChildren[0].componentName;
-      let g13PName = stateVariables["/g13"].activeChildren[0].componentName;
-      let g15PName = stateVariables["/g15"].activeChildren[0].componentName;
-      let g21PName = stateVariables["/g21"].activeChildren[0].componentName;
-      let g23PName = stateVariables["/g23"].activeChildren[0].componentName;
-
-      expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-      expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-      expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-      expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-
-      cy.log(`move P1 to (4,5)`);
-      cy.window().then(async (win) => {
-        P1 = [4, 5];
-
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/P",
-          args: { x: P1[0], y: P1[1] },
-        });
-
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P2 to (7,0)`);
-      cy.window().then(async (win) => {
-        P2 = [7, 0];
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/g2/P",
-          args: { x: P2[0], y: P2[1] },
-        });
-
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P1 via Pa to (2,9)`);
-      cy.window().then(async (win) => {
-        P1 = [2, 0];
-
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/Pa",
-          args: { x: P1[0], y: P1[1] },
-        });
-
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-
-      cy.log(`move P2 via graph 4's Pa to (8, 6)`);
-      cy.window().then(async (win) => {
-        P2 = [8, 6];
-        await win.callAction1({
-          actionName: "movePoint",
-          componentName: "/g4/Pa",
-          args: { x: P2[0], y: P2[1] },
-        });
-
-        cy.get(cesc2("#/P2x")).contains(`${P2[0]}`);
-        cy.get(cesc2("#/P1x")).contains(`${P1[0]}`);
-      });
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-
-        expect(stateVariables["/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g2/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g4/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g5PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g6/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g7PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g8/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g9/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g10/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g11/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g12/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g13PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g14/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g15PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g16/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g17/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g18/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g19/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g20/Pa"].stateValues.xs).eqls(P2);
-
-        expect(stateVariables[g21PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g22/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables[g23PName].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g24/Pa"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g25/P"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g26/P"].stateValues.xs).eqls(P2);
-        expect(stateVariables["/g27/Pa"].stateValues.xs).eqls(P1);
-        expect(stateVariables["/g28/Pa"].stateValues.xs).eqls(P2);
-      });
-    });
-  });
-
-  it("copy with newNamespace and references to parent", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy with newNamespace and references to parent", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <mathinput name="mi" prefill="p" />
@@ -692,391 +700,420 @@ describe("Copy Tag Tests", function () {
     $p2{name="p4" newNamespace}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/ca")).contains("0");
+        cy.get(cesc2("#/p2/cao")).contains("0");
+        cy.get(cesc2("#/p3/ca")).contains("0");
+        cy.get(cesc2("#/p4/cao")).contains("0");
+
+        cy.get(cesc2("#/cao")).contains("0");
+        cy.get(cesc2("#/p2/ca")).contains("0");
+        cy.get(cesc2("#/p3/cao")).contains("0");
+        cy.get(cesc2("#/p4/ca")).contains("0");
+
+        cy.get(cesc2("#/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let mathinputoutsideName =
+                stateVariables["/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputoutsideAnchor =
+                cesc2("#" + mathinputoutsideName) + " textarea";
+            let mathinputoutsideSubmitAnchor = cesc2(
+                "#" + mathinputoutsideName + "_submit"
+            );
+            let mathinputoutsideCorrectAnchor = cesc2(
+                "#" + mathinputoutsideName + "_correct"
+            );
+            let mathinputoutsideIncorrectAnchor = cesc2(
+                "#" + mathinputoutsideName + "_incorrect"
+            );
+            let mathinputoutsideFieldAnchor =
+                cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
+
+            let mathinputp1Name =
+                stateVariables["/_answer2"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
+            let mathinputp1SubmitAnchor = cesc2(
+                "#" + mathinputp1Name + "_submit"
+            );
+            let mathinputp1CorrectAnchor = cesc2(
+                "#" + mathinputp1Name + "_correct"
+            );
+            let mathinputp1IncorrectAnchor = cesc2(
+                "#" + mathinputp1Name + "_incorrect"
+            );
+            let mathinputp1FieldAnchor =
+                cesc2("#" + mathinputp1Name) + " .mq-editable-field";
+
+            let mathinputp2Name =
+                stateVariables["/p2/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
+            let mathinputp2SubmitAnchor = cesc2(
+                "#" + mathinputp2Name + "_submit"
+            );
+            let mathinputp2CorrectAnchor = cesc2(
+                "#" + mathinputp2Name + "_correct"
+            );
+            let mathinputp2IncorrectAnchor = cesc2(
+                "#" + mathinputp2Name + "_incorrect"
+            );
+            let mathinputp2FieldAnchor =
+                cesc2("#" + mathinputp2Name) + " .mq-editable-field";
+
+            let mathinputp3Name =
+                stateVariables["/p3/_answer2"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
+            let mathinputp3SubmitAnchor = cesc2(
+                "#" + mathinputp3Name + "_submit"
+            );
+            let mathinputp3CorrectAnchor = cesc2(
+                "#" + mathinputp3Name + "_correct"
+            );
+            let mathinputp3IncorrectAnchor = cesc2(
+                "#" + mathinputp3Name + "_incorrect"
+            );
+            let mathinputp3FieldAnchor =
+                cesc2("#" + mathinputp3Name) + " .mq-editable-field";
+
+            let mathinputp4Name =
+                stateVariables["/p4/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
+            let mathinputp4SubmitAnchor = cesc2(
+                "#" + mathinputp4Name + "_submit"
+            );
+            let mathinputp4CorrectAnchor = cesc2(
+                "#" + mathinputp4Name + "_correct"
+            );
+            let mathinputp4IncorrectAnchor = cesc2(
+                "#" + mathinputp4Name + "_incorrect"
+            );
+            let mathinputp4FieldAnchor =
+                cesc2("#" + mathinputp4Name) + " .mq-editable-field";
+
+            expect(stateVariables["/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+            expect(stateVariables["/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+            expect(stateVariables["/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+
+            cy.log("answer outside answer");
+
+            cy.get(mathinputoutsideAnchor).type("x{enter}", { force: true });
+            cy.get(mathinputoutsideCorrectAnchor).should("be.visible");
+            cy.get(mathinputp1SubmitAnchor).should("be.visible");
+            cy.get(mathinputp2SubmitAnchor).should("be.visible");
+            cy.get(mathinputp3SubmitAnchor).should("be.visible");
+            cy.get(mathinputp4SubmitAnchor).should("be.visible");
+
+            cy.log("correctly answer first problem");
+            cy.get(mathinputp1Anchor).type("y{enter}", { force: true });
+            cy.get(mathinputp1CorrectAnchor).should("be.visible");
+            cy.get(mathinputp2SubmitAnchor).should("be.visible");
+            cy.get(mathinputp3CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4SubmitAnchor).should("be.visible");
+
+            cy.get(mathinputp1FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "y"
+                    );
+                });
+            cy.get(mathinputp2FieldAnchor).should("have.text", "");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "");
+
+            cy.get(cesc2("#/ca")).contains("1");
+            cy.get(cesc2("#/p2/cao")).contains("1");
+            cy.get(cesc2("#/p3/ca")).contains("1");
+            cy.get(cesc2("#/p4/cao")).contains("1");
+
+            cy.get(cesc2("#/cao")).contains("0");
+            cy.get(cesc2("#/p2/ca")).contains("0");
+            cy.get(cesc2("#/p3/cao")).contains("0");
+            cy.get(cesc2("#/p4/ca")).contains("0");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("correctly answer second problem");
+            cy.get(mathinputp2Anchor).type("z{enter}", { force: true });
+            cy.get(mathinputp2CorrectAnchor).should("be.visible");
+            cy.get(mathinputp1CorrectAnchor).should("be.visible");
+            cy.get(mathinputp3CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4CorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp2FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "z"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "z");
+
+            cy.get(cesc2("#/ca")).contains("1");
+            cy.get(cesc2("#/p2/cao")).contains("1");
+            cy.get(cesc2("#/p3/ca")).contains("1");
+            cy.get(cesc2("#/p4/cao")).contains("1");
+
+            cy.get(cesc2("#/cao")).contains("1");
+            cy.get(cesc2("#/p2/ca")).contains("1");
+            cy.get(cesc2("#/p3/cao")).contains("1");
+            cy.get(cesc2("#/p4/ca")).contains("1");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("incorrectly answer third problem");
+            cy.get(mathinputp3Anchor).type("{end}{backspace}a{enter}", {
+                force: true,
+            });
+            cy.get(mathinputp3IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp1IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp2CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4CorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp3FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "a"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "a");
+            cy.get(mathinputp2FieldAnchor).should("have.text", "z");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "z");
+
+            cy.get(cesc2("#/ca")).contains("0");
+            cy.get(cesc2("#/p2/cao")).contains("0");
+            cy.get(cesc2("#/p3/ca")).contains("0");
+            cy.get(cesc2("#/p4/cao")).contains("0");
+
+            cy.get(cesc2("#/cao")).contains("1");
+            cy.get(cesc2("#/p2/ca")).contains("1");
+            cy.get(cesc2("#/p3/cao")).contains("1");
+            cy.get(cesc2("#/p4/ca")).contains("1");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("incorrectly answer fourth problem");
+            cy.get(mathinputp4Anchor).type("{end}{backspace}b{enter}", {
+                force: true,
+            });
+            cy.get(mathinputp4IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp1IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp2IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp3IncorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp4FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "b"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "a");
+            cy.get(mathinputp2FieldAnchor).should("have.text", "b");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "a");
+
+            cy.get(cesc2("#/ca")).contains("0");
+            cy.get(cesc2("#/p2/cao")).contains("0");
+            cy.get(cesc2("#/p3/ca")).contains("0");
+            cy.get(cesc2("#/p4/cao")).contains("0");
+
+            cy.get(cesc2("#/cao")).contains("0");
+            cy.get(cesc2("#/p2/ca")).contains("0");
+            cy.get(cesc2("#/p3/cao")).contains("0");
+            cy.get(cesc2("#/p4/ca")).contains("0");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("change mathinput");
+            cy.get(cesc2("#/mi") + " textarea").type(
+                "{end}{backspace}q{enter}",
+                {
+                    force: true,
+                }
+            );
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("q");
+            });
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/ca")).contains("0");
-    cy.get(cesc2("#/p2/cao")).contains("0");
-    cy.get(cesc2("#/p3/ca")).contains("0");
-    cy.get(cesc2("#/p4/cao")).contains("0");
-
-    cy.get(cesc2("#/cao")).contains("0");
-    cy.get(cesc2("#/p2/ca")).contains("0");
-    cy.get(cesc2("#/p3/cao")).contains("0");
-    cy.get(cesc2("#/p4/ca")).contains("0");
-
-    cy.get(cesc2("#/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-
-      let mathinputoutsideName =
-        stateVariables["/_answer1"].stateValues.inputChildren[0].componentName;
-      let mathinputoutsideAnchor =
-        cesc2("#" + mathinputoutsideName) + " textarea";
-      let mathinputoutsideSubmitAnchor = cesc2(
-        "#" + mathinputoutsideName + "_submit",
-      );
-      let mathinputoutsideCorrectAnchor = cesc2(
-        "#" + mathinputoutsideName + "_correct",
-      );
-      let mathinputoutsideIncorrectAnchor = cesc2(
-        "#" + mathinputoutsideName + "_incorrect",
-      );
-      let mathinputoutsideFieldAnchor =
-        cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
-
-      let mathinputp1Name =
-        stateVariables["/_answer2"].stateValues.inputChildren[0].componentName;
-      let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
-      let mathinputp1SubmitAnchor = cesc2("#" + mathinputp1Name + "_submit");
-      let mathinputp1CorrectAnchor = cesc2("#" + mathinputp1Name + "_correct");
-      let mathinputp1IncorrectAnchor = cesc2(
-        "#" + mathinputp1Name + "_incorrect",
-      );
-      let mathinputp1FieldAnchor =
-        cesc2("#" + mathinputp1Name) + " .mq-editable-field";
-
-      let mathinputp2Name =
-        stateVariables["/p2/_answer1"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
-      let mathinputp2SubmitAnchor = cesc2("#" + mathinputp2Name + "_submit");
-      let mathinputp2CorrectAnchor = cesc2("#" + mathinputp2Name + "_correct");
-      let mathinputp2IncorrectAnchor = cesc2(
-        "#" + mathinputp2Name + "_incorrect",
-      );
-      let mathinputp2FieldAnchor =
-        cesc2("#" + mathinputp2Name) + " .mq-editable-field";
-
-      let mathinputp3Name =
-        stateVariables["/p3/_answer2"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
-      let mathinputp3SubmitAnchor = cesc2("#" + mathinputp3Name + "_submit");
-      let mathinputp3CorrectAnchor = cesc2("#" + mathinputp3Name + "_correct");
-      let mathinputp3IncorrectAnchor = cesc2(
-        "#" + mathinputp3Name + "_incorrect",
-      );
-      let mathinputp3FieldAnchor =
-        cesc2("#" + mathinputp3Name) + " .mq-editable-field";
-
-      let mathinputp4Name =
-        stateVariables["/p4/_answer1"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
-      let mathinputp4SubmitAnchor = cesc2("#" + mathinputp4Name + "_submit");
-      let mathinputp4CorrectAnchor = cesc2("#" + mathinputp4Name + "_correct");
-      let mathinputp4IncorrectAnchor = cesc2(
-        "#" + mathinputp4Name + "_incorrect",
-      );
-      let mathinputp4FieldAnchor =
-        cesc2("#" + mathinputp4Name) + " .mq-editable-field";
-
-      expect(stateVariables["/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-      expect(stateVariables["/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-      expect(stateVariables["/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-
-      cy.log("answer outside answer");
-
-      cy.get(mathinputoutsideAnchor).type("x{enter}", { force: true });
-      cy.get(mathinputoutsideCorrectAnchor).should("be.visible");
-      cy.get(mathinputp1SubmitAnchor).should("be.visible");
-      cy.get(mathinputp2SubmitAnchor).should("be.visible");
-      cy.get(mathinputp3SubmitAnchor).should("be.visible");
-      cy.get(mathinputp4SubmitAnchor).should("be.visible");
-
-      cy.log("correctly answer first problem");
-      cy.get(mathinputp1Anchor).type("y{enter}", { force: true });
-      cy.get(mathinputp1CorrectAnchor).should("be.visible");
-      cy.get(mathinputp2SubmitAnchor).should("be.visible");
-      cy.get(mathinputp3CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4SubmitAnchor).should("be.visible");
-
-      cy.get(mathinputp1FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("y");
-        });
-      cy.get(mathinputp2FieldAnchor).should("have.text", "");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "");
-
-      cy.get(cesc2("#/ca")).contains("1");
-      cy.get(cesc2("#/p2/cao")).contains("1");
-      cy.get(cesc2("#/p3/ca")).contains("1");
-      cy.get(cesc2("#/p4/cao")).contains("1");
-
-      cy.get(cesc2("#/cao")).contains("0");
-      cy.get(cesc2("#/p2/ca")).contains("0");
-      cy.get(cesc2("#/p3/cao")).contains("0");
-      cy.get(cesc2("#/p4/ca")).contains("0");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("correctly answer second problem");
-      cy.get(mathinputp2Anchor).type("z{enter}", { force: true });
-      cy.get(mathinputp2CorrectAnchor).should("be.visible");
-      cy.get(mathinputp1CorrectAnchor).should("be.visible");
-      cy.get(mathinputp3CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4CorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp2FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("z");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "z");
-
-      cy.get(cesc2("#/ca")).contains("1");
-      cy.get(cesc2("#/p2/cao")).contains("1");
-      cy.get(cesc2("#/p3/ca")).contains("1");
-      cy.get(cesc2("#/p4/cao")).contains("1");
-
-      cy.get(cesc2("#/cao")).contains("1");
-      cy.get(cesc2("#/p2/ca")).contains("1");
-      cy.get(cesc2("#/p3/cao")).contains("1");
-      cy.get(cesc2("#/p4/ca")).contains("1");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("incorrectly answer third problem");
-      cy.get(mathinputp3Anchor).type("{end}{backspace}a{enter}", {
-        force: true,
-      });
-      cy.get(mathinputp3IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp1IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp2CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4CorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp3FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("a");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "a");
-      cy.get(mathinputp2FieldAnchor).should("have.text", "z");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "z");
-
-      cy.get(cesc2("#/ca")).contains("0");
-      cy.get(cesc2("#/p2/cao")).contains("0");
-      cy.get(cesc2("#/p3/ca")).contains("0");
-      cy.get(cesc2("#/p4/cao")).contains("0");
-
-      cy.get(cesc2("#/cao")).contains("1");
-      cy.get(cesc2("#/p2/ca")).contains("1");
-      cy.get(cesc2("#/p3/cao")).contains("1");
-      cy.get(cesc2("#/p4/ca")).contains("1");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("incorrectly answer fourth problem");
-      cy.get(mathinputp4Anchor).type("{end}{backspace}b{enter}", {
-        force: true,
-      });
-      cy.get(mathinputp4IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp1IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp2IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp3IncorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp4FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("b");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "a");
-      cy.get(mathinputp2FieldAnchor).should("have.text", "b");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "a");
-
-      cy.get(cesc2("#/ca")).contains("0");
-      cy.get(cesc2("#/p2/cao")).contains("0");
-      cy.get(cesc2("#/p3/ca")).contains("0");
-      cy.get(cesc2("#/p4/cao")).contains("0");
-
-      cy.get(cesc2("#/cao")).contains("0");
-      cy.get(cesc2("#/p2/ca")).contains("0");
-      cy.get(cesc2("#/p3/cao")).contains("0");
-      cy.get(cesc2("#/p4/ca")).contains("0");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("change mathinput");
-      cy.get(cesc2("#/mi") + " textarea").type("{end}{backspace}q{enter}", {
-        force: true,
-      });
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("q");
-      });
-    });
-  });
-
-  it("copySource with newNamespace and references to parent", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource with newNamespace and references to parent", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <mathinput name="mi" prefill="p" />
@@ -1101,391 +1138,420 @@ describe("Copy Tag Tests", function () {
     <problem copySource="p2" name="p4" newNamespace />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/ca")).contains("0");
+        cy.get(cesc2("#/p2/cao")).contains("0");
+        cy.get(cesc2("#/p3/ca")).contains("0");
+        cy.get(cesc2("#/p4/cao")).contains("0");
+
+        cy.get(cesc2("#/cao")).contains("0");
+        cy.get(cesc2("#/p2/ca")).contains("0");
+        cy.get(cesc2("#/p3/cao")).contains("0");
+        cy.get(cesc2("#/p4/ca")).contains("0");
+
+        cy.get(cesc2("#/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+        cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "p");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let mathinputoutsideName =
+                stateVariables["/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputoutsideAnchor =
+                cesc2("#" + mathinputoutsideName) + " textarea";
+            let mathinputoutsideSubmitAnchor = cesc2(
+                "#" + mathinputoutsideName + "_submit"
+            );
+            let mathinputoutsideCorrectAnchor = cesc2(
+                "#" + mathinputoutsideName + "_correct"
+            );
+            let mathinputoutsideIncorrectAnchor = cesc2(
+                "#" + mathinputoutsideName + "_incorrect"
+            );
+            let mathinputoutsideFieldAnchor =
+                cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
+
+            let mathinputp1Name =
+                stateVariables["/_answer2"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
+            let mathinputp1SubmitAnchor = cesc2(
+                "#" + mathinputp1Name + "_submit"
+            );
+            let mathinputp1CorrectAnchor = cesc2(
+                "#" + mathinputp1Name + "_correct"
+            );
+            let mathinputp1IncorrectAnchor = cesc2(
+                "#" + mathinputp1Name + "_incorrect"
+            );
+            let mathinputp1FieldAnchor =
+                cesc2("#" + mathinputp1Name) + " .mq-editable-field";
+
+            let mathinputp2Name =
+                stateVariables["/p2/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
+            let mathinputp2SubmitAnchor = cesc2(
+                "#" + mathinputp2Name + "_submit"
+            );
+            let mathinputp2CorrectAnchor = cesc2(
+                "#" + mathinputp2Name + "_correct"
+            );
+            let mathinputp2IncorrectAnchor = cesc2(
+                "#" + mathinputp2Name + "_incorrect"
+            );
+            let mathinputp2FieldAnchor =
+                cesc2("#" + mathinputp2Name) + " .mq-editable-field";
+
+            let mathinputp3Name =
+                stateVariables["/p3/_answer2"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
+            let mathinputp3SubmitAnchor = cesc2(
+                "#" + mathinputp3Name + "_submit"
+            );
+            let mathinputp3CorrectAnchor = cesc2(
+                "#" + mathinputp3Name + "_correct"
+            );
+            let mathinputp3IncorrectAnchor = cesc2(
+                "#" + mathinputp3Name + "_incorrect"
+            );
+            let mathinputp3FieldAnchor =
+                cesc2("#" + mathinputp3Name) + " .mq-editable-field";
+
+            let mathinputp4Name =
+                stateVariables["/p4/_answer1"].stateValues.inputChildren[0]
+                    .componentName;
+            let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
+            let mathinputp4SubmitAnchor = cesc2(
+                "#" + mathinputp4Name + "_submit"
+            );
+            let mathinputp4CorrectAnchor = cesc2(
+                "#" + mathinputp4Name + "_correct"
+            );
+            let mathinputp4IncorrectAnchor = cesc2(
+                "#" + mathinputp4Name + "_incorrect"
+            );
+            let mathinputp4FieldAnchor =
+                cesc2("#" + mathinputp4Name) + " .mq-editable-field";
+
+            expect(stateVariables["/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+            expect(stateVariables["/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+            expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+            expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+            expect(stateVariables["/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+            expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+
+            cy.log("answer outside answer");
+
+            cy.get(mathinputoutsideAnchor).type("x{enter}", { force: true });
+            cy.get(mathinputoutsideCorrectAnchor).should("be.visible");
+            cy.get(mathinputp1SubmitAnchor).should("be.visible");
+            cy.get(mathinputp2SubmitAnchor).should("be.visible");
+            cy.get(mathinputp3SubmitAnchor).should("be.visible");
+            cy.get(mathinputp4SubmitAnchor).should("be.visible");
+
+            cy.log("correctly answer first problem");
+            cy.get(mathinputp1Anchor).type("y{enter}", { force: true });
+            cy.get(mathinputp1CorrectAnchor).should("be.visible");
+            cy.get(mathinputp2SubmitAnchor).should("be.visible");
+            cy.get(mathinputp3CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4SubmitAnchor).should("be.visible");
+
+            cy.get(mathinputp1FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "y"
+                    );
+                });
+            cy.get(mathinputp2FieldAnchor).should("have.text", "");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "");
+
+            cy.get(cesc2("#/ca")).contains("1");
+            cy.get(cesc2("#/p2/cao")).contains("1");
+            cy.get(cesc2("#/p3/ca")).contains("1");
+            cy.get(cesc2("#/p4/cao")).contains("1");
+
+            cy.get(cesc2("#/cao")).contains("0");
+            cy.get(cesc2("#/p2/ca")).contains("0");
+            cy.get(cesc2("#/p3/cao")).contains("0");
+            cy.get(cesc2("#/p4/ca")).contains("0");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("correctly answer second problem");
+            cy.get(mathinputp2Anchor).type("z{enter}", { force: true });
+            cy.get(mathinputp2CorrectAnchor).should("be.visible");
+            cy.get(mathinputp1CorrectAnchor).should("be.visible");
+            cy.get(mathinputp3CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4CorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp2FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "z"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "y");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "z");
+
+            cy.get(cesc2("#/ca")).contains("1");
+            cy.get(cesc2("#/p2/cao")).contains("1");
+            cy.get(cesc2("#/p3/ca")).contains("1");
+            cy.get(cesc2("#/p4/cao")).contains("1");
+
+            cy.get(cesc2("#/cao")).contains("1");
+            cy.get(cesc2("#/p2/ca")).contains("1");
+            cy.get(cesc2("#/p3/cao")).contains("1");
+            cy.get(cesc2("#/p4/ca")).contains("1");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("incorrectly answer third problem");
+            cy.get(mathinputp3Anchor).type("{end}{backspace}a{enter}", {
+                force: true,
+            });
+            cy.get(mathinputp3IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp1IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp2CorrectAnchor).should("be.visible");
+            cy.get(mathinputp4CorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp3FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "a"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "a");
+            cy.get(mathinputp2FieldAnchor).should("have.text", "z");
+            cy.get(mathinputp4FieldAnchor).should("have.text", "z");
+
+            cy.get(cesc2("#/ca")).contains("0");
+            cy.get(cesc2("#/p2/cao")).contains("0");
+            cy.get(cesc2("#/p3/ca")).contains("0");
+            cy.get(cesc2("#/p4/cao")).contains("0");
+
+            cy.get(cesc2("#/cao")).contains("1");
+            cy.get(cesc2("#/p2/ca")).contains("1");
+            cy.get(cesc2("#/p3/cao")).contains("1");
+            cy.get(cesc2("#/p4/ca")).contains("1");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("incorrectly answer fourth problem");
+            cy.get(mathinputp4Anchor).type("{end}{backspace}b{enter}", {
+                force: true,
+            });
+            cy.get(mathinputp4IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp1IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp2IncorrectAnchor).should("be.visible");
+            cy.get(mathinputp3IncorrectAnchor).should("be.visible");
+
+            cy.get(mathinputp4FieldAnchor)
+                .invoke("text")
+                .then((text) => {
+                    expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
+                        "b"
+                    );
+                });
+            cy.get(mathinputp1FieldAnchor).should("have.text", "a");
+            cy.get(mathinputp2FieldAnchor).should("have.text", "b");
+            cy.get(mathinputp3FieldAnchor).should("have.text", "a");
+
+            cy.get(cesc2("#/ca")).contains("0");
+            cy.get(cesc2("#/p2/cao")).contains("0");
+            cy.get(cesc2("#/p3/ca")).contains("0");
+            cy.get(cesc2("#/p4/cao")).contains("0");
+
+            cy.get(cesc2("#/cao")).contains("0");
+            cy.get(cesc2("#/p2/ca")).contains("0");
+            cy.get(cesc2("#/p3/cao")).contains("0");
+            cy.get(cesc2("#/p4/ca")).contains("0");
+
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "p");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
+
+                expect(stateVariables["/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
+                expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
+                expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
+
+                expect(stateVariables["/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("p");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("p");
+            });
+
+            cy.log("change mathinput");
+            cy.get(cesc2("#/mi") + " textarea").type(
+                "{end}{backspace}q{enter}",
+                {
+                    force: true,
+                }
+            );
+            cy.get(cesc2("#/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p2/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p3/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+            cy.get(cesc2("#/p4/m") + " .mjx-mrow")
+                .eq(0)
+                .should("have.text", "q");
+
+            cy.window().then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                expect(stateVariables["/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p2/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p3/m"].stateValues.value).eq("q");
+                expect(stateVariables["/p4/m"].stateValues.value).eq("q");
+            });
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/ca")).contains("0");
-    cy.get(cesc2("#/p2/cao")).contains("0");
-    cy.get(cesc2("#/p3/ca")).contains("0");
-    cy.get(cesc2("#/p4/cao")).contains("0");
-
-    cy.get(cesc2("#/cao")).contains("0");
-    cy.get(cesc2("#/p2/ca")).contains("0");
-    cy.get(cesc2("#/p3/cao")).contains("0");
-    cy.get(cesc2("#/p4/ca")).contains("0");
-
-    cy.get(cesc2("#/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-    cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "p");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-
-      let mathinputoutsideName =
-        stateVariables["/_answer1"].stateValues.inputChildren[0].componentName;
-      let mathinputoutsideAnchor =
-        cesc2("#" + mathinputoutsideName) + " textarea";
-      let mathinputoutsideSubmitAnchor = cesc2(
-        "#" + mathinputoutsideName + "_submit",
-      );
-      let mathinputoutsideCorrectAnchor = cesc2(
-        "#" + mathinputoutsideName + "_correct",
-      );
-      let mathinputoutsideIncorrectAnchor = cesc2(
-        "#" + mathinputoutsideName + "_incorrect",
-      );
-      let mathinputoutsideFieldAnchor =
-        cesc2("#" + mathinputoutsideName) + " .mq-editable-field";
-
-      let mathinputp1Name =
-        stateVariables["/_answer2"].stateValues.inputChildren[0].componentName;
-      let mathinputp1Anchor = cesc2("#" + mathinputp1Name) + " textarea";
-      let mathinputp1SubmitAnchor = cesc2("#" + mathinputp1Name + "_submit");
-      let mathinputp1CorrectAnchor = cesc2("#" + mathinputp1Name + "_correct");
-      let mathinputp1IncorrectAnchor = cesc2(
-        "#" + mathinputp1Name + "_incorrect",
-      );
-      let mathinputp1FieldAnchor =
-        cesc2("#" + mathinputp1Name) + " .mq-editable-field";
-
-      let mathinputp2Name =
-        stateVariables["/p2/_answer1"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp2Anchor = cesc2("#" + mathinputp2Name) + " textarea";
-      let mathinputp2SubmitAnchor = cesc2("#" + mathinputp2Name + "_submit");
-      let mathinputp2CorrectAnchor = cesc2("#" + mathinputp2Name + "_correct");
-      let mathinputp2IncorrectAnchor = cesc2(
-        "#" + mathinputp2Name + "_incorrect",
-      );
-      let mathinputp2FieldAnchor =
-        cesc2("#" + mathinputp2Name) + " .mq-editable-field";
-
-      let mathinputp3Name =
-        stateVariables["/p3/_answer2"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp3Anchor = cesc2("#" + mathinputp3Name) + " textarea";
-      let mathinputp3SubmitAnchor = cesc2("#" + mathinputp3Name + "_submit");
-      let mathinputp3CorrectAnchor = cesc2("#" + mathinputp3Name + "_correct");
-      let mathinputp3IncorrectAnchor = cesc2(
-        "#" + mathinputp3Name + "_incorrect",
-      );
-      let mathinputp3FieldAnchor =
-        cesc2("#" + mathinputp3Name) + " .mq-editable-field";
-
-      let mathinputp4Name =
-        stateVariables["/p4/_answer1"].stateValues.inputChildren[0]
-          .componentName;
-      let mathinputp4Anchor = cesc2("#" + mathinputp4Name) + " textarea";
-      let mathinputp4SubmitAnchor = cesc2("#" + mathinputp4Name + "_submit");
-      let mathinputp4CorrectAnchor = cesc2("#" + mathinputp4Name + "_correct");
-      let mathinputp4IncorrectAnchor = cesc2(
-        "#" + mathinputp4Name + "_incorrect",
-      );
-      let mathinputp4FieldAnchor =
-        cesc2("#" + mathinputp4Name) + " .mq-editable-field";
-
-      expect(stateVariables["/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-      expect(stateVariables["/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-      expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-      expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-      expect(stateVariables["/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-      expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-
-      cy.log("answer outside answer");
-
-      cy.get(mathinputoutsideAnchor).type("x{enter}", { force: true });
-      cy.get(mathinputoutsideCorrectAnchor).should("be.visible");
-      cy.get(mathinputp1SubmitAnchor).should("be.visible");
-      cy.get(mathinputp2SubmitAnchor).should("be.visible");
-      cy.get(mathinputp3SubmitAnchor).should("be.visible");
-      cy.get(mathinputp4SubmitAnchor).should("be.visible");
-
-      cy.log("correctly answer first problem");
-      cy.get(mathinputp1Anchor).type("y{enter}", { force: true });
-      cy.get(mathinputp1CorrectAnchor).should("be.visible");
-      cy.get(mathinputp2SubmitAnchor).should("be.visible");
-      cy.get(mathinputp3CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4SubmitAnchor).should("be.visible");
-
-      cy.get(mathinputp1FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("y");
-        });
-      cy.get(mathinputp2FieldAnchor).should("have.text", "");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "");
-
-      cy.get(cesc2("#/ca")).contains("1");
-      cy.get(cesc2("#/p2/cao")).contains("1");
-      cy.get(cesc2("#/p3/ca")).contains("1");
-      cy.get(cesc2("#/p4/cao")).contains("1");
-
-      cy.get(cesc2("#/cao")).contains("0");
-      cy.get(cesc2("#/p2/ca")).contains("0");
-      cy.get(cesc2("#/p3/cao")).contains("0");
-      cy.get(cesc2("#/p4/ca")).contains("0");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("correctly answer second problem");
-      cy.get(mathinputp2Anchor).type("z{enter}", { force: true });
-      cy.get(mathinputp2CorrectAnchor).should("be.visible");
-      cy.get(mathinputp1CorrectAnchor).should("be.visible");
-      cy.get(mathinputp3CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4CorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp2FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("z");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "y");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "z");
-
-      cy.get(cesc2("#/ca")).contains("1");
-      cy.get(cesc2("#/p2/cao")).contains("1");
-      cy.get(cesc2("#/p3/ca")).contains("1");
-      cy.get(cesc2("#/p4/cao")).contains("1");
-
-      cy.get(cesc2("#/cao")).contains("1");
-      cy.get(cesc2("#/p2/ca")).contains("1");
-      cy.get(cesc2("#/p3/cao")).contains("1");
-      cy.get(cesc2("#/p4/ca")).contains("1");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(1);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("incorrectly answer third problem");
-      cy.get(mathinputp3Anchor).type("{end}{backspace}a{enter}", {
-        force: true,
-      });
-      cy.get(mathinputp3IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp1IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp2CorrectAnchor).should("be.visible");
-      cy.get(mathinputp4CorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp3FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("a");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "a");
-      cy.get(mathinputp2FieldAnchor).should("have.text", "z");
-      cy.get(mathinputp4FieldAnchor).should("have.text", "z");
-
-      cy.get(cesc2("#/ca")).contains("0");
-      cy.get(cesc2("#/p2/cao")).contains("0");
-      cy.get(cesc2("#/p3/ca")).contains("0");
-      cy.get(cesc2("#/p4/cao")).contains("0");
-
-      cy.get(cesc2("#/cao")).contains("1");
-      cy.get(cesc2("#/p2/ca")).contains("1");
-      cy.get(cesc2("#/p3/cao")).contains("1");
-      cy.get(cesc2("#/p4/ca")).contains("1");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(1);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(1);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(1);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("incorrectly answer fourth problem");
-      cy.get(mathinputp4Anchor).type("{end}{backspace}b{enter}", {
-        force: true,
-      });
-      cy.get(mathinputp4IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp1IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp2IncorrectAnchor).should("be.visible");
-      cy.get(mathinputp3IncorrectAnchor).should("be.visible");
-
-      cy.get(mathinputp4FieldAnchor)
-        .invoke("text")
-        .then((text) => {
-          expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal("b");
-        });
-      cy.get(mathinputp1FieldAnchor).should("have.text", "a");
-      cy.get(mathinputp2FieldAnchor).should("have.text", "b");
-      cy.get(mathinputp3FieldAnchor).should("have.text", "a");
-
-      cy.get(cesc2("#/ca")).contains("0");
-      cy.get(cesc2("#/p2/cao")).contains("0");
-      cy.get(cesc2("#/p3/ca")).contains("0");
-      cy.get(cesc2("#/p4/cao")).contains("0");
-
-      cy.get(cesc2("#/cao")).contains("0");
-      cy.get(cesc2("#/p2/ca")).contains("0");
-      cy.get(cesc2("#/p3/cao")).contains("0");
-      cy.get(cesc2("#/p4/ca")).contains("0");
-
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "p");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/cao"].stateValues.value).eq(0);
-
-        expect(stateVariables["/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p2/ca"].stateValues.value).eq(0);
-        expect(stateVariables["/p3/cao"].stateValues.value).eq(0);
-        expect(stateVariables["/p4/ca"].stateValues.value).eq(0);
-
-        expect(stateVariables["/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("p");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("p");
-      });
-
-      cy.log("change mathinput");
-      cy.get(cesc2("#/mi") + " textarea").type("{end}{backspace}q{enter}", {
-        force: true,
-      });
-      cy.get(cesc2("#/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p2/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p3/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-      cy.get(cesc2("#/p4/m") + " .mjx-mrow")
-        .eq(0)
-        .should("have.text", "q");
-
-      cy.window().then(async (win) => {
-        let stateVariables = await win.returnAllStateVariables1();
-        expect(stateVariables["/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p2/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p3/m"].stateValues.value).eq("q");
-        expect(stateVariables["/p4/m"].stateValues.value).eq("q");
-      });
-    });
-  });
-
-  it("copySource of map", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource of map", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <mathinput name="n" prefill="2" />
@@ -1504,320 +1570,324 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/n2")).contains("2");
+        cy.get(cesc2("#/n3")).contains("2");
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/_number1")).contains("1");
+        cy.get(cesc2("#/p1/_math1")).contains("＿");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/_number1")).contains("2");
+        cy.get(cesc2("#/p2/_math1")).contains("＿");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/_number1")).contains("1");
+        cy.get(cesc2("#/p1a/_math1")).contains("＿");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/_number1")).contains("2");
+        cy.get(cesc2("#/p2a/_math1")).contains("＿");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3a/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/_number1")).contains("1");
+        cy.get(cesc2("#/p1b/_math1")).contains("＿");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/_number1")).contains("2");
+        cy.get(cesc2("#/p2b/_math1")).contains("＿");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3b/_math1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/_number1"]).eq(undefined);
+            expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/_number1"]).eq(undefined);
+            expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/_number1"]).eq(undefined);
+
+            expect(stateVariables["/p1/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3/_math1"]).eq(undefined);
+            expect(stateVariables["/p1a/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2a/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3a/_math1"]).eq(undefined);
+            expect(stateVariables["/p1b/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2b/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3b/_math1"]).eq(undefined);
+        });
+
+        cy.log("type x in first mathinput");
+        cy.get(cesc2("#/p1/x") + " textarea").type("x{enter}", { force: true });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/_number1")).contains("1");
+        cy.get(cesc2("#/p1/_math1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/_number1")).contains("2");
+        cy.get(cesc2("#/p2/_math1")).contains("＿");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/_number1")).contains("1");
+        cy.get(cesc2("#/p1a/_math1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/_number1")).contains("2");
+        cy.get(cesc2("#/p2a/_math1")).contains("＿");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3a/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/_number1")).contains("1");
+        cy.get(cesc2("#/p1b/_math1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/_number1")).contains("2");
+        cy.get(cesc2("#/p2b/_math1")).contains("＿");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3b/_math1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/_number1"]).eq(undefined);
+            expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/_number1"]).eq(undefined);
+            expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/_number1"]).eq(undefined);
+
+            expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3/_math1"]).eq(undefined);
+            expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3a/_math1"]).eq(undefined);
+            expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3b/_math1"]).eq(undefined);
+        });
+
+        cy.log("type y in second mathinput");
+        cy.get(cesc2("#/p2b/x") + " textarea").type("y{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/_number1")).contains("1");
+        cy.get(cesc2("#/p1/_math1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/_number1")).contains("2");
+        cy.get(cesc2("#/p2/_math1")).contains("y");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/_number1")).contains("1");
+        cy.get(cesc2("#/p1a/_math1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/_number1")).contains("2");
+        cy.get(cesc2("#/p2a/_math1")).contains("y");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3a/_math1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/_number1")).contains("1");
+        cy.get(cesc2("#/p1b/_math1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/_number1")).contains("2");
+        cy.get(cesc2("#/p2b/_math1")).contains("y");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/_number1")).should("not.exist");
+        cy.get(cesc2("#/p3b/_math1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/_number1"]).eq(undefined);
+            expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/_number1"]).eq(undefined);
+            expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/_number1"]).eq(undefined);
+
+            expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/_math1"]).eq(undefined);
+            expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/_math1"]).eq(undefined);
+            expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/_math1"]).eq(undefined);
+        });
+
+        cy.log("increase n");
+        cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/n2")).contains("3");
+        cy.get(cesc2("#/n3")).contains("3");
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/_number1")).contains("1");
+        cy.get(cesc2("#/p1/_math1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/_number1")).contains("2");
+        cy.get(cesc2("#/p2/_math1")).contains("y");
+        cy.get(cesc2("#/p3")).contains("Hello 3!");
+        cy.get(cesc2("#/p3/_number1")).contains("3");
+        cy.get(cesc2("#/p3/_math1")).contains("＿");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/_number1")).contains("1");
+        cy.get(cesc2("#/p1a/_math1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/_number1")).contains("2");
+        cy.get(cesc2("#/p2a/_math1")).contains("y");
+        cy.get(cesc2("#/p3a")).contains("Hello 3!");
+        cy.get(cesc2("#/p3a/_number1")).contains("3");
+        cy.get(cesc2("#/p3a/_math1")).contains("＿");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/_number1")).contains("1");
+        cy.get(cesc2("#/p1b/_math1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/_number1")).contains("2");
+        cy.get(cesc2("#/p2b/_math1")).contains("y");
+        cy.get(cesc2("#/p3b")).contains("Hello 3!");
+        cy.get(cesc2("#/p3b/_number1")).contains("3");
+        cy.get(cesc2("#/p3b/_math1")).contains("＿");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(3);
+            expect(stateVariables["/n3"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/_number1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/_number1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/_number1"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/_math1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/_math1"].stateValues.value).eq("＿");
+        });
+
+        cy.log("type z in third mathinput");
+        cy.get(cesc2("#/p3a/x") + " textarea").type("z{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/_number1")).contains("1");
+        cy.get(cesc2("#/p1/_math1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/_number1")).contains("2");
+        cy.get(cesc2("#/p2/_math1")).contains("y");
+        cy.get(cesc2("#/p3")).contains("Hello 3!");
+        cy.get(cesc2("#/p3/_number1")).contains("3");
+        cy.get(cesc2("#/p3/_math1")).contains("z");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/_number1")).contains("1");
+        cy.get(cesc2("#/p1a/_math1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/_number1")).contains("2");
+        cy.get(cesc2("#/p2a/_math1")).contains("y");
+        cy.get(cesc2("#/p3a")).contains("Hello 3!");
+        cy.get(cesc2("#/p3a/_number1")).contains("3");
+        cy.get(cesc2("#/p3a/_math1")).contains("z");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/_number1")).contains("1");
+        cy.get(cesc2("#/p1b/_math1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/_number1")).contains("2");
+        cy.get(cesc2("#/p2b/_math1")).contains("y");
+        cy.get(cesc2("#/p3b")).contains("Hello 3!");
+        cy.get(cesc2("#/p3b/_number1")).contains("3");
+        cy.get(cesc2("#/p3b/_math1")).contains("z");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(3);
+            expect(stateVariables["/n3"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/_number1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/_number1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/_number1"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/_math1"].stateValues.value).eq("z");
+            expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/_math1"].stateValues.value).eq("z");
+            expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/_math1"].stateValues.value).eq("z");
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/n2")).contains("2");
-    cy.get(cesc2("#/n3")).contains("2");
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/_number1")).contains("1");
-    cy.get(cesc2("#/p1/_math1")).contains("＿");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/_number1")).contains("2");
-    cy.get(cesc2("#/p2/_math1")).contains("＿");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/_number1")).contains("1");
-    cy.get(cesc2("#/p1a/_math1")).contains("＿");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/_number1")).contains("2");
-    cy.get(cesc2("#/p2a/_math1")).contains("＿");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3a/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/_number1")).contains("1");
-    cy.get(cesc2("#/p1b/_math1")).contains("＿");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/_number1")).contains("2");
-    cy.get(cesc2("#/p2b/_math1")).contains("＿");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3b/_math1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/_number1"]).eq(undefined);
-      expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/_number1"]).eq(undefined);
-      expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/_number1"]).eq(undefined);
-
-      expect(stateVariables["/p1/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3/_math1"]).eq(undefined);
-      expect(stateVariables["/p1a/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2a/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3a/_math1"]).eq(undefined);
-      expect(stateVariables["/p1b/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2b/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3b/_math1"]).eq(undefined);
-    });
-
-    cy.log("type x in first mathinput");
-    cy.get(cesc2("#/p1/x") + " textarea").type("x{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/_number1")).contains("1");
-    cy.get(cesc2("#/p1/_math1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/_number1")).contains("2");
-    cy.get(cesc2("#/p2/_math1")).contains("＿");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/_number1")).contains("1");
-    cy.get(cesc2("#/p1a/_math1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/_number1")).contains("2");
-    cy.get(cesc2("#/p2a/_math1")).contains("＿");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3a/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/_number1")).contains("1");
-    cy.get(cesc2("#/p1b/_math1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/_number1")).contains("2");
-    cy.get(cesc2("#/p2b/_math1")).contains("＿");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3b/_math1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/_number1"]).eq(undefined);
-      expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/_number1"]).eq(undefined);
-      expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/_number1"]).eq(undefined);
-
-      expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3/_math1"]).eq(undefined);
-      expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3a/_math1"]).eq(undefined);
-      expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3b/_math1"]).eq(undefined);
-    });
-
-    cy.log("type y in second mathinput");
-    cy.get(cesc2("#/p2b/x") + " textarea").type("y{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/_number1")).contains("1");
-    cy.get(cesc2("#/p1/_math1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/_number1")).contains("2");
-    cy.get(cesc2("#/p2/_math1")).contains("y");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/_number1")).contains("1");
-    cy.get(cesc2("#/p1a/_math1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/_number1")).contains("2");
-    cy.get(cesc2("#/p2a/_math1")).contains("y");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3a/_math1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/_number1")).contains("1");
-    cy.get(cesc2("#/p1b/_math1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/_number1")).contains("2");
-    cy.get(cesc2("#/p2b/_math1")).contains("y");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/_number1")).should("not.exist");
-    cy.get(cesc2("#/p3b/_math1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/_number1"]).eq(undefined);
-      expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/_number1"]).eq(undefined);
-      expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/_number1"]).eq(undefined);
-
-      expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/_math1"]).eq(undefined);
-      expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/_math1"]).eq(undefined);
-      expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/_math1"]).eq(undefined);
-    });
-
-    cy.log("increase n");
-    cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/n2")).contains("3");
-    cy.get(cesc2("#/n3")).contains("3");
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/_number1")).contains("1");
-    cy.get(cesc2("#/p1/_math1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/_number1")).contains("2");
-    cy.get(cesc2("#/p2/_math1")).contains("y");
-    cy.get(cesc2("#/p3")).contains("Hello 3!");
-    cy.get(cesc2("#/p3/_number1")).contains("3");
-    cy.get(cesc2("#/p3/_math1")).contains("＿");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/_number1")).contains("1");
-    cy.get(cesc2("#/p1a/_math1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/_number1")).contains("2");
-    cy.get(cesc2("#/p2a/_math1")).contains("y");
-    cy.get(cesc2("#/p3a")).contains("Hello 3!");
-    cy.get(cesc2("#/p3a/_number1")).contains("3");
-    cy.get(cesc2("#/p3a/_math1")).contains("＿");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/_number1")).contains("1");
-    cy.get(cesc2("#/p1b/_math1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/_number1")).contains("2");
-    cy.get(cesc2("#/p2b/_math1")).contains("y");
-    cy.get(cesc2("#/p3b")).contains("Hello 3!");
-    cy.get(cesc2("#/p3b/_number1")).contains("3");
-    cy.get(cesc2("#/p3b/_math1")).contains("＿");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(3);
-      expect(stateVariables["/n3"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/_number1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/_number1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/_number1"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/_math1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/_math1"].stateValues.value).eq("＿");
-    });
-
-    cy.log("type z in third mathinput");
-    cy.get(cesc2("#/p3a/x") + " textarea").type("z{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/_number1")).contains("1");
-    cy.get(cesc2("#/p1/_math1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/_number1")).contains("2");
-    cy.get(cesc2("#/p2/_math1")).contains("y");
-    cy.get(cesc2("#/p3")).contains("Hello 3!");
-    cy.get(cesc2("#/p3/_number1")).contains("3");
-    cy.get(cesc2("#/p3/_math1")).contains("z");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/_number1")).contains("1");
-    cy.get(cesc2("#/p1a/_math1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/_number1")).contains("2");
-    cy.get(cesc2("#/p2a/_math1")).contains("y");
-    cy.get(cesc2("#/p3a")).contains("Hello 3!");
-    cy.get(cesc2("#/p3a/_number1")).contains("3");
-    cy.get(cesc2("#/p3a/_math1")).contains("z");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/_number1")).contains("1");
-    cy.get(cesc2("#/p1b/_math1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/_number1")).contains("2");
-    cy.get(cesc2("#/p2b/_math1")).contains("y");
-    cy.get(cesc2("#/p3b")).contains("Hello 3!");
-    cy.get(cesc2("#/p3b/_number1")).contains("3");
-    cy.get(cesc2("#/p3b/_math1")).contains("z");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(3);
-      expect(stateVariables["/n3"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/_number1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1a/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/_number1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1b/_number1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/_number1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/_number1"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/_math1"].stateValues.value).eq("z");
-      expect(stateVariables["/p1a/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/_math1"].stateValues.value).eq("z");
-      expect(stateVariables["/p1b/_math1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/_math1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/_math1"].stateValues.value).eq("z");
-    });
-  });
-
-  it("macro to copy map", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("macro to copy map", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <mathinput name="n" prefill="2" />
@@ -1836,320 +1906,324 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/n2")).contains("2");
+        cy.get(cesc2("#/n3")).contains("2");
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/n1")).contains("1");
+        cy.get(cesc2("#/p1/m1")).contains("＿");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/n1")).contains("2");
+        cy.get(cesc2("#/p2/m1")).contains("＿");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/n1")).should("not.exist");
+        cy.get(cesc2("#/p3/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/n1")).contains("1");
+        cy.get(cesc2("#/p1a/m1")).contains("＿");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/n1")).contains("2");
+        cy.get(cesc2("#/p2a/m1")).contains("＿");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/n1")).should("not.exist");
+        cy.get(cesc2("#/p3a/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/n1")).contains("1");
+        cy.get(cesc2("#/p1b/m1")).contains("＿");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/n1")).contains("2");
+        cy.get(cesc2("#/p2b/m1")).contains("＿");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/n1")).should("not.exist");
+        cy.get(cesc2("#/p3b/m1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/n1"]).eq(undefined);
+            expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/n1"]).eq(undefined);
+            expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/n1"]).eq(undefined);
+
+            expect(stateVariables["/p1/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3/m1"]).eq(undefined);
+            expect(stateVariables["/p1a/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2a/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3a/m1"]).eq(undefined);
+            expect(stateVariables["/p1b/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p2b/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3b/m1"]).eq(undefined);
+        });
+
+        cy.log("type x in first mathinput");
+        cy.get(cesc2("#/p1/x") + " textarea").type("x{enter}", { force: true });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/n1")).contains("1");
+        cy.get(cesc2("#/p1/m1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/n1")).contains("2");
+        cy.get(cesc2("#/p2/m1")).contains("＿");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/n1")).should("not.exist");
+        cy.get(cesc2("#/p3/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/n1")).contains("1");
+        cy.get(cesc2("#/p1a/m1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/n1")).contains("2");
+        cy.get(cesc2("#/p2a/m1")).contains("＿");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/n1")).should("not.exist");
+        cy.get(cesc2("#/p3a/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/n1")).contains("1");
+        cy.get(cesc2("#/p1b/m1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/n1")).contains("2");
+        cy.get(cesc2("#/p2b/m1")).contains("＿");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/n1")).should("not.exist");
+        cy.get(cesc2("#/p3b/m1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/n1"]).eq(undefined);
+            expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/n1"]).eq(undefined);
+            expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/n1"]).eq(undefined);
+
+            expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3/m1"]).eq(undefined);
+            expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3a/m1"]).eq(undefined);
+            expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p3b/m1"]).eq(undefined);
+        });
+
+        cy.log("type y in second mathinput");
+        cy.get(cesc2("#/p2b/x") + " textarea").type("y{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/n1")).contains("1");
+        cy.get(cesc2("#/p1/m1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/n1")).contains("2");
+        cy.get(cesc2("#/p2/m1")).contains("y");
+        cy.get(cesc2("#/p3")).should("not.exist");
+        cy.get(cesc2("#/p3/n1")).should("not.exist");
+        cy.get(cesc2("#/p3/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/n1")).contains("1");
+        cy.get(cesc2("#/p1a/m1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/n1")).contains("2");
+        cy.get(cesc2("#/p2a/m1")).contains("y");
+        cy.get(cesc2("#/p3a")).should("not.exist");
+        cy.get(cesc2("#/p3a/n1")).should("not.exist");
+        cy.get(cesc2("#/p3a/m1")).should("not.exist");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/n1")).contains("1");
+        cy.get(cesc2("#/p1b/m1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/n1")).contains("2");
+        cy.get(cesc2("#/p2b/m1")).contains("y");
+        cy.get(cesc2("#/p3b")).should("not.exist");
+        cy.get(cesc2("#/p3b/n1")).should("not.exist");
+        cy.get(cesc2("#/p3b/m1")).should("not.exist");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+            expect(stateVariables["/n3"].stateValues.value).eq(2);
+
+            expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/n1"]).eq(undefined);
+            expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/n1"]).eq(undefined);
+            expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/n1"]).eq(undefined);
+
+            expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/m1"]).eq(undefined);
+            expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/m1"]).eq(undefined);
+            expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/m1"]).eq(undefined);
+        });
+
+        cy.log("increase n");
+        cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/n2")).contains("3");
+        cy.get(cesc2("#/n3")).contains("3");
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/n1")).contains("1");
+        cy.get(cesc2("#/p1/m1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/n1")).contains("2");
+        cy.get(cesc2("#/p2/m1")).contains("y");
+        cy.get(cesc2("#/p3")).contains("Hello 3!");
+        cy.get(cesc2("#/p3/n1")).contains("3");
+        cy.get(cesc2("#/p3/m1")).contains("＿");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/n1")).contains("1");
+        cy.get(cesc2("#/p1a/m1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/n1")).contains("2");
+        cy.get(cesc2("#/p2a/m1")).contains("y");
+        cy.get(cesc2("#/p3a")).contains("Hello 3!");
+        cy.get(cesc2("#/p3a/n1")).contains("3");
+        cy.get(cesc2("#/p3a/m1")).contains("＿");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/n1")).contains("1");
+        cy.get(cesc2("#/p1b/m1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/n1")).contains("2");
+        cy.get(cesc2("#/p2b/m1")).contains("y");
+        cy.get(cesc2("#/p3b")).contains("Hello 3!");
+        cy.get(cesc2("#/p3b/n1")).contains("3");
+        cy.get(cesc2("#/p3b/m1")).contains("＿");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(3);
+            expect(stateVariables["/n3"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/n1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/n1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/n1"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/m1"].stateValues.value).eq("＿");
+            expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/m1"].stateValues.value).eq("＿");
+        });
+
+        cy.log("type z in third mathinput");
+        cy.get(cesc2("#/p3a/x") + " textarea").type("z{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).contains("Hello 1!");
+        cy.get(cesc2("#/p1/n1")).contains("1");
+        cy.get(cesc2("#/p1/m1")).contains("x");
+        cy.get(cesc2("#/p2")).contains("Hello 2!");
+        cy.get(cesc2("#/p2/n1")).contains("2");
+        cy.get(cesc2("#/p2/m1")).contains("y");
+        cy.get(cesc2("#/p3")).contains("Hello 3!");
+        cy.get(cesc2("#/p3/n1")).contains("3");
+        cy.get(cesc2("#/p3/m1")).contains("z");
+
+        cy.get(cesc2("#/p1a")).contains("Hello 1!");
+        cy.get(cesc2("#/p1a/n1")).contains("1");
+        cy.get(cesc2("#/p1a/m1")).contains("x");
+        cy.get(cesc2("#/p2a")).contains("Hello 2!");
+        cy.get(cesc2("#/p2a/n1")).contains("2");
+        cy.get(cesc2("#/p2a/m1")).contains("y");
+        cy.get(cesc2("#/p3a")).contains("Hello 3!");
+        cy.get(cesc2("#/p3a/n1")).contains("3");
+        cy.get(cesc2("#/p3a/m1")).contains("z");
+
+        cy.get(cesc2("#/p1b")).contains("Hello 1!");
+        cy.get(cesc2("#/p1b/n1")).contains("1");
+        cy.get(cesc2("#/p1b/m1")).contains("x");
+        cy.get(cesc2("#/p2b")).contains("Hello 2!");
+        cy.get(cesc2("#/p2b/n1")).contains("2");
+        cy.get(cesc2("#/p2b/m1")).contains("y");
+        cy.get(cesc2("#/p3b")).contains("Hello 3!");
+        cy.get(cesc2("#/p3b/n1")).contains("3");
+        cy.get(cesc2("#/p3b/m1")).contains("z");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/n2"].stateValues.value).eq(3);
+            expect(stateVariables["/n3"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3/n1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3a/n1"].stateValues.value).eq(3);
+            expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
+            expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/p3b/n1"].stateValues.value).eq(3);
+
+            expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3/m1"].stateValues.value).eq("z");
+            expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3a/m1"].stateValues.value).eq("z");
+            expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
+            expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
+            expect(stateVariables["/p3b/m1"].stateValues.value).eq("z");
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/n2")).contains("2");
-    cy.get(cesc2("#/n3")).contains("2");
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/n1")).contains("1");
-    cy.get(cesc2("#/p1/m1")).contains("＿");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/n1")).contains("2");
-    cy.get(cesc2("#/p2/m1")).contains("＿");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/n1")).should("not.exist");
-    cy.get(cesc2("#/p3/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/n1")).contains("1");
-    cy.get(cesc2("#/p1a/m1")).contains("＿");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/n1")).contains("2");
-    cy.get(cesc2("#/p2a/m1")).contains("＿");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/n1")).should("not.exist");
-    cy.get(cesc2("#/p3a/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/n1")).contains("1");
-    cy.get(cesc2("#/p1b/m1")).contains("＿");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/n1")).contains("2");
-    cy.get(cesc2("#/p2b/m1")).contains("＿");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/n1")).should("not.exist");
-    cy.get(cesc2("#/p3b/m1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/n1"]).eq(undefined);
-      expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/n1"]).eq(undefined);
-      expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/n1"]).eq(undefined);
-
-      expect(stateVariables["/p1/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3/m1"]).eq(undefined);
-      expect(stateVariables["/p1a/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2a/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3a/m1"]).eq(undefined);
-      expect(stateVariables["/p1b/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p2b/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3b/m1"]).eq(undefined);
-    });
-
-    cy.log("type x in first mathinput");
-    cy.get(cesc2("#/p1/x") + " textarea").type("x{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/n1")).contains("1");
-    cy.get(cesc2("#/p1/m1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/n1")).contains("2");
-    cy.get(cesc2("#/p2/m1")).contains("＿");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/n1")).should("not.exist");
-    cy.get(cesc2("#/p3/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/n1")).contains("1");
-    cy.get(cesc2("#/p1a/m1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/n1")).contains("2");
-    cy.get(cesc2("#/p2a/m1")).contains("＿");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/n1")).should("not.exist");
-    cy.get(cesc2("#/p3a/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/n1")).contains("1");
-    cy.get(cesc2("#/p1b/m1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/n1")).contains("2");
-    cy.get(cesc2("#/p2b/m1")).contains("＿");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/n1")).should("not.exist");
-    cy.get(cesc2("#/p3b/m1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/n1"]).eq(undefined);
-      expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/n1"]).eq(undefined);
-      expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/n1"]).eq(undefined);
-
-      expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3/m1"]).eq(undefined);
-      expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3a/m1"]).eq(undefined);
-      expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p3b/m1"]).eq(undefined);
-    });
-
-    cy.log("type y in second mathinput");
-    cy.get(cesc2("#/p2b/x") + " textarea").type("y{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/n1")).contains("1");
-    cy.get(cesc2("#/p1/m1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/n1")).contains("2");
-    cy.get(cesc2("#/p2/m1")).contains("y");
-    cy.get(cesc2("#/p3")).should("not.exist");
-    cy.get(cesc2("#/p3/n1")).should("not.exist");
-    cy.get(cesc2("#/p3/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/n1")).contains("1");
-    cy.get(cesc2("#/p1a/m1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/n1")).contains("2");
-    cy.get(cesc2("#/p2a/m1")).contains("y");
-    cy.get(cesc2("#/p3a")).should("not.exist");
-    cy.get(cesc2("#/p3a/n1")).should("not.exist");
-    cy.get(cesc2("#/p3a/m1")).should("not.exist");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/n1")).contains("1");
-    cy.get(cesc2("#/p1b/m1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/n1")).contains("2");
-    cy.get(cesc2("#/p2b/m1")).contains("y");
-    cy.get(cesc2("#/p3b")).should("not.exist");
-    cy.get(cesc2("#/p3b/n1")).should("not.exist");
-    cy.get(cesc2("#/p3b/m1")).should("not.exist");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-      expect(stateVariables["/n3"].stateValues.value).eq(2);
-
-      expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/n1"]).eq(undefined);
-      expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/n1"]).eq(undefined);
-      expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/n1"]).eq(undefined);
-
-      expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/m1"]).eq(undefined);
-      expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/m1"]).eq(undefined);
-      expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/m1"]).eq(undefined);
-    });
-
-    cy.log("increase n");
-    cy.get(cesc2("#/n") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/n2")).contains("3");
-    cy.get(cesc2("#/n3")).contains("3");
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/n1")).contains("1");
-    cy.get(cesc2("#/p1/m1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/n1")).contains("2");
-    cy.get(cesc2("#/p2/m1")).contains("y");
-    cy.get(cesc2("#/p3")).contains("Hello 3!");
-    cy.get(cesc2("#/p3/n1")).contains("3");
-    cy.get(cesc2("#/p3/m1")).contains("＿");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/n1")).contains("1");
-    cy.get(cesc2("#/p1a/m1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/n1")).contains("2");
-    cy.get(cesc2("#/p2a/m1")).contains("y");
-    cy.get(cesc2("#/p3a")).contains("Hello 3!");
-    cy.get(cesc2("#/p3a/n1")).contains("3");
-    cy.get(cesc2("#/p3a/m1")).contains("＿");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/n1")).contains("1");
-    cy.get(cesc2("#/p1b/m1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/n1")).contains("2");
-    cy.get(cesc2("#/p2b/m1")).contains("y");
-    cy.get(cesc2("#/p3b")).contains("Hello 3!");
-    cy.get(cesc2("#/p3b/n1")).contains("3");
-    cy.get(cesc2("#/p3b/m1")).contains("＿");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(3);
-      expect(stateVariables["/n3"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/n1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/n1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/n1"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/m1"].stateValues.value).eq("＿");
-      expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/m1"].stateValues.value).eq("＿");
-    });
-
-    cy.log("type z in third mathinput");
-    cy.get(cesc2("#/p3a/x") + " textarea").type("z{enter}", { force: true });
-
-    cy.get(cesc2("#/p1")).contains("Hello 1!");
-    cy.get(cesc2("#/p1/n1")).contains("1");
-    cy.get(cesc2("#/p1/m1")).contains("x");
-    cy.get(cesc2("#/p2")).contains("Hello 2!");
-    cy.get(cesc2("#/p2/n1")).contains("2");
-    cy.get(cesc2("#/p2/m1")).contains("y");
-    cy.get(cesc2("#/p3")).contains("Hello 3!");
-    cy.get(cesc2("#/p3/n1")).contains("3");
-    cy.get(cesc2("#/p3/m1")).contains("z");
-
-    cy.get(cesc2("#/p1a")).contains("Hello 1!");
-    cy.get(cesc2("#/p1a/n1")).contains("1");
-    cy.get(cesc2("#/p1a/m1")).contains("x");
-    cy.get(cesc2("#/p2a")).contains("Hello 2!");
-    cy.get(cesc2("#/p2a/n1")).contains("2");
-    cy.get(cesc2("#/p2a/m1")).contains("y");
-    cy.get(cesc2("#/p3a")).contains("Hello 3!");
-    cy.get(cesc2("#/p3a/n1")).contains("3");
-    cy.get(cesc2("#/p3a/m1")).contains("z");
-
-    cy.get(cesc2("#/p1b")).contains("Hello 1!");
-    cy.get(cesc2("#/p1b/n1")).contains("1");
-    cy.get(cesc2("#/p1b/m1")).contains("x");
-    cy.get(cesc2("#/p2b")).contains("Hello 2!");
-    cy.get(cesc2("#/p2b/n1")).contains("2");
-    cy.get(cesc2("#/p2b/m1")).contains("y");
-    cy.get(cesc2("#/p3b")).contains("Hello 3!");
-    cy.get(cesc2("#/p3b/n1")).contains("3");
-    cy.get(cesc2("#/p3b/m1")).contains("z");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/n2"].stateValues.value).eq(3);
-      expect(stateVariables["/n3"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3/n1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1a/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2a/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3a/n1"].stateValues.value).eq(3);
-      expect(stateVariables["/p1b/n1"].stateValues.value).eq(1);
-      expect(stateVariables["/p2b/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/p3b/n1"].stateValues.value).eq(3);
-
-      expect(stateVariables["/p1/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3/m1"].stateValues.value).eq("z");
-      expect(stateVariables["/p1a/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2a/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3a/m1"].stateValues.value).eq("z");
-      expect(stateVariables["/p1b/m1"].stateValues.value).eq("x");
-      expect(stateVariables["/p2b/m1"].stateValues.value).eq("y");
-      expect(stateVariables["/p3b/m1"].stateValues.value).eq("z");
-    });
-  });
-
-  it("copySource and createComponentOfType wrap to match specified type", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource and createComponentOfType wrap to match specified type", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <mathinput name="mi" prefill="2" />
@@ -2173,133 +2247,133 @@ describe("Copy Tag Tests", function () {
     $P.coords{assignNames="mc4" createComponentOfType="math"}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/m1") + " .mjx-mrow")
+            .eq(0)
+            .contains("2");
+        cy.get(cesc2("#/m2") + " .mjx-mrow")
+            .eq(0)
+            .contains("2");
+
+        cy.get(cesc2("#/n1")).contains("2");
+        cy.get(cesc2("#/n2")).contains("2");
+
+        cy.get(cesc2("#/c1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/c2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/c3") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/c4") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+
+        cy.get(cesc2("#/mc1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/mc2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/mc3") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+        cy.get(cesc2("#/mc4") + " .mjx-mrow")
+            .eq(0)
+            .contains("(x,y)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/m1"].stateValues.value).eq(2);
+            expect(stateVariables["/m2"].stateValues.value).eq(2);
+
+            expect(stateVariables["/n1"].stateValues.value).eq(2);
+            expect(stateVariables["/n2"].stateValues.value).eq(2);
+
+            expect(stateVariables["/c1"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/c2"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/c3"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/c4"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+
+            expect(stateVariables["/mc1"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/mc2"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/mc3"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+            expect(stateVariables["/mc4"].stateValues.value).eqls([
+                "vector",
+                "x",
+                "y",
+            ]);
+        });
+
+        cy.log("enter a");
+        cy.get(cesc2("#/mi") + " textarea").type("{end}{backspace}a{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/m1") + " .mjx-mrow").should("contain.text", "a");
+
+        cy.get(cesc2("#/m1") + " .mjx-mrow")
+            .eq(0)
+            .contains("a");
+        cy.get(cesc2("#/m2") + " .mjx-mrow")
+            .eq(0)
+            .contains("a");
+
+        cy.get(cesc2("#/n1")).contains("NaN");
+        cy.get(cesc2("#/n2")).contains("NaN");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/m1"].stateValues.value).eq("a");
+            expect(stateVariables["/m2"].stateValues.value).eq("a");
+
+            expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
+            expect(stateVariables["/n2"].stateValues.value).eqls(NaN);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/m1") + " .mjx-mrow")
-      .eq(0)
-      .contains("2");
-    cy.get(cesc2("#/m2") + " .mjx-mrow")
-      .eq(0)
-      .contains("2");
-
-    cy.get(cesc2("#/n1")).contains("2");
-    cy.get(cesc2("#/n2")).contains("2");
-
-    cy.get(cesc2("#/c1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/c2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/c3") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/c4") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-
-    cy.get(cesc2("#/mc1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/mc2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/mc3") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-    cy.get(cesc2("#/mc4") + " .mjx-mrow")
-      .eq(0)
-      .contains("(x,y)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/m1"].stateValues.value).eq(2);
-      expect(stateVariables["/m2"].stateValues.value).eq(2);
-
-      expect(stateVariables["/n1"].stateValues.value).eq(2);
-      expect(stateVariables["/n2"].stateValues.value).eq(2);
-
-      expect(stateVariables["/c1"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/c2"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/c3"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/c4"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-
-      expect(stateVariables["/mc1"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/mc2"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/mc3"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-      expect(stateVariables["/mc4"].stateValues.value).eqls([
-        "vector",
-        "x",
-        "y",
-      ]);
-    });
-
-    cy.log("enter a");
-    cy.get(cesc2("#/mi") + " textarea").type("{end}{backspace}a{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/m1") + " .mjx-mrow").should("contain.text", "a");
-
-    cy.get(cesc2("#/m1") + " .mjx-mrow")
-      .eq(0)
-      .contains("a");
-    cy.get(cesc2("#/m2") + " .mjx-mrow")
-      .eq(0)
-      .contains("a");
-
-    cy.get(cesc2("#/n1")).contains("NaN");
-    cy.get(cesc2("#/n2")).contains("NaN");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/m1"].stateValues.value).eq("a");
-      expect(stateVariables["/m2"].stateValues.value).eq("a");
-
-      expect(stateVariables["/n1"].stateValues.value).eqls(NaN);
-      expect(stateVariables["/n2"].stateValues.value).eqls(NaN);
-    });
-  });
-
-  it("add children to invalid copySource", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children to invalid copySource", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <graph name="g" copySource="invalid">
@@ -2314,84 +2388,94 @@ describe("Copy Tag Tests", function () {
     <math name="g2Pcoords" copySource="g2/P" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/Pcoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(0,0)");
+        cy.get(cesc2("#/g2Pcoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(0,0)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g"].activeChildren.length).eq(1);
+            expect(stateVariables["/g"].activeChildren[0].componentName).eq(
+                "/P"
+            );
+            expect(stateVariables["/P"].stateValues.xs).eqls([0, 0]);
+
+            expect(stateVariables["/g2"].activeChildren.length).eq(1);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([0, 0]);
+
+            expect(stateVariables["/Pcoords"].stateValues.value).eqls([
+                "vector",
+                0,
+                0,
+            ]);
+            expect(stateVariables["/g2Pcoords"].stateValues.value).eqls([
+                "vector",
+                0,
+                0,
+            ]);
+        });
+
+        cy.log(`move points`);
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/P",
+                args: { x: 3, y: 5 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/P",
+                args: { x: 7, y: 6 },
+            });
+        });
+
+        cy.get(cesc2("#/g2Pcoords") + " .mjx-mrow").should(
+            "contain.text",
+            "(7,6)"
+        );
+        cy.get(cesc2("#/Pcoords") + " .mjx-mrow").should(
+            "contain.text",
+            "(3,5)"
+        );
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([3, 5]);
+
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([7, 6]);
+
+            expect(stateVariables["/Pcoords"].stateValues.value).eqls([
+                "vector",
+                3,
+                5,
+            ]);
+            expect(stateVariables["/g2Pcoords"].stateValues.value).eqls([
+                "vector",
+                7,
+                6,
+            ]);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/Pcoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(0,0)");
-    cy.get(cesc2("#/g2Pcoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(0,0)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g"].activeChildren.length).eq(1);
-      expect(stateVariables["/g"].activeChildren[0].componentName).eq("/P");
-      expect(stateVariables["/P"].stateValues.xs).eqls([0, 0]);
-
-      expect(stateVariables["/g2"].activeChildren.length).eq(1);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([0, 0]);
-
-      expect(stateVariables["/Pcoords"].stateValues.value).eqls([
-        "vector",
-        0,
-        0,
-      ]);
-      expect(stateVariables["/g2Pcoords"].stateValues.value).eqls([
-        "vector",
-        0,
-        0,
-      ]);
-    });
-
-    cy.log(`move points`);
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/P",
-        args: { x: 3, y: 5 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g2/P",
-        args: { x: 7, y: 6 },
-      });
-    });
-
-    cy.get(cesc2("#/g2Pcoords") + " .mjx-mrow").should("contain.text", "(7,6)");
-    cy.get(cesc2("#/Pcoords") + " .mjx-mrow").should("contain.text", "(3,5)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P"].stateValues.xs).eqls([3, 5]);
-
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([7, 6]);
-
-      expect(stateVariables["/Pcoords"].stateValues.value).eqls([
-        "vector",
-        3,
-        5,
-      ]);
-      expect(stateVariables["/g2Pcoords"].stateValues.value).eqls([
-        "vector",
-        7,
-        6,
-      ]);
-    });
-  });
-
-  it("add children with copySource, different newNamespace combinations", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children with copySource, different newNamespace combinations", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <graph name="g1">
@@ -2444,472 +2528,495 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(4,5)");
+
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(4,5)");
+
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(4,5)");
+
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(4,5)");
+
+        let P1aName;
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/P1"
+            );
+            expect(stateVariables["/P1"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g1a"].activeChildren.length).eq(2);
+            expect(stateVariables["/g1a"].activeChildren[1].componentName).eq(
+                "/v1"
+            );
+            P1aName = stateVariables["/g1a"].activeChildren[0].componentName;
+            expect(stateVariables[P1aName].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/v1"].stateValues.displacement).eqls([4, 5]);
+            expect(stateVariables["/P1coords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/v1displacement"].stateValues.value).eqls([
+                "vector",
+                4,
+                5,
+            ]);
+
+            expect(stateVariables["/g2"].activeChildren.length).eq(1);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/P2"
+            );
+            expect(stateVariables["/P2"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g2a"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2a"].activeChildren[0].componentName).eq(
+                "/g2a/P2"
+            );
+            expect(stateVariables["/g2a"].activeChildren[1].componentName).eq(
+                "/g2a/v2"
+            );
+            expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([
+                4, 5,
+            ]);
+            expect(stateVariables["/P2coords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/P2acoords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/v2displacement"].stateValues.value).eqls([
+                "vector",
+                4,
+                5,
+            ]);
+
+            expect(stateVariables["/g3"].activeChildren.length).eq(1);
+            expect(stateVariables["/g3"].activeChildren[0].componentName).eq(
+                "/g3/P3"
+            );
+            expect(stateVariables["/g3/P3"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g3a"].activeChildren.length).eq(2);
+            expect(stateVariables["/g3a"].activeChildren[0].componentName).eq(
+                "/g3a/P3"
+            );
+            expect(stateVariables["/g3a"].activeChildren[1].componentName).eq(
+                "/g3a/v3"
+            );
+            expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([
+                4, 5,
+            ]);
+            expect(stateVariables["/P3coords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/P3acoords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/v3displacement"].stateValues.value).eqls([
+                "vector",
+                4,
+                5,
+            ]);
+
+            expect(stateVariables["/g4"].activeChildren.length).eq(1);
+            expect(stateVariables["/g4"].activeChildren[0].componentName).eq(
+                "/g4/P4"
+            );
+            expect(stateVariables["/g4/P4"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g4a"].activeChildren.length).eq(2);
+            expect(stateVariables["/g4a"].activeChildren[0].componentName).eq(
+                "/g4a/P4"
+            );
+            expect(stateVariables["/g4a"].activeChildren[1].componentName).eq(
+                "/v4"
+            );
+            expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/v4"].stateValues.displacement).eqls([4, 5]);
+            expect(stateVariables["/P4coords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/P4acoords"].stateValues.value).eqls([
+                "vector",
+                1,
+                2,
+            ]);
+            expect(stateVariables["/v4displacement"].stateValues.value).eqls([
+                "vector",
+                4,
+                5,
+            ]);
+        });
+
+        cy.log(`move points`);
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/P1",
+                args: { x: 3, y: 5 },
+            });
+            win.callAction1({
+                actionName: "moveVector",
+                componentName: "/v1",
+                args: {
+                    headcoords: [8, 7],
+                },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/P2",
+                args: { x: 6, y: 0 },
+            });
+            win.callAction1({
+                actionName: "moveVector",
+                componentName: "/g2a/v2",
+                args: {
+                    headcoords: [9, 1],
+                },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g3/P3",
+                args: { x: 5, y: 8 },
+            });
+            win.callAction1({
+                actionName: "moveVector",
+                componentName: "/g3a/v3",
+                args: {
+                    headcoords: [8, 6],
+                },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g4/P4",
+                args: { x: 0, y: 3 },
+            });
+            win.callAction1({
+                actionName: "moveVector",
+                componentName: "/v4",
+                args: {
+                    headcoords: [7, 2],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/v4displacement") + " .mjx-mrow").should(
+            "contain.text",
+            "(7,2)"
+        );
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(3,5)");
+        cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(8,7)");
+
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(6,0)");
+        cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(6,0)");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(9,1)");
+
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(5,8)");
+        cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(5,8)");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(8,6)");
+
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(0,3)");
+        cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(0,3)");
+        cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(7,2)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P1"].stateValues.xs).eqls([3, 5]);
+            expect(stateVariables[P1aName].stateValues.xs).eqls([3, 5]);
+            expect(stateVariables["/v1"].stateValues.displacement).eqls([8, 7]);
+            expect(stateVariables["/P1coords"].stateValues.value).eqls([
+                "vector",
+                3,
+                5,
+            ]);
+            expect(stateVariables["/v1displacement"].stateValues.value).eqls([
+                "vector",
+                8,
+                7,
+            ]);
+
+            expect(stateVariables["/P2"].stateValues.xs).eqls([6, 0]);
+            expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([6, 0]);
+            expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([
+                9, 1,
+            ]);
+            expect(stateVariables["/P2coords"].stateValues.value).eqls([
+                "vector",
+                6,
+                0,
+            ]);
+            expect(stateVariables["/P2acoords"].stateValues.value).eqls([
+                "vector",
+                6,
+                0,
+            ]);
+            expect(stateVariables["/v2displacement"].stateValues.value).eqls([
+                "vector",
+                9,
+                1,
+            ]);
+
+            expect(stateVariables["/g3/P3"].stateValues.xs).eqls([5, 8]);
+            expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([5, 8]);
+            expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([
+                8, 6,
+            ]);
+            expect(stateVariables["/P3coords"].stateValues.value).eqls([
+                "vector",
+                5,
+                8,
+            ]);
+            expect(stateVariables["/P3acoords"].stateValues.value).eqls([
+                "vector",
+                5,
+                8,
+            ]);
+            expect(stateVariables["/v3displacement"].stateValues.value).eqls([
+                "vector",
+                8,
+                6,
+            ]);
+
+            expect(stateVariables["/g4/P4"].stateValues.xs).eqls([0, 3]);
+            expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([0, 3]);
+            expect(stateVariables["/v4"].stateValues.displacement).eqls([7, 2]);
+            expect(stateVariables["/P4coords"].stateValues.value).eqls([
+                "vector",
+                0,
+                3,
+            ]);
+            expect(stateVariables["/P4acoords"].stateValues.value).eqls([
+                "vector",
+                0,
+                3,
+            ]);
+            expect(stateVariables["/v4displacement"].stateValues.value).eqls([
+                "vector",
+                7,
+                2,
+            ]);
+        });
+
+        cy.log(`move shadowed points`);
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: P1aName,
+                args: { x: 2, y: 1 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2a/P2",
+                args: { x: 5, y: 4 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g3a/P3",
+                args: { x: 9, y: 7 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g4a/P4",
+                args: { x: 7, y: 6 },
+            });
+        });
+
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow").should(
+            "contain.text",
+            "(7,6)"
+        );
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(2,1)");
+        cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(8,7)");
+
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(5,4)");
+        cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(5,4)");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(9,1)");
+
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(9,7)");
+        cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(9,7)");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(8,6)");
+
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(7,6)");
+        cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(7,6)");
+        cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(7,2)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P1"].stateValues.xs).eqls([2, 1]);
+            expect(stateVariables[P1aName].stateValues.xs).eqls([2, 1]);
+            expect(stateVariables["/v1"].stateValues.displacement).eqls([8, 7]);
+            expect(stateVariables["/P1coords"].stateValues.value).eqls([
+                "vector",
+                2,
+                1,
+            ]);
+            expect(stateVariables["/v1displacement"].stateValues.value).eqls([
+                "vector",
+                8,
+                7,
+            ]);
+
+            expect(stateVariables["/P2"].stateValues.xs).eqls([5, 4]);
+            expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([5, 4]);
+            expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([
+                9, 1,
+            ]);
+            expect(stateVariables["/P2coords"].stateValues.value).eqls([
+                "vector",
+                5,
+                4,
+            ]);
+            expect(stateVariables["/P2acoords"].stateValues.value).eqls([
+                "vector",
+                5,
+                4,
+            ]);
+            expect(stateVariables["/v2displacement"].stateValues.value).eqls([
+                "vector",
+                9,
+                1,
+            ]);
+
+            expect(stateVariables["/g3/P3"].stateValues.xs).eqls([9, 7]);
+            expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([9, 7]);
+            expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([
+                8, 6,
+            ]);
+            expect(stateVariables["/P3coords"].stateValues.value).eqls([
+                "vector",
+                9,
+                7,
+            ]);
+            expect(stateVariables["/P3acoords"].stateValues.value).eqls([
+                "vector",
+                9,
+                7,
+            ]);
+            expect(stateVariables["/v3displacement"].stateValues.value).eqls([
+                "vector",
+                8,
+                6,
+            ]);
+
+            expect(stateVariables["/g4/P4"].stateValues.xs).eqls([7, 6]);
+            expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([7, 6]);
+            expect(stateVariables["/v4"].stateValues.displacement).eqls([7, 2]);
+            expect(stateVariables["/P4coords"].stateValues.value).eqls([
+                "vector",
+                7,
+                6,
+            ]);
+            expect(stateVariables["/P4acoords"].stateValues.value).eqls([
+                "vector",
+                7,
+                6,
+            ]);
+            expect(stateVariables["/v4displacement"].stateValues.value).eqls([
+                "vector",
+                7,
+                2,
+            ]);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(4,5)");
-
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(4,5)");
-
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(4,5)");
-
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(4,5)");
-
-    let P1aName;
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/P1");
-      expect(stateVariables["/P1"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g1a"].activeChildren.length).eq(2);
-      expect(stateVariables["/g1a"].activeChildren[1].componentName).eq("/v1");
-      P1aName = stateVariables["/g1a"].activeChildren[0].componentName;
-      expect(stateVariables[P1aName].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/v1"].stateValues.displacement).eqls([4, 5]);
-      expect(stateVariables["/P1coords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/v1displacement"].stateValues.value).eqls([
-        "vector",
-        4,
-        5,
-      ]);
-
-      expect(stateVariables["/g2"].activeChildren.length).eq(1);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/P2");
-      expect(stateVariables["/P2"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g2a"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2a"].activeChildren[0].componentName).eq(
-        "/g2a/P2",
-      );
-      expect(stateVariables["/g2a"].activeChildren[1].componentName).eq(
-        "/g2a/v2",
-      );
-      expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([4, 5]);
-      expect(stateVariables["/P2coords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/P2acoords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/v2displacement"].stateValues.value).eqls([
-        "vector",
-        4,
-        5,
-      ]);
-
-      expect(stateVariables["/g3"].activeChildren.length).eq(1);
-      expect(stateVariables["/g3"].activeChildren[0].componentName).eq(
-        "/g3/P3",
-      );
-      expect(stateVariables["/g3/P3"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g3a"].activeChildren.length).eq(2);
-      expect(stateVariables["/g3a"].activeChildren[0].componentName).eq(
-        "/g3a/P3",
-      );
-      expect(stateVariables["/g3a"].activeChildren[1].componentName).eq(
-        "/g3a/v3",
-      );
-      expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([4, 5]);
-      expect(stateVariables["/P3coords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/P3acoords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/v3displacement"].stateValues.value).eqls([
-        "vector",
-        4,
-        5,
-      ]);
-
-      expect(stateVariables["/g4"].activeChildren.length).eq(1);
-      expect(stateVariables["/g4"].activeChildren[0].componentName).eq(
-        "/g4/P4",
-      );
-      expect(stateVariables["/g4/P4"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g4a"].activeChildren.length).eq(2);
-      expect(stateVariables["/g4a"].activeChildren[0].componentName).eq(
-        "/g4a/P4",
-      );
-      expect(stateVariables["/g4a"].activeChildren[1].componentName).eq("/v4");
-      expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/v4"].stateValues.displacement).eqls([4, 5]);
-      expect(stateVariables["/P4coords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/P4acoords"].stateValues.value).eqls([
-        "vector",
-        1,
-        2,
-      ]);
-      expect(stateVariables["/v4displacement"].stateValues.value).eqls([
-        "vector",
-        4,
-        5,
-      ]);
-    });
-
-    cy.log(`move points`);
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/P1",
-        args: { x: 3, y: 5 },
-      });
-      win.callAction1({
-        actionName: "moveVector",
-        componentName: "/v1",
-        args: {
-          headcoords: [8, 7],
-        },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/P2",
-        args: { x: 6, y: 0 },
-      });
-      win.callAction1({
-        actionName: "moveVector",
-        componentName: "/g2a/v2",
-        args: {
-          headcoords: [9, 1],
-        },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g3/P3",
-        args: { x: 5, y: 8 },
-      });
-      win.callAction1({
-        actionName: "moveVector",
-        componentName: "/g3a/v3",
-        args: {
-          headcoords: [8, 6],
-        },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g4/P4",
-        args: { x: 0, y: 3 },
-      });
-      win.callAction1({
-        actionName: "moveVector",
-        componentName: "/v4",
-        args: {
-          headcoords: [7, 2],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/v4displacement") + " .mjx-mrow").should(
-      "contain.text",
-      "(7,2)",
-    );
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(3,5)");
-    cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(8,7)");
-
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(6,0)");
-    cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(6,0)");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(9,1)");
-
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(5,8)");
-    cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(5,8)");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(8,6)");
-
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(0,3)");
-    cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(0,3)");
-    cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(7,2)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P1"].stateValues.xs).eqls([3, 5]);
-      expect(stateVariables[P1aName].stateValues.xs).eqls([3, 5]);
-      expect(stateVariables["/v1"].stateValues.displacement).eqls([8, 7]);
-      expect(stateVariables["/P1coords"].stateValues.value).eqls([
-        "vector",
-        3,
-        5,
-      ]);
-      expect(stateVariables["/v1displacement"].stateValues.value).eqls([
-        "vector",
-        8,
-        7,
-      ]);
-
-      expect(stateVariables["/P2"].stateValues.xs).eqls([6, 0]);
-      expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([6, 0]);
-      expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([9, 1]);
-      expect(stateVariables["/P2coords"].stateValues.value).eqls([
-        "vector",
-        6,
-        0,
-      ]);
-      expect(stateVariables["/P2acoords"].stateValues.value).eqls([
-        "vector",
-        6,
-        0,
-      ]);
-      expect(stateVariables["/v2displacement"].stateValues.value).eqls([
-        "vector",
-        9,
-        1,
-      ]);
-
-      expect(stateVariables["/g3/P3"].stateValues.xs).eqls([5, 8]);
-      expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([5, 8]);
-      expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([8, 6]);
-      expect(stateVariables["/P3coords"].stateValues.value).eqls([
-        "vector",
-        5,
-        8,
-      ]);
-      expect(stateVariables["/P3acoords"].stateValues.value).eqls([
-        "vector",
-        5,
-        8,
-      ]);
-      expect(stateVariables["/v3displacement"].stateValues.value).eqls([
-        "vector",
-        8,
-        6,
-      ]);
-
-      expect(stateVariables["/g4/P4"].stateValues.xs).eqls([0, 3]);
-      expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([0, 3]);
-      expect(stateVariables["/v4"].stateValues.displacement).eqls([7, 2]);
-      expect(stateVariables["/P4coords"].stateValues.value).eqls([
-        "vector",
-        0,
-        3,
-      ]);
-      expect(stateVariables["/P4acoords"].stateValues.value).eqls([
-        "vector",
-        0,
-        3,
-      ]);
-      expect(stateVariables["/v4displacement"].stateValues.value).eqls([
-        "vector",
-        7,
-        2,
-      ]);
-    });
-
-    cy.log(`move shadowed points`);
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: P1aName,
-        args: { x: 2, y: 1 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g2a/P2",
-        args: { x: 5, y: 4 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g3a/P3",
-        args: { x: 9, y: 7 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g4a/P4",
-        args: { x: 7, y: 6 },
-      });
-    });
-
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow").should("contain.text", "(7,6)");
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(2,1)");
-    cy.get(cesc2("#/v1displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(8,7)");
-
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(5,4)");
-    cy.get(cesc2("#/P2acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(5,4)");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(9,1)");
-
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(9,7)");
-    cy.get(cesc2("#/P3acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(9,7)");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(8,6)");
-
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(7,6)");
-    cy.get(cesc2("#/P4acoords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(7,6)");
-    cy.get(cesc2("#/v4displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(7,2)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P1"].stateValues.xs).eqls([2, 1]);
-      expect(stateVariables[P1aName].stateValues.xs).eqls([2, 1]);
-      expect(stateVariables["/v1"].stateValues.displacement).eqls([8, 7]);
-      expect(stateVariables["/P1coords"].stateValues.value).eqls([
-        "vector",
-        2,
-        1,
-      ]);
-      expect(stateVariables["/v1displacement"].stateValues.value).eqls([
-        "vector",
-        8,
-        7,
-      ]);
-
-      expect(stateVariables["/P2"].stateValues.xs).eqls([5, 4]);
-      expect(stateVariables["/g2a/P2"].stateValues.xs).eqls([5, 4]);
-      expect(stateVariables["/g2a/v2"].stateValues.displacement).eqls([9, 1]);
-      expect(stateVariables["/P2coords"].stateValues.value).eqls([
-        "vector",
-        5,
-        4,
-      ]);
-      expect(stateVariables["/P2acoords"].stateValues.value).eqls([
-        "vector",
-        5,
-        4,
-      ]);
-      expect(stateVariables["/v2displacement"].stateValues.value).eqls([
-        "vector",
-        9,
-        1,
-      ]);
-
-      expect(stateVariables["/g3/P3"].stateValues.xs).eqls([9, 7]);
-      expect(stateVariables["/g3a/P3"].stateValues.xs).eqls([9, 7]);
-      expect(stateVariables["/g3a/v3"].stateValues.displacement).eqls([8, 6]);
-      expect(stateVariables["/P3coords"].stateValues.value).eqls([
-        "vector",
-        9,
-        7,
-      ]);
-      expect(stateVariables["/P3acoords"].stateValues.value).eqls([
-        "vector",
-        9,
-        7,
-      ]);
-      expect(stateVariables["/v3displacement"].stateValues.value).eqls([
-        "vector",
-        8,
-        6,
-      ]);
-
-      expect(stateVariables["/g4/P4"].stateValues.xs).eqls([7, 6]);
-      expect(stateVariables["/g4a/P4"].stateValues.xs).eqls([7, 6]);
-      expect(stateVariables["/v4"].stateValues.displacement).eqls([7, 2]);
-      expect(stateVariables["/P4coords"].stateValues.value).eqls([
-        "vector",
-        7,
-        6,
-      ]);
-      expect(stateVariables["/P4acoords"].stateValues.value).eqls([
-        "vector",
-        7,
-        6,
-      ]);
-      expect(stateVariables["/v4displacement"].stateValues.value).eqls([
-        "vector",
-        7,
-        2,
-      ]);
-    });
-  });
-
-  it("add children with copySource, ignore implicit newNamespace when copied", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children with copySource, ignore implicit newNamespace when copied", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
 
     <group name="grp">
@@ -2953,96 +3060,104 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,0)");
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,0)");
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/v4nodisplacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("\uff3f");
+
+        cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,0)");
+        cy.get(cesc2("#/grp2ps/v2nodisplacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("\uff3f");
+        cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,0)");
+        cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(1,2)");
+        cy.get(cesc2("#/grp2ps/v4nodisplacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("\uff3f");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/v"].stateValues.displacement).eqls([1, 0]);
+            expect(stateVariables["/g3/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/g3/v"].stateValues.displacement).eqls([
+                1, 0,
+            ]);
+            expect(stateVariables["/g4/P"].stateValues.xs).eqls([1, 2]);
+            let g4vName = stateVariables["/g4"].activeChildren[1].componentName;
+            expect(g4vName.substring(0, 3) === "/__");
+            expect(stateVariables[g4vName].stateValues.displacement).eqls([
+                1, 0,
+            ]);
+            expect(stateVariables["/g4/v"]).eq(undefined);
+
+            expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/grp2/v"].stateValues.displacement).eqls([
+                1, 0,
+            ]);
+            expect(stateVariables["/grp2/g2/v"]).eq(undefined);
+            expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls([
+                1, 0,
+            ]);
+            expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls([1, 2]);
+            let grp2g4vName =
+                stateVariables["/grp2/g4"].activeChildren[1].componentName;
+            expect(grp2g4vName.substring(0, 3) === "/__");
+            expect(stateVariables[grp2g4vName].stateValues.displacement).eqls([
+                1, 0,
+            ]);
+            expect(stateVariables["/grp2/g4/v"]).eq(undefined);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,0)");
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,0)");
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/v4nodisplacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("\uff3f");
-
-    cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,0)");
-    cy.get(cesc2("#/grp2ps/v2nodisplacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("\uff3f");
-    cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,0)");
-    cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(1,2)");
-    cy.get(cesc2("#/grp2ps/v4nodisplacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("\uff3f");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/v"].stateValues.displacement).eqls([1, 0]);
-      expect(stateVariables["/g3/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/g3/v"].stateValues.displacement).eqls([1, 0]);
-      expect(stateVariables["/g4/P"].stateValues.xs).eqls([1, 2]);
-      let g4vName = stateVariables["/g4"].activeChildren[1].componentName;
-      expect(g4vName.substring(0, 3) === "/__");
-      expect(stateVariables[g4vName].stateValues.displacement).eqls([1, 0]);
-      expect(stateVariables["/g4/v"]).eq(undefined);
-
-      expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/grp2/v"].stateValues.displacement).eqls([1, 0]);
-      expect(stateVariables["/grp2/g2/v"]).eq(undefined);
-      expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls([
-        1, 0,
-      ]);
-      expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls([1, 2]);
-      let grp2g4vName =
-        stateVariables["/grp2/g4"].activeChildren[1].componentName;
-      expect(grp2g4vName.substring(0, 3) === "/__");
-      expect(stateVariables[grp2g4vName].stateValues.displacement).eqls([1, 0]);
-      expect(stateVariables["/grp2/g4/v"]).eq(undefined);
-    });
-  });
-
-  it("add children with copySource, multiple levels of groups", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children with copySource, multiple levels of groups", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <group name="grp0" >
       <group name="grp1">
@@ -3162,536 +3277,592 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        let P = [1, 2];
+        let v = [4, 5];
+        let vH = [4, 5];
+        let c0 = [0, 0];
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp2ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp2ps/P6coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l6point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp2ps/l6point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+
+        cy.get(cesc2("#/grp3ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.get(cesc2("#/grp3ps/grp2ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P6coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l6point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l6point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P7coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l7point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l7point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v7head") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g3/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/g3/l"].stateValues.endpoints[0]).eqls(P);
+            expect(stateVariables["/g3/l"].stateValues.endpoints[1]).eqls(vH);
+            expect(stateVariables["/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g5/c"].stateValues.center).eqls(c0);
+
+            expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(
+                v
+            );
+            expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(
+                P
+            );
+            expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(
+                vH
+            );
+            expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g5/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp2/g6/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g6/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp2/l"].stateValues.endpoints[0]).eqls(c0);
+            expect(stateVariables["/grp2/l"].stateValues.endpoints[1]).eqls(P);
+
+            expect(stateVariables["/grp3/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(
+                v
+            );
+            expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(
+                P
+            );
+            expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(
+                vH
+            );
+            expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g5/c"].stateValues.center).eqls(c0);
+
+            expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/v"].stateValues.displacement
+            ).eqls(v);
+            expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement
+            ).eqls(v);
+            expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(
+                P
+            );
+            expect(
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]
+            ).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]
+            ).eqls(vH);
+            expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(
+                c0
+            );
+            expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(
+                c0
+            );
+            expect(
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]
+            ).eqls(c0);
+            expect(
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]
+            ).eqls(P);
+            expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(
+                c0
+            );
+            expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(
+                P
+            );
+            expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
+            expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
+        });
+
+        cy.log("move objects");
+        cy.window().then(async (win) => {
+            P = [3, 5];
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g/P",
+                args: { x: P[0], y: P[1] },
+            });
+            v = [8, 7];
+            vH = [5, 1];
+            win.callAction1({
+                actionName: "moveVector",
+                componentName: "/v",
+                args: {
+                    headcoords: vH,
+                    tailcoords: [vH[0] - v[0], vH[1] - v[1]],
+                },
+            });
+            c0 = [6, 0];
+            win.callAction1({
+                actionName: "moveCircle",
+                componentName: "/g5/c",
+                args: { center: c0 },
+            });
+        });
+
+        cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow").should(
+            "contain.text",
+            "(" + c0 + ")"
+        );
+
+        cy.get(cesc2("#/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp2ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp2ps/P6coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp2ps/l6point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp2ps/l6point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+
+        cy.get(cesc2("#/grp3ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.get(cesc2("#/grp3ps/grp2ps/P1coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P2coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v2displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P3coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v3displacement") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + v + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/c3center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l3point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l3point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P4coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P5coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/c5center") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P6coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l6point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l6point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/P7coords") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l7point1") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/l7point2") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + P + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v7head") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + vH + ")");
+        cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow")
+            .eq(0)
+            .contains("(" + c0 + ")");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g3/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/g3/l"].stateValues.endpoints[0]).eqls(P);
+            expect(stateVariables["/g3/l"].stateValues.endpoints[1]).eqls(vH);
+            expect(stateVariables["/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/g5/c"].stateValues.center).eqls(c0);
+
+            expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(
+                v
+            );
+            expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(
+                P
+            );
+            expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(
+                vH
+            );
+            expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g5/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp2/g6/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp2/g6/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp2/l"].stateValues.endpoints[0]).eqls(c0);
+            expect(stateVariables["/grp2/l"].stateValues.endpoints[1]).eqls(P);
+
+            expect(stateVariables["/grp3/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g2/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
+            expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(
+                v
+            );
+            expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
+            expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(
+                P
+            );
+            expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(
+                vH
+            );
+            expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g5/c"].stateValues.center).eqls(c0);
+
+            expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/v"].stateValues.displacement
+            ).eqls(v);
+            expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/g3/v"].stateValues.displacement
+            ).eqls(v);
+            expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(
+                P
+            );
+            expect(
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]
+            ).eqls(P);
+            expect(
+                stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]
+            ).eqls(vH);
+            expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(
+                c0
+            );
+            expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(
+                c0
+            );
+            expect(
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]
+            ).eqls(c0);
+            expect(
+                stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]
+            ).eqls(P);
+            expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
+            expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
+            expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(
+                c0
+            );
+            expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(
+                P
+            );
+            expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
+            expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    let P = [1, 2];
-    let v = [4, 5];
-    let vH = [4, 5];
-    let c0 = [0, 0];
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp2ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp2ps/P6coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l6point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp2ps/l6point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-
-    cy.get(cesc2("#/grp3ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.get(cesc2("#/grp3ps/grp2ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P6coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l6point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l6point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P7coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l7point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l7point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v7head") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g5/c"].stateValues.center).eqls(c0);
-
-      expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g5/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp2/g6/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g6/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp2/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp2/l"].stateValues.endpoints[1]).eqls(P);
-
-      expect(stateVariables["/grp3/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g5/c"].stateValues.center).eqls(c0);
-
-      expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g3/v"].stateValues.displacement).eqls(
-        v,
-      );
-      expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]).eqls(
-        P,
-      );
-      expect(stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]).eqls(
-        vH,
-      );
-      expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]).eqls(P);
-      expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(P);
-      expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
-      expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
-    });
-
-    cy.log("move objects");
-    cy.window().then(async (win) => {
-      P = [3, 5];
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g/P",
-        args: { x: P[0], y: P[1] },
-      });
-      v = [8, 7];
-      vH = [5, 1];
-      win.callAction1({
-        actionName: "moveVector",
-        componentName: "/v",
-        args: {
-          headcoords: vH,
-          tailcoords: [vH[0] - v[0], vH[1] - v[1]],
-        },
-      });
-      c0 = [6, 0];
-      win.callAction1({
-        actionName: "moveCircle",
-        componentName: "/g5/c",
-        args: { center: c0 },
-      });
-    });
-
-    cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow").should(
-      "contain.text",
-      "(" + c0 + ")",
-    );
-
-    cy.get(cesc2("#/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.get(cesc2("#/grp2ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp2ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp2ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp2ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp2ps/P6coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp2ps/l6point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp2ps/l6point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-
-    cy.get(cesc2("#/grp3ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.get(cesc2("#/grp3ps/grp2ps/P1coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P2coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v2displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P3coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v3displacement") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + v + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/c3center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l3point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l3point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P4coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P5coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/c5center") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P6coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l6point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l6point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/P7coords") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l7point1") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/l7point2") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + P + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v7head") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + vH + ")");
-    cy.get(cesc2("#/grp3ps/grp2ps/v7tail") + " .mjx-mrow")
-      .eq(0)
-      .contains("(" + c0 + ")");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/g5/c"].stateValues.center).eqls(c0);
-
-      expect(stateVariables["/grp2/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp2/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp2/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/grp2/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/grp2/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g5/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp2/g6/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp2/g6/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp2/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp2/l"].stateValues.endpoints[1]).eqls(P);
-
-      expect(stateVariables["/grp3/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g3/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[0]).eqls(P);
-      expect(stateVariables["/grp3/g3/l"].stateValues.endpoints[1]).eqls(vH);
-      expect(stateVariables["/grp3/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g5/c"].stateValues.center).eqls(c0);
-
-      expect(stateVariables["/grp3/grp2/g/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g2/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/v"].stateValues.displacement).eqls(v);
-      expect(stateVariables["/grp3/grp2/g3/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g3/v"].stateValues.displacement).eqls(
-        v,
-      );
-      expect(stateVariables["/grp3/grp2/g3/c"].stateValues.center).eqls(P);
-      expect(stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[0]).eqls(
-        P,
-      );
-      expect(stateVariables["/grp3/grp2/g3/l"].stateValues.endpoints[1]).eqls(
-        vH,
-      );
-      expect(stateVariables["/grp3/grp2/g4/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g5/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g5/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/grp2/g6/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/grp2/g6/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/grp2/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp3/grp2/l"].stateValues.endpoints[1]).eqls(P);
-      expect(stateVariables["/grp3/g7/P"].stateValues.xs).eqls(P);
-      expect(stateVariables["/grp3/g7/c"].stateValues.center).eqls(c0);
-      expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[0]).eqls(c0);
-      expect(stateVariables["/grp3/g7/l"].stateValues.endpoints[1]).eqls(P);
-      expect(stateVariables["/grp3/g7/v"].stateValues.head).eqls(vH);
-      expect(stateVariables["/grp3/g7/v"].stateValues.tail).eqls(c0);
-    });
-  });
-
-  it("add children with copySource, recreated replacements include added children", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children with copySource, recreated replacements include added children", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <mathinput name="n" prefill="1" />
 
     <conditionalContent assignNames="(g1)">
@@ -3716,153 +3887,185 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/pP") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/pQ") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/g1/P"
+            );
+            expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
+            expect(stateVariables["/g2"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+                "/g2/Q"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
+            expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
+        });
+
+        cy.log("move points");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/P",
+                args: { x: 10, y: 9 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/Q",
+                args: { x: 8, y: 4 },
+            });
+        });
+
+        cy.get(cesc2("#/pQ") + " .mjx-mrow").should("contain.text", "(8,4)");
+        cy.get(cesc2("#/pP") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(10,9)");
+        cy.get(cesc2("#/pQ") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(8,4)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/g1/P"
+            );
+            expect(stateVariables["/g1/P"].stateValues.xs).eqls([10, 9]);
+            expect(stateVariables["/g2"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+                "/g2/Q"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([10, 9]);
+            expect(stateVariables["/g2/Q"].stateValues.xs).eqls([8, 4]);
+        });
+
+        cy.log("switch to second option from conditional content");
+        cy.get(cesc2("#/n") + " textarea").type("{end}2{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/pP") + " .mjx-mrow").should("contain.text", "(3,4)");
+        cy.get(cesc2("#/pP") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3,4)");
+        cy.get(cesc2("#/pQ") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/g1/P"
+            );
+            expect(stateVariables["/g1/P"].stateValues.xs).eqls([3, 4]);
+            expect(stateVariables["/g2"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+                "/g2/Q"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([3, 4]);
+            expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
+        });
+
+        cy.log("move new points");
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g1/P",
+                args: { x: 6, y: 1 },
+            });
+            win.callAction1({
+                actionName: "movePoint",
+                componentName: "/g2/Q",
+                args: { x: 9, y: 3 },
+            });
+        });
+
+        cy.get(cesc2("#/pQ") + " .mjx-mrow").should("contain.text", "(9,3)");
+        cy.get(cesc2("#/pP") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(6,1)");
+        cy.get(cesc2("#/pQ") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(9,3)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/g1/P"
+            );
+            expect(stateVariables["/g1/P"].stateValues.xs).eqls([6, 1]);
+            expect(stateVariables["/g2"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+                "/g2/Q"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([6, 1]);
+            expect(stateVariables["/g2/Q"].stateValues.xs).eqls([9, 3]);
+        });
+
+        cy.log("switch back to first option from conditional content");
+        cy.get(cesc2("#/n") + " textarea").type(
+            "{end}{backspace}{backspace}0{enter}",
+            { force: true }
+        );
+
+        cy.get(cesc2("#/pP") + " .mjx-mrow").should("contain.text", "(5,6)");
+        cy.get(cesc2("#/pP") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/pQ") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/g1"].activeChildren.length).eq(1);
+            expect(stateVariables["/g1"].activeChildren[0].componentName).eq(
+                "/g1/P"
+            );
+            expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
+            expect(stateVariables["/g2"].activeChildren.length).eq(2);
+            expect(stateVariables["/g2"].activeChildren[0].componentName).eq(
+                "/g2/P"
+            );
+            expect(stateVariables["/g2"].activeChildren[1].componentName).eq(
+                "/g2/Q"
+            );
+            expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
+            expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
+        });
     });
 
-    cy.get(cesc2("#/pP") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/pQ") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/g1/P");
-      expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
-      expect(stateVariables["/g2"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2"].activeChildren[1].componentName).eq("/g2/Q");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
-      expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
-    });
-
-    cy.log("move points");
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g1/P",
-        args: { x: 10, y: 9 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g2/Q",
-        args: { x: 8, y: 4 },
-      });
-    });
-
-    cy.get(cesc2("#/pQ") + " .mjx-mrow").should("contain.text", "(8,4)");
-    cy.get(cesc2("#/pP") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(10,9)");
-    cy.get(cesc2("#/pQ") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(8,4)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/g1/P");
-      expect(stateVariables["/g1/P"].stateValues.xs).eqls([10, 9]);
-      expect(stateVariables["/g2"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2"].activeChildren[1].componentName).eq("/g2/Q");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([10, 9]);
-      expect(stateVariables["/g2/Q"].stateValues.xs).eqls([8, 4]);
-    });
-
-    cy.log("switch to second option from conditional content");
-    cy.get(cesc2("#/n") + " textarea").type("{end}2{enter}", { force: true });
-
-    cy.get(cesc2("#/pP") + " .mjx-mrow").should("contain.text", "(3,4)");
-    cy.get(cesc2("#/pP") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3,4)");
-    cy.get(cesc2("#/pQ") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/g1/P");
-      expect(stateVariables["/g1/P"].stateValues.xs).eqls([3, 4]);
-      expect(stateVariables["/g2"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2"].activeChildren[1].componentName).eq("/g2/Q");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([3, 4]);
-      expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
-    });
-
-    cy.log("move new points");
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g1/P",
-        args: { x: 6, y: 1 },
-      });
-      win.callAction1({
-        actionName: "movePoint",
-        componentName: "/g2/Q",
-        args: { x: 9, y: 3 },
-      });
-    });
-
-    cy.get(cesc2("#/pQ") + " .mjx-mrow").should("contain.text", "(9,3)");
-    cy.get(cesc2("#/pP") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(6,1)");
-    cy.get(cesc2("#/pQ") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(9,3)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/g1/P");
-      expect(stateVariables["/g1/P"].stateValues.xs).eqls([6, 1]);
-      expect(stateVariables["/g2"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2"].activeChildren[1].componentName).eq("/g2/Q");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([6, 1]);
-      expect(stateVariables["/g2/Q"].stateValues.xs).eqls([9, 3]);
-    });
-
-    cy.log("switch back to first option from conditional content");
-    cy.get(cesc2("#/n") + " textarea").type(
-      "{end}{backspace}{backspace}0{enter}",
-      { force: true },
-    );
-
-    cy.get(cesc2("#/pP") + " .mjx-mrow").should("contain.text", "(5,6)");
-    cy.get(cesc2("#/pP") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/pQ") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/g1"].activeChildren.length).eq(1);
-      expect(stateVariables["/g1"].activeChildren[0].componentName).eq("/g1/P");
-      expect(stateVariables["/g1/P"].stateValues.xs).eqls([5, 6]);
-      expect(stateVariables["/g2"].activeChildren.length).eq(2);
-      expect(stateVariables["/g2"].activeChildren[0].componentName).eq("/g2/P");
-      expect(stateVariables["/g2"].activeChildren[1].componentName).eq("/g2/Q");
-      expect(stateVariables["/g2/P"].stateValues.xs).eqls([5, 6]);
-      expect(stateVariables["/g2/Q"].stateValues.xs).eqls([7, 8]);
-    });
-  });
-
-  it("assign names with copySource of group and map", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("assign names with copySource of group and map", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <map name="map1" assignNames="(a) (b)">
       <template><text>hi $v</text></template>
       <sources alias="v"><number>1</number><number>2</number></sources>
@@ -3879,38 +4082,38 @@ describe("Copy Tag Tests", function () {
     <group copySource="grp1" name="grp2" assignNames="g h" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/a")).should("have.text", "hi 1");
+        cy.get(cesc2("#/b")).should("have.text", "hi 2");
+        cy.get(cesc2("#/c")).should("have.text", "hi 1");
+        cy.get(cesc2("#/d")).should("have.text", "hi 2");
+        cy.get(cesc2("#/e")).should("have.text", "apple");
+        cy.get(cesc2("#/f")).should("have.text", "banana");
+        cy.get(cesc2("#/g")).should("have.text", "apple");
+        cy.get(cesc2("#/h")).should("have.text", "banana");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/a"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/b"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/c"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/d"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/e"].stateValues.value).eq("apple");
+            expect(stateVariables["/f"].stateValues.value).eq("banana");
+            expect(stateVariables["/g"].stateValues.value).eq("apple");
+            expect(stateVariables["/h"].stateValues.value).eq("banana");
+        });
     });
 
-    cy.get(cesc2("#/a")).should("have.text", "hi 1");
-    cy.get(cesc2("#/b")).should("have.text", "hi 2");
-    cy.get(cesc2("#/c")).should("have.text", "hi 1");
-    cy.get(cesc2("#/d")).should("have.text", "hi 2");
-    cy.get(cesc2("#/e")).should("have.text", "apple");
-    cy.get(cesc2("#/f")).should("have.text", "banana");
-    cy.get(cesc2("#/g")).should("have.text", "apple");
-    cy.get(cesc2("#/h")).should("have.text", "banana");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/a"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/b"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/c"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/d"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/e"].stateValues.value).eq("apple");
-      expect(stateVariables["/f"].stateValues.value).eq("banana");
-      expect(stateVariables["/g"].stateValues.value).eq("apple");
-      expect(stateVariables["/h"].stateValues.value).eq("banana");
-    });
-  });
-
-  it("assign names with macro copy of group and map", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("assign names with macro copy of group and map", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <map name="map1" assignNames="(a) (b)">
       <template><text>hi $v</text></template>
       <sources alias="v"><number>1</number><number>2</number></sources>
@@ -3927,38 +4130,38 @@ describe("Copy Tag Tests", function () {
     $grp1{name="grp2" assignNames="g h"}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/a")).should("have.text", "hi 1");
+        cy.get(cesc2("#/b")).should("have.text", "hi 2");
+        cy.get(cesc2("#/c")).should("have.text", "hi 1");
+        cy.get(cesc2("#/d")).should("have.text", "hi 2");
+        cy.get(cesc2("#/e")).should("have.text", "apple");
+        cy.get(cesc2("#/f")).should("have.text", "banana");
+        cy.get(cesc2("#/g")).should("have.text", "apple");
+        cy.get(cesc2("#/h")).should("have.text", "banana");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/a"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/b"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/c"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/d"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/e"].stateValues.value).eq("apple");
+            expect(stateVariables["/f"].stateValues.value).eq("banana");
+            expect(stateVariables["/g"].stateValues.value).eq("apple");
+            expect(stateVariables["/h"].stateValues.value).eq("banana");
+        });
     });
 
-    cy.get(cesc2("#/a")).should("have.text", "hi 1");
-    cy.get(cesc2("#/b")).should("have.text", "hi 2");
-    cy.get(cesc2("#/c")).should("have.text", "hi 1");
-    cy.get(cesc2("#/d")).should("have.text", "hi 2");
-    cy.get(cesc2("#/e")).should("have.text", "apple");
-    cy.get(cesc2("#/f")).should("have.text", "banana");
-    cy.get(cesc2("#/g")).should("have.text", "apple");
-    cy.get(cesc2("#/h")).should("have.text", "banana");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/a"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/b"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/c"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/d"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/e"].stateValues.value).eq("apple");
-      expect(stateVariables["/f"].stateValues.value).eq("banana");
-      expect(stateVariables["/g"].stateValues.value).eq("apple");
-      expect(stateVariables["/h"].stateValues.value).eq("banana");
-    });
-  });
-
-  it("assign names with copySource of group and map, newNamespace", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("assign names with copySource of group and map, newNamespace", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <map name="map1" newNamespace assignNames="a b">
       <template newNamespace><text name="t">hi $v</text></template>
       <sources alias="v"><number>1</number><number>2</number></sources>
@@ -3975,38 +4178,38 @@ describe("Copy Tag Tests", function () {
     <group copySource="grp1" name="grp2" assignNames="c d" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/map1/a/t")).should("have.text", "hi 1");
+        cy.get(cesc2("#/map1/b/t")).should("have.text", "hi 2");
+        cy.get(cesc2("#/map2/c/t")).should("have.text", "hi 1");
+        cy.get(cesc2("#/map2/d/t")).should("have.text", "hi 2");
+        cy.get(cesc2("#/grp1/a")).should("have.text", "apple");
+        cy.get(cesc2("#/grp1/b")).should("have.text", "banana");
+        cy.get(cesc2("#/grp2/c")).should("have.text", "apple");
+        cy.get(cesc2("#/grp2/d")).should("have.text", "banana");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/map1/a/t"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/map1/b/t"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/map2/c/t"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/map2/d/t"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/grp1/a"].stateValues.value).eq("apple");
+            expect(stateVariables["/grp1/b"].stateValues.value).eq("banana");
+            expect(stateVariables["/grp2/c"].stateValues.value).eq("apple");
+            expect(stateVariables["/grp2/d"].stateValues.value).eq("banana");
+        });
     });
 
-    cy.get(cesc2("#/map1/a/t")).should("have.text", "hi 1");
-    cy.get(cesc2("#/map1/b/t")).should("have.text", "hi 2");
-    cy.get(cesc2("#/map2/c/t")).should("have.text", "hi 1");
-    cy.get(cesc2("#/map2/d/t")).should("have.text", "hi 2");
-    cy.get(cesc2("#/grp1/a")).should("have.text", "apple");
-    cy.get(cesc2("#/grp1/b")).should("have.text", "banana");
-    cy.get(cesc2("#/grp2/c")).should("have.text", "apple");
-    cy.get(cesc2("#/grp2/d")).should("have.text", "banana");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/map1/a/t"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/map1/b/t"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/map2/c/t"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/map2/d/t"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/grp1/a"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp1/b"].stateValues.value).eq("banana");
-      expect(stateVariables["/grp2/c"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp2/d"].stateValues.value).eq("banana");
-    });
-  });
-
-  it("assign names with macro copy of group and map, newNamespace", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("assign names with macro copy of group and map, newNamespace", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <map name="map1" newNamespace assignNames="a b">
       <template newNamespace><text name="t">hi $v</text></template>
       <sources alias="v"><number>1</number><number>2</number></sources>
@@ -4023,38 +4226,38 @@ describe("Copy Tag Tests", function () {
     $grp1{name="grp2" assignNames="c d"}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/map1/a/t")).should("have.text", "hi 1");
+        cy.get(cesc2("#/map1/b/t")).should("have.text", "hi 2");
+        cy.get(cesc2("#/map2/c/t")).should("have.text", "hi 1");
+        cy.get(cesc2("#/map2/d/t")).should("have.text", "hi 2");
+        cy.get(cesc2("#/grp1/a")).should("have.text", "apple");
+        cy.get(cesc2("#/grp1/b")).should("have.text", "banana");
+        cy.get(cesc2("#/grp2/c")).should("have.text", "apple");
+        cy.get(cesc2("#/grp2/d")).should("have.text", "banana");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/map1/a/t"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/map1/b/t"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/map2/c/t"].stateValues.value).eq("hi 1");
+            expect(stateVariables["/map2/d/t"].stateValues.value).eq("hi 2");
+            expect(stateVariables["/grp1/a"].stateValues.value).eq("apple");
+            expect(stateVariables["/grp1/b"].stateValues.value).eq("banana");
+            expect(stateVariables["/grp2/c"].stateValues.value).eq("apple");
+            expect(stateVariables["/grp2/d"].stateValues.value).eq("banana");
+        });
     });
 
-    cy.get(cesc2("#/map1/a/t")).should("have.text", "hi 1");
-    cy.get(cesc2("#/map1/b/t")).should("have.text", "hi 2");
-    cy.get(cesc2("#/map2/c/t")).should("have.text", "hi 1");
-    cy.get(cesc2("#/map2/d/t")).should("have.text", "hi 2");
-    cy.get(cesc2("#/grp1/a")).should("have.text", "apple");
-    cy.get(cesc2("#/grp1/b")).should("have.text", "banana");
-    cy.get(cesc2("#/grp2/c")).should("have.text", "apple");
-    cy.get(cesc2("#/grp2/d")).should("have.text", "banana");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/map1/a/t"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/map1/b/t"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/map2/c/t"].stateValues.value).eq("hi 1");
-      expect(stateVariables["/map2/d/t"].stateValues.value).eq("hi 2");
-      expect(stateVariables["/grp1/a"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp1/b"].stateValues.value).eq("banana");
-      expect(stateVariables["/grp2/c"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp2/d"].stateValues.value).eq("banana");
-    });
-  });
-
-  it("copySource composite replacement implicitly skips assignNames", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copySource composite replacement implicitly skips assignNames", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
       <text name="t1">hi</text>
       <text name="t2">bye</text>
       
@@ -4070,34 +4273,34 @@ describe("Copy Tag Tests", function () {
       <p copySource="_p1" newNamespace />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/a")).should("have.text", "hi");
+        cy.get(cesc2("#/b")).should("have.text", "bye");
+        cy.get(cesc2("#/c")).should("have.text", "hi");
+        cy.get(cesc2("#/d")).should("have.text", "bye");
+        cy.get(cesc2("#/_p2/c")).should("have.text", "hi");
+        cy.get(cesc2("#/_p2/d")).should("have.text", "bye");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/a"].stateValues.value).eq("hi");
+            expect(stateVariables["/b"].stateValues.value).eq("bye");
+            expect(stateVariables["/c"].stateValues.value).eq("hi");
+            expect(stateVariables["/d"].stateValues.value).eq("bye");
+            expect(stateVariables["/_p2/c"].stateValues.value).eq("hi");
+            expect(stateVariables["/_p2/d"].stateValues.value).eq("bye");
+        });
     });
 
-    cy.get(cesc2("#/a")).should("have.text", "hi");
-    cy.get(cesc2("#/b")).should("have.text", "bye");
-    cy.get(cesc2("#/c")).should("have.text", "hi");
-    cy.get(cesc2("#/d")).should("have.text", "bye");
-    cy.get(cesc2("#/_p2/c")).should("have.text", "hi");
-    cy.get(cesc2("#/_p2/d")).should("have.text", "bye");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/a"].stateValues.value).eq("hi");
-      expect(stateVariables["/b"].stateValues.value).eq("bye");
-      expect(stateVariables["/c"].stateValues.value).eq("hi");
-      expect(stateVariables["/d"].stateValues.value).eq("bye");
-      expect(stateVariables["/_p2/c"].stateValues.value).eq("hi");
-      expect(stateVariables["/_p2/d"].stateValues.value).eq("bye");
-    });
-  });
-
-  it("macro copy composite replacement implicitly skips assignNames", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("macro copy composite replacement implicitly skips assignNames", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
       <text name="t1">hi</text>
       <text name="t2">bye</text>
       
@@ -4113,34 +4316,34 @@ describe("Copy Tag Tests", function () {
       $_p1{name="p2" newNamespace}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/a")).should("have.text", "hi");
+        cy.get(cesc2("#/b")).should("have.text", "bye");
+        cy.get(cesc2("#/c")).should("have.text", "hi");
+        cy.get(cesc2("#/d")).should("have.text", "bye");
+        cy.get(cesc2("#/p2/c")).should("have.text", "hi");
+        cy.get(cesc2("#/p2/d")).should("have.text", "bye");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/a"].stateValues.value).eq("hi");
+            expect(stateVariables["/b"].stateValues.value).eq("bye");
+            expect(stateVariables["/c"].stateValues.value).eq("hi");
+            expect(stateVariables["/d"].stateValues.value).eq("bye");
+            expect(stateVariables["/p2/c"].stateValues.value).eq("hi");
+            expect(stateVariables["/p2/d"].stateValues.value).eq("bye");
+        });
     });
 
-    cy.get(cesc2("#/a")).should("have.text", "hi");
-    cy.get(cesc2("#/b")).should("have.text", "bye");
-    cy.get(cesc2("#/c")).should("have.text", "hi");
-    cy.get(cesc2("#/d")).should("have.text", "bye");
-    cy.get(cesc2("#/p2/c")).should("have.text", "hi");
-    cy.get(cesc2("#/p2/d")).should("have.text", "bye");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/a"].stateValues.value).eq("hi");
-      expect(stateVariables["/b"].stateValues.value).eq("bye");
-      expect(stateVariables["/c"].stateValues.value).eq("hi");
-      expect(stateVariables["/d"].stateValues.value).eq("bye");
-      expect(stateVariables["/p2/c"].stateValues.value).eq("hi");
-      expect(stateVariables["/p2/d"].stateValues.value).eq("bye");
-    });
-  });
-
-  it("copy and macro's prescribed name is used to assign name to replacement", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy and macro's prescribed name is used to assign name to replacement", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
       <text name="t1">hi</text>
       <copy source="t1" name="t2" />
       $t1{name="t3"}
@@ -4158,91 +4361,106 @@ describe("Copy Tag Tests", function () {
       $p.x{assignNames="x3"}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/t1")).should("have.text", "hi");
+        cy.get(cesc2("#/t2")).should("have.text", "hi");
+        cy.get(cesc2("#/t3")).should("have.text", "hi");
+
+        cy.get(cesc2("#/grp1/_text1")).should("have.text", "apple");
+        cy.get(cesc2("#/grp1/_text2")).should("have.text", "banana");
+        cy.get(cesc2("#/grp2/_text1")).should("have.text", "apple");
+        cy.get(cesc2("#/grp2/_text2")).should("have.text", "banana");
+        cy.get(cesc2("#/grp3/_text1")).should("have.text", "apple");
+        cy.get(cesc2("#/grp3/_text2")).should("have.text", "banana");
+
+        cy.get(cesc2("#/p") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3,4)");
+        cy.get(cesc2("#/x1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/x2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/x3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/t1"].stateValues.value).eq("hi");
+            expect(stateVariables["/t2"].stateValues.value).eq("hi");
+            expect(stateVariables["/t3"].stateValues.value).eq("hi");
+
+            expect(stateVariables["/grp1/_text1"].stateValues.value).eq(
+                "apple"
+            );
+            expect(stateVariables["/grp1/_text2"].stateValues.value).eq(
+                "banana"
+            );
+            expect(stateVariables["/grp2/_text1"].stateValues.value).eq(
+                "apple"
+            );
+            expect(stateVariables["/grp2/_text2"].stateValues.value).eq(
+                "banana"
+            );
+            expect(stateVariables["/grp3/_text1"].stateValues.value).eq(
+                "apple"
+            );
+            expect(stateVariables["/grp3/_text2"].stateValues.value).eq(
+                "banana"
+            );
+
+            expect(stateVariables["/p"].stateValues.xs).eqls([3, 4]);
+            expect(stateVariables["/x1"].stateValues.value).eq(3);
+            expect(stateVariables["/x2"].stateValues.value).eq(3);
+            expect(stateVariables["/x3"].stateValues.value).eq(3);
+        });
     });
 
-    cy.get(cesc2("#/t1")).should("have.text", "hi");
-    cy.get(cesc2("#/t2")).should("have.text", "hi");
-    cy.get(cesc2("#/t3")).should("have.text", "hi");
-
-    cy.get(cesc2("#/grp1/_text1")).should("have.text", "apple");
-    cy.get(cesc2("#/grp1/_text2")).should("have.text", "banana");
-    cy.get(cesc2("#/grp2/_text1")).should("have.text", "apple");
-    cy.get(cesc2("#/grp2/_text2")).should("have.text", "banana");
-    cy.get(cesc2("#/grp3/_text1")).should("have.text", "apple");
-    cy.get(cesc2("#/grp3/_text2")).should("have.text", "banana");
-
-    cy.get(cesc2("#/p") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3,4)");
-    cy.get(cesc2("#/x1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/x2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/x3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/t1"].stateValues.value).eq("hi");
-      expect(stateVariables["/t2"].stateValues.value).eq("hi");
-      expect(stateVariables["/t3"].stateValues.value).eq("hi");
-
-      expect(stateVariables["/grp1/_text1"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp1/_text2"].stateValues.value).eq("banana");
-      expect(stateVariables["/grp2/_text1"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp2/_text2"].stateValues.value).eq("banana");
-      expect(stateVariables["/grp3/_text1"].stateValues.value).eq("apple");
-      expect(stateVariables["/grp3/_text2"].stateValues.value).eq("banana");
-
-      expect(stateVariables["/p"].stateValues.xs).eqls([3, 4]);
-      expect(stateVariables["/x1"].stateValues.value).eq(3);
-      expect(stateVariables["/x2"].stateValues.value).eq(3);
-      expect(stateVariables["/x3"].stateValues.value).eq(3);
-    });
-  });
-
-  it("copy's automatically generated name not used", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy's automatically generated name not used", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
       <text name="t1">hi</text> $t1
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/t1")).should("have.text", "hi");
+        cy.get(cesc2("#/_document1")).should("contain.text", "hi hi");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/t1"].stateValues.value).eq("hi");
+            expect(stateVariables["/_copy1"]).eq(undefined);
+
+            let secondTextComponentName =
+                stateVariables["/_document1"].activeChildren[3].componentName;
+            expect(
+                stateVariables[secondTextComponentName].stateValues.value
+            ).eq("hi");
+
+            cy.get(cesc2("#" + secondTextComponentName)).should(
+                "have.text",
+                "hi"
+            );
+        });
     });
 
-    cy.get(cesc2("#/t1")).should("have.text", "hi");
-    cy.get(cesc2("#/_document1")).should("contain.text", "hi hi");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/t1"].stateValues.value).eq("hi");
-      expect(stateVariables["/_copy1"]).eq(undefined);
-
-      let secondTextComponentName =
-        stateVariables["/_document1"].activeChildren[3].componentName;
-      expect(stateVariables[secondTextComponentName].stateValues.value).eq(
-        "hi",
-      );
-
-      cy.get(cesc2("#" + secondTextComponentName)).should("have.text", "hi");
-    });
-  });
-
-  it("copy and macro's ssignNames is used to assign name to prop replacement", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy and macro's ssignNames is used to assign name to prop replacement", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
       <point name="p">(3,4)</point>
       <copy source="p.x" assignNames="x1" />
       $p.x{assignNames="x2"}
@@ -4254,61 +4472,69 @@ describe("Copy Tag Tests", function () {
       $p.xs{assignNames="x12 x22"}
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/p") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3,4)");
+
+        cy.get(cesc2("#/x1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/x2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+
+        cy.get(cesc2("#/c1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3,4)");
+        cy.get(cesc2("#/c2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3,4)");
+
+        cy.get(cesc2("#/x11") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/x21") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "4");
+        cy.get(cesc2("#/x12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/x22") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "4");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/p"].stateValues.xs).eqls([3, 4]);
+            expect(stateVariables["/x1"].stateValues.value).eq(3);
+            expect(stateVariables["/x2"].stateValues.value).eq(3);
+            expect(stateVariables["/c1"].stateValues.value).eqls([
+                "vector",
+                3,
+                4,
+            ]);
+            expect(stateVariables["/c2"].stateValues.value).eqls([
+                "vector",
+                3,
+                4,
+            ]);
+            expect(stateVariables["/x11"].stateValues.value).eq(3);
+            expect(stateVariables["/x21"].stateValues.value).eq(4);
+            expect(stateVariables["/x12"].stateValues.value).eq(3);
+            expect(stateVariables["/x22"].stateValues.value).eq(4);
+        });
     });
 
-    cy.get(cesc2("#/p") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3,4)");
-
-    cy.get(cesc2("#/x1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/x2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-
-    cy.get(cesc2("#/c1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3,4)");
-    cy.get(cesc2("#/c2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3,4)");
-
-    cy.get(cesc2("#/x11") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/x21") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "4");
-    cy.get(cesc2("#/x12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/x22") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "4");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/p"].stateValues.xs).eqls([3, 4]);
-      expect(stateVariables["/x1"].stateValues.value).eq(3);
-      expect(stateVariables["/x2"].stateValues.value).eq(3);
-      expect(stateVariables["/c1"].stateValues.value).eqls(["vector", 3, 4]);
-      expect(stateVariables["/c2"].stateValues.value).eqls(["vector", 3, 4]);
-      expect(stateVariables["/x11"].stateValues.value).eq(3);
-      expect(stateVariables["/x21"].stateValues.value).eq(4);
-      expect(stateVariables["/x12"].stateValues.value).eq(3);
-      expect(stateVariables["/x22"].stateValues.value).eq(4);
-    });
-  });
-
-  it("add children to copySource with prop and propIndex", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("add children to copySource with prop and propIndex", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <mathinput name="ind" prefill="1" />
 
     <graph>
@@ -4323,82 +4549,82 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/Pa") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(1,2)");
+        cy.get(cesc2("#/l") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "V1");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([1, 2]);
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_1\\)");
+        });
+
+        cy.log("change to vertex 2");
+        cy.get(cesc2("#/ind") + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
+        cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(5,2)");
+        cy.get(cesc2("#/Pa") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,2)");
+        cy.get(cesc2("#/l") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "V2");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([5, 2]);
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_2\\)");
+        });
+
+        cy.log("invalid vertex");
+        cy.get(cesc2("#/ind") + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
+        cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(0,0)");
+        cy.get(cesc2("#/Pa") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(0,0)");
+        cy.get(cesc2("#/l")).should("have.text", "");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([0, 0]);
+            expect(stateVariables["/P"].stateValues.label).eq("");
+        });
+
+        cy.log("change to vertex 3");
+        cy.get(cesc2("#/ind") + " textarea").type("3{enter}", {
+            force: true,
+        });
+        cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(5,8)");
+        cy.get(cesc2("#/Pa") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,8)");
+        cy.get(cesc2("#/l") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "V3");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/P"].stateValues.xs).eqls([5, 8]);
+            expect(stateVariables["/P"].stateValues.label).eq("\\(V_3\\)");
+        });
     });
 
-    cy.get(cesc2("#/Pa") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(1,2)");
-    cy.get(cesc2("#/l") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "V1");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P"].stateValues.xs).eqls([1, 2]);
-      expect(stateVariables["/P"].stateValues.label).eq("\\(V_1\\)");
-    });
-
-    cy.log("change to vertex 2");
-    cy.get(cesc2("#/ind") + " textarea").type("{end}{backspace}2{enter}", {
-      force: true,
-    });
-    cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(5,2)");
-    cy.get(cesc2("#/Pa") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,2)");
-    cy.get(cesc2("#/l") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "V2");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P"].stateValues.xs).eqls([5, 2]);
-      expect(stateVariables["/P"].stateValues.label).eq("\\(V_2\\)");
-    });
-
-    cy.log("invalid vertex");
-    cy.get(cesc2("#/ind") + " textarea").type("{end}{backspace}{enter}", {
-      force: true,
-    });
-    cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(0,0)");
-    cy.get(cesc2("#/Pa") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(0,0)");
-    cy.get(cesc2("#/l")).should("have.text", "");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P"].stateValues.xs).eqls([0, 0]);
-      expect(stateVariables["/P"].stateValues.label).eq("");
-    });
-
-    cy.log("change to vertex 3");
-    cy.get(cesc2("#/ind") + " textarea").type("3{enter}", {
-      force: true,
-    });
-    cy.get(cesc2("#/Pa") + " .mjx-mrow").should("contain.text", "(5,8)");
-    cy.get(cesc2("#/Pa") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,8)");
-    cy.get(cesc2("#/l") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "V3");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/P"].stateValues.xs).eqls([5, 8]);
-      expect(stateVariables["/P"].stateValues.label).eq("\\(V_3\\)");
-    });
-  });
-
-  it("dot and array notation", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph>
       <point name="P">(2,3)</point>
@@ -4439,96 +4665,96 @@ describe("Copy Tag Tests", function () {
     <p name="p29">y of P: <copy source="P.xs[2]" /></p>
     <p name="p30">nothing: <copy source="P.xs[3]" /></p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p3")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p4")).should("contain.text", ").");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p5")).should("contain.text", ").1");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p7") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p8")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p11")).should("have.text", "nothing: ");
+
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p13")).should("contain.text", ").x");
+        cy.get(cesc2("#/p14")).should("have.text", "no match: $(P.)");
+        cy.get(cesc2("#/p15")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p18") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p21") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(2,3)");
+        cy.get(cesc2("#/p22")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p23")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p24")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p25") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p26") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p27")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p28") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2");
+        cy.get(cesc2("#/p29") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p30")).should("have.text", "nothing: ");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p3")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p4")).should("contain.text", ").");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p5")).should("contain.text", ").1");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p7") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p8")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p11")).should("have.text", "nothing: ");
-
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p13")).should("contain.text", ").x");
-    cy.get(cesc2("#/p14")).should("have.text", "no match: $(P.)");
-    cy.get(cesc2("#/p15")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p18") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p21") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(2,3)");
-    cy.get(cesc2("#/p22")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p23")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p24")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p25") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p26") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p27")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p28") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2");
-    cy.get(cesc2("#/p29") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p30")).should("have.text", "nothing: ");
-  });
-
-  it("dot and array notation, chaining, macros", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, chaining, macros", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line name="l" through="(2/3,3) (5,6)" displayDigits="2" />
@@ -4592,327 +4818,327 @@ describe("Copy Tag Tests", function () {
     <p name="p50">$l.points[3][1]</p>
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,3)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p7")).should("have.text", "");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,3)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p11")).should("have.text", "");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p14")).should("have.text", "");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p18")).should("have.text", "");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p21")).should("have.text", "");
+
+        cy.get(cesc2("#/p22")).should("have.text", "");
+        cy.get(cesc2("#/p23")).should("have.text", "");
+        cy.get(cesc2("#/p24")).should("have.text", "");
+        cy.get(cesc2("#/p25")).should("have.text", "");
+        cy.get(cesc2("#/p26")).should("have.text", "");
+        cy.get(cesc2("#/p27")).should("have.text", "");
+        cy.get(cesc2("#/p28")).should("have.text", "");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)"
+        );
+        cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
+        cy.get(cesc2("#/p31")).should("have.text", "3, 6");
+        cy.get(cesc2("#/p32")).should("have.text", "");
+        cy.get(cesc2("#/p33")).should("have.text", "\\frac{2}{3}, 5");
+        cy.get(cesc2("#/p34")).should("have.text", "3, 6");
+        cy.get(cesc2("#/p35")).should("have.text", "");
+
+        cy.get(cesc2("#/p36")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, 3 \\right)"
+        );
+        cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p38")).should("have.text", "3");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p41")).should("have.text", "3");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p44") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p45") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p46") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p47")).should("have.text", "");
+        cy.get(cesc2("#/p48")).should("have.text", "");
+        cy.get(cesc2("#/p49")).should("have.text", "");
+        cy.get(cesc2("#/p50")).should("have.text", "");
+
+        cy.log("move points");
+
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveLine",
+                componentName: "/l",
+                args: {
+                    point1coords: [7, 8],
+                    point2coords: [9, 0],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p7")).should("have.text", "");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p11")).should("have.text", "");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p14")).should("have.text", "");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p18")).should("have.text", "");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p21")).should("have.text", "");
+
+        cy.get(cesc2("#/p22")).should("have.text", "");
+        cy.get(cesc2("#/p23")).should("have.text", "");
+        cy.get(cesc2("#/p24")).should("have.text", "");
+        cy.get(cesc2("#/p25")).should("have.text", "");
+        cy.get(cesc2("#/p26")).should("have.text", "");
+        cy.get(cesc2("#/p27")).should("have.text", "");
+        cy.get(cesc2("#/p28")).should("have.text", "");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+        cy.get(cesc2("#/p30")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p31")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p32")).should("have.text", "");
+        cy.get(cesc2("#/p33")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p34")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p35")).should("have.text", "");
+
+        cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
+        cy.get(cesc2("#/p37")).should("have.text", "7");
+        cy.get(cesc2("#/p38")).should("have.text", "8");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "7");
+        cy.get(cesc2("#/p41")).should("have.text", "8");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p44") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p45") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p46") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p47")).should("have.text", "");
+        cy.get(cesc2("#/p48")).should("have.text", "");
+        cy.get(cesc2("#/p49")).should("have.text", "");
+        cy.get(cesc2("#/p50")).should("have.text", "");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,3)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p7")).should("have.text", "");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,3)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p11")).should("have.text", "");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p14")).should("have.text", "");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p18")).should("have.text", "");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p21")).should("have.text", "");
-
-    cy.get(cesc2("#/p22")).should("have.text", "");
-    cy.get(cesc2("#/p23")).should("have.text", "");
-    cy.get(cesc2("#/p24")).should("have.text", "");
-    cy.get(cesc2("#/p25")).should("have.text", "");
-    cy.get(cesc2("#/p26")).should("have.text", "");
-    cy.get(cesc2("#/p27")).should("have.text", "");
-    cy.get(cesc2("#/p28")).should("have.text", "");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
-    cy.get(cesc2("#/p31")).should("have.text", "3, 6");
-    cy.get(cesc2("#/p32")).should("have.text", "");
-    cy.get(cesc2("#/p33")).should("have.text", "\\frac{2}{3}, 5");
-    cy.get(cesc2("#/p34")).should("have.text", "3, 6");
-    cy.get(cesc2("#/p35")).should("have.text", "");
-
-    cy.get(cesc2("#/p36")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, 3 \\right)",
-    );
-    cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p38")).should("have.text", "3");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p41")).should("have.text", "3");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p44") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p45") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p46") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p47")).should("have.text", "");
-    cy.get(cesc2("#/p48")).should("have.text", "");
-    cy.get(cesc2("#/p49")).should("have.text", "");
-    cy.get(cesc2("#/p50")).should("have.text", "");
-
-    cy.log("move points");
-
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "moveLine",
-        componentName: "/l",
-        args: {
-          point1coords: [7, 8],
-          point2coords: [9, 0],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p7")).should("have.text", "");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p11")).should("have.text", "");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p14")).should("have.text", "");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p18")).should("have.text", "");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p21")).should("have.text", "");
-
-    cy.get(cesc2("#/p22")).should("have.text", "");
-    cy.get(cesc2("#/p23")).should("have.text", "");
-    cy.get(cesc2("#/p24")).should("have.text", "");
-    cy.get(cesc2("#/p25")).should("have.text", "");
-    cy.get(cesc2("#/p26")).should("have.text", "");
-    cy.get(cesc2("#/p27")).should("have.text", "");
-    cy.get(cesc2("#/p28")).should("have.text", "");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p31")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p32")).should("have.text", "");
-    cy.get(cesc2("#/p33")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p34")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p35")).should("have.text", "");
-
-    cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
-    cy.get(cesc2("#/p37")).should("have.text", "7");
-    cy.get(cesc2("#/p38")).should("have.text", "8");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "7");
-    cy.get(cesc2("#/p41")).should("have.text", "8");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p44") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p45") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p46") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p47")).should("have.text", "");
-    cy.get(cesc2("#/p48")).should("have.text", "");
-    cy.get(cesc2("#/p49")).should("have.text", "");
-    cy.get(cesc2("#/p50")).should("have.text", "");
-  });
-
-  it("dot and array notation, chaining, copies", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, chaining, copies", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line name="l" through="(2/3,3) (5,6)" displayDigits="2" />
@@ -4975,327 +5201,327 @@ describe("Copy Tag Tests", function () {
     <p name="p49"><copy source="l.points[1][3]" /></p>
     <p name="p50"><copy source="l.points[3][1]" /></p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,3)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p7")).should("have.text", "");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,3)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p11")).should("have.text", "");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p14")).should("have.text", "");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(5,6)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p18")).should("have.text", "");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p21")).should("have.text", "");
+
+        cy.get(cesc2("#/p22")).should("have.text", "");
+        cy.get(cesc2("#/p23")).should("have.text", "");
+        cy.get(cesc2("#/p24")).should("have.text", "");
+        cy.get(cesc2("#/p25")).should("have.text", "");
+        cy.get(cesc2("#/p26")).should("have.text", "");
+        cy.get(cesc2("#/p27")).should("have.text", "");
+        cy.get(cesc2("#/p28")).should("have.text", "");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)"
+        );
+        cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
+        cy.get(cesc2("#/p31")).should("have.text", "3, 6");
+        cy.get(cesc2("#/p32")).should("have.text", "");
+        cy.get(cesc2("#/p33")).should("have.text", "\\frac{2}{3}, 5");
+        cy.get(cesc2("#/p34")).should("have.text", "3, 6");
+        cy.get(cesc2("#/p35")).should("have.text", "");
+
+        cy.get(cesc2("#/p36")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, 3 \\right)"
+        );
+        cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p38")).should("have.text", "3");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p41")).should("have.text", "3");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "23");
+        cy.get(cesc2("#/p44") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3");
+        cy.get(cesc2("#/p45") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p46") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p47")).should("have.text", "");
+        cy.get(cesc2("#/p48")).should("have.text", "");
+        cy.get(cesc2("#/p49")).should("have.text", "");
+        cy.get(cesc2("#/p50")).should("have.text", "");
+
+        cy.log("move points");
+
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveLine",
+                componentName: "/l",
+                args: {
+                    point1coords: [7, 8],
+                    point2coords: [9, 0],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p7")).should("have.text", "");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p11")).should("have.text", "");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p14")).should("have.text", "");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p18")).should("have.text", "");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p21")).should("have.text", "");
+
+        cy.get(cesc2("#/p22")).should("have.text", "");
+        cy.get(cesc2("#/p23")).should("have.text", "");
+        cy.get(cesc2("#/p24")).should("have.text", "");
+        cy.get(cesc2("#/p25")).should("have.text", "");
+        cy.get(cesc2("#/p26")).should("have.text", "");
+        cy.get(cesc2("#/p27")).should("have.text", "");
+        cy.get(cesc2("#/p28")).should("have.text", "");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+        cy.get(cesc2("#/p30")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p31")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p32")).should("have.text", "");
+        cy.get(cesc2("#/p33")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p34")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p35")).should("have.text", "");
+
+        cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
+        cy.get(cesc2("#/p37")).should("have.text", "7");
+        cy.get(cesc2("#/p38")).should("have.text", "8");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "7");
+        cy.get(cesc2("#/p41")).should("have.text", "8");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "7");
+        cy.get(cesc2("#/p44") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p45") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p46") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0");
+        cy.get(cesc2("#/p47")).should("have.text", "");
+        cy.get(cesc2("#/p48")).should("have.text", "");
+        cy.get(cesc2("#/p49")).should("have.text", "");
+        cy.get(cesc2("#/p50")).should("have.text", "");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,3)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p7")).should("have.text", "");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,3)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p11")).should("have.text", "");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p14")).should("have.text", "");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(5,6)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p18")).should("have.text", "");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p21")).should("have.text", "");
-
-    cy.get(cesc2("#/p22")).should("have.text", "");
-    cy.get(cesc2("#/p23")).should("have.text", "");
-    cy.get(cesc2("#/p24")).should("have.text", "");
-    cy.get(cesc2("#/p25")).should("have.text", "");
-    cy.get(cesc2("#/p26")).should("have.text", "");
-    cy.get(cesc2("#/p27")).should("have.text", "");
-    cy.get(cesc2("#/p28")).should("have.text", "");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, 3 \\right), \\left( 5, 6 \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, 5");
-    cy.get(cesc2("#/p31")).should("have.text", "3, 6");
-    cy.get(cesc2("#/p32")).should("have.text", "");
-    cy.get(cesc2("#/p33")).should("have.text", "\\frac{2}{3}, 5");
-    cy.get(cesc2("#/p34")).should("have.text", "3, 6");
-    cy.get(cesc2("#/p35")).should("have.text", "");
-
-    cy.get(cesc2("#/p36")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, 3 \\right)",
-    );
-    cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p38")).should("have.text", "3");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p41")).should("have.text", "3");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "23");
-    cy.get(cesc2("#/p44") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3");
-    cy.get(cesc2("#/p45") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p46") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p47")).should("have.text", "");
-    cy.get(cesc2("#/p48")).should("have.text", "");
-    cy.get(cesc2("#/p49")).should("have.text", "");
-    cy.get(cesc2("#/p50")).should("have.text", "");
-
-    cy.log("move points");
-
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "moveLine",
-        componentName: "/l",
-        args: {
-          point1coords: [7, 8],
-          point2coords: [9, 0],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p7")).should("have.text", "");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p11")).should("have.text", "");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p14")).should("have.text", "");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p18")).should("have.text", "");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p21")).should("have.text", "");
-
-    cy.get(cesc2("#/p22")).should("have.text", "");
-    cy.get(cesc2("#/p23")).should("have.text", "");
-    cy.get(cesc2("#/p24")).should("have.text", "");
-    cy.get(cesc2("#/p25")).should("have.text", "");
-    cy.get(cesc2("#/p26")).should("have.text", "");
-    cy.get(cesc2("#/p27")).should("have.text", "");
-    cy.get(cesc2("#/p28")).should("have.text", "");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p31")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p32")).should("have.text", "");
-    cy.get(cesc2("#/p33")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p34")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p35")).should("have.text", "");
-
-    cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
-    cy.get(cesc2("#/p37")).should("have.text", "7");
-    cy.get(cesc2("#/p38")).should("have.text", "8");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "7");
-    cy.get(cesc2("#/p41")).should("have.text", "8");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "7");
-    cy.get(cesc2("#/p44") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p45") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p46") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0");
-    cy.get(cesc2("#/p47")).should("have.text", "");
-    cy.get(cesc2("#/p48")).should("have.text", "");
-    cy.get(cesc2("#/p49")).should("have.text", "");
-    cy.get(cesc2("#/p50")).should("have.text", "");
-  });
-
-  it("dot and array notation, chaining, specify attributes, macros", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, chaining, specify attributes, macros", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line name="l" through="(3.92639372,9.8293629453) (0.9060742037,32.93520806203104)" displayDigits="2" />
@@ -5346,202 +5572,202 @@ describe("Copy Tag Tests", function () {
     <p name="p38">$(l{displayDigits="3"}.points[1]{displayDecimals="4"})</p>
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9,9.8)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(0.91,33)");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.91");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "33");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.91");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "33");
+        cy.get(cesc2("#/p7")).should("have.text", "");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(0.9061,32.9352)");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.9061");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "32.9352");
+        cy.get(cesc2("#/p11")).should("have.text", "");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p12") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.9061");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p13") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "32.9352");
+        cy.get(cesc2("#/p14")).should("have.text", "");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p16") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p17") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p18")).should("have.text", "");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p19") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p20") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p21")).should("have.text", "");
+
+        cy.get(cesc2("#/p22") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p22") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(0.9061,32.9352)");
+        cy.get(cesc2("#/p23") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p23") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.9061");
+        cy.get(cesc2("#/p24") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p24") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "32.9352");
+        cy.get(cesc2("#/p25")).should("have.text", "");
+        cy.get(cesc2("#/p26") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p26") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "0.9061");
+        cy.get(cesc2("#/p27") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p27") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "32.9352");
+        cy.get(cesc2("#/p28")).should("have.text", "");
+
+        cy.get(cesc2("#/p29") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p29") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p30") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p30") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p31") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p31") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p32")).should("have.text", "");
+        cy.get(cesc2("#/p33") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "3.9264");
+        cy.get(cesc2("#/p33") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p34") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9.8294");
+        cy.get(cesc2("#/p34") + " .mjx-mrow")
+            .eq(1)
+            .should("not.exist");
+        cy.get(cesc2("#/p35")).should("have.text", "");
+
+        cy.get(cesc2("#/p36")).should(
+            "have.text",
+            "0 = -23.1058 x - 3.0203 y + 120.4105"
+        );
+        cy.get(cesc2("#/p37") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p37") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(0.9061,32.9352)");
+        cy.get(cesc2("#/p38") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(3.9264,9.8294)");
+        cy.get(cesc2("#/p38") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9,9.8)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(0.91,33)");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.91");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "33");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.91");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "33");
-    cy.get(cesc2("#/p7")).should("have.text", "");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(0.9061,32.9352)");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.9061");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "32.9352");
-    cy.get(cesc2("#/p11")).should("have.text", "");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p12") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.9061");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p13") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "32.9352");
-    cy.get(cesc2("#/p14")).should("have.text", "");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p16") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p17") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p18")).should("have.text", "");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p19") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p20") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p21")).should("have.text", "");
-
-    cy.get(cesc2("#/p22") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p22") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(0.9061,32.9352)");
-    cy.get(cesc2("#/p23") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p23") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.9061");
-    cy.get(cesc2("#/p24") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p24") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "32.9352");
-    cy.get(cesc2("#/p25")).should("have.text", "");
-    cy.get(cesc2("#/p26") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p26") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "0.9061");
-    cy.get(cesc2("#/p27") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p27") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "32.9352");
-    cy.get(cesc2("#/p28")).should("have.text", "");
-
-    cy.get(cesc2("#/p29") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p29") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p30") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p30") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p31") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p31") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p32")).should("have.text", "");
-    cy.get(cesc2("#/p33") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "3.9264");
-    cy.get(cesc2("#/p33") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p34") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9.8294");
-    cy.get(cesc2("#/p34") + " .mjx-mrow")
-      .eq(1)
-      .should("not.exist");
-    cy.get(cesc2("#/p35")).should("have.text", "");
-
-    cy.get(cesc2("#/p36")).should(
-      "have.text",
-      "0 = -23.1058 x - 3.0203 y + 120.4105",
-    );
-    cy.get(cesc2("#/p37") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p37") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(0.9061,32.9352)");
-    cy.get(cesc2("#/p38") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(3.9264,9.8294)");
-    cy.get(cesc2("#/p38") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-  });
-
-  it("dot and array notation, chaining, nested", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, chaining, nested", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line name="l" through="(1.92639372,9.8293629453) (5.9060742037,2.93520806203104)" />
@@ -5557,65 +5783,65 @@ describe("Copy Tag Tests", function () {
     
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2.93521");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2.93521");
+
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveLine",
+                componentName: "/l",
+                args: {
+                    point1coords: [1.38527302734, 8.48273402357],
+                    point2coords: [5.9060742037, 2.93520806203104],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", "8.48273");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8.48273");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8.48273");
+
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveLine",
+                componentName: "/l",
+                args: {
+                    point1coords: [1.38527302734, 8.48273402357],
+                    point2coords: [4.482081034234, 7.34828203481],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", "8.483");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8.483");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8.483");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2.93521");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2.93521");
-
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "moveLine",
-        componentName: "/l",
-        args: {
-          point1coords: [1.38527302734, 8.48273402357],
-          point2coords: [5.9060742037, 2.93520806203104],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", "8.48273");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8.48273");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8.48273");
-
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "moveLine",
-        componentName: "/l",
-        args: {
-          point1coords: [1.38527302734, 8.48273402357],
-          point2coords: [4.482081034234, 7.34828203481],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow").should("contain.text", "8.483");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8.483");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8.483");
-  });
-
-  it("dot and array notation, chaining, copy source, change type", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, chaining, copy source, change type", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line name="l" through="(2/3,3/4) (5/8,6/10)" displayDigits="2" />
@@ -5678,195 +5904,207 @@ describe("Copy Tag Tests", function () {
     <p name="p49"><number copysource="l.points[1][3]" /></p>
     <p name="p50"><number copysource="l.points[3][1]" /></p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,34)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(58,35)");
+        cy.get(cesc2("#/p2")).should("have.text", "0.67, 0.63");
+        cy.get(cesc2("#/p3")).should("have.text", "0.75, 0.6");
+        cy.get(cesc2("#/p4")).should("have.text", "NaN, NaN");
+        cy.get(cesc2("#/p5")).should("have.text", "0.67, 0.63");
+        cy.get(cesc2("#/p6")).should("have.text", "0.75, 0.6");
+        cy.get(cesc2("#/p7")).should("have.text", "NaN, NaN");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(23,34)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9")).should("have.text", "0.67");
+        cy.get(cesc2("#/p10")).should("have.text", "0.75");
+        cy.get(cesc2("#/p11")).should("have.text", "NaN");
+        cy.get(cesc2("#/p12")).should("have.text", "0.67");
+        cy.get(cesc2("#/p13")).should("have.text", "0.75");
+        cy.get(cesc2("#/p14")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(58,35)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16")).should("have.text", "0.63");
+        cy.get(cesc2("#/p17")).should("have.text", "0.6");
+        cy.get(cesc2("#/p18")).should("have.text", "NaN");
+        cy.get(cesc2("#/p19")).should("have.text", "0.63");
+        cy.get(cesc2("#/p20")).should("have.text", "0.6");
+        cy.get(cesc2("#/p21")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p22") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "\uff3f");
+        cy.get(cesc2("#/p23")).should("have.text", "NaN");
+        cy.get(cesc2("#/p24")).should("have.text", "NaN");
+        cy.get(cesc2("#/p25")).should("have.text", "NaN");
+        cy.get(cesc2("#/p26")).should("have.text", "NaN");
+        cy.get(cesc2("#/p27")).should("have.text", "NaN");
+        cy.get(cesc2("#/p28")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right), \\left( \\frac{5}{8}, \\frac{3}{5} \\right)"
+        );
+        cy.get(cesc2("#/p30")).should(
+            "have.text",
+            "\\frac{2}{3}, \\frac{5}{8}"
+        );
+        cy.get(cesc2("#/p31")).should(
+            "have.text",
+            "\\frac{3}{4}, \\frac{3}{5}"
+        );
+        cy.get(cesc2("#/p32")).should("have.text", ", ");
+        cy.get(cesc2("#/p33")).should(
+            "have.text",
+            "\\frac{2}{3}, \\frac{5}{8}"
+        );
+        cy.get(cesc2("#/p34")).should(
+            "have.text",
+            "\\frac{3}{4}, \\frac{3}{5}"
+        );
+        cy.get(cesc2("#/p35")).should("have.text", ", ");
+
+        cy.get(cesc2("#/p36")).should(
+            "have.text",
+            "\\left( \\frac{2}{3}, \\frac{3}{4} \\right)"
+        );
+        cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p38")).should("have.text", "\\frac{3}{4}");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
+        cy.get(cesc2("#/p41")).should("have.text", "\\frac{3}{4}");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43")).should("have.text", "0.67");
+        cy.get(cesc2("#/p44")).should("have.text", "0.75");
+        cy.get(cesc2("#/p45")).should("have.text", "0.63");
+        cy.get(cesc2("#/p46")).should("have.text", "0.6");
+        cy.get(cesc2("#/p47")).should("have.text", "NaN");
+        cy.get(cesc2("#/p48")).should("have.text", "NaN");
+        cy.get(cesc2("#/p49")).should("have.text", "NaN");
+        cy.get(cesc2("#/p50")).should("have.text", "NaN");
+
+        cy.log("move points");
+
+        cy.window().then(async (win) => {
+            win.callAction1({
+                actionName: "moveLine",
+                componentName: "/l",
+                args: {
+                    point1coords: [7, 8],
+                    point2coords: [9, 0],
+                },
+            });
+        });
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(3)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p2")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p3")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p4")).should("have.text", "NaN, NaN");
+        cy.get(cesc2("#/p5")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p6")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p7")).should("have.text", "NaN, NaN");
+
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(7,8)");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p9")).should("have.text", "7");
+        cy.get(cesc2("#/p10")).should("have.text", "8");
+        cy.get(cesc2("#/p11")).should("have.text", "NaN");
+        cy.get(cesc2("#/p12")).should("have.text", "7");
+        cy.get(cesc2("#/p13")).should("have.text", "8");
+        cy.get(cesc2("#/p14")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(9,0)");
+        cy.get(cesc2("#/p15") + " .mjx-mrow")
+            .eq(3)
+            .should("not.exist");
+        cy.get(cesc2("#/p16")).should("have.text", "9");
+        cy.get(cesc2("#/p17")).should("have.text", "0");
+        cy.get(cesc2("#/p18")).should("have.text", "NaN");
+        cy.get(cesc2("#/p19")).should("have.text", "9");
+        cy.get(cesc2("#/p20")).should("have.text", "0");
+        cy.get(cesc2("#/p21")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p22") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "\uff3f");
+        cy.get(cesc2("#/p23")).should("have.text", "NaN");
+        cy.get(cesc2("#/p24")).should("have.text", "NaN");
+        cy.get(cesc2("#/p25")).should("have.text", "NaN");
+        cy.get(cesc2("#/p26")).should("have.text", "NaN");
+        cy.get(cesc2("#/p27")).should("have.text", "NaN");
+        cy.get(cesc2("#/p28")).should("have.text", "NaN");
+
+        cy.get(cesc2("#/p29")).should(
+            "have.text",
+            "\\left( 7, 8 \\right), \\left( 9, 0 \\right)"
+        );
+        cy.get(cesc2("#/p30")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p31")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p32")).should("have.text", ", ");
+        cy.get(cesc2("#/p33")).should("have.text", "7, 9");
+        cy.get(cesc2("#/p34")).should("have.text", "8, 0");
+        cy.get(cesc2("#/p35")).should("have.text", ", ");
+
+        cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
+        cy.get(cesc2("#/p37")).should("have.text", "7");
+        cy.get(cesc2("#/p38")).should("have.text", "8");
+        cy.get(cesc2("#/p39")).should("have.text", "");
+        cy.get(cesc2("#/p40")).should("have.text", "7");
+        cy.get(cesc2("#/p41")).should("have.text", "8");
+        cy.get(cesc2("#/p42")).should("have.text", "");
+
+        cy.get(cesc2("#/p43")).should("have.text", "7");
+        cy.get(cesc2("#/p44")).should("have.text", "8");
+        cy.get(cesc2("#/p45")).should("have.text", "9");
+        cy.get(cesc2("#/p46")).should("have.text", "0");
+        cy.get(cesc2("#/p47")).should("have.text", "NaN");
+        cy.get(cesc2("#/p48")).should("have.text", "NaN");
+        cy.get(cesc2("#/p49")).should("have.text", "NaN");
+        cy.get(cesc2("#/p50")).should("have.text", "NaN");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,34)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(58,35)");
-    cy.get(cesc2("#/p2")).should("have.text", "0.67, 0.63");
-    cy.get(cesc2("#/p3")).should("have.text", "0.75, 0.6");
-    cy.get(cesc2("#/p4")).should("have.text", "NaN, NaN");
-    cy.get(cesc2("#/p5")).should("have.text", "0.67, 0.63");
-    cy.get(cesc2("#/p6")).should("have.text", "0.75, 0.6");
-    cy.get(cesc2("#/p7")).should("have.text", "NaN, NaN");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(23,34)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9")).should("have.text", "0.67");
-    cy.get(cesc2("#/p10")).should("have.text", "0.75");
-    cy.get(cesc2("#/p11")).should("have.text", "NaN");
-    cy.get(cesc2("#/p12")).should("have.text", "0.67");
-    cy.get(cesc2("#/p13")).should("have.text", "0.75");
-    cy.get(cesc2("#/p14")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(58,35)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16")).should("have.text", "0.63");
-    cy.get(cesc2("#/p17")).should("have.text", "0.6");
-    cy.get(cesc2("#/p18")).should("have.text", "NaN");
-    cy.get(cesc2("#/p19")).should("have.text", "0.63");
-    cy.get(cesc2("#/p20")).should("have.text", "0.6");
-    cy.get(cesc2("#/p21")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p22") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "\uff3f");
-    cy.get(cesc2("#/p23")).should("have.text", "NaN");
-    cy.get(cesc2("#/p24")).should("have.text", "NaN");
-    cy.get(cesc2("#/p25")).should("have.text", "NaN");
-    cy.get(cesc2("#/p26")).should("have.text", "NaN");
-    cy.get(cesc2("#/p27")).should("have.text", "NaN");
-    cy.get(cesc2("#/p28")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, \\frac{3}{4} \\right), \\left( \\frac{5}{8}, \\frac{3}{5} \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "\\frac{2}{3}, \\frac{5}{8}");
-    cy.get(cesc2("#/p31")).should("have.text", "\\frac{3}{4}, \\frac{3}{5}");
-    cy.get(cesc2("#/p32")).should("have.text", ", ");
-    cy.get(cesc2("#/p33")).should("have.text", "\\frac{2}{3}, \\frac{5}{8}");
-    cy.get(cesc2("#/p34")).should("have.text", "\\frac{3}{4}, \\frac{3}{5}");
-    cy.get(cesc2("#/p35")).should("have.text", ", ");
-
-    cy.get(cesc2("#/p36")).should(
-      "have.text",
-      "\\left( \\frac{2}{3}, \\frac{3}{4} \\right)",
-    );
-    cy.get(cesc2("#/p37")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p38")).should("have.text", "\\frac{3}{4}");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "\\frac{2}{3}");
-    cy.get(cesc2("#/p41")).should("have.text", "\\frac{3}{4}");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43")).should("have.text", "0.67");
-    cy.get(cesc2("#/p44")).should("have.text", "0.75");
-    cy.get(cesc2("#/p45")).should("have.text", "0.63");
-    cy.get(cesc2("#/p46")).should("have.text", "0.6");
-    cy.get(cesc2("#/p47")).should("have.text", "NaN");
-    cy.get(cesc2("#/p48")).should("have.text", "NaN");
-    cy.get(cesc2("#/p49")).should("have.text", "NaN");
-    cy.get(cesc2("#/p50")).should("have.text", "NaN");
-
-    cy.log("move points");
-
-    cy.window().then(async (win) => {
-      win.callAction1({
-        actionName: "moveLine",
-        componentName: "/l",
-        args: {
-          point1coords: [7, 8],
-          point2coords: [9, 0],
-        },
-      });
-    });
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(3)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p2")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p3")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p4")).should("have.text", "NaN, NaN");
-    cy.get(cesc2("#/p5")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p6")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p7")).should("have.text", "NaN, NaN");
-
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(7,8)");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p9")).should("have.text", "7");
-    cy.get(cesc2("#/p10")).should("have.text", "8");
-    cy.get(cesc2("#/p11")).should("have.text", "NaN");
-    cy.get(cesc2("#/p12")).should("have.text", "7");
-    cy.get(cesc2("#/p13")).should("have.text", "8");
-    cy.get(cesc2("#/p14")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(9,0)");
-    cy.get(cesc2("#/p15") + " .mjx-mrow")
-      .eq(3)
-      .should("not.exist");
-    cy.get(cesc2("#/p16")).should("have.text", "9");
-    cy.get(cesc2("#/p17")).should("have.text", "0");
-    cy.get(cesc2("#/p18")).should("have.text", "NaN");
-    cy.get(cesc2("#/p19")).should("have.text", "9");
-    cy.get(cesc2("#/p20")).should("have.text", "0");
-    cy.get(cesc2("#/p21")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p22") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "\uff3f");
-    cy.get(cesc2("#/p23")).should("have.text", "NaN");
-    cy.get(cesc2("#/p24")).should("have.text", "NaN");
-    cy.get(cesc2("#/p25")).should("have.text", "NaN");
-    cy.get(cesc2("#/p26")).should("have.text", "NaN");
-    cy.get(cesc2("#/p27")).should("have.text", "NaN");
-    cy.get(cesc2("#/p28")).should("have.text", "NaN");
-
-    cy.get(cesc2("#/p29")).should(
-      "have.text",
-      "\\left( 7, 8 \\right), \\left( 9, 0 \\right)",
-    );
-    cy.get(cesc2("#/p30")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p31")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p32")).should("have.text", ", ");
-    cy.get(cesc2("#/p33")).should("have.text", "7, 9");
-    cy.get(cesc2("#/p34")).should("have.text", "8, 0");
-    cy.get(cesc2("#/p35")).should("have.text", ", ");
-
-    cy.get(cesc2("#/p36")).should("have.text", "\\left( 7, 8 \\right)");
-    cy.get(cesc2("#/p37")).should("have.text", "7");
-    cy.get(cesc2("#/p38")).should("have.text", "8");
-    cy.get(cesc2("#/p39")).should("have.text", "");
-    cy.get(cesc2("#/p40")).should("have.text", "7");
-    cy.get(cesc2("#/p41")).should("have.text", "8");
-    cy.get(cesc2("#/p42")).should("have.text", "");
-
-    cy.get(cesc2("#/p43")).should("have.text", "7");
-    cy.get(cesc2("#/p44")).should("have.text", "8");
-    cy.get(cesc2("#/p45")).should("have.text", "9");
-    cy.get(cesc2("#/p46")).should("have.text", "0");
-    cy.get(cesc2("#/p47")).should("have.text", "NaN");
-    cy.get(cesc2("#/p48")).should("have.text", "NaN");
-    cy.get(cesc2("#/p49")).should("have.text", "NaN");
-    cy.get(cesc2("#/p50")).should("have.text", "NaN");
-  });
-
-  it("dot and array notation, multidimensional, dynamic", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, multidimensional, dynamic", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <graph size="small">
       <line through="(1,2) (3,4)" />
@@ -5888,105 +6126,105 @@ describe("Copy Tag Tests", function () {
     <p name="p4"><copy source="col[$ln].points[$pn].xs[$cn]" /></p>
     
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "1");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "1");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "1");
+        cy.get(cesc2("#/p4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "1");
+
+        cy.get(cesc2("#/ln") + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).should("have.text", "");
+        cy.get(cesc2("#/p2")).should("have.text", "");
+        cy.get(cesc2("#/p3")).should("have.text", "");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+
+        cy.get(cesc2("#/ln") + " textarea").type("2{enter}", { force: true });
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+        cy.get(cesc2("#/p4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "5");
+
+        cy.get(cesc2("#/pn") + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).should("have.text", "");
+        cy.get(cesc2("#/p2")).should("have.text", "");
+        cy.get(cesc2("#/p3")).should("have.text", "");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+
+        cy.get(cesc2("#/pn") + " textarea").type("2{enter}", { force: true });
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+        cy.get(cesc2("#/p4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "9");
+
+        cy.get(cesc2("#/cn") + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
+
+        cy.get(cesc2("#/p1")).should("have.text", "");
+        cy.get(cesc2("#/p2")).should("have.text", "");
+        cy.get(cesc2("#/p3")).should("have.text", "");
+        cy.get(cesc2("#/p4")).should("have.text", "");
+
+        cy.get(cesc2("#/cn") + " textarea").type("2{enter}", { force: true });
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
+        cy.get(cesc2("#/p4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "6");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "1");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "1");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "1");
-    cy.get(cesc2("#/p4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "1");
-
-    cy.get(cesc2("#/ln") + " textarea").type("{end}{backspace}{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/p1")).should("have.text", "");
-    cy.get(cesc2("#/p2")).should("have.text", "");
-    cy.get(cesc2("#/p3")).should("have.text", "");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-
-    cy.get(cesc2("#/ln") + " textarea").type("2{enter}", { force: true });
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-    cy.get(cesc2("#/p4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "5");
-
-    cy.get(cesc2("#/pn") + " textarea").type("{end}{backspace}{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/p1")).should("have.text", "");
-    cy.get(cesc2("#/p2")).should("have.text", "");
-    cy.get(cesc2("#/p3")).should("have.text", "");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-
-    cy.get(cesc2("#/pn") + " textarea").type("2{enter}", { force: true });
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-    cy.get(cesc2("#/p4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "9");
-
-    cy.get(cesc2("#/cn") + " textarea").type("{end}{backspace}{enter}", {
-      force: true,
-    });
-
-    cy.get(cesc2("#/p1")).should("have.text", "");
-    cy.get(cesc2("#/p2")).should("have.text", "");
-    cy.get(cesc2("#/p3")).should("have.text", "");
-    cy.get(cesc2("#/p4")).should("have.text", "");
-
-    cy.get(cesc2("#/cn") + " textarea").type("2{enter}", { force: true });
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-    cy.get(cesc2("#/p4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "6");
-  });
-
-  it("dot and array notation, recurse to subnames of composite replacements", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation, recurse to subnames of composite replacements", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <p>n: <mathinput name="n" prefill="2" /></p>
 
@@ -6009,213 +6247,222 @@ describe("Copy Tag Tests", function () {
     <p name="pc2">Again, coordinate $cn from that point is <copy source="myMap[$tn]/l.points[$pn].xs[$cn]" />.</p>
 
     `,
-        },
-        "*",
-      );
-    });
+                },
+                "*"
+            );
+        });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
 
-    let Pxs = [2, 3, 4, 5, 6];
-    let Pys = [3, 4, 5, 6, 7];
-    let Qxs = [5, 6, 7, 8, 9];
-    let Qys = [0, 1, 2, 3, 4];
+        let Pxs = [2, 3, 4, 5, 6];
+        let Pys = [3, 4, 5, 6, 7];
+        let Qxs = [5, 6, 7, 8, 9];
+        let Qys = [0, 1, 2, 3, 4];
 
-    function checkResult(n, tn, pn, cn) {
-      if (!(n >= 1 && tn <= n)) {
-        // we have nothing
-        cy.get(cesc("#\\/pt")).should("contain.text", "are:  and .");
-        cy.get(cesc("#\\/pp")).should(
-          "contain.text",
-          " from the line in that template is: .",
-        );
-        cy.get(cesc("#\\/pc")).should("contain.text", "from that point is .");
-        cy.get(cesc("#\\/pc2")).should("contain.text", "from that point is .");
-      } else {
-        cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
-          "contain.text",
-          `(${Pxs[tn - 1]},${Pys[tn - 1]})`,
-        );
-        cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
-          "contain.text",
-          `(${Qxs[tn - 1]},${Qys[tn - 1]})`,
-        );
-        cy.get(cesc("#\\/pt") + " .mjx-mrow")
-          .eq(1)
-          .should("have.text", `(${Pxs[tn - 1]},${Pys[tn - 1]})`);
-        cy.get(cesc("#\\/pt") + " .mjx-mrow")
-          .eq(4)
-          .should("have.text", `(${Qxs[tn - 1]},${Qys[tn - 1]})`);
+        function checkResult(n, tn, pn, cn) {
+            if (!(n >= 1 && tn <= n)) {
+                // we have nothing
+                cy.get(cesc("#\\/pt")).should("contain.text", "are:  and .");
+                cy.get(cesc("#\\/pp")).should(
+                    "contain.text",
+                    " from the line in that template is: ."
+                );
+                cy.get(cesc("#\\/pc")).should(
+                    "contain.text",
+                    "from that point is ."
+                );
+                cy.get(cesc("#\\/pc2")).should(
+                    "contain.text",
+                    "from that point is ."
+                );
+            } else {
+                cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
+                    "contain.text",
+                    `(${Pxs[tn - 1]},${Pys[tn - 1]})`
+                );
+                cy.get(cesc("#\\/pt") + " .mjx-mrow").should(
+                    "contain.text",
+                    `(${Qxs[tn - 1]},${Qys[tn - 1]})`
+                );
+                cy.get(cesc("#\\/pt") + " .mjx-mrow")
+                    .eq(1)
+                    .should("have.text", `(${Pxs[tn - 1]},${Pys[tn - 1]})`);
+                cy.get(cesc("#\\/pt") + " .mjx-mrow")
+                    .eq(4)
+                    .should("have.text", `(${Qxs[tn - 1]},${Qys[tn - 1]})`);
 
-        if (pn === 1) {
-          cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
-            "contain.text",
-            `(${Pxs[tn - 1]},${Pys[tn - 1]})`,
-          );
-          cy.get(cesc("#\\/pp") + " .mjx-mrow")
-            .eq(1)
-            .should("have.text", `(${Pxs[tn - 1]},${Pys[tn - 1]})`);
-          if (cn === 1) {
-            cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
-              "contain.text",
-              `${Pxs[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
-              "contain.text",
-              `${Pxs[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Pxs[tn - 1]}`);
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Pxs[tn - 1]}`);
-          } else if (cn === 2) {
-            cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
-              "contain.text",
-              `${Pys[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
-              "contain.text",
-              `${Pys[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Pys[tn - 1]}`);
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Pys[tn - 1]}`);
-          } else {
-            cy.get(cesc("#\\/pc")).should(
-              "contain.text",
-              "from that point is .",
-            );
-            cy.get(cesc("#\\/pc2")).should(
-              "contain.text",
-              "from that point is .",
-            );
-          }
-        } else if (pn === 2) {
-          cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
-            "contain.text",
-            `(${Qxs[tn - 1]},${Qys[tn - 1]})`,
-          );
-          cy.get(cesc("#\\/pp") + " .mjx-mrow")
-            .eq(1)
-            .should("have.text", `(${Qxs[tn - 1]},${Qys[tn - 1]})`);
-          if (cn === 1) {
-            cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
-              "contain.text",
-              `${Qxs[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
-              "contain.text",
-              `${Qxs[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Qxs[tn - 1]}`);
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Qxs[tn - 1]}`);
-          } else if (cn === 2) {
-            cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
-              "contain.text",
-              `${Qys[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
-              "contain.text",
-              `${Qys[tn - 1]}`,
-            );
-            cy.get(cesc("#\\/pc") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Qys[tn - 1]}`);
-            cy.get(cesc("#\\/pc2") + " .mjx-mrow")
-              .eq(1)
-              .should("have.text", `${Qys[tn - 1]}`);
-          } else {
-            cy.get(cesc("#\\/pc")).should(
-              "contain.text",
-              "from that point is .",
-            );
-            cy.get(cesc("#\\/pc2")).should(
-              "contain.text",
-              "from that point is .",
-            );
-          }
-        } else {
-          cy.get(cesc("#\\/pp")).should(
-            "contain.text",
-            " from the line in that template is: .",
-          );
-          cy.get(cesc("#\\/pc")).should("contain.text", "from that point is .");
-          cy.get(cesc("#\\/pc2")).should(
-            "contain.text",
-            "from that point is .",
-          );
+                if (pn === 1) {
+                    cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
+                        "contain.text",
+                        `(${Pxs[tn - 1]},${Pys[tn - 1]})`
+                    );
+                    cy.get(cesc("#\\/pp") + " .mjx-mrow")
+                        .eq(1)
+                        .should("have.text", `(${Pxs[tn - 1]},${Pys[tn - 1]})`);
+                    if (cn === 1) {
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Pxs[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Pxs[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Pxs[tn - 1]}`);
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Pxs[tn - 1]}`);
+                    } else if (cn === 2) {
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Pys[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Pys[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Pys[tn - 1]}`);
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Pys[tn - 1]}`);
+                    } else {
+                        cy.get(cesc("#\\/pc")).should(
+                            "contain.text",
+                            "from that point is ."
+                        );
+                        cy.get(cesc("#\\/pc2")).should(
+                            "contain.text",
+                            "from that point is ."
+                        );
+                    }
+                } else if (pn === 2) {
+                    cy.get(cesc("#\\/pp") + " .mjx-mrow").should(
+                        "contain.text",
+                        `(${Qxs[tn - 1]},${Qys[tn - 1]})`
+                    );
+                    cy.get(cesc("#\\/pp") + " .mjx-mrow")
+                        .eq(1)
+                        .should("have.text", `(${Qxs[tn - 1]},${Qys[tn - 1]})`);
+                    if (cn === 1) {
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Qxs[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Qxs[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Qxs[tn - 1]}`);
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Qxs[tn - 1]}`);
+                    } else if (cn === 2) {
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Qys[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow").should(
+                            "contain.text",
+                            `${Qys[tn - 1]}`
+                        );
+                        cy.get(cesc("#\\/pc") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Qys[tn - 1]}`);
+                        cy.get(cesc("#\\/pc2") + " .mjx-mrow")
+                            .eq(1)
+                            .should("have.text", `${Qys[tn - 1]}`);
+                    } else {
+                        cy.get(cesc("#\\/pc")).should(
+                            "contain.text",
+                            "from that point is ."
+                        );
+                        cy.get(cesc("#\\/pc2")).should(
+                            "contain.text",
+                            "from that point is ."
+                        );
+                    }
+                } else {
+                    cy.get(cesc("#\\/pp")).should(
+                        "contain.text",
+                        " from the line in that template is: ."
+                    );
+                    cy.get(cesc("#\\/pc")).should(
+                        "contain.text",
+                        "from that point is ."
+                    );
+                    cy.get(cesc("#\\/pc2")).should(
+                        "contain.text",
+                        "from that point is ."
+                    );
+                }
+            }
         }
-      }
-    }
 
-    checkResult(2, 1, 1, 1);
+        checkResult(2, 1, 1, 1);
 
-    cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}2{enter}", {
-      force: true,
+        cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
+        checkResult(2, 2, 1, 1);
+
+        cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+        checkResult(2, 3, 1, 1);
+
+        cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
+            force: true,
+        });
+        checkResult(4, 3, 1, 1);
+
+        cy.get(cesc("#\\/pn") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+        checkResult(4, 3, 3, 1);
+
+        cy.get(cesc("#\\/pn") + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
+        checkResult(4, 3, 2, 1);
+
+        cy.get(cesc("#\\/cn") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+        checkResult(4, 3, 2, 3);
+
+        cy.get(cesc("#\\/cn") + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
+        checkResult(4, 3, 2, 2);
+
+        cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
+            force: true,
+        });
+        checkResult(3, 3, 2, 2);
+
+        cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}1{enter}", {
+            force: true,
+        });
+        checkResult(1, 3, 2, 2);
+
+        cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}1{enter}", {
+            force: true,
+        });
+        checkResult(1, 1, 2, 2);
     });
-    checkResult(2, 2, 1, 1);
 
-    cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-    checkResult(2, 3, 1, 1);
-
-    cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}4{enter}", {
-      force: true,
-    });
-    checkResult(4, 3, 1, 1);
-
-    cy.get(cesc("#\\/pn") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-    checkResult(4, 3, 3, 1);
-
-    cy.get(cesc("#\\/pn") + " textarea").type("{end}{backspace}2{enter}", {
-      force: true,
-    });
-    checkResult(4, 3, 2, 1);
-
-    cy.get(cesc("#\\/cn") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-    checkResult(4, 3, 2, 3);
-
-    cy.get(cesc("#\\/cn") + " textarea").type("{end}{backspace}2{enter}", {
-      force: true,
-    });
-    checkResult(4, 3, 2, 2);
-
-    cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
-      force: true,
-    });
-    checkResult(3, 3, 2, 2);
-
-    cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}1{enter}", {
-      force: true,
-    });
-    checkResult(1, 3, 2, 2);
-
-    cy.get(cesc("#\\/tn") + " textarea").type("{end}{backspace}1{enter}", {
-      force: true,
-    });
-    checkResult(1, 1, 2, 2);
-  });
-
-  it("dot and array notation from group", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("dot and array notation from group", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <group name="grp">
       <math>x</math>
@@ -6242,59 +6489,59 @@ describe("Copy Tag Tests", function () {
     <p name="p13">Prop fixed from group: $grp.fixed</p>
     <p name="p14">Prop x from group: $grp.x</p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/p1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/p2")).should("have.text", "a blank: ");
+        cy.get(cesc2("#/p3")).should("have.text", "the text: hello");
+        cy.get(cesc2("#/p4")).should("have.text", "another blank: ");
+        cy.get(cesc2("#/p5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(4,5)");
+        cy.get(cesc2("#/p6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "4");
+        cy.get(cesc2("#/p7") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "0=x−y−1");
+        cy.get(cesc2("#/p8") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "(10,9)");
+        cy.get(cesc2("#/p9") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "8");
+        cy.get(cesc2("#/p10") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y");
+        cy.get(cesc2("#/p11")).should("have.text", "text from p: word");
+        cy.get(cesc2("#/p12")).should("have.text", "nothing: ");
+        cy.get(cesc2("#/p13")).should(
+            "have.text",
+            "Prop fixed from group: false, true, false, false, false"
+        );
+        cy.get(cesc2("#/p14")).should("contain.text", "Prop x from group: x");
+        cy.get(cesc2("#/p14")).should("contain.text", "x, 4");
+        cy.get(cesc2("#/p14") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/p14") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "4");
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/p1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/p2")).should("have.text", "a blank: ");
-    cy.get(cesc2("#/p3")).should("have.text", "the text: hello");
-    cy.get(cesc2("#/p4")).should("have.text", "another blank: ");
-    cy.get(cesc2("#/p5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(4,5)");
-    cy.get(cesc2("#/p6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "4");
-    cy.get(cesc2("#/p7") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "0=x−y−1");
-    cy.get(cesc2("#/p8") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "(10,9)");
-    cy.get(cesc2("#/p9") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "8");
-    cy.get(cesc2("#/p10") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y");
-    cy.get(cesc2("#/p11")).should("have.text", "text from p: word");
-    cy.get(cesc2("#/p12")).should("have.text", "nothing: ");
-    cy.get(cesc2("#/p13")).should(
-      "have.text",
-      "Prop fixed from group: false, true, false, false, false",
-    );
-    cy.get(cesc2("#/p14")).should("contain.text", "Prop x from group: x");
-    cy.get(cesc2("#/p14")).should("contain.text", "x, 4");
-    cy.get(cesc2("#/p14") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/p14") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "4");
-  });
-
-  it("implicitProp from an input", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("implicitProp from an input", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <mathinput prefill="x+x" name="mi" />
 
@@ -6306,81 +6553,93 @@ describe("Copy Tag Tests", function () {
     <p name="pcopy4"><copy source="mi" createComponentOfType="mathinput" /></p>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/pmacro1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/pmacro2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+
+        cy.get(cesc2("#/pcopy1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/pcopy2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/pcopy3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/pcopy4") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x+x");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let macrom1Name =
+                stateVariables["/pmacro1"].activeChildren[0].componentName;
+            let macrom2Name =
+                stateVariables["/pmacro2"].activeChildren[0].componentName;
+            let copym1Name =
+                stateVariables["/pcopy1"].activeChildren[0].componentName;
+            let copym2Name =
+                stateVariables["/pcopy2"].activeChildren[0].componentName;
+            let copym3Name =
+                stateVariables["/pcopy3"].activeChildren[0].componentName;
+            let copymi4Name =
+                stateVariables["/pcopy4"].activeChildren[0].componentName;
+
+            expect(stateVariables[macrom1Name].componentType).eq("math");
+            expect(stateVariables[macrom2Name].componentType).eq("math");
+            expect(stateVariables[copym1Name].componentType).eq("math");
+            expect(stateVariables[copym2Name].componentType).eq("math");
+            expect(stateVariables[copym3Name].componentType).eq("math");
+            expect(stateVariables[copymi4Name].componentType).eq("mathInput");
+            expect(stateVariables[macrom1Name].stateValues.value).eqls([
+                "+",
+                "x",
+                "x",
+            ]);
+            expect(stateVariables[macrom2Name].stateValues.value).eqls([
+                "*",
+                2,
+                "x",
+            ]);
+            expect(stateVariables[copym1Name].stateValues.value).eqls([
+                "+",
+                "x",
+                "x",
+            ]);
+            expect(stateVariables[copym2Name].stateValues.value).eqls([
+                "*",
+                2,
+                "x",
+            ]);
+            expect(stateVariables[copym3Name].stateValues.value).eqls([
+                "*",
+                2,
+                "x",
+            ]);
+            expect(stateVariables[copymi4Name].stateValues.value).eqls([
+                "+",
+                "x",
+                "x",
+            ]);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/pmacro1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/pmacro2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-
-    cy.get(cesc2("#/pcopy1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/pcopy2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/pcopy3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/pcopy4") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x+x");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      let macrom1Name =
-        stateVariables["/pmacro1"].activeChildren[0].componentName;
-      let macrom2Name =
-        stateVariables["/pmacro2"].activeChildren[0].componentName;
-      let copym1Name =
-        stateVariables["/pcopy1"].activeChildren[0].componentName;
-      let copym2Name =
-        stateVariables["/pcopy2"].activeChildren[0].componentName;
-      let copym3Name =
-        stateVariables["/pcopy3"].activeChildren[0].componentName;
-      let copymi4Name =
-        stateVariables["/pcopy4"].activeChildren[0].componentName;
-
-      expect(stateVariables[macrom1Name].componentType).eq("math");
-      expect(stateVariables[macrom2Name].componentType).eq("math");
-      expect(stateVariables[copym1Name].componentType).eq("math");
-      expect(stateVariables[copym2Name].componentType).eq("math");
-      expect(stateVariables[copym3Name].componentType).eq("math");
-      expect(stateVariables[copymi4Name].componentType).eq("mathInput");
-      expect(stateVariables[macrom1Name].stateValues.value).eqls([
-        "+",
-        "x",
-        "x",
-      ]);
-      expect(stateVariables[macrom2Name].stateValues.value).eqls(["*", 2, "x"]);
-      expect(stateVariables[copym1Name].stateValues.value).eqls([
-        "+",
-        "x",
-        "x",
-      ]);
-      expect(stateVariables[copym2Name].stateValues.value).eqls(["*", 2, "x"]);
-      expect(stateVariables[copym3Name].stateValues.value).eqls(["*", 2, "x"]);
-      expect(stateVariables[copymi4Name].stateValues.value).eqls([
-        "+",
-        "x",
-        "x",
-      ]);
-    });
-  });
-
-  it("implicitProp with same componentType depend on attributes", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("implicitProp with same componentType depend on attributes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <math name="m" simplify><math name="msub">x</math>+x</math>
     $m{name="mimplicit1"}
     $m{name="mimplicit2" createComponentOfType="math"}
@@ -6405,88 +6664,114 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/mimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/mnotimplicit5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/mnotimplicit6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/msubimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/msubimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/msubimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+
+        cy.get(cesc2("#/nnotimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y+z");
+        cy.get(cesc2("#/nnotimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y+z");
+        cy.get(cesc2("#/nsubimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y");
+        cy.get(cesc2("#/nsubimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/mimplicit1"].activeChildren.length).eq(0);
+            expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
+            expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
+            expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(
+                0
+            );
+
+            expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(
+                0
+            );
+        });
     });
 
-    cy.get(cesc2("#/mimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/mnotimplicit5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/mnotimplicit6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/msubimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/msubimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/msubimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-
-    cy.get(cesc2("#/nnotimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y+z");
-    cy.get(cesc2("#/nnotimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y+z");
-    cy.get(cesc2("#/nsubimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y");
-    cy.get(cesc2("#/nsubimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/mimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
-      expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
-      expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(2);
-      expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(0);
-      expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(0);
-
-      expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(2);
-      expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(2);
-      expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(0);
-    });
-  });
-
-  it("implicitProp with same componentType depend on attributes, subnames", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("implicitProp with same componentType depend on attributes, subnames", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
 
     <map name="map">
       <template newNamespace><math name="m" simplify><math name="msub">x</math>+x</math></template>
@@ -6519,88 +6804,114 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/mimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "2x");
+        cy.get(cesc2("#/mnotimplicit4") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/mnotimplicit5") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/mnotimplicit6") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x+x");
+        cy.get(cesc2("#/msubimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/msubimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/msubimplicit3") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+
+        cy.get(cesc2("#/nnotimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y+z");
+        cy.get(cesc2("#/nnotimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y+z");
+        cy.get(cesc2("#/nsubimplicit1") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y");
+        cy.get(cesc2("#/nsubimplicit2") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "y");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/mimplicit1"].activeChildren.length).eq(0);
+            expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
+            expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
+            expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(
+                0
+            );
+
+            expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(
+                2
+            );
+            expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(
+                0
+            );
+            expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(
+                0
+            );
+        });
     });
 
-    cy.get(cesc2("#/mimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "2x");
-    cy.get(cesc2("#/mnotimplicit4") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/mnotimplicit5") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/mnotimplicit6") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x+x");
-    cy.get(cesc2("#/msubimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/msubimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/msubimplicit3") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-
-    cy.get(cesc2("#/nnotimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y+z");
-    cy.get(cesc2("#/nnotimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y+z");
-    cy.get(cesc2("#/nsubimplicit1") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y");
-    cy.get(cesc2("#/nsubimplicit2") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "y");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/mimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/mimplicit2"].activeChildren.length).eq(0);
-      expect(stateVariables["/mimplicit3"].activeChildren.length).eq(0);
-      expect(stateVariables["/mnotimplicit1"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit2"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit3"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit4"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit5"].activeChildren.length).eq(2);
-      expect(stateVariables["/mnotimplicit6"].activeChildren.length).eq(2);
-      expect(stateVariables["/msubimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/msubimplicit2"].activeChildren.length).eq(0);
-      expect(stateVariables["/msubimplicit3"].activeChildren.length).eq(0);
-
-      expect(stateVariables["/nnotimplicit1"].activeChildren.length).eq(2);
-      expect(stateVariables["/nnotimplicit2"].activeChildren.length).eq(2);
-      expect(stateVariables["/nsubimplicit1"].activeChildren.length).eq(0);
-      expect(stateVariables["/nsubimplicit2"].activeChildren.length).eq(0);
-    });
-  });
-
-  it("copies of composites ignore implicitProp", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copies of composites ignore implicitProp", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <group name="g">
       <mathinput prefill="x" />
@@ -6618,85 +6929,85 @@ describe("Copy Tag Tests", function () {
     <p name="pcopy2">$g</p>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/pmacro") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pmacro") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pcopy") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pcopy") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pmacro2") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pmacro2") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pcopy2") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pcopy2") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let [macromi1Name, macromi2Name] = stateVariables[
+                "/pmacro"
+            ].activeChildren.map((x) => x.componentName);
+            let [copymi1Name, copymi2Name] = stateVariables[
+                "/pcopy"
+            ].activeChildren.map((x) => x.componentName);
+            let [macromi1Name2, macromi2Name2] = stateVariables[
+                "/pmacro2"
+            ].activeChildren
+                .filter((x) => x.componentName)
+                .map((x) => x.componentName);
+            let [copymi1Name2, copymi2Name2] = stateVariables[
+                "/pcopy2"
+            ].activeChildren
+                .filter((x) => x.componentName)
+                .map((x) => x.componentName);
+
+            expect(stateVariables[macromi1Name].componentType).eq("mathInput");
+            expect(stateVariables[macromi2Name].componentType).eq("mathInput");
+            expect(stateVariables[copymi1Name].componentType).eq("mathInput");
+            expect(stateVariables[copymi2Name].componentType).eq("mathInput");
+            expect(stateVariables[macromi1Name].stateValues.value).eq("x");
+            expect(stateVariables[macromi2Name].stateValues.value).eq("y");
+            expect(stateVariables[copymi1Name].stateValues.value).eq("x");
+            expect(stateVariables[copymi2Name].stateValues.value).eq("y");
+            expect(stateVariables[macromi1Name2].componentType).eq("mathInput");
+            expect(stateVariables[macromi2Name2].componentType).eq("mathInput");
+            expect(stateVariables[copymi1Name2].componentType).eq("mathInput");
+            expect(stateVariables[copymi2Name2].componentType).eq("mathInput");
+            expect(stateVariables[macromi1Name2].stateValues.value).eq("x");
+            expect(stateVariables[macromi2Name2].stateValues.value).eq("y");
+            expect(stateVariables[copymi1Name2].stateValues.value).eq("x");
+            expect(stateVariables[copymi2Name2].stateValues.value).eq("y");
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/pmacro") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pmacro") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pcopy") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pcopy") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pmacro2") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pmacro2") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pcopy2") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pcopy2") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      let [macromi1Name, macromi2Name] = stateVariables[
-        "/pmacro"
-      ].activeChildren.map((x) => x.componentName);
-      let [copymi1Name, copymi2Name] = stateVariables[
-        "/pcopy"
-      ].activeChildren.map((x) => x.componentName);
-      let [macromi1Name2, macromi2Name2] = stateVariables[
-        "/pmacro2"
-      ].activeChildren
-        .filter((x) => x.componentName)
-        .map((x) => x.componentName);
-      let [copymi1Name2, copymi2Name2] = stateVariables[
-        "/pcopy2"
-      ].activeChildren
-        .filter((x) => x.componentName)
-        .map((x) => x.componentName);
-
-      expect(stateVariables[macromi1Name].componentType).eq("mathInput");
-      expect(stateVariables[macromi2Name].componentType).eq("mathInput");
-      expect(stateVariables[copymi1Name].componentType).eq("mathInput");
-      expect(stateVariables[copymi2Name].componentType).eq("mathInput");
-      expect(stateVariables[macromi1Name].stateValues.value).eq("x");
-      expect(stateVariables[macromi2Name].stateValues.value).eq("y");
-      expect(stateVariables[copymi1Name].stateValues.value).eq("x");
-      expect(stateVariables[copymi2Name].stateValues.value).eq("y");
-      expect(stateVariables[macromi1Name2].componentType).eq("mathInput");
-      expect(stateVariables[macromi2Name2].componentType).eq("mathInput");
-      expect(stateVariables[copymi1Name2].componentType).eq("mathInput");
-      expect(stateVariables[copymi2Name2].componentType).eq("mathInput");
-      expect(stateVariables[macromi1Name2].stateValues.value).eq("x");
-      expect(stateVariables[macromi2Name2].stateValues.value).eq("y");
-      expect(stateVariables[copymi1Name2].stateValues.value).eq("x");
-      expect(stateVariables[copymi2Name2].stateValues.value).eq("y");
-    });
-  });
-
-  it("copies of composites with subnames do not ignore implicitProp", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copies of composites with subnames do not ignore implicitProp", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <map name="map" assignNames="t1 t2">
       <template newNamespace><mathinput name="mi" prefill="$v" /></template>
@@ -6715,212 +7026,251 @@ describe("Copy Tag Tests", function () {
 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc2("#/pmacro") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pmacro") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pcopy") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pcopy") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pmacroInd") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pmacroInd") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pcopyInd") + " .mq-editable-field")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pcopyInd") + " .mq-editable-field")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pmacroSubname") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pmacroSubname") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.get(cesc2("#/pcopySubname") + " .mjx-mrow")
+            .eq(0)
+            .should("have.text", "x");
+        cy.get(cesc2("#/pcopySubname") + " .mjx-mrow")
+            .eq(1)
+            .should("have.text", "y");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            let [macromi1Name, macromi2Name] = stateVariables[
+                "/pmacro"
+            ].activeChildren.map((x) => x.componentName);
+            let [copymi1Name, copymi2Name] = stateVariables[
+                "/pcopy"
+            ].activeChildren.map((x) => x.componentName);
+            let [macroIndmi1Name, macroIndmi2Name] = stateVariables[
+                "/pmacroInd"
+            ].activeChildren.map((x) => x.componentName);
+            let [copyIndmi1Name, copyIndmi2Name] = stateVariables[
+                "/pmacroInd"
+            ].activeChildren.map((x) => x.componentName);
+            let [macroSubnamem1Name, macroSubnamem2Name] = stateVariables[
+                "/pmacroSubname"
+            ].activeChildren.map((x) => x.componentName);
+            let [copySubnamem1Name, copySubnamem2Name] = stateVariables[
+                "/pcopySubname"
+            ].activeChildren.map((x) => x.componentName);
+
+            expect(stateVariables[macromi1Name].componentType).eq("mathInput");
+            expect(stateVariables[macromi2Name].componentType).eq("mathInput");
+            expect(stateVariables[copymi1Name].componentType).eq("mathInput");
+            expect(stateVariables[copymi2Name].componentType).eq("mathInput");
+            expect(stateVariables[macroIndmi1Name].componentType).eq(
+                "mathInput"
+            );
+            expect(stateVariables[macroIndmi2Name].componentType).eq(
+                "mathInput"
+            );
+            expect(stateVariables[copyIndmi1Name].componentType).eq(
+                "mathInput"
+            );
+            expect(stateVariables[copyIndmi2Name].componentType).eq(
+                "mathInput"
+            );
+            expect(stateVariables[macroSubnamem1Name].componentType).eq("math");
+            expect(stateVariables[macroSubnamem2Name].componentType).eq("math");
+            expect(stateVariables[copySubnamem1Name].componentType).eq("math");
+            expect(stateVariables[copySubnamem2Name].componentType).eq("math");
+            expect(stateVariables[macromi1Name].stateValues.value).eq("x");
+            expect(stateVariables[macromi2Name].stateValues.value).eq("y");
+            expect(stateVariables[copymi1Name].stateValues.value).eq("x");
+            expect(stateVariables[copymi2Name].stateValues.value).eq("y");
+            expect(stateVariables[macroIndmi1Name].stateValues.value).eq("x");
+            expect(stateVariables[macroIndmi2Name].stateValues.value).eq("y");
+            expect(stateVariables[copyIndmi1Name].stateValues.value).eq("x");
+            expect(stateVariables[copyIndmi2Name].stateValues.value).eq("y");
+            expect(stateVariables[macroSubnamem1Name].stateValues.value).eq(
+                "x"
+            );
+            expect(stateVariables[macroSubnamem2Name].stateValues.value).eq(
+                "y"
+            );
+            expect(stateVariables[copySubnamem1Name].stateValues.value).eq("x");
+            expect(stateVariables[copySubnamem2Name].stateValues.value).eq("y");
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc2("#/pmacro") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pmacro") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pcopy") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pcopy") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pmacroInd") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pmacroInd") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pcopyInd") + " .mq-editable-field")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pcopyInd") + " .mq-editable-field")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pmacroSubname") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pmacroSubname") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.get(cesc2("#/pcopySubname") + " .mjx-mrow")
-      .eq(0)
-      .should("have.text", "x");
-    cy.get(cesc2("#/pcopySubname") + " .mjx-mrow")
-      .eq(1)
-      .should("have.text", "y");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      let [macromi1Name, macromi2Name] = stateVariables[
-        "/pmacro"
-      ].activeChildren.map((x) => x.componentName);
-      let [copymi1Name, copymi2Name] = stateVariables[
-        "/pcopy"
-      ].activeChildren.map((x) => x.componentName);
-      let [macroIndmi1Name, macroIndmi2Name] = stateVariables[
-        "/pmacroInd"
-      ].activeChildren.map((x) => x.componentName);
-      let [copyIndmi1Name, copyIndmi2Name] = stateVariables[
-        "/pmacroInd"
-      ].activeChildren.map((x) => x.componentName);
-      let [macroSubnamem1Name, macroSubnamem2Name] = stateVariables[
-        "/pmacroSubname"
-      ].activeChildren.map((x) => x.componentName);
-      let [copySubnamem1Name, copySubnamem2Name] = stateVariables[
-        "/pcopySubname"
-      ].activeChildren.map((x) => x.componentName);
-
-      expect(stateVariables[macromi1Name].componentType).eq("mathInput");
-      expect(stateVariables[macromi2Name].componentType).eq("mathInput");
-      expect(stateVariables[copymi1Name].componentType).eq("mathInput");
-      expect(stateVariables[copymi2Name].componentType).eq("mathInput");
-      expect(stateVariables[macroIndmi1Name].componentType).eq("mathInput");
-      expect(stateVariables[macroIndmi2Name].componentType).eq("mathInput");
-      expect(stateVariables[copyIndmi1Name].componentType).eq("mathInput");
-      expect(stateVariables[copyIndmi2Name].componentType).eq("mathInput");
-      expect(stateVariables[macroSubnamem1Name].componentType).eq("math");
-      expect(stateVariables[macroSubnamem2Name].componentType).eq("math");
-      expect(stateVariables[copySubnamem1Name].componentType).eq("math");
-      expect(stateVariables[copySubnamem2Name].componentType).eq("math");
-      expect(stateVariables[macromi1Name].stateValues.value).eq("x");
-      expect(stateVariables[macromi2Name].stateValues.value).eq("y");
-      expect(stateVariables[copymi1Name].stateValues.value).eq("x");
-      expect(stateVariables[copymi2Name].stateValues.value).eq("y");
-      expect(stateVariables[macroIndmi1Name].stateValues.value).eq("x");
-      expect(stateVariables[macroIndmi2Name].stateValues.value).eq("y");
-      expect(stateVariables[copyIndmi1Name].stateValues.value).eq("x");
-      expect(stateVariables[copyIndmi2Name].stateValues.value).eq("y");
-      expect(stateVariables[macroSubnamem1Name].stateValues.value).eq("x");
-      expect(stateVariables[macroSubnamem2Name].stateValues.value).eq("y");
-      expect(stateVariables[copySubnamem1Name].stateValues.value).eq("x");
-      expect(stateVariables[copySubnamem2Name].stateValues.value).eq("y");
-    });
-  });
-
-  it("implicitProp with createComponentOfType", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("implicitProp with createComponentOfType", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <text>a</text>
     <p><mathinput name="mi"/>  <mathinput copySource="mi" />  <math copySource="mi" /></p>
 
     <p>$mi{createComponentOfType='mathinput'}, $mi, $mi{createComponentOfType='math'}</p> 
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/_text1")).should("have.text", "a");
+
+        cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+            "contain.text",
+            "\uff3f"
+        );
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+
+            let mi3Anchor = cesc2(
+                "#" + stateVariables["/_p2"].activeChildren[0].componentName
+            );
+            let m2Anchor = cesc2(
+                "#" + stateVariables["/_p2"].activeChildren[2].componentName
+            );
+            let m3Anchor = cesc2(
+                "#" + stateVariables["/_p2"].activeChildren[4].componentName
+            );
+
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
+
+            cy.log("mathinputs change with immediate value");
+            cy.get(cesc("#\\/mi") + " textarea").type("x", { force: true });
+
+            cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
+                "have.text",
+                "x"
+            );
+            cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "x");
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "\uff3f"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
+
+            cy.log("maths change with value");
+            cy.get(cesc("#\\/mi") + " textarea").blur();
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "x"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
+
+            cy.log("mathinputs change with immediate value");
+            cy.get(cesc("#\\/_mathinput2") + " textarea").type(
+                "{end}{backspace}y",
+                {
+                    force: true,
+                }
+            );
+
+            cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
+                "have.text",
+                "y"
+            );
+            cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "y");
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "x"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
+
+            cy.log("maths change with value");
+            cy.get(cesc("#\\/_mathinput2") + " textarea").blur();
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "y"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
+
+            cy.log("mathinputs change with immediate value");
+            cy.get(mi3Anchor + " textarea").type("{end}{backspace}z", {
+                force: true,
+            });
+
+            cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
+                "have.text",
+                "z"
+            );
+            cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
+                "have.text",
+                "z"
+            );
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "y"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
+
+            cy.log("maths change with value");
+            cy.get(mi3Anchor + " textarea").blur();
+
+            cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
+                "contain.text",
+                "z"
+            );
+            cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "z");
+            cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "z");
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/_text1")).should("have.text", "a");
-
-    cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "\uff3f");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-
-      let mi3Anchor = cesc2(
-        "#" + stateVariables["/_p2"].activeChildren[0].componentName,
-      );
-      let m2Anchor = cesc2(
-        "#" + stateVariables["/_p2"].activeChildren[2].componentName,
-      );
-      let m3Anchor = cesc2(
-        "#" + stateVariables["/_p2"].activeChildren[4].componentName,
-      );
-
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
-
-      cy.log("mathinputs change with immediate value");
-      cy.get(cesc("#\\/mi") + " textarea").type("x", { force: true });
-
-      cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
-        "have.text",
-        "x",
-      );
-      cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "x");
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
-        "contain.text",
-        "\uff3f",
-      );
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "\uff3f");
-
-      cy.log("maths change with value");
-      cy.get(cesc("#\\/mi") + " textarea").blur();
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "x");
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
-
-      cy.log("mathinputs change with immediate value");
-      cy.get(cesc("#\\/_mathinput2") + " textarea").type("{end}{backspace}y", {
-        force: true,
-      });
-
-      cy.get(cesc("#\\/mi") + " .mq-editable-field").should("have.text", "y");
-      cy.get(mi3Anchor + " .mq-editable-field").should("have.text", "y");
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "x");
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "x");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "x");
-
-      cy.log("maths change with value");
-      cy.get(cesc("#\\/_mathinput2") + " textarea").blur();
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "y");
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
-
-      cy.log("mathinputs change with immediate value");
-      cy.get(mi3Anchor + " textarea").type("{end}{backspace}z", {
-        force: true,
-      });
-
-      cy.get(cesc("#\\/mi") + " .mq-editable-field").should("have.text", "z");
-      cy.get(cesc("#\\/_mathinput2") + " .mq-editable-field").should(
-        "have.text",
-        "z",
-      );
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "y");
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "y");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "y");
-
-      cy.log("maths change with value");
-      cy.get(mi3Anchor + " textarea").blur();
-
-      cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "z");
-      cy.get(m2Anchor + " .mjx-mrow").should("contain.text", "z");
-      cy.get(m3Anchor + " .mjx-mrow").should("contain.text", "z");
-    });
-  });
-
-  it("asList when copy array prop", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("asList when copy array prop", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <choiceinput name="ci">
       <choice>yes</choice>
       <choice>no</choice>
@@ -6934,52 +7284,64 @@ describe("Copy Tag Tests", function () {
     <p name="nocommas2" copySource="nocommas" />
     <p name="withcommas2" copySource="withcommas" />
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/default")).should(
+            "have.text",
+            "Default: yes, no, maybe"
+        );
+        cy.get(cesc2("#/nocommas")).should(
+            "have.text",
+            "No commas: yesnomaybe"
+        );
+        cy.get(cesc2("#/withcommas")).should(
+            "have.text",
+            "With commas: yes, no, maybe"
+        );
+        cy.get(cesc2("#/default2")).should(
+            "have.text",
+            "Default: yes, no, maybe"
+        );
+        cy.get(cesc2("#/nocommas2")).should(
+            "have.text",
+            "No commas: yesnomaybe"
+        );
+        cy.get(cesc2("#/withcommas2")).should(
+            "have.text",
+            "With commas: yes, no, maybe"
+        );
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/default"].stateValues.text).eq(
+                "Default: yes, no, maybe"
+            );
+            expect(stateVariables["/nocommas"].stateValues.text).eq(
+                "No commas: yesnomaybe"
+            );
+            expect(stateVariables["/withcommas"].stateValues.text).eq(
+                "With commas: yes, no, maybe"
+            );
+            expect(stateVariables["/default2"].stateValues.text).eq(
+                "Default: yes, no, maybe"
+            );
+            expect(stateVariables["/nocommas2"].stateValues.text).eq(
+                "No commas: yesnomaybe"
+            );
+            expect(stateVariables["/withcommas2"].stateValues.text).eq(
+                "With commas: yes, no, maybe"
+            );
+        });
     });
 
-    cy.get(cesc2("#/default")).should("have.text", "Default: yes, no, maybe");
-    cy.get(cesc2("#/nocommas")).should("have.text", "No commas: yesnomaybe");
-    cy.get(cesc2("#/withcommas")).should(
-      "have.text",
-      "With commas: yes, no, maybe",
-    );
-    cy.get(cesc2("#/default2")).should("have.text", "Default: yes, no, maybe");
-    cy.get(cesc2("#/nocommas2")).should("have.text", "No commas: yesnomaybe");
-    cy.get(cesc2("#/withcommas2")).should(
-      "have.text",
-      "With commas: yes, no, maybe",
-    );
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/default"].stateValues.text).eq(
-        "Default: yes, no, maybe",
-      );
-      expect(stateVariables["/nocommas"].stateValues.text).eq(
-        "No commas: yesnomaybe",
-      );
-      expect(stateVariables["/withcommas"].stateValues.text).eq(
-        "With commas: yes, no, maybe",
-      );
-      expect(stateVariables["/default2"].stateValues.text).eq(
-        "Default: yes, no, maybe",
-      );
-      expect(stateVariables["/nocommas2"].stateValues.text).eq(
-        "No commas: yesnomaybe",
-      );
-      expect(stateVariables["/withcommas2"].stateValues.text).eq(
-        "With commas: yes, no, maybe",
-      );
-    });
-  });
-
-  it("asList when copy array prop, multiple stacked props", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("asList when copy array prop, multiple stacked props", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <line name="l" through="(1,2) (3,4)" />
 
     <p name="default">Default: $l.points.x</p>
@@ -6989,38 +7351,46 @@ describe("Copy Tag Tests", function () {
     <p name="nocommas2" copySource="nocommas" />
     <p name="withcommas2" copySource="withcommas" />
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/default")).should("contain.text", "1, 3");
+        cy.get(cesc2("#/nocommas")).should("contain.text", "13");
+        cy.get(cesc2("#/withcommas")).should("contain.text", "1, 3");
+        cy.get(cesc2("#/default2")).should("contain.text", "1, 3");
+        cy.get(cesc2("#/nocommas2")).should("contain.text", "13");
+        cy.get(cesc2("#/withcommas2")).should("contain.text", "1, 3");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/default"].stateValues.text).eq(
+                "Default: 1, 3"
+            );
+            expect(stateVariables["/nocommas"].stateValues.text).eq(
+                "No commas: 13"
+            );
+            expect(stateVariables["/withcommas"].stateValues.text).eq(
+                "With commas: 1, 3"
+            );
+            expect(stateVariables["/default2"].stateValues.text).eq(
+                "Default: 1, 3"
+            );
+            expect(stateVariables["/nocommas2"].stateValues.text).eq(
+                "No commas: 13"
+            );
+            expect(stateVariables["/withcommas2"].stateValues.text).eq(
+                "With commas: 1, 3"
+            );
+        });
     });
 
-    cy.get(cesc2("#/default")).should("contain.text", "1, 3");
-    cy.get(cesc2("#/nocommas")).should("contain.text", "13");
-    cy.get(cesc2("#/withcommas")).should("contain.text", "1, 3");
-    cy.get(cesc2("#/default2")).should("contain.text", "1, 3");
-    cy.get(cesc2("#/nocommas2")).should("contain.text", "13");
-    cy.get(cesc2("#/withcommas2")).should("contain.text", "1, 3");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/default"].stateValues.text).eq("Default: 1, 3");
-      expect(stateVariables["/nocommas"].stateValues.text).eq("No commas: 13");
-      expect(stateVariables["/withcommas"].stateValues.text).eq(
-        "With commas: 1, 3",
-      );
-      expect(stateVariables["/default2"].stateValues.text).eq("Default: 1, 3");
-      expect(stateVariables["/nocommas2"].stateValues.text).eq("No commas: 13");
-      expect(stateVariables["/withcommas2"].stateValues.text).eq(
-        "With commas: 1, 3",
-      );
-    });
-  });
-
-  it("asList when copy array prop, aslist overrides", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("asList when copy array prop, aslist overrides", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <choiceinput name="ci">
       <choice>yes</choice>
       <choice>no</choice>
@@ -7031,26 +7401,26 @@ describe("Copy Tag Tests", function () {
     Override no commas: <aslist name="nocommas">$ci.choiceTexts{asList="false"}</aslist>
     Copy: <aslist name="nocommas2" copySource="nocommas" />
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/_document1")).should(
+            "contain.text",
+            "Override no commas: yes, no, maybe"
+        );
+        cy.get(cesc2("#/_document1")).should(
+            "contain.text",
+            "Copy: yes, no, maybe"
+        );
     });
 
-    cy.get(cesc2("#/_document1")).should(
-      "contain.text",
-      "Override no commas: yes, no, maybe",
-    );
-    cy.get(cesc2("#/_document1")).should(
-      "contain.text",
-      "Copy: yes, no, maybe",
-    );
-  });
-
-  it("asList when copy array prop, test renderers", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("asList when copy array prop, test renderers", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <choiceinput name="ci">
       <choice>yes</choice>
       <choice>no</choice>
@@ -7087,85 +7457,102 @@ describe("Copy Tag Tests", function () {
     <text name="in_text">$ci.choiceTexts</text>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/_document1")).should(
+            "contain.text",
+            "In document: yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_alert")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_blockquote")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_c")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_caption")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_cell")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_choice")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_span")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_em")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_feedback")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_footnote")).click();
+        cy.get(cesc2("#/in_footnote")).should("contain.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_hint_w_title")).click();
+        cy.get(cesc2("#/in_hint_w_title")).should(
+            "contain.text",
+            "yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_hint_wo_title")).click();
+        cy.get(cesc2("#/in_hint_wo_title")).should(
+            "contain.text",
+            "yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_label")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_li")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_li2")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_p")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_pre")).should("have.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_q")).should("have.text", "“yes, no, maybe”");
+        cy.get(cesc2("#/in_section_w_title")).should(
+            "contain.text",
+            "Title: yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_section_w_title")).should(
+            "contain.text",
+            "Text: yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_section_wo_title")).should(
+            "contain.text",
+            "yes, no, maybe"
+        );
+        cy.get(cesc2("#/in_solution")).click();
+        cy.get(cesc2("#/in_solution")).should("contain.text", "yes, no, maybe");
+        cy.get(cesc2("#/in_sq")).should("have.text", "‘yes, no, maybe’");
+        cy.get(cesc2("#/in_text")).should("have.text", "yes, no, maybe");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/in_alert"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_c"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_caption"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_cell"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_choice"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_em"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_footnote"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_label"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_p"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/in_text"].stateValues.text).eq(
+                "yes, no, maybe"
+            );
+            expect(stateVariables["/sec_title"].stateValues.text).eq(
+                "Title: yes, no, maybe"
+            );
+        });
     });
 
-    cy.get(cesc2("#/_document1")).should(
-      "contain.text",
-      "In document: yes, no, maybe",
-    );
-    cy.get(cesc2("#/in_alert")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_blockquote")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_c")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_caption")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_cell")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_choice")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_span")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_em")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_feedback")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_footnote")).click();
-    cy.get(cesc2("#/in_footnote")).should("contain.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_hint_w_title")).click();
-    cy.get(cesc2("#/in_hint_w_title")).should("contain.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_hint_wo_title")).click();
-    cy.get(cesc2("#/in_hint_wo_title")).should(
-      "contain.text",
-      "yes, no, maybe",
-    );
-    cy.get(cesc2("#/in_label")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_li")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_li2")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_p")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_pre")).should("have.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_q")).should("have.text", "“yes, no, maybe”");
-    cy.get(cesc2("#/in_section_w_title")).should(
-      "contain.text",
-      "Title: yes, no, maybe",
-    );
-    cy.get(cesc2("#/in_section_w_title")).should(
-      "contain.text",
-      "Text: yes, no, maybe",
-    );
-    cy.get(cesc2("#/in_section_wo_title")).should(
-      "contain.text",
-      "yes, no, maybe",
-    );
-    cy.get(cesc2("#/in_solution")).click();
-    cy.get(cesc2("#/in_solution")).should("contain.text", "yes, no, maybe");
-    cy.get(cesc2("#/in_sq")).should("have.text", "‘yes, no, maybe’");
-    cy.get(cesc2("#/in_text")).should("have.text", "yes, no, maybe");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/in_alert"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_c"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_caption"].stateValues.text).eq(
-        "yes, no, maybe",
-      );
-      expect(stateVariables["/in_cell"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_choice"].stateValues.text).eq(
-        "yes, no, maybe",
-      );
-      expect(stateVariables["/in_em"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_footnote"].stateValues.text).eq(
-        "yes, no, maybe",
-      );
-      expect(stateVariables["/in_label"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_p"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/in_text"].stateValues.text).eq("yes, no, maybe");
-      expect(stateVariables["/sec_title"].stateValues.text).eq(
-        "Title: yes, no, maybe",
-      );
-    });
-  });
-
-  it("copy number from external content multiple ways, change attributes", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy number from external content multiple ways, change attributes", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
 
     <p><copy uri="doenet:cid=bafkreiewuu4vpro2d3vxm3wmclbsgzcsdsswhmtfcrqq7m6datze2tiwu4" /></p>
 
@@ -7184,48 +7571,48 @@ describe("Copy Tag Tests", function () {
     <p><number copyFromURI="doenet:cid=bafkreiewuu4vpro2d3vxm3wmclbsgzcsdsswhmtfcrqq7m6datze2tiwu4" displayDigits="10" name="n8" newNamespace /></p>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "8.85");
+        cy.get(cesc("#\\/n2")).should("have.text", "8.853729375");
+        cy.get(cesc("#\\/_number1")).should("have.text", "8.85");
+        cy.get(cesc("#\\/n4")).should("have.text", "8.853729375");
+        cy.get(cesc("#\\/_p5")).should("have.text", "8.85");
+        cy.get(cesc("#\\/n6")).should("have.text", "8.853729375");
+        cy.get(cesc("#\\/_number3")).should("have.text", "8.85");
+        cy.get(cesc("#\\/n8")).should("have.text", "8.853729375");
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "8.85");
-    cy.get(cesc("#\\/n2")).should("have.text", "8.853729375");
-    cy.get(cesc("#\\/_number1")).should("have.text", "8.85");
-    cy.get(cesc("#\\/n4")).should("have.text", "8.853729375");
-    cy.get(cesc("#\\/_p5")).should("have.text", "8.85");
-    cy.get(cesc("#\\/n6")).should("have.text", "8.853729375");
-    cy.get(cesc("#\\/_number3")).should("have.text", "8.85");
-    cy.get(cesc("#\\/n8")).should("have.text", "8.853729375");
-  });
-
-  it("correctly wrap replacement changes when verifying to force component type", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("correctly wrap replacement changes when verifying to force component type", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
         <answer name="ans">47</answer>
         <number copySource="ans.submittedResponse" name="num" />
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/num")).should("have.text", "NaN");
+
+        cy.get(cesc("#\\/ans") + " textarea").type("4{enter}", { force: true });
+        cy.get(cesc("#\\/num")).should("have.text", "4");
+
+        cy.get(cesc("#\\/ans") + " textarea").type("7{enter}", { force: true });
+        cy.get(cesc("#\\/num")).should("have.text", "47");
     });
 
-    cy.get(cesc("#\\/num")).should("have.text", "NaN");
-
-    cy.get(cesc("#\\/ans") + " textarea").type("4{enter}", { force: true });
-    cy.get(cesc("#\\/num")).should("have.text", "4");
-
-    cy.get(cesc("#\\/ans") + " textarea").type("7{enter}", { force: true });
-    cy.get(cesc("#\\/num")).should("have.text", "47");
-  });
-
-  it("copy of copy with new namespace", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy of copy with new namespace", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <group name="orig"><text name="t">hello</text></group>
     
     <p>copy with new namespace:  <copy source="orig" name="cN" newnamespace /></p>
@@ -7240,46 +7627,46 @@ describe("Copy Tag Tests", function () {
     <p>piece of copy of copy of copy: <text name="cNcct" copySource="cNcc/t" /></p>
     <p>piece of copy of copy of copy nn: <text name="cNccNt" copySource="cNccN/t" /></p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cN/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNc/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNcc/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNccN/t")).should("have.text", "hello");
+
+        cy.get(cesc2("#/cNt")).should("have.text", "hello");
+        cy.get(cesc2("#/cNct")).should("have.text", "hello");
+        cy.get(cesc2("#/cNcct")).should("have.text", "hello");
+        cy.get(cesc2("#/cNccNt")).should("have.text", "hello");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/orig"].componentType).eq("group");
+            expect(stateVariables["/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cN"].componentType).eq("group");
+            expect(stateVariables["/cN/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNc"].componentType).eq("group");
+            expect(stateVariables["/cNc/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNcc"].componentType).eq("group");
+            expect(stateVariables["/cNcc/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNccN"].componentType).eq("group");
+            expect(stateVariables["/cNccN/t"].stateValues.value).eq("hello");
+        });
     });
 
-    cy.get(cesc2("#/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cN/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNc/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNcc/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNccN/t")).should("have.text", "hello");
-
-    cy.get(cesc2("#/cNt")).should("have.text", "hello");
-    cy.get(cesc2("#/cNct")).should("have.text", "hello");
-    cy.get(cesc2("#/cNcct")).should("have.text", "hello");
-    cy.get(cesc2("#/cNccNt")).should("have.text", "hello");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/orig"].componentType).eq("group");
-      expect(stateVariables["/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cN"].componentType).eq("group");
-      expect(stateVariables["/cN/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNc"].componentType).eq("group");
-      expect(stateVariables["/cNc/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNcc"].componentType).eq("group");
-      expect(stateVariables["/cNcc/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNccN"].componentType).eq("group");
-      expect(stateVariables["/cNccN/t"].stateValues.value).eq("hello");
-    });
-  });
-
-  it("copy of copy with new namespace, macros", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("copy of copy with new namespace, macros", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <group name="orig"><text name="t">hello</text></group>
     
     <p>copy with new namespace:  $orig{name="cN" newnamespace}</p>
@@ -7294,38 +7681,38 @@ describe("Copy Tag Tests", function () {
     <p>piece of copy of copy of copy: $(cNcc/t{name="cNcct"})</p>
     <p>piece of copy of copy of copy nn: $(cNccN/t{name="cNccNt"})</p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc2("#/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cN/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNc/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNcc/t")).should("have.text", "hello");
+        cy.get(cesc2("#/cNccN/t")).should("have.text", "hello");
+
+        cy.get(cesc2("#/cNt")).should("have.text", "hello");
+        cy.get(cesc2("#/cNct")).should("have.text", "hello");
+        cy.get(cesc2("#/cNcct")).should("have.text", "hello");
+        cy.get(cesc2("#/cNccNt")).should("have.text", "hello");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/orig"].componentType).eq("group");
+            expect(stateVariables["/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cN"].componentType).eq("group");
+            expect(stateVariables["/cN/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNc"].componentType).eq("group");
+            expect(stateVariables["/cNc/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNcc"].componentType).eq("group");
+            expect(stateVariables["/cNcc/t"].stateValues.value).eq("hello");
+
+            expect(stateVariables["/cNccN"].componentType).eq("group");
+            expect(stateVariables["/cNccN/t"].stateValues.value).eq("hello");
+        });
     });
-
-    cy.get(cesc2("#/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cN/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNc/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNcc/t")).should("have.text", "hello");
-    cy.get(cesc2("#/cNccN/t")).should("have.text", "hello");
-
-    cy.get(cesc2("#/cNt")).should("have.text", "hello");
-    cy.get(cesc2("#/cNct")).should("have.text", "hello");
-    cy.get(cesc2("#/cNcct")).should("have.text", "hello");
-    cy.get(cesc2("#/cNccNt")).should("have.text", "hello");
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/orig"].componentType).eq("group");
-      expect(stateVariables["/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cN"].componentType).eq("group");
-      expect(stateVariables["/cN/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNc"].componentType).eq("group");
-      expect(stateVariables["/cNc/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNcc"].componentType).eq("group");
-      expect(stateVariables["/cNcc/t"].stateValues.value).eq("hello");
-
-      expect(stateVariables["/cNccN"].componentType).eq("group");
-      expect(stateVariables["/cNccN/t"].stateValues.value).eq("hello");
-    });
-  });
 });

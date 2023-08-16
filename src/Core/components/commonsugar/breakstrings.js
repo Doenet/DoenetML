@@ -1,5 +1,5 @@
 export function breakStringsAndOthersIntoComponentsByStringCommas(e) {
-  return null;
+    return null;
 }
 
 // function: returnBreakStringsSugarFunction
@@ -25,103 +25,103 @@ export function breakStringsAndOthersIntoComponentsByStringCommas(e) {
 //  })
 
 export function returnBreakStringsSugarFunction({
-  childrenToComponentFunction,
-  mustStripOffOuterParentheses = false,
+    childrenToComponentFunction,
+    mustStripOffOuterParentheses = false,
 }) {
-  return function ({ matchedChildren }) {
-    let Nparens = 0;
-    let pieces = [];
-    let currentPiece = [];
-    let strippedParens = false;
+    return function ({ matchedChildren }) {
+        let Nparens = 0;
+        let pieces = [];
+        let currentPiece = [];
+        let strippedParens = false;
 
-    let numChildren = matchedChildren.length;
+        let numChildren = matchedChildren.length;
 
-    if (mustStripOffOuterParentheses) {
-      let firstComponent = matchedChildren[0];
-      if (
-        typeof firstComponent !== "string" ||
-        firstComponent.trimLeft()[0] !== "("
-      ) {
-        return { success: false };
-      }
-    }
-
-    for (let [compInd, component] of matchedChildren.entries()) {
-      if (typeof component !== "string") {
-        currentPiece.push(component);
-        continue;
-      }
-
-      let s = component.trim();
-
-      if (compInd === 0 && mustStripOffOuterParentheses && s[0] === "(") {
-        // found beginning paren, now check if there is an ending parens
-        let lastChild = matchedChildren[numChildren - 1];
-        if (typeof lastChild === "string") {
-          let sLast = lastChild.trimRight();
-          if (sLast[sLast.length - 1] === ")") {
-            // found ending paren, so we'll strip off first paren
-            strippedParens = true;
-            s = s.substring(1);
-          }
-        }
-      }
-
-      let beginInd = 0;
-
-      for (let ind = 0; ind < s.length; ind++) {
-        let char = s[ind];
-        if (char === "(") {
-          Nparens++;
-        }
-        if (char === ")") {
-          if (Nparens === 0) {
-            // parens didn't match
-
-            // check if stripped off initial paren and we're at the end
+        if (mustStripOffOuterParentheses) {
+            let firstComponent = matchedChildren[0];
             if (
-              strippedParens &&
-              compInd === numChildren - 1 &&
-              ind === s.length - 1
+                typeof firstComponent !== "string" ||
+                firstComponent.trimLeft()[0] !== "("
             ) {
-              // strip off last parens
-              s = s.substring(0, s.length - 1);
-              break;
+                return { success: false };
             }
-            // return failure due to non-matching parens
+        }
+
+        for (let [compInd, component] of matchedChildren.entries()) {
+            if (typeof component !== "string") {
+                currentPiece.push(component);
+                continue;
+            }
+
+            let s = component.trim();
+
+            if (compInd === 0 && mustStripOffOuterParentheses && s[0] === "(") {
+                // found beginning paren, now check if there is an ending parens
+                let lastChild = matchedChildren[numChildren - 1];
+                if (typeof lastChild === "string") {
+                    let sLast = lastChild.trimRight();
+                    if (sLast[sLast.length - 1] === ")") {
+                        // found ending paren, so we'll strip off first paren
+                        strippedParens = true;
+                        s = s.substring(1);
+                    }
+                }
+            }
+
+            let beginInd = 0;
+
+            for (let ind = 0; ind < s.length; ind++) {
+                let char = s[ind];
+                if (char === "(") {
+                    Nparens++;
+                }
+                if (char === ")") {
+                    if (Nparens === 0) {
+                        // parens didn't match
+
+                        // check if stripped off initial paren and we're at the end
+                        if (
+                            strippedParens &&
+                            compInd === numChildren - 1 &&
+                            ind === s.length - 1
+                        ) {
+                            // strip off last parens
+                            s = s.substring(0, s.length - 1);
+                            break;
+                        }
+                        // return failure due to non-matching parens
+                        return { success: false };
+                    }
+                    Nparens--;
+                }
+                if (char === "," && Nparens === 0) {
+                    if (ind > beginInd) {
+                        currentPiece.push(s.substring(beginInd, ind));
+                    }
+                    pieces.push(currentPiece);
+                    currentPiece = [];
+                    beginInd = ind + 1;
+                }
+            }
+
+            if (s.length > beginInd) {
+                currentPiece.push(s.substring(beginInd, s.length));
+            }
+        }
+
+        // parens didn't match, so return failure
+        if (Nparens !== 0) {
             return { success: false };
-          }
-          Nparens--;
         }
-        if (char === "," && Nparens === 0) {
-          if (ind > beginInd) {
-            currentPiece.push(s.substring(beginInd, ind));
-          }
-          pieces.push(currentPiece);
-          currentPiece = [];
-          beginInd = ind + 1;
-        }
-      }
 
-      if (s.length > beginInd) {
-        currentPiece.push(s.substring(beginInd, s.length));
-      }
-    }
+        pieces.push(currentPiece);
 
-    // parens didn't match, so return failure
-    if (Nparens !== 0) {
-      return { success: false };
-    }
+        let newChildren = pieces.map(childrenToComponentFunction);
 
-    pieces.push(currentPiece);
-
-    let newChildren = pieces.map(childrenToComponentFunction);
-
-    return {
-      success: true,
-      newChildren: newChildren,
+        return {
+            success: true,
+            newChildren: newChildren,
+        };
     };
-  };
 }
 
 // function: breakEmbeddedStringByCommas
@@ -136,202 +136,202 @@ export function returnBreakStringsSugarFunction({
 //   Each piece is an array of components.
 
 export function breakEmbeddedStringByCommas({ childrenList }) {
-  let Nparens = 0;
-  let pieces = [];
-  let currentPiece = [];
+    let Nparens = 0;
+    let pieces = [];
+    let currentPiece = [];
 
-  for (let component of childrenList) {
-    if (typeof component !== "string") {
-      currentPiece.push(component);
-      continue;
-    }
-
-    let s = component.trim();
-    let beginInd = 0;
-
-    for (let ind = 0; ind < s.length; ind++) {
-      let char = s[ind];
-      if (char === "(") {
-        Nparens++;
-      }
-      if (char === ")") {
-        if (Nparens === 0) {
-          // parens didn't match, so return failure
-          return { success: false };
-        }
-        Nparens--;
-      }
-      if (char === "," && Nparens === 0) {
-        if (ind > beginInd) {
-          let newString = s.substring(beginInd, ind).trim();
-          currentPiece.push(newString);
+    for (let component of childrenList) {
+        if (typeof component !== "string") {
+            currentPiece.push(component);
+            continue;
         }
 
-        pieces.push(currentPiece);
-        currentPiece = [];
-        beginInd = ind + 1;
-      }
+        let s = component.trim();
+        let beginInd = 0;
+
+        for (let ind = 0; ind < s.length; ind++) {
+            let char = s[ind];
+            if (char === "(") {
+                Nparens++;
+            }
+            if (char === ")") {
+                if (Nparens === 0) {
+                    // parens didn't match, so return failure
+                    return { success: false };
+                }
+                Nparens--;
+            }
+            if (char === "," && Nparens === 0) {
+                if (ind > beginInd) {
+                    let newString = s.substring(beginInd, ind).trim();
+                    currentPiece.push(newString);
+                }
+
+                pieces.push(currentPiece);
+                currentPiece = [];
+                beginInd = ind + 1;
+            }
+        }
+
+        if (s.length > beginInd) {
+            let newString = s.substring(beginInd, s.length).trim();
+            currentPiece.push(newString);
+        }
     }
 
-    if (s.length > beginInd) {
-      let newString = s.substring(beginInd, s.length).trim();
-      currentPiece.push(newString);
+    // parens didn't match, so return failure
+    if (Nparens !== 0) {
+        return { success: false };
     }
-  }
 
-  // parens didn't match, so return failure
-  if (Nparens !== 0) {
-    return { success: false };
-  }
+    pieces.push(currentPiece);
 
-  pieces.push(currentPiece);
-
-  return {
-    success: true,
-    pieces: pieces,
-  };
+    return {
+        success: true,
+        pieces: pieces,
+    };
 }
 
 export function breakEmbeddedStringsIntoParensPieces({
-  componentList,
-  removeParens = false,
+    componentList,
+    removeParens = false,
 }) {
-  let Nparens = 0;
-  let pieces = [];
-  let currentPiece = [];
+    let Nparens = 0;
+    let pieces = [];
+    let currentPiece = [];
 
-  for (let component of componentList) {
-    if (typeof component !== "string") {
-      if (Nparens === 0) {
-        // if not in a parenthesis, just add as a separate piece
-        pieces.push([component]);
-      } else {
-        currentPiece.push(component);
-      }
-      continue;
-    }
-
-    let s = component;
-
-    let beginInd = 0;
-
-    for (let ind = 0; ind < s.length; ind++) {
-      let char = s[ind];
-
-      if (char === "(") {
-        if (Nparens === 0 && removeParens) {
-          beginInd = ind + 1;
-        }
-        Nparens++;
-      } else if (char === ")") {
-        if (Nparens === 0) {
-          // parens didn't match, so return failure
-          return { success: false };
-        }
-        if (Nparens === 1) {
-          // found end of piece in parens
-          if (ind + 1 > beginInd) {
-            let lastInd = removeParens ? ind : ind + 1;
-            let newString = s.substring(beginInd, lastInd);
-            if (newString.length > 0) {
-              currentPiece.push(newString);
+    for (let component of componentList) {
+        if (typeof component !== "string") {
+            if (Nparens === 0) {
+                // if not in a parenthesis, just add as a separate piece
+                pieces.push([component]);
+            } else {
+                currentPiece.push(component);
             }
-          }
-
-          pieces.push(currentPiece);
-          currentPiece = [];
-          beginInd = ind + 1;
+            continue;
         }
-        Nparens--;
-      } else if (Nparens === 0 && !char.match(/\s/)) {
-        // starting a new piece
-        // each piece must begin with parens
+
+        let s = component;
+
+        let beginInd = 0;
+
+        for (let ind = 0; ind < s.length; ind++) {
+            let char = s[ind];
+
+            if (char === "(") {
+                if (Nparens === 0 && removeParens) {
+                    beginInd = ind + 1;
+                }
+                Nparens++;
+            } else if (char === ")") {
+                if (Nparens === 0) {
+                    // parens didn't match, so return failure
+                    return { success: false };
+                }
+                if (Nparens === 1) {
+                    // found end of piece in parens
+                    if (ind + 1 > beginInd) {
+                        let lastInd = removeParens ? ind : ind + 1;
+                        let newString = s.substring(beginInd, lastInd);
+                        if (newString.length > 0) {
+                            currentPiece.push(newString);
+                        }
+                    }
+
+                    pieces.push(currentPiece);
+                    currentPiece = [];
+                    beginInd = ind + 1;
+                }
+                Nparens--;
+            } else if (Nparens === 0 && !char.match(/\s/)) {
+                // starting a new piece
+                // each piece must begin with parens
+                return { success: false };
+            }
+        }
+
+        if (s.length > beginInd) {
+            let newString = s.substring(beginInd, s.length);
+            currentPiece.push(newString);
+        }
+    }
+
+    // parens didn't match, so return failure
+    if (Nparens !== 0) {
         return { success: false };
-      }
     }
 
-    if (s.length > beginInd) {
-      let newString = s.substring(beginInd, s.length);
-      currentPiece.push(newString);
+    if (currentPiece.length > 0) {
+        pieces.push(currentPiece);
     }
-  }
 
-  // parens didn't match, so return failure
-  if (Nparens !== 0) {
-    return { success: false };
-  }
-
-  if (currentPiece.length > 0) {
-    pieces.push(currentPiece);
-  }
-
-  return {
-    success: true,
-    pieces: pieces,
-  };
+    return {
+        success: true,
+        pieces: pieces,
+    };
 }
 
 export function breakIntoPiecesBySpacesOutsideParens({ componentList }) {
-  let Nparens = 0;
-  let pieces = [];
-  let currentPiece = [];
+    let Nparens = 0;
+    let pieces = [];
+    let currentPiece = [];
 
-  for (let component of componentList) {
-    if (typeof component !== "string") {
-      currentPiece.push(component);
-      continue;
-    }
-
-    let s = component;
-
-    let beginInd = 0;
-
-    for (let ind = 0; ind < s.length; ind++) {
-      let char = s[ind];
-
-      if (char === "(") {
-        Nparens++;
-      } else if (char === ")") {
-        if (Nparens === 0) {
-          // parens didn't match, so return failure
-          return { success: false };
-        }
-        Nparens--;
-      } else if (Nparens === 0 && char.match(/\s/)) {
-        // found a space outside parens
-
-        if (ind > beginInd) {
-          currentPiece.push(s.substring(beginInd, ind));
+    for (let component of componentList) {
+        if (typeof component !== "string") {
+            currentPiece.push(component);
+            continue;
         }
 
-        if (currentPiece.length > 0) {
-          pieces.push(currentPiece);
-          currentPiece = [];
+        let s = component;
+
+        let beginInd = 0;
+
+        for (let ind = 0; ind < s.length; ind++) {
+            let char = s[ind];
+
+            if (char === "(") {
+                Nparens++;
+            } else if (char === ")") {
+                if (Nparens === 0) {
+                    // parens didn't match, so return failure
+                    return { success: false };
+                }
+                Nparens--;
+            } else if (Nparens === 0 && char.match(/\s/)) {
+                // found a space outside parens
+
+                if (ind > beginInd) {
+                    currentPiece.push(s.substring(beginInd, ind));
+                }
+
+                if (currentPiece.length > 0) {
+                    pieces.push(currentPiece);
+                    currentPiece = [];
+                }
+
+                beginInd = ind + 1;
+            }
         }
 
-        beginInd = ind + 1;
-      }
+        if (s.length > beginInd) {
+            let newString = s.substring(beginInd, s.length).trim();
+            currentPiece.push(newString);
+        }
     }
 
-    if (s.length > beginInd) {
-      let newString = s.substring(beginInd, s.length).trim();
-      currentPiece.push(newString);
+    // parens didn't match, so return failure
+    if (Nparens !== 0) {
+        return { success: false };
     }
-  }
 
-  // parens didn't match, so return failure
-  if (Nparens !== 0) {
-    return { success: false };
-  }
+    if (currentPiece.length > 0) {
+        pieces.push(currentPiece);
+    }
 
-  if (currentPiece.length > 0) {
-    pieces.push(currentPiece);
-  }
-
-  return {
-    success: true,
-    pieces,
-  };
+    return {
+        success: true,
+        pieces,
+    };
 }
 
 // function: breakIntoVectorComponents
@@ -348,111 +348,111 @@ export function breakIntoPiecesBySpacesOutsideParens({ componentList }) {
 // - vectorComponents: array whose components are arrays representing the vector components
 
 export function breakIntoVectorComponents(compList) {
-  if (compList.length === 0) {
-    return { foundVector: false };
-  }
-
-  if (typeof compList[0] !== "string") {
-    return { foundVector: false };
-  }
-
-  let sFirst = compList[0];
-  let charFirst = sFirst.trim()[0];
-  if (charFirst !== "(") {
-    return { foundVector: false };
-  }
-
-  if (typeof compList[compList.length - 1] !== "string") {
-    return { foundVector: false };
-  }
-
-  let sLast = compList[compList.length - 1];
-  let charLast = sLast.trim().slice(-1);
-  if (charLast !== ")") {
-    return { foundVector: false };
-  }
-
-  let newCompList = [];
-  if (compList.length === 1) {
-    let snew = sFirst.trim().slice(1, -1).trim();
-    if (snew.length > 0) {
-      newCompList.push(snew);
-    }
-  } else {
-    let snew = sFirst.trim().slice(1).trim();
-    if (snew.length > 0) {
-      newCompList.push(snew);
+    if (compList.length === 0) {
+        return { foundVector: false };
     }
 
-    newCompList.push(...compList.slice(1, -1));
-
-    snew = sLast.trim().slice(0, -1).trim();
-    if (snew.length > 0) {
-      newCompList.push(snew);
-    }
-  }
-  let Nparens = 0;
-  let pieces = [];
-  let currentPiece = [];
-
-  for (let comp of newCompList) {
-    if (typeof comp !== "string") {
-      currentPiece.push(comp);
-      continue;
+    if (typeof compList[0] !== "string") {
+        return { foundVector: false };
     }
 
-    let s = comp.trim();
+    let sFirst = compList[0];
+    let charFirst = sFirst.trim()[0];
+    if (charFirst !== "(") {
+        return { foundVector: false };
+    }
 
-    let beginInd = 0;
-    let brokeString = false;
+    if (typeof compList[compList.length - 1] !== "string") {
+        return { foundVector: false };
+    }
 
-    for (let ind = 0; ind < s.length; ind++) {
-      let char = s[ind];
-      if (char === "(") {
-        Nparens++;
-      }
-      if (char === ")") {
-        if (Nparens === 0) {
-          // parens didn't match, so it wasn't a vector
-          return { foundVector: false };
+    let sLast = compList[compList.length - 1];
+    let charLast = sLast.trim().slice(-1);
+    if (charLast !== ")") {
+        return { foundVector: false };
+    }
+
+    let newCompList = [];
+    if (compList.length === 1) {
+        let snew = sFirst.trim().slice(1, -1).trim();
+        if (snew.length > 0) {
+            newCompList.push(snew);
         }
-        Nparens--;
-      }
-
-      if (char === "," && Nparens === 0) {
-        if (ind > beginInd) {
-          let snew = s.substring(beginInd, ind).trim();
-          currentPiece.push(snew);
-        }
-
-        pieces.push(currentPiece);
-        currentPiece = [];
-        beginInd = ind + 1;
-        brokeString = true;
-      }
-    }
-
-    if (brokeString) {
-      if (s.length > beginInd) {
-        let snew = s.substring(beginInd, s.length).trim();
-        currentPiece.push(snew);
-      }
     } else {
-      currentPiece.push(comp);
+        let snew = sFirst.trim().slice(1).trim();
+        if (snew.length > 0) {
+            newCompList.push(snew);
+        }
+
+        newCompList.push(...compList.slice(1, -1));
+
+        snew = sLast.trim().slice(0, -1).trim();
+        if (snew.length > 0) {
+            newCompList.push(snew);
+        }
     }
-  }
+    let Nparens = 0;
+    let pieces = [];
+    let currentPiece = [];
 
-  // parens didn't match, so it wasn't a vector
-  if (Nparens !== 0) {
-    return { foundVector: false };
-  }
+    for (let comp of newCompList) {
+        if (typeof comp !== "string") {
+            currentPiece.push(comp);
+            continue;
+        }
 
-  pieces.push(currentPiece);
+        let s = comp.trim();
 
-  return {
-    foundVector: true,
-    vectorComponents: pieces,
-  };
+        let beginInd = 0;
+        let brokeString = false;
+
+        for (let ind = 0; ind < s.length; ind++) {
+            let char = s[ind];
+            if (char === "(") {
+                Nparens++;
+            }
+            if (char === ")") {
+                if (Nparens === 0) {
+                    // parens didn't match, so it wasn't a vector
+                    return { foundVector: false };
+                }
+                Nparens--;
+            }
+
+            if (char === "," && Nparens === 0) {
+                if (ind > beginInd) {
+                    let snew = s.substring(beginInd, ind).trim();
+                    currentPiece.push(snew);
+                }
+
+                pieces.push(currentPiece);
+                currentPiece = [];
+                beginInd = ind + 1;
+                brokeString = true;
+            }
+        }
+
+        if (brokeString) {
+            if (s.length > beginInd) {
+                let snew = s.substring(beginInd, s.length).trim();
+                currentPiece.push(snew);
+            }
+        } else {
+            currentPiece.push(comp);
+        }
+    }
+
+    // parens didn't match, so it wasn't a vector
+    if (Nparens !== 0) {
+        return { foundVector: false };
+    }
+
+    pieces.push(currentPiece);
+
+    return {
+        foundVector: true,
+        vectorComponents: pieces,
+    };
 }
 
 // function: breakPiecesByEquals

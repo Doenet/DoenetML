@@ -1,14 +1,17 @@
-import React from 'react';
-import useDoenetRender from './useDoenetRenderer';
+import React from "react";
+import useDoenetRender from "./useDoenetRenderer";
 
 export default React.memo(function Q(props) {
-  let { name, SVs, children } = useDoenetRender(props);
+    let { name, SVs, children } = useDoenetRender(props);
 
-  if (SVs.hidden) {
-    return null;
-  }
+    if (SVs.hidden) {
+        return null;
+    }
 
-  return <><a name={name} />&ldquo;{children}&rdquo;</>
-
-})
-
+    return (
+        <>
+            <a name={name} />
+            &ldquo;{children}&rdquo;
+        </>
+    );
+});

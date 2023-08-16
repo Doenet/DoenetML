@@ -1,6 +1,6 @@
 // const cssModulesPlugin = require("esbuild-css-modules-plugin");
-import cssModulesPlugin from "esbuild-css-modules-plugin"
-import esbuild from "esbuild"
+import cssModulesPlugin from "esbuild-css-modules-plugin";
+import esbuild from "esbuild";
 
 // require("esbuild")
 esbuild
@@ -11,6 +11,6 @@ esbuild
         outfile: "dist/doenetml-no-export.js",
         plugins: [cssModulesPlugin()],
         external: ["*woff2", "*woff"],
-        format: "esm"
+        format: "esm",
     })
     .catch(() => process.exit(1));

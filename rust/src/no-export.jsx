@@ -22,24 +22,25 @@ import ReactDOM from "react-dom/client";
 //   darkModeAtom,
 // } from "./Tools/DarkmodeController.jsx";
 
-console.log("odule loaded")
+console.log("odule loaded");
 
 window.importDoenet = function (domId, variantIndex, doenetML) {
-  console.log("trying to replace", document.getElementById(domId));
-  //return;
+    console.log("trying to replace", document.getElementById(domId));
+    //return;
 
-  const myelm = <DoenetML
-    doenetML={doenetML}
-    flags={{
-      showCorrectness: true,
-      readOnly: false,
-      showFeedback: true,
-      showHints: true,
-    }}
-    requestedVariantIndex={variantIndex}
-    addVirtualKeyboard={true}
-  />;
-  const root = ReactDOM.createRoot(document.getElementById(domId));
-  root.render(myelm);
-
-}
+    const myelm = (
+        <DoenetML
+            doenetML={doenetML}
+            flags={{
+                showCorrectness: true,
+                readOnly: false,
+                showFeedback: true,
+                showHints: true,
+            }}
+            requestedVariantIndex={variantIndex}
+            addVirtualKeyboard={true}
+        />
+    );
+    const root = ReactDOM.createRoot(document.getElementById(domId));
+    root.render(myelm);
+};

@@ -1,16 +1,16 @@
 import { cesc, cesc2 } from "../../../src/utils/url";
 
 describe("ref Tag Tests", function () {
-  beforeEach(() => {
-    cy.clearIndexedDB();
-    cy.visit("/src/Tools/cypressTest/");
-  });
+    beforeEach(() => {
+        cy.clearIndexedDB();
+        cy.visit("/src/Tools/cypressTest/");
+    });
 
-  it("ref to sections", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("ref to sections", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <section newnamespace name="section1">
       <title>Section 1</title>
       <p>Paragraph one</p>
@@ -103,113 +103,116 @@ describe("ref Tag Tests", function () {
   </section>
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/section1_title")).should("include.text", "Section 1");
+
+        cy.get(cesc("#\\/section1\\/toFour")).click();
+        cy.url().should("include", cesc("#/section4"));
+
+        cy.get(cesc("#\\/section4\\/toOne")).click();
+        cy.url().should("include", cesc("#/section1"));
+
+        cy.get(cesc("#\\/section1\\/toThreeii")).click();
+        cy.url().should("include", cesc("#/section3/_p2"));
+
+        cy.get(cesc("#\\/section4\\/toTwoe")).click();
+        cy.url().should("include", cesc("#/section2/_p5"));
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/section1_title")).should("include.text", "Section 1");
-
-    cy.get(cesc("#\\/section1\\/toFour")).click();
-    cy.url().should("include", cesc("#/section4"));
-
-    cy.get(cesc("#\\/section4\\/toOne")).click();
-    cy.url().should("include", cesc("#/section1"));
-
-    cy.get(cesc("#\\/section1\\/toThreeii")).click();
-    cy.url().should("include", cesc("#/section3/_p2"));
-
-    cy.get(cesc("#\\/section4\\/toTwoe")).click();
-    cy.url().should("include", cesc("#/section2/_p5"));
-  });
-
-  it("simple url", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("simple url", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p>A link to <ref uri="http://doenet.org">Doenet</ref>.</p>
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "Doenet")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("http://doenet.org"));
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
-
-    cy.get(cesc("#\\/_ref1"))
-      .should("have.text", "Doenet")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("http://doenet.org"));
-  });
-
-  it("url with XML entity", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("url with XML entity", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p>A link to <ref uri="http://doenet.org/#a&amp;b">Doenet</ref>.</p>
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "Doenet")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("http://doenet.org/#a&b"));
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
-
-    cy.get(cesc("#\\/_ref1"))
-      .should("have.text", "Doenet")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("http://doenet.org/#a&b"));
-  });
-
-  it("ref to DoenetId", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("ref to DoenetId", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p>A link to <ref uri="doenet:doenetId=abcdefg">a Doenet doc</ref>.</p>
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to a Doenet doc.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "a Doenet doc")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("/portfolioviewer/abcdefg"));
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "A link to a Doenet doc.");
-
-    cy.get(cesc("#\\/_ref1"))
-      .should("have.text", "a Doenet doc")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("/portfolioviewer/abcdefg"));
-  });
-
-  it("url with no link text", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("url with no link text", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p>A link to <ref uri="http://doenet.org"/>.</p>
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should(
+            "have.text",
+            "A link to http://doenet.org."
+        );
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "http://doenet.org")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("http://doenet.org"));
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "A link to http://doenet.org.");
-
-    cy.get(cesc("#\\/_ref1"))
-      .should("have.text", "http://doenet.org")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("http://doenet.org"));
-  });
-
-  // TODO: do we allow one to use a component/copy inside a uri?
-  it("referencing refs", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    // TODO: do we allow one to use a component/copy inside a uri?
+    it("referencing refs", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p>A link to <ref uri="http://doenet.org">Doenet</ref>.</p>
   <p>Repeat url: $_ref1{name="ref2"}.</p>
   <p>The link address is: $_ref1.uri.</p>
@@ -218,56 +221,62 @@ describe("ref Tag Tests", function () {
      $_ref1.linktext</ref>.</p>
   <text name="uri" hide>$_ref1.uri</text>-->
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
+
+        cy.get(cesc("#\\/_ref1"))
+            .should("have.text", "Doenet")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("http://doenet.org"));
+
+        cy.get(cesc2("#/ref2"))
+            .should("have.text", "Doenet")
+            .invoke("attr", "href")
+            .then((href) => expect(href).eq("http://doenet.org"));
+
+        cy.get(cesc("#\\/_p3")).should(
+            "have.text",
+            "The link address is: http://doenet.org."
+        );
+
+        cy.get(cesc("#\\/_p4")).should(
+            "have.text",
+            "The text linked is: Doenet."
+        );
+
+        // cy.get(cesc('#\\/_p5')).should('have.text', 'Recreate from pieces: Doenet.')
+
+        // cy.get(cesc('#\\/_ref2')).should('have.text', 'Doenet').invoke('attr', 'href')
+        //   .then((href) => expect(href).eq("http://doenet.org"));
     });
 
-    cy.get(cesc("#\\/_p1")).should("have.text", "A link to Doenet.");
-
-    cy.get(cesc("#\\/_ref1"))
-      .should("have.text", "Doenet")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("http://doenet.org"));
-
-    cy.get(cesc2("#/ref2"))
-      .should("have.text", "Doenet")
-      .invoke("attr", "href")
-      .then((href) => expect(href).eq("http://doenet.org"));
-
-    cy.get(cesc("#\\/_p3")).should(
-      "have.text",
-      "The link address is: http://doenet.org.",
-    );
-
-    cy.get(cesc("#\\/_p4")).should("have.text", "The text linked is: Doenet.");
-
-    // cy.get(cesc('#\\/_p5')).should('have.text', 'Recreate from pieces: Doenet.')
-
-    // cy.get(cesc('#\\/_ref2')).should('have.text', 'Doenet').invoke('attr', 'href')
-    //   .then((href) => expect(href).eq("http://doenet.org"));
-  });
-
-  it("create button", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("create button", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
   <p><ref uri="http://doenet.org" name="toDoenet" createButton>Go to Doenet</ref>.</p>
   `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        cy.get(cesc("#\\/toDoenet") + " button").should(
+            "contain",
+            "Go to Doenet"
+        );
     });
 
-    cy.get(cesc("#\\/toDoenet") + " button").should("contain", "Go to Doenet");
-  });
-
-  it("ref opens aside", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("ref opens aside", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <p>Goto:
     <ref name="toAside" target="/aside">Aside</ref>
     </p>
@@ -294,36 +303,36 @@ describe("ref Tag Tests", function () {
     <p>Paragraph g</p>
     <p>Paragraph h</p>
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
+
+        cy.log("Aside closed at the beginning");
+        cy.get(cesc("#\\/inside")).should("not.exist");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(false);
+        });
+
+        cy.log("clicking link opens aside");
+        cy.get(cesc("#\\/toAside")).click();
+
+        cy.get(cesc("#\\/inside")).should("have.text", "Inside the aside");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(true);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
-
-    cy.log("Aside closed at the beginning");
-    cy.get(cesc("#\\/inside")).should("not.exist");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(false);
-    });
-
-    cy.log("clicking link opens aside");
-    cy.get(cesc("#\\/toAside")).click();
-
-    cy.get(cesc("#\\/inside")).should("have.text", "Inside the aside");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(true);
-    });
-  });
-
-  it("ref into descendant of aside opens aside", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("ref into descendant of aside opens aside", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <p>Goto:
     <ref name="toAside" target="/inside">Paragraph inside aside</ref>
     </p>
@@ -341,45 +350,45 @@ describe("ref Tag Tests", function () {
     <lorem generateParagraphs="10" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
+
+        cy.log("Aside closed at the beginning");
+        cy.get(cesc("#\\/inside")).should("not.exist");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(false);
+        });
+
+        cy.log("clicking link opens aside");
+        cy.get(cesc("#\\/toAside")).click();
+
+        cy.get(cesc("#\\/inside")).should(
+            "have.text",
+            "Paragraph inside the section inside the aside."
+        );
+
+        cy.get(cesc("#\\/inside")).then((el) => {
+            let rect = el[0].getBoundingClientRect();
+            expect(rect.top).gt(-1).lt(1);
+        });
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(true);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
-
-    cy.log("Aside closed at the beginning");
-    cy.get(cesc("#\\/inside")).should("not.exist");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(false);
-    });
-
-    cy.log("clicking link opens aside");
-    cy.get(cesc("#\\/toAside")).click();
-
-    cy.get(cesc("#\\/inside")).should(
-      "have.text",
-      "Paragraph inside the section inside the aside.",
-    );
-
-    cy.get(cesc("#\\/inside")).then((el) => {
-      let rect = el[0].getBoundingClientRect();
-      expect(rect.top).gt(-1).lt(1);
-    });
-
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(true);
-    });
-  });
-
-  it("navigate to target action opens aside", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("navigate to target action opens aside", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <ref name="toAside" target="/aside" hide>Aside</ref>
     <p>
     <callAction target="toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
@@ -394,36 +403,36 @@ describe("ref Tag Tests", function () {
     <lorem generateParagraphs="10" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
+
+        cy.log("Aside closed at the beginning");
+        cy.get(cesc("#\\/inside")).should("not.exist");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(false);
+        });
+
+        cy.log("clicking action opens aside");
+        cy.get(cesc("#\\/go")).click();
+
+        cy.get(cesc("#\\/inside")).should("have.text", "Inside the aside");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(true);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
-
-    cy.log("Aside closed at the beginning");
-    cy.get(cesc("#\\/inside")).should("not.exist");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(false);
-    });
-
-    cy.log("clicking action opens aside");
-    cy.get(cesc("#\\/go")).click();
-
-    cy.get(cesc("#\\/inside")).should("have.text", "Inside the aside");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(true);
-    });
-  });
-
-  it("navigate to target action to paragraph inside aside opens aside", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("navigate to target action to paragraph inside aside opens aside", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <ref name="toAside" target="/inside" hide>Aside</ref>
     <p>
     <callAction target="toAside" actionName="navigateToTarget" name="go"><label>Go to aside</label></callAction>
@@ -442,46 +451,46 @@ describe("ref Tag Tests", function () {
     <lorem generateParagraphs="10" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
+
+        cy.log("Aside closed at the beginning");
+        cy.get(cesc("#\\/inside")).should("not.exist");
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(false);
+        });
+
+        cy.log("clicking action opens aside");
+        cy.get(cesc("#\\/go")).click();
+
+        cy.get(cesc("#\\/inside")).should(
+            "have.text",
+            "Paragraph inside the section inside the aside."
+        );
+
+        cy.get(cesc("#\\/inside")).then((el) => {
+            cy.waitUntil(() => {
+                let rect = el[0].getBoundingClientRect();
+                return rect.top > -1 && rect.top < 1;
+            });
+        });
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(stateVariables["/aside"].stateValues.open).eq(true);
+        });
     });
 
-    // to wait for page to load
-    cy.get(cesc("#\\/asideTitle")).should("have.text", "The aside");
-
-    cy.log("Aside closed at the beginning");
-    cy.get(cesc("#\\/inside")).should("not.exist");
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(false);
-    });
-
-    cy.log("clicking action opens aside");
-    cy.get(cesc("#\\/go")).click();
-
-    cy.get(cesc("#\\/inside")).should(
-      "have.text",
-      "Paragraph inside the section inside the aside.",
-    );
-
-    cy.get(cesc("#\\/inside")).then((el) => {
-      cy.waitUntil(() => {
-        let rect = el[0].getBoundingClientRect();
-        return rect.top > -1 && rect.top < 1;
-      });
-    });
-    cy.window().then(async (win) => {
-      let stateVariables = await win.returnAllStateVariables1();
-      expect(stateVariables["/aside"].stateValues.open).eq(true);
-    });
-  });
-
-  it("chain action to navigate to target", () => {
-    cy.window().then(async (win) => {
-      win.postMessage(
-        {
-          doenetML: `
+    it("chain action to navigate to target", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
     <setup>
       <ref target="countAside" name="refCountAside" />
       <animateFromSequence target="n" from="1" to="5" animationinterval="500" animationmode="increase once" name="count" />
@@ -506,24 +515,24 @@ describe("ref Tag Tests", function () {
     <lorem generateParagraphs="10" />
 
     `,
-        },
-        "*",
-      );
+                },
+                "*"
+            );
+        });
+
+        // to wait for page to load
+        cy.get(cesc("#\\/asideTitle")).should("have.text", "Counting");
+
+        cy.log("Aside closed at the beginning");
+        cy.get(cesc("#\\/n")).should("not.exist");
+
+        cy.log("clicking action opens aside and starts counting");
+        cy.get(cesc("#\\/startCount")).click();
+
+        cy.get(cesc("#\\/n")).should("have.text", "1");
+        cy.get(cesc("#\\/n")).should("have.text", "2");
+        cy.get(cesc("#\\/n")).should("have.text", "3");
+        cy.get(cesc("#\\/n")).should("have.text", "4");
+        cy.get(cesc("#\\/n")).should("have.text", "5");
     });
-
-    // to wait for page to load
-    cy.get(cesc("#\\/asideTitle")).should("have.text", "Counting");
-
-    cy.log("Aside closed at the beginning");
-    cy.get(cesc("#\\/n")).should("not.exist");
-
-    cy.log("clicking action opens aside and starts counting");
-    cy.get(cesc("#\\/startCount")).click();
-
-    cy.get(cesc("#\\/n")).should("have.text", "1");
-    cy.get(cesc("#\\/n")).should("have.text", "2");
-    cy.get(cesc("#\\/n")).should("have.text", "3");
-    cy.get(cesc("#\\/n")).should("have.text", "4");
-    cy.get(cesc("#\\/n")).should("have.text", "5");
-  });
 });
