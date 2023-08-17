@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DoenetML Viewer</title>
+        <!-- <script src="https://www.youtube.com/iframe_api"></script> -->
+        <script src="./dist/doenetml-no-export.js" type="module"></script>
+    </head>
+    <body>
+        Hello
+        <div id="here">
+            <div id="root"></div>
+        </div>
+        <script>
+            window.addEventListener("load", () => {
+                window.importDoenet("root", 1, "<graph></graph>");
+            });
+        </script>
+    </body>
+</html>

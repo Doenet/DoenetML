@@ -1,5 +1,9 @@
 # DoenetML
 
+Monorepo for DoenetML Components. See the `packages/*` folders for individual components.
+
+# What is DoenetML?
+
 Semantic markup for building interactive web activities.
 [Read more about Doenet](https://www.doenet.org)
 
@@ -14,7 +18,7 @@ Semantic markup for building interactive web activities.
 
 ## Features
 
-- Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
+-   Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
 
 ## Quickstart
 
@@ -76,9 +80,9 @@ Navigate to `localhost:5173`
 
 ```xml
 <graph>
-	<point name="p1" xs="0 4"/>
-	<point name="p2" xs="3 0"/>
-	<point name="p3" xs="$p1.x+$p2.x $p1.y+$p2.y"/>
+    <point name="p1" xs="0 4" />
+    <point name="p2" xs="3 0" />
+    <point name="p3" xs="$p1.x+$p2.x $p1.y+$p2.y" />
 </graph>
 ```
 
