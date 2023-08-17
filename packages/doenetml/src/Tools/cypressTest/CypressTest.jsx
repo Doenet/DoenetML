@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { DoenetML } from "../../DoenetML.jsx";
-import { useRecoilState } from "recoil";
-// import testCodeDoenetML from './testCode.doenet?raw';
 import { useLocation, useNavigate } from "react-router";
+import Button from "../../uiComponents/Button";
 
-function Test() {
+export function CypressTest() {
     // console.log("===Test")
 
     const defaultTestSettings = {
@@ -29,7 +28,7 @@ function Test() {
         testSettings = defaultTestSettings;
         localStorage.setItem(
             "test settings",
-            JSON.stringify(defaultTestSettings)
+            JSON.stringify(defaultTestSettings),
         );
     }
 
@@ -40,10 +39,10 @@ function Test() {
 
     const [updateNumber, setUpdateNumber] = useState(testSettings.updateNumber);
     const [controlsVisible, setControlsVisible] = useState(
-        testSettings.controlsVisible
+        testSettings.controlsVisible,
     );
     const [showCorrectness, setShowCorrectness] = useState(
-        testSettings.showCorrectness
+        testSettings.showCorrectness,
     );
     const [readOnly, setReadOnly] = useState(testSettings.readOnly);
     const [showFeedback, setShowFeedback] = useState(testSettings.showFeedback);
@@ -52,19 +51,19 @@ function Test() {
     const [darkMode, setDarkMode] = useState(testSettings.darkMode);
 
     const [allowLoadState, setAllowLoadState] = useState(
-        testSettings.allowLoadState
+        testSettings.allowLoadState,
     );
     const [allowSaveState, setAllowSaveState] = useState(
-        testSettings.allowSaveState
+        testSettings.allowSaveState,
     );
     const [allowLocalState, setAllowLocalState] = useState(
-        testSettings.allowLocalState
+        testSettings.allowLocalState,
     );
     const [allowSaveSubmissions, setAllowSaveSubmissions] = useState(
-        testSettings.allowSaveSubmissions
+        testSettings.allowSaveSubmissions,
     );
     const [allowSaveEvents, setAllowSaveEvents] = useState(
-        testSettings.allowSaveEvents
+        testSettings.allowSaveEvents,
     );
     const [autoSubmit, setAutoSubmit] = useState(testSettings.autoSubmit);
     const [paginate, setPaginate] = useState(testSettings.paginate);
@@ -118,7 +117,7 @@ function Test() {
                         onClick={() => {
                             localStorage.setItem(
                                 "test settings",
-                                JSON.stringify(defaultTestSettings)
+                                JSON.stringify(defaultTestSettings),
                             );
                             location.href = "/test";
                         }}
@@ -137,7 +136,7 @@ function Test() {
                                     testSettings.attemptNumber + 1;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setBaseState((was) => {
                                     let newObj = { ...was };
@@ -153,7 +152,7 @@ function Test() {
                                 testSettings.attemptNumber = 1;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setBaseState((was) => {
                                     let newObj = { ...was };
@@ -178,7 +177,7 @@ function Test() {
                                     !testSettings.showCorrectness;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowCorrectness((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -198,7 +197,7 @@ function Test() {
                                 testSettings.readOnly = !testSettings.readOnly;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setReadOnly((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -219,7 +218,7 @@ function Test() {
                                     !testSettings.showFeedback;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowFeedback((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -240,7 +239,7 @@ function Test() {
                                     !testSettings.showHints;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setShowHints((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -262,7 +261,7 @@ function Test() {
                                     !testSettings.allowLoadState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowLoadState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -283,7 +282,7 @@ function Test() {
                                     !testSettings.allowSaveState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -304,7 +303,7 @@ function Test() {
                                     !testSettings.allowLocalState;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowLocalState((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -325,7 +324,7 @@ function Test() {
                                     !testSettings.allowSaveSubmissions;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveSubmissions((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -346,7 +345,7 @@ function Test() {
                                     !testSettings.allowSaveEvents;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAllowSaveEvents((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -367,7 +366,7 @@ function Test() {
                                     !testSettings.autoSubmit;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setAutoSubmit((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -388,7 +387,7 @@ function Test() {
                                 testSettings.paginate = !testSettings.paginate;
                                 localStorage.setItem(
                                     "test settings",
-                                    JSON.stringify(testSettings)
+                                    JSON.stringify(testSettings),
                                 );
                                 setPaginate((was) => !was);
                                 setUpdateNumber((was) => was + 1);
@@ -407,7 +406,7 @@ function Test() {
                             checked={darkMode === "dark"}
                             onChange={() => {
                                 setDarkMode(
-                                    darkMode === "dark" ? "light" : "dark"
+                                    darkMode === "dark" ? "light" : "dark",
                                 );
                             }}
                         />
@@ -464,15 +463,23 @@ function Test() {
             }}
             data-theme={darkMode}
         >
-            <div style={{ backgroundColor: "var(--mainGray)" }}>
+            <div
+                style={{
+                    backgroundColor: "var(--mainGray)",
+                    marginBottom: "12px",
+                    padding: "8px",
+                }}
+            >
                 <h3>
-                    <button
-                        id="testRunner_toggleControls"
-                        onClick={() => setControlsVisible((was) => !was)}
-                    >
-                        {buttonText} controls
-                    </button>
-                    Test Viewer and Core
+                    <div style={{ display: "flex" }}>
+                        Test DoenetML for Cypress
+                        <Button
+                            id="testRunner_toggleControls"
+                            onClick={() => setControlsVisible((was) => !was)}
+                            value={buttonText + " controls"}
+                            style={{ marginLeft: "12px" }}
+                        />
+                    </div>
                 </h3>
                 {controls}
             </div>
@@ -480,5 +487,3 @@ function Test() {
         </div>
     );
 }
-
-export default Test;

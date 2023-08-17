@@ -168,7 +168,7 @@ export function TestViewer() {
                                 setUpdateNumber((was) => was + 1);
                             }}
                         />
-                        Autosubmit
+                        Auto Submit Answers
                     </label>
                 </div>
                 <div>
@@ -215,10 +215,16 @@ export function TestViewer() {
     }
 
     return (
-        <div>
+        <div
+            style={{
+                backgroundColor: "var(--canvas)",
+                color: "var(--canvastext)",
+            }}
+            data-theme={darkMode}
+        >
             <div
                 style={{
-                    backgroundColor: "#e3e3e3",
+                    backgroundColor: "var(--mainGray)",
                     marginBottom: "12px",
                     padding: "8px",
                 }}

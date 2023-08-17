@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import CypressTest from "./CypressTest.jsx";
+import { CypressTest } from "./CypressTest.jsx";
 import axios from "axios";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
@@ -35,7 +35,7 @@ root.render(
                 />
             </Routes>
         </Router>
-    </RecoilRoot>
+    </RecoilRoot>,
 );
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.

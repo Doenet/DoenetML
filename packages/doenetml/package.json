@@ -23,7 +23,7 @@
         "compile_grammar": "npx lezer-generator --output src/Parser/doenet.js src/Parser/doenet.grammar",
         "test-cypress": "cypress open",
         "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
-        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e",
+        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters",
         "lint": "eslint src --ext js,jsx --report-unused-disable-directives --max-warnings 0"
     },
     "peerDependencies": {
