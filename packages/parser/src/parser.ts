@@ -209,7 +209,7 @@ export function parseAndCompile(inText: string) {
                         element.children.push(txt);
                     }
                 } else if (cursor.name === "Element") {
-                    element.children.push(compileElement(cursor.node.cursor));
+                    element.children.push(compileElement(cursor.node.cursor()));
                 } else if (cursor.name === "CloseTag") {
                     // Will always be the matching tag (and the last tag in the list)
                     break;
@@ -465,7 +465,7 @@ export function parseAndCompile(inText: string) {
     }
     function compileTopLevel(tc: TreeCursor): Node | undefined {
         if (tc.node.name === "Element") {
-            return compileElement(tc.node.cursor);
+            return compileElement(tc.node.cursor());
         } else if (tc.node.name === "Comment") {
             // return a comment that will be ignored,
             // but need it to calculate doenetMLrange

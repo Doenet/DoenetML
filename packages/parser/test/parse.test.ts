@@ -24,7 +24,6 @@ describe("Lezer Parsing Tests", () => {
         for (const { inStr, outStr } of inputOutput) {
             const parsed = parse(inStr);
             const parsedRepr = showCursor(parsed);
-            console.log(parsedRepr);
             expect(parsedRepr).toEqual(outStr);
         }
     });
@@ -40,12 +39,13 @@ describe("Lezer Parsing Tests", () => {
                     components: [
                         "hi there ",
                         {
+                            attributeRanges: {},
                             children: [],
                             componentType: "doenet",
                             props: {},
-                            range: {
+                            doenetMLrange: {
                                 selfCloseBegin: 10,
-                                selfCloseEnd: 19,
+                                selfCloseEnd: 18,
                             },
                         },
                     ],
@@ -57,10 +57,21 @@ describe("Lezer Parsing Tests", () => {
                 outStr: {
                     components: [
                         {
+                            attributeRanges: {
+                                attr2: {
+                                    attrBegin: 15,
+                                    attrEnd: 25,
+                                    begin: 22,
+                                    end: 24,
+                                },
+                            },
                             componentType: "doenet",
                             props: { attr1: true, attr2: "foo" },
                             children: [],
-                            range: { selfCloseBegin: 1, selfCloseEnd: 28 },
+                            doenetMLrange: {
+                                selfCloseBegin: 1,
+                                selfCloseEnd: 27,
+                            },
                         },
                     ],
                     errors: [],
@@ -71,13 +82,14 @@ describe("Lezer Parsing Tests", () => {
                 outStr: {
                     components: [
                         {
+                            attributeRanges: {},
                             componentType: "doenet",
                             props: {},
                             children: ["child"],
-                            range: {
+                            doenetMLrange: {
                                 openBegin: 1,
                                 openEnd: 8,
-                                closeBegin: 13,
+                                closeBegin: 14,
                                 closeEnd: 22,
                             },
                         },
