@@ -4,28 +4,29 @@ import { parser } from "./generated-assets/lezer-doenet";
 // Re-export parser for CodeMirror instances
 export { parser };
 
+type AttrRange = Record<
+    string,
+    { attrBegin: number; attrEnd: number; begin: number; end: number }
+>;
 export type Element = {
     componentType: string;
     props: Record<string, string | boolean>;
     children: Node[];
-    range?: {
-        openBegin?: number;
-        openEnd?: number;
-        closeBegin?: number;
-        closeEnd?: number;
-        selfClosingBegin?: number;
-        selfClosingEnd?: number;
-    };
+    attributeRanges?: AttrRange;
     state?: { message: string };
     doenetMLrange?: {
         begin?: number;
         end?: number;
+        openBegin?: number;
+        openEnd?: number;
+        closeBegin?: number;
+        closeEnd?: number;
         selfCloseBegin?: number;
         selfCloseEnd?: number;
     };
-    doenetAttributes?:{
+    doenetAttributes?: {
         createNameFromComponentType: string;
-    }
+    };
 };
 
 type DummyElement = {
@@ -83,7 +84,7 @@ export function parseAndCompile(inText: string) {
             }
 
             let attrs: Element["props"] = {};
-            let attrRanges = {};
+            let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
                 //All of the siblings must b.name Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
@@ -176,14 +177,15 @@ export function parseAndCompile(inText: string) {
 
             let tagOpenEnd = cursor.to;
 
-            let element = {
+            let element: Element = {
                 componentType: adjustedTagName,
                 props: {},
                 children: [],
+                attributeRanges: {},
             };
 
             if (adjustedTagName === "_error") {
-                element.state = { message };
+                element.state = { message: message || "" };
                 element.doenetAttributes = {
                     createNameFromComponentType: tagName,
                 };
@@ -201,7 +203,7 @@ export function parseAndCompile(inText: string) {
             // the text case, in which case we'll just push a string into the children,
             // and the element case, in which case we recurse
 
-            //Corrosponds to the entity non-terminal in the grammar
+            // Corresponds to the entity non-terminal in the grammar
             while (cursor.nextSibling()) {
                 if (cursor.name === "Text") {
                     let txt = inText.substring(cursor.from, cursor.to);
@@ -325,6 +327,7 @@ export function parseAndCompile(inText: string) {
                 };
             }
             return element;
+            // @ts-ignore
         } else if (cursor.name === "SelfClosingTag") {
             cursor.firstChild();
             cursor.nextSibling();
@@ -345,8 +348,8 @@ export function parseAndCompile(inText: string) {
                 adjustedTagName = "_error";
             }
 
-            let attrs = {};
-            let attrRanges = {};
+            let attrs: Element["props"] = {};
+            let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
                 //All of the siblings must be Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
