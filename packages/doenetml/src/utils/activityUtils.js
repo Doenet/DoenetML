@@ -1,7 +1,7 @@
 import { prng_alea } from "esm-seedrandom";
 import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
 import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
-import { parseAndCompile } from "../Parser/parser";
+import { parseAndCompile } from "@doenet/parser";
 import { enumerateCombinations } from "../Core/utils/enumeration";
 import createComponentInfoObjects from "../Core/utils/componentInfoObjects";
 import {

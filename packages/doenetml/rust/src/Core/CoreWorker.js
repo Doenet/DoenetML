@@ -1,5 +1,5 @@
 import init, { PublicDoenetCore } from "../../pkg";
-import { parseAndCompile } from "../Parser/parser";
+import { parseAndCompile } from "@doenet/parser";
 
 let doenetCore;
 
@@ -39,7 +39,7 @@ async function createCore(args) {
 
     const render_tree_string = doenetCore.update_renderers();
     const render_tree = JSON.parse(render_tree_string);
-    console.log("CoreWorker recieved render tree", render_tree);
+    console.log("CoreWorker received render tree", render_tree);
 
     // console.log("Render tree from rust", render_tree);
 

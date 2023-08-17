@@ -1,6 +1,6 @@
 import { retrieveTextFileForCid } from "./retrieveTextFile";
 import { returnAllPossibleVariants } from "./returnAllPossibleVariants";
-import { parseAndCompile } from "../Parser/parser";
+import { parseAndCompile } from "@doenetml/parser";
 
 export function parseActivityDefinition(activityDefDoenetML) {
     let serializedDefinition = parseAndCompile(activityDefDoenetML).filter(

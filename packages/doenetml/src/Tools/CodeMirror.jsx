@@ -19,7 +19,7 @@ import {
     foldNodeProp,
 } from "@codemirror/language";
 import { completeFromSchema } from "@codemirror/lang-xml";
-import { parser } from "../Parser/doenet";
+import { parser } from "@doenet/parser";
 import doenetSchema from "../Core/doenetSchema.json";
 
 export default function CodeMirror({
