@@ -1,8 +1,8 @@
 export { DoenetML } from "./src/DoenetML.jsx";
 
-export { mathjaxConfig } from "./src/Core/utils/math";
-export { cidFromText } from "./src/Core/utils/cid";
-export { retrieveTextFileForCid } from "./src/Core/utils/retrieveTextFile";
+export { mathjaxConfig } from "./src/utils/mathjax-config";
+export { cidFromText } from "./src/utils/cid";
+export { retrieveTextFileForCid } from "./src/utils/retrieveTextFile";
 export {
     calculateOrderAndVariants,
     determineNumberOfActivityVariants,
@@ -12,6 +12,6 @@ export {
 export {
     serializedComponentsReplacer,
     serializedComponentsReviver,
-} from "./src/Core/utils/serializedStateProcessing";
-export { returnAllPossibleVariants } from "./src/Core/utils/returnAllPossibleVariants";
+} from "./src/utils/serializedStateProcessing";
+export { returnAllPossibleVariants } from "./src/utils/returnAllPossibleVariants";
 export { default as CodeMirror } from "./src/Tools/CodeMirror";

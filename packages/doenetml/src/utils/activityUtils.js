@@ -1,16 +1,15 @@
 import { prng_alea } from "esm-seedrandom";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
-import { returnAllPossibleVariants } from "../Core/utils/returnAllPossibleVariants";
+import { retrieveTextFileForCid } from "./retrieveTextFile";
+import { returnAllPossibleVariants } from "./returnAllPossibleVariants";
 import { parseAndCompile } from "@doenet/parser";
-import { enumerateCombinations } from "../Core/utils/enumeration";
-import createComponentInfoObjects from "../Core/utils/componentInfoObjects";
+import { enumerateCombinations } from "./enumeration";
+import createComponentInfoObjects from "./componentInfoObjects";
 import {
     addDocumentIfItsMissing,
     countComponentTypes,
     expandDoenetMLsToFullSerializedComponents,
-} from "../Core/utils/serializedStateProcessing";
-import { deepClone } from "../Core/utils/deepFunctions";
-import { cidFromText } from "../Core/utils/cid";
+} from "./serializedStateProcessing";
+import { cidFromText } from "./cid";
 
 let rngClass = prng_alea;
 

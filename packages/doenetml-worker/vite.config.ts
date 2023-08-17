@@ -27,7 +27,7 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             //entry: "../doenetml/src/Core/CoreWorker.js",
-            entry: "index.ts",
+            entry: "./src/index.ts",
             fileName: "CoreWorker",
             formats: ["es"],
         },

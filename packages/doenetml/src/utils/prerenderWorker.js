@@ -1,5 +1,5 @@
 import axios from "axios";
-import { retrieveTextFileForCid } from "../Core/utils/retrieveTextFile";
+import { retrieveTextFileForCid } from "./retrieveTextFile";
 import { serializedComponentsReplacer } from "../Core/utils/serializedStateProcessing";
 import {
     calculateOrderAndVariants,

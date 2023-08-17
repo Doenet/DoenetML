@@ -1,4 +1,4 @@
-import { cesc } from "../../utils/url";
+import { cesc } from "../utils/url";
 import Template from "./Template";
 import BlockComponent from "./abstract/BlockComponent";
 

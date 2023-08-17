@@ -4,7 +4,7 @@ import React, { useRef } from "react";
 import { ActivityViewer } from "./Viewer/ActivityViewer.jsx";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "./Core/utils/math";
+import { mathjaxConfig } from "./utils/mathjax-config";
 import VirtualKeyboard from "./Tools/Footers/VirtualKeyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
