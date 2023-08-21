@@ -1,11 +1,53 @@
-import { parser } from "./doenet.js";
+import type { SyntaxNode, TreeCursor } from "@lezer/common";
+import { parser } from "./generated-assets/lezer-doenet";
+
+// Re-export parser for CodeMirror instances
+export { parser };
+
+type AttrRange = Record<
+    string,
+    { attrBegin: number; attrEnd: number; begin: number; end: number }
+>;
+export type Element = {
+    componentType: string;
+    props: Record<string, string | boolean>;
+    children: Node[];
+    attributeRanges?: AttrRange;
+    state?: { message: string };
+    doenetMLrange?: {
+        begin?: number;
+        end?: number;
+        openBegin?: number;
+        openEnd?: number;
+        closeBegin?: number;
+        closeEnd?: number;
+        selfCloseBegin?: number;
+        selfCloseEnd?: number;
+    };
+    doenetAttributes?: {
+        createNameFromComponentType: string;
+    };
+};
+
+type DummyElement = {
+    componentType: string;
+    state: { text: string };
+    doenetMLrange: { begin: number; end: number };
+};
+
+export type Node = Element | DummyElement | string;
+
+export type ParseError = {
+    message: string;
+    doenetMLrange: { begin: number; end: number };
+};
 
 /**
  *  takes in a string an outputs a TreeCursor
  * @param {string} inText
  * @returns {TreeCursor}
  */
-export function parse(inText) {
+export function parse(inText: string) {
     return parser.parse(inText).cursor();
 }
 /**
@@ -104,7 +146,7 @@ export function parseAndCompile(inText) {
                     //boundry fuddling to ignore the quotes
                     let attrValue = inText.substring(
                         cursor.from + 1,
-                        cursor.to - 1
+                        cursor.to - 1,
                     );
 
                     if (attrName in attrs) {
@@ -192,7 +234,7 @@ export function parseAndCompile(inText) {
                 } else if (cursor.name === "MismatchedCloseTag") {
                     let message = `Invalid DoenetML. Mismatched closing tag.  Expected </${tagName}>.  Found ${inText.slice(
                         cursor.from,
-                        cursor.to
+                        cursor.to,
                     )}.`;
                     errors.push({
                         message,
@@ -316,7 +358,7 @@ export function parseAndCompile(inText) {
 
                     message = `Invalid DoenetML. Error in self-closing <${tagName}> tag.  Found ${inText.slice(
                         tagBegin - 1,
-                        errorEnd
+                        errorEnd,
                     )}`;
 
                     errors.push({
@@ -363,7 +405,7 @@ export function parseAndCompile(inText) {
                         //fuddling to ignore the quotes
                         let attrValue = inText.substring(
                             cursor.from + 1,
-                            cursor.to - 1
+                            cursor.to - 1,
                         );
                         attrs[attrName] = attrValue;
                         attrRanges[attrName] = {
@@ -419,7 +461,7 @@ export function parseAndCompile(inText) {
         } else {
             //Unreachable case, see the grammar for why
             throw Error(
-                "Non SelfClosingTag/OpenTag in Element. How did you do that?"
+                "Non SelfClosingTag/OpenTag in Element. How did you do that?",
             );
         }
     }
@@ -447,7 +489,7 @@ export function parseAndCompile(inText) {
         } else {
             let message = `Invalid DoenetML.  Found ${inText.substring(
                 tc.node.from,
-                tc.node.to
+                tc.node.to,
             )}`;
             errors.push({
                 message,

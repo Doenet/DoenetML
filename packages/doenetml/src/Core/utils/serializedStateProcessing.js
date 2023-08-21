@@ -3,7 +3,7 @@ import { createUniqueName } from "./naming";
 import { flattenDeep } from "./array";
 import { deepClone } from "./deepFunctions";
 import { breakEmbeddedStringByCommas } from "../components/commonsugar/breakstrings";
-import { parseAndCompile } from "../../Parser/parser";
+import { parseAndCompile } from "@doenet/parser";
 import subsets from "./subset-of-reals";
 import { retrieveTextFileForCid } from "./retrieveTextFile";
 import { returnDeprecationMessage } from "./doenetMLversion";
