@@ -31,6 +31,7 @@ export default defineConfig({
     },
     build: {
         minify: false,
+        sourcemap: true,
         lib: {
             entry: "index.js",
             name: "DoenetML",
