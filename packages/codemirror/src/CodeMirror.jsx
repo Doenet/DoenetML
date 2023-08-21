@@ -20,9 +20,9 @@ import {
 } from "@codemirror/language";
 import { completeFromSchema } from "@codemirror/lang-xml";
 import { parser } from "@doenet/parser";
-import doenetSchema from "../Core/doenetSchema.json";
+import doenetSchema from "../../doenetml/src/Core/doenetSchema.json";
 
-export default function CodeMirror({
+export function CodeMirror({
     setInternalValueTo,
     onBeforeChange,
     readOnly,

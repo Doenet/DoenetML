@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import useDoenetRenderer, { rendererState } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
-import CodeMirror from "../../Tools/CodeMirror";
+import { CodeMirror } from "@doenet/codemirror";
 import VisibilitySensor from "react-visibility-sensor-v2";
 import { useSetRecoilState } from "recoil";
 import { Box, Flex } from "@chakra-ui/react";
@@ -89,14 +89,14 @@ export default React.memo(function CodeEditor(props) {
         if (SVs.showResults) {
             codeEditorContainer.addEventListener(
                 "keydown",
-                handleEditorKeyDown
+                handleEditorKeyDown,
             );
         }
 
         return () => {
             codeEditorContainer.removeEventListener(
                 "keydown",
-                handleEditorKeyDown
+                handleEditorKeyDown,
             );
         };
     }, [SVs.showResults]);
@@ -163,7 +163,7 @@ export default React.memo(function CodeEditor(props) {
 
         const warningsLevel = 1; //TODO: eventually give user ability adjust warning level filter
         const warningsObjs = SVs.errorsAndWarnings.warnings.filter(
-            (w) => w.level <= warningsLevel
+            (w) => w.level <= warningsLevel,
         );
         const errorsObjs = [...SVs.errorsAndWarnings.errors];
 
@@ -181,7 +181,7 @@ export default React.memo(function CodeEditor(props) {
         <div key={editorKey} id={editorKey} style={editorStyle}>
             <Box
                 height={`calc(${sizeToCSS(
-                    editorHeight
+                    editorHeight,
                 )} - ${errorsAndWarningsHeight}px)`}
                 w="100%"
                 overflowY="scroll"
