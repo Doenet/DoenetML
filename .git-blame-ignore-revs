@@ -1,0 +1,8 @@
+#run prettier on core, renderers, and cypress tests
+b132d0feb10b0c93fb56d5c3bf2b1efe069b6a98
+
+#Run prettier on the app files
+02f810b198d14397c53021303daa0cf27c3deb7a
+
+#Reformat with Prettier 4 spaces for tabs
+4c43e4c435160dcbcc8dc96b782b086a20007282

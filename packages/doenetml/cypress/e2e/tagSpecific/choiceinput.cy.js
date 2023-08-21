@@ -29,7 +29,7 @@ describe("ChoiceInput Tag Tests", function () {
     `,
                     requestedVariantIndex: 8,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -43,7 +43,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/pDog")).should("have.text", "Selected dog: false");
         cy.get(cesc("#\\/pMonkey")).should(
             "have.text",
-            "Selected monkey: false"
+            "Selected monkey: false",
         );
         cy.get(cesc("#\\/pMouse")).should("have.text", "Selected mouse: false");
 
@@ -68,16 +68,16 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(true);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -94,50 +94,51 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected value: " + choices[i]
+                        "Selected value: " + choices[i],
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        "Selected index: " + (i + 1)
+                        "Selected index: " + (i + 1),
                     );
 
                     cy.get(cesc("#\\/pCat")).should(
                         "have.text",
-                        `Selected cat: ${choiceOrder[i] === 1}`
+                        `Selected cat: ${choiceOrder[i] === 1}`,
                     );
                     cy.get(cesc("#\\/pDog")).should(
                         "have.text",
-                        `Selected dog: ${choiceOrder[i] === 2}`
+                        `Selected dog: ${choiceOrder[i] === 2}`,
                     );
                     cy.get(cesc("#\\/pMonkey")).should(
                         "have.text",
-                        `Selected monkey: ${choiceOrder[i] === 3}`
+                        `Selected monkey: ${choiceOrder[i] === 3}`,
                     );
                     cy.get(cesc("#\\/pMouse")).should(
                         "have.text",
-                        `Selected mouse: ${choiceOrder[i] === 4}`
+                        `Selected mouse: ${choiceOrder[i] === 4}`,
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls([choices[i]]);
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([i + 1]);
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder[i] === 1
+                    choiceOrder[i] === 1,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder[i] === 2
+                    choiceOrder[i] === 2,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder[i] === 3
+                    choiceOrder[i] === 3,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder[i] === 4
+                    choiceOrder[i] === 4,
                 );
             });
         }
@@ -166,7 +167,7 @@ describe("ChoiceInput Tag Tests", function () {
     `,
                     requestedVariantIndex: 8,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -180,7 +181,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/pDog")).should("have.text", "Selected dog: false");
         cy.get(cesc("#\\/pMonkey")).should(
             "have.text",
-            "Selected monkey: false"
+            "Selected monkey: false",
         );
         cy.get(cesc("#\\/pMouse")).should("have.text", "Selected mouse: false");
 
@@ -207,16 +208,16 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                true
+                true,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(true);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -234,50 +235,51 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected value: " + choices[i]
+                        "Selected value: " + choices[i],
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        "Selected index: " + (i + 1)
+                        "Selected index: " + (i + 1),
                     );
 
                     cy.get(cesc("#\\/pCat")).should(
                         "have.text",
-                        `Selected cat: ${choiceOrder[i] === 1}`
+                        `Selected cat: ${choiceOrder[i] === 1}`,
                     );
                     cy.get(cesc("#\\/pDog")).should(
                         "have.text",
-                        `Selected dog: ${choiceOrder[i] === 2}`
+                        `Selected dog: ${choiceOrder[i] === 2}`,
                     );
                     cy.get(cesc("#\\/pMonkey")).should(
                         "have.text",
-                        `Selected monkey: ${choiceOrder[i] === 3}`
+                        `Selected monkey: ${choiceOrder[i] === 3}`,
                     );
                     cy.get(cesc("#\\/pMouse")).should(
                         "have.text",
-                        `Selected mouse: ${choiceOrder[i] === 4}`
+                        `Selected mouse: ${choiceOrder[i] === 4}`,
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls([choices[i]]);
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([i + 1]);
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder[i] === 1
+                    choiceOrder[i] === 1,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder[i] === 2
+                    choiceOrder[i] === 2,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder[i] === 3
+                    choiceOrder[i] === 3,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder[i] === 4
+                    choiceOrder[i] === 4,
                 );
             });
         }
@@ -300,7 +302,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected index: <copy prop='selectedindex' target="_choiceinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -318,17 +320,17 @@ describe("ChoiceInput Tag Tests", function () {
             ];
             expect(choices).eqls(originalChoices);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             // expect(stateVariables['/_choiceinput1'].stateValues.selectedoriginalindices).eqls([])
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -345,34 +347,35 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected value: " + choices[i]
+                        "Selected value: " + choices[i],
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        "Selected index: " + (i + 1)
+                        "Selected index: " + (i + 1),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls([choices[i]]);
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([i + 1]);
                 // expect(stateVariables['/_choiceinput1'].stateValues.selectedoriginalindices).eqls([i + 1])
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    i === 0
+                    i === 0,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    i === 1
+                    i === 1,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    i === 2
+                    i === 2,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    i === 3
+                    i === 3,
                 );
             });
         }
@@ -411,7 +414,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -448,13 +451,13 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[5]).not.eq(choices[3]);
             expect(choices[5]).not.eq(choices[4]);
             expect(stateVariables["/ci2"].stateValues.choiceTexts).eqls(
-                choices
+                choices,
             );
             expect(stateVariables["/ci3"].stateValues.choiceTexts).eqls(
-                choices
+                choices,
             );
             expect(stateVariables["/ci4"].stateValues.choiceTexts).eqls(
-                choices
+                choices,
             );
 
             expect(stateVariables["/ci1"].stateValues.selectedValues).eqls([]);
@@ -484,41 +487,41 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         `Selected indices: ${i + 1}, ${i + 1}, ${i + 1}, ${
                             i + 1
-                        }`
+                        }`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedValues
+                            stateVariables["/ci3"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedIndices
+                            stateVariables["/ci3"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedValues
+                            stateVariables["/ci4"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedIndices
+                            stateVariables["/ci4"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -532,41 +535,41 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         `Selected indices: ${i + 1}, ${i + 1}, ${i + 1}, ${
                             i + 1
-                        }`
+                        }`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedValues
+                            stateVariables["/ci3"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedIndices
+                            stateVariables["/ci3"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedValues
+                            stateVariables["/ci4"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedIndices
+                            stateVariables["/ci4"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -580,41 +583,41 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         `Selected indices: ${i + 1}, ${i + 1}, ${i + 1}, ${
                             i + 1
-                        }`
+                        }`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedValues
+                            stateVariables["/ci3"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedIndices
+                            stateVariables["/ci3"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedValues
+                            stateVariables["/ci4"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedIndices
+                            stateVariables["/ci4"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -628,41 +631,41 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}, ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         `Selected indices: ${i + 1}, ${i + 1}, ${i + 1}, ${
                             i + 1
-                        }`
+                        }`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedValues
+                            stateVariables["/ci3"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci3"].stateValues.selectedIndices
+                            stateVariables["/ci3"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedValues
+                            stateVariables["/ci4"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci4"].stateValues.selectedIndices
+                            stateVariables["/ci4"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -695,7 +698,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -728,7 +731,7 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[2]);
 
             expect(stateVariables["/ci2"].stateValues.choiceTexts).eqls(
-                choices
+                choices,
             );
 
             expect(stateVariables["/ci1"].stateValues.selectedValues).eqls([]);
@@ -750,27 +753,27 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        `Selected indices: ${i + 1}, ${i + 1}`
+                        `Selected indices: ${i + 1}, ${i + 1}`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -784,27 +787,27 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous  so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        `Selected values: ${choices[i]}, ${choices[i]}`
+                        `Selected values: ${choices[i]}, ${choices[i]}`,
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        `Selected indices: ${i + 1}, ${i + 1}`
+                        `Selected indices: ${i + 1}, ${i + 1}`,
                     );
 
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedValues
+                            stateVariables["/ci1"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci1"].stateValues.selectedIndices
+                            stateVariables["/ci1"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedValues
+                            stateVariables["/ci2"].stateValues.selectedValues,
                         ).eqls([choices[i]]);
                         expect(
-                            stateVariables["/ci2"].stateValues.selectedIndices
+                            stateVariables["/ci2"].stateValues.selectedIndices,
                         ).eqls([i + 1]);
                     });
                 });
@@ -838,7 +841,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -859,18 +862,18 @@ describe("ChoiceInput Tag Tests", function () {
 
                     for (let i = 1; i <= 3; i++) {
                         cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                            "not.be.checked"
+                            "not.be.checked",
                         );
                     }
                     cy.get(cesc(`#\\/ci2`)).should("have.value", "");
 
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        `Selected values: `
+                        `Selected values: `,
                     );
                     cy.get(cesc("#\\/_p3")).should(
                         "have.text",
-                        `Selected indices: `
+                        `Selected indices: `,
                     );
                 } else {
                     let selectedIndex = choices.indexOf(selectedChoice) + 1;
@@ -880,46 +883,46 @@ describe("ChoiceInput Tag Tests", function () {
                     for (let i = 1; i <= 3; i++) {
                         if (i === selectedIndex) {
                             cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                                "be.checked"
+                                "be.checked",
                             );
                         } else {
                             cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                                "not.be.checked"
+                                "not.be.checked",
                             );
                         }
                     }
                     cy.get(cesc(`#\\/ci2`)).should(
                         "have.value",
-                        String(selectedIndex)
+                        String(selectedIndex),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        `Selected values: ${selectedChoice}, ${selectedChoice}`
+                        `Selected values: ${selectedChoice}, ${selectedChoice}`,
                     );
                     cy.get(cesc("#\\/_p3")).should(
                         "have.text",
-                        `Selected indices: ${selectedIndex}, ${selectedIndex}`
+                        `Selected indices: ${selectedIndex}, ${selectedIndex}`,
                     );
                 }
 
                 cy.get(cesc("#\\/_textinput1_input")).should(
                     "have.value",
-                    inputText
+                    inputText,
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci1"].stateValues.selectedValues
+                        stateVariables["/ci1"].stateValues.selectedValues,
                     ).eqls(choiceArray);
                     expect(
-                        stateVariables["/ci1"].stateValues.selectedIndices
+                        stateVariables["/ci1"].stateValues.selectedIndices,
                     ).eqls(indexArray);
                     expect(
-                        stateVariables["/ci2"].stateValues.selectedValues
+                        stateVariables["/ci2"].stateValues.selectedValues,
                     ).eqls(choiceArray);
                     expect(
-                        stateVariables["/ci2"].stateValues.selectedIndices
+                        stateVariables["/ci2"].stateValues.selectedIndices,
                     ).eqls(indexArray);
                 });
             };
@@ -1024,7 +1027,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1040,21 +1043,21 @@ describe("ChoiceInput Tag Tests", function () {
 
             let checkChoices = function (selectedChoices, inputText) {
                 selectedChoices.sort(
-                    (a, b) => choices.indexOf(a) - choices.indexOf(b)
+                    (a, b) => choices.indexOf(a) - choices.indexOf(b),
                 );
 
                 let selectedIndices = selectedChoices.map(
-                    (x) => choices.indexOf(x) + 1
+                    (x) => choices.indexOf(x) + 1,
                 );
 
                 for (let i = 1; i <= 3; i++) {
                     if (selectedIndices.includes(i)) {
                         cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                            "be.checked"
+                            "be.checked",
                         );
                     } else {
                         cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                            "not.be.checked"
+                            "not.be.checked",
                         );
                     }
                 }
@@ -1062,7 +1065,7 @@ describe("ChoiceInput Tag Tests", function () {
                     .invoke("val")
                     .should(
                         "deep.equal",
-                        selectedIndices.map((x) => String(x))
+                        selectedIndices.map((x) => String(x)),
                     );
                 let selectedChoicesString = [
                     ...selectedChoices,
@@ -1074,31 +1077,31 @@ describe("ChoiceInput Tag Tests", function () {
                 ].join(", ");
                 cy.get(cesc("#\\/_p2")).should(
                     "have.text",
-                    `Selected values: ${selectedChoicesString}`
+                    `Selected values: ${selectedChoicesString}`,
                 );
                 cy.get(cesc("#\\/_p3")).should(
                     "have.text",
-                    `Selected indices: ${selectedIndicesString}`
+                    `Selected indices: ${selectedIndicesString}`,
                 );
 
                 cy.get(cesc("#\\/_textinput1_input")).should(
                     "have.value",
-                    inputText
+                    inputText,
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci1"].stateValues.selectedValues
+                        stateVariables["/ci1"].stateValues.selectedValues,
                     ).eqls(selectedChoices);
                     expect(
-                        stateVariables["/ci1"].stateValues.selectedIndices
+                        stateVariables["/ci1"].stateValues.selectedIndices,
                     ).eqls(selectedIndices);
                     expect(
-                        stateVariables["/ci2"].stateValues.selectedValues
+                        stateVariables["/ci2"].stateValues.selectedValues,
                     ).eqls(selectedChoices);
                     expect(
-                        stateVariables["/ci2"].stateValues.selectedIndices
+                        stateVariables["/ci2"].stateValues.selectedIndices,
                     ).eqls(selectedIndices);
                 });
             };
@@ -1109,7 +1112,7 @@ describe("ChoiceInput Tag Tests", function () {
             let selectedChoices = ["caT", "Monkey"];
             let selectedIndex = choices.indexOf(selectedChoices[0]) + 1;
             selectedChoices.sort(
-                (a, b) => choices.indexOf(a) - choices.indexOf(b)
+                (a, b) => choices.indexOf(a) - choices.indexOf(b),
             );
             let inputText = selectedChoices.join(", ");
             cy.get(cesc(`#\\/ci1_choice${selectedIndex}_input`)).click();
@@ -1134,10 +1137,10 @@ describe("ChoiceInput Tag Tests", function () {
             cy.log("select monkey, dog from second input");
             selectedChoices = ["  dog ", "Monkey"];
             let selectedIndices = selectedChoices.map(
-                (x) => choices.indexOf(x) + 1
+                (x) => choices.indexOf(x) + 1,
             );
             selectedChoices.sort(
-                (a, b) => choices.indexOf(a) - choices.indexOf(b)
+                (a, b) => choices.indexOf(a) - choices.indexOf(b),
             );
             inputText = selectedChoices.join(", ");
             cy.get(cesc(`#\\/ci2`)).select(selectedIndices.map(String));
@@ -1170,10 +1173,10 @@ describe("ChoiceInput Tag Tests", function () {
             cy.log("select all from second input");
             selectedChoices = ["Monkey", "  dog ", "caT"];
             selectedIndices = selectedChoices.map(
-                (x) => choices.indexOf(x) + 1
+                (x) => choices.indexOf(x) + 1,
             );
             selectedChoices.sort(
-                (a, b) => choices.indexOf(a) - choices.indexOf(b)
+                (a, b) => choices.indexOf(a) - choices.indexOf(b),
             );
             inputText = selectedChoices.join(", ");
 
@@ -1201,7 +1204,7 @@ describe("ChoiceInput Tag Tests", function () {
             cy.log("select cat from first input");
             selectedChoices = ["  dog ", "caT"];
             selectedChoices.sort(
-                (a, b) => choices.indexOf(a) - choices.indexOf(b)
+                (a, b) => choices.indexOf(a) - choices.indexOf(b),
             );
             selectedIndex = choices.indexOf("caT") + 1;
             inputText = selectedChoices.join(", ");
@@ -1245,7 +1248,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Check for core round trip: <booleaninput name="bi" /> $bi.value{assignNames="b"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1255,22 +1258,22 @@ describe("ChoiceInput Tag Tests", function () {
             for (let i = 1; i <= 3; i++) {
                 if (i === 3) {
                     cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                        "be.checked"
+                        "be.checked",
                     );
                 } else {
                     cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                        "not.be.checked"
+                        "not.be.checked",
                     );
                 }
             }
             cy.get(cesc(`#\\/ci2`)).should("have.value", "3");
             cy.get(cesc("#\\/_p2")).should(
                 "have.text",
-                `Selected values: monkey, monkey`
+                `Selected values: monkey, monkey`,
             );
             cy.get(cesc("#\\/_p3")).should(
                 "have.text",
-                `Selected indices: 3, 3`
+                `Selected indices: 3, 3`,
             );
         }
 
@@ -1326,7 +1329,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1344,18 +1347,18 @@ describe("ChoiceInput Tag Tests", function () {
 
                 for (let i = 1; i <= 3; i++) {
                     cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                        "not.be.checked"
+                        "not.be.checked",
                     );
                 }
                 cy.get(cesc(`#\\/ci2`)).should("have.value", "");
 
                 cy.get(cesc("#\\/_p2")).should(
                     "have.text",
-                    `Selected values: `
+                    `Selected values: `,
                 );
                 cy.get(cesc("#\\/_p3")).should(
                     "have.text",
-                    `Selected indices: `
+                    `Selected indices: `,
                 );
             } else {
                 selectedChoice = textOrder[selectedIndex - 1];
@@ -1365,25 +1368,25 @@ describe("ChoiceInput Tag Tests", function () {
                 for (let i = 1; i <= 3; i++) {
                     if (i === selectedIndex) {
                         cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                            "be.checked"
+                            "be.checked",
                         );
                     } else {
                         cy.get(cesc(`#\\/ci1_choice${i}_input`)).should(
-                            "not.be.checked"
+                            "not.be.checked",
                         );
                     }
                 }
                 cy.get(cesc(`#\\/ci2`)).should(
                     "have.value",
-                    String(selectedIndex)
+                    String(selectedIndex),
                 );
                 cy.get(cesc("#\\/_p2")).should(
                     "have.text",
-                    `Selected values: ${selectedChoice}, ${selectedChoice}`
+                    `Selected values: ${selectedChoice}, ${selectedChoice}`,
                 );
                 cy.get(cesc("#\\/_p3")).should(
                     "have.text",
-                    `Selected indices: ${selectedIndex}, ${selectedIndex}`
+                    `Selected indices: ${selectedIndex}, ${selectedIndex}`,
                 );
             }
 
@@ -1391,25 +1394,25 @@ describe("ChoiceInput Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        inputText
+                        inputText,
                     );
                 });
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/ci1"].stateValues.selectedValues).eqls(
-                    choiceArray
+                    choiceArray,
                 );
                 expect(stateVariables["/ci1"].stateValues.selectedIndices).eqls(
-                    indexArray
+                    indexArray,
                 );
                 expect(stateVariables["/ci2"].stateValues.selectedValues).eqls(
-                    choiceArray
+                    choiceArray,
                 );
                 expect(stateVariables["/ci2"].stateValues.selectedIndices).eqls(
-                    indexArray
+                    indexArray,
                 );
                 expect(stateVariables["/_mathinput1"].stateValues.value).eqls(
-                    inputMath
+                    inputMath,
                 );
             });
         };
@@ -1431,7 +1434,7 @@ describe("ChoiceInput Tag Tests", function () {
         inputText = "3";
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}${inputText}{enter}`,
-            { force: true }
+            { force: true },
         );
         checkChoices(selectedIndex, inputText, 3);
 
@@ -1450,7 +1453,7 @@ describe("ChoiceInput Tag Tests", function () {
         inputText = "e−x";
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}e^-x{enter}`,
-            { force: true }
+            { force: true },
         );
         checkChoices(selectedIndex, inputText, ["^", "e", ["-", "x"]]);
 
@@ -1459,7 +1462,7 @@ describe("ChoiceInput Tag Tests", function () {
         inputText = "1ex";
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}1/e^x{enter}`,
-            { force: true }
+            { force: true },
         );
         checkChoices(selectedIndex, inputText, ["/", 1, ["^", "e", "x"]]);
 
@@ -1571,7 +1574,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1589,7 +1592,7 @@ describe("ChoiceInput Tag Tests", function () {
             let mouseInd4 =
                 stateVariables["/c4"].stateValues.choiceTexts.indexOf("mouse");
             cy.get(cesc(`#\\/c4_choice${mouseInd4 + 1}_input`)).should(
-                "be.checked"
+                "be.checked",
             );
 
             cy.get(cesc("#\\/c5")).should("have.value", "2");
@@ -1601,7 +1604,7 @@ describe("ChoiceInput Tag Tests", function () {
             let selectedInd6 = Math.min(dogInd6, mouseInd6);
 
             cy.get(cesc(`#\\/c6_choice${selectedInd6 + 1}_input`)).should(
-                "be.checked"
+                "be.checked",
             );
 
             cy.get(cesc("#\\/c7_choice4_input")).should("be.checked");
@@ -1629,7 +1632,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected index: <copy prop='selectedindex' target="_choiceinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1662,17 +1665,17 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             // expect(stateVariables['/_choiceinput1'].stateValues.selectedoriginalindices).eqls([])
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                true
+                true,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -1694,11 +1697,11 @@ describe("ChoiceInput Tag Tests", function () {
                         // make this asynchronous  so that choices is populated before line is executed
                         cy.get(cesc("#\\/_p1")).should(
                             "have.text",
-                            "Selected value: " + choices[i]
+                            "Selected value: " + choices[i],
                         );
                         cy.get(cesc("#\\/_p2")).should(
                             "have.text",
-                            "Selected index: " + (i + 1)
+                            "Selected index: " + (i + 1),
                         );
 
                         cy.window().then(async (win) => {
@@ -1706,23 +1709,27 @@ describe("ChoiceInput Tag Tests", function () {
                                 await win.returnAllStateVariables1();
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedValues
+                                    .selectedValues,
                             ).eqls([choices[i]]);
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedIndices
+                                    .selectedIndices,
                             ).eqls([i + 1]);
                             expect(
-                                stateVariables["/_choice1"].stateValues.selected
+                                stateVariables["/_choice1"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 1);
                             expect(
-                                stateVariables["/_choice2"].stateValues.selected
+                                stateVariables["/_choice2"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 2);
                             expect(
-                                stateVariables["/_choice3"].stateValues.selected
+                                stateVariables["/_choice3"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 3);
                             expect(
-                                stateVariables["/_choice4"].stateValues.selected
+                                stateVariables["/_choice4"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 4);
                         });
                     });
@@ -1747,7 +1754,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected index: <copy prop='selectedindex' target="_choiceinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1780,16 +1787,16 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                true
+                true,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -1811,11 +1818,11 @@ describe("ChoiceInput Tag Tests", function () {
                         // make this asynchronous  so that choices is populated before line is executed
                         cy.get(cesc("#\\/_p1")).should(
                             "have.text",
-                            "Selected value: " + choices[i]
+                            "Selected value: " + choices[i],
                         );
                         cy.get(cesc("#\\/_p2")).should(
                             "have.text",
-                            "Selected index: " + (i + 1)
+                            "Selected index: " + (i + 1),
                         );
 
                         cy.window().then(async (win) => {
@@ -1823,23 +1830,27 @@ describe("ChoiceInput Tag Tests", function () {
                                 await win.returnAllStateVariables1();
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedValues
+                                    .selectedValues,
                             ).eqls([choices[i]]);
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedIndices
+                                    .selectedIndices,
                             ).eqls([i + 1]);
                             expect(
-                                stateVariables["/_choice1"].stateValues.selected
+                                stateVariables["/_choice1"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 1);
                             expect(
-                                stateVariables["/_choice2"].stateValues.selected
+                                stateVariables["/_choice2"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 2);
                             expect(
-                                stateVariables["/_choice3"].stateValues.selected
+                                stateVariables["/_choice3"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 3);
                             expect(
-                                stateVariables["/_choice4"].stateValues.selected
+                                stateVariables["/_choice4"].stateValues
+                                    .selected,
                             ).eq(choiceOrder[i] === 4);
                         });
                     });
@@ -1864,7 +1875,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected index: <copy prop='selectedindex' target="_choiceinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1882,16 +1893,16 @@ describe("ChoiceInput Tag Tests", function () {
             ];
             expect(choices).eqls(originalChoices);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -1904,7 +1915,7 @@ describe("ChoiceInput Tag Tests", function () {
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
                 cy.get(cesc(`#\\/_choiceinput1_choice${i + 1}_input`)).should(
-                    "be.disabled"
+                    "be.disabled",
                 );
             } else {
                 cy.get(cesc(`#\\/_choiceinput1_choice${i + 1}_input`))
@@ -1913,11 +1924,11 @@ describe("ChoiceInput Tag Tests", function () {
                         // make this asynchronous  so that choices is populated before line is executed
                         cy.get(cesc("#\\/_p1")).should(
                             "have.text",
-                            "Selected value: " + choices[i]
+                            "Selected value: " + choices[i],
                         );
                         cy.get(cesc("#\\/_p2")).should(
                             "have.text",
-                            "Selected index: " + (i + 1)
+                            "Selected index: " + (i + 1),
                         );
 
                         cy.window().then(async (win) => {
@@ -1925,23 +1936,27 @@ describe("ChoiceInput Tag Tests", function () {
                                 await win.returnAllStateVariables1();
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedValues
+                                    .selectedValues,
                             ).eqls([choices[i]]);
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedIndices
+                                    .selectedIndices,
                             ).eqls([i + 1]);
                             expect(
-                                stateVariables["/_choice1"].stateValues.selected
+                                stateVariables["/_choice1"].stateValues
+                                    .selected,
                             ).eq(i === 0);
                             expect(
-                                stateVariables["/_choice2"].stateValues.selected
+                                stateVariables["/_choice2"].stateValues
+                                    .selected,
                             ).eq(i === 1);
                             expect(
-                                stateVariables["/_choice3"].stateValues.selected
+                                stateVariables["/_choice3"].stateValues
+                                    .selected,
                             ).eq(i === 2);
                             expect(
-                                stateVariables["/_choice4"].stateValues.selected
+                                stateVariables["/_choice4"].stateValues
+                                    .selected,
                             ).eq(i === 3);
                         });
                     });
@@ -1966,7 +1981,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected index: <copy prop='selectedindex' target="_choiceinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1984,16 +1999,16 @@ describe("ChoiceInput Tag Tests", function () {
             ];
             expect(choices).eqls(originalChoices);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -2006,7 +2021,7 @@ describe("ChoiceInput Tag Tests", function () {
         for (let i = 0; i < 4; i++) {
             if (i === 2) {
                 cy.get(cesc(`#\\/_choiceinput1_choice${i + 1}_input`)).should(
-                    "not.exist"
+                    "not.exist",
                 );
             } else {
                 cy.get(cesc(`#\\/_choiceinput1_choice${i + 1}_input`))
@@ -2015,11 +2030,11 @@ describe("ChoiceInput Tag Tests", function () {
                         // make this asynchronous  so that choices is populated before line is executed
                         cy.get(cesc("#\\/_p1")).should(
                             "have.text",
-                            "Selected value: " + choices[i]
+                            "Selected value: " + choices[i],
                         );
                         cy.get(cesc("#\\/_p2")).should(
                             "have.text",
-                            "Selected index: " + (i + 1)
+                            "Selected index: " + (i + 1),
                         );
 
                         cy.window().then(async (win) => {
@@ -2027,23 +2042,27 @@ describe("ChoiceInput Tag Tests", function () {
                                 await win.returnAllStateVariables1();
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedValues
+                                    .selectedValues,
                             ).eqls([choices[i]]);
                             expect(
                                 stateVariables["/_choiceinput1"].stateValues
-                                    .selectedIndices
+                                    .selectedIndices,
                             ).eqls([i + 1]);
                             expect(
-                                stateVariables["/_choice1"].stateValues.selected
+                                stateVariables["/_choice1"].stateValues
+                                    .selected,
                             ).eq(i === 0);
                             expect(
-                                stateVariables["/_choice2"].stateValues.selected
+                                stateVariables["/_choice2"].stateValues
+                                    .selected,
                             ).eq(i === 1);
                             expect(
-                                stateVariables["/_choice3"].stateValues.selected
+                                stateVariables["/_choice3"].stateValues
+                                    .selected,
                             ).eq(i === 2);
                             expect(
-                                stateVariables["/_choice4"].stateValues.selected
+                                stateVariables["/_choice4"].stateValues
+                                    .selected,
                             ).eq(i === 3);
                         });
                     });
@@ -2068,7 +2087,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected indices: <aslist><copy prop='selectedindices' target="_choiceinput1" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2099,19 +2118,19 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(true);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectMultiple
+                stateVariables["/_choiceinput1"].stateValues.selectMultiple,
             ).eq(true);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -2128,36 +2147,38 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected values: " + choices.slice(0, i + 1).join(", ")
+                        "Selected values: " +
+                            choices.slice(0, i + 1).join(", "),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(i + 1).keys()]
                                 .map((x) => x + 1)
-                                .join(", ")
+                                .join(", "),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls(choices.slice(0, i + 1));
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([...Array(i + 1).keys()].map((x) => x + 1));
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder.indexOf(1) <= i
+                    choiceOrder.indexOf(1) <= i,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder.indexOf(2) <= i
+                    choiceOrder.indexOf(2) <= i,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder.indexOf(3) <= i
+                    choiceOrder.indexOf(3) <= i,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder.indexOf(4) <= i
+                    choiceOrder.indexOf(4) <= i,
                 );
             });
         }
@@ -2171,36 +2192,37 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected values: " + choices.slice(i + 1).join(", ")
+                        "Selected values: " + choices.slice(i + 1).join(", "),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(3 - i).keys()]
                                 .map((x) => x + 2 + i)
-                                .join(", ")
+                                .join(", "),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls(choices.slice(i + 1));
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([...Array(3 - i).keys()].map((x) => x + 2 + i));
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder.indexOf(1) > i
+                    choiceOrder.indexOf(1) > i,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder.indexOf(2) > i
+                    choiceOrder.indexOf(2) > i,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder.indexOf(3) > i
+                    choiceOrder.indexOf(3) > i,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder.indexOf(4) > i
+                    choiceOrder.indexOf(4) > i,
                 );
             });
         }
@@ -2214,36 +2236,37 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected values: " + choices.slice(i).join(", ")
+                        "Selected values: " + choices.slice(i).join(", "),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(4 - i).keys()]
                                 .map((x) => x + 1 + i)
-                                .join(", ")
+                                .join(", "),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls(choices.slice(i));
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([...Array(4 - i).keys()].map((x) => x + 1 + i));
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder.indexOf(1) >= i
+                    choiceOrder.indexOf(1) >= i,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder.indexOf(2) >= i
+                    choiceOrder.indexOf(2) >= i,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder.indexOf(3) >= i
+                    choiceOrder.indexOf(3) >= i,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder.indexOf(4) >= i
+                    choiceOrder.indexOf(4) >= i,
                 );
             });
         }
@@ -2266,7 +2289,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p>Selected indices: <aslist><copy prop='selectedindices' target="_choiceinput1" /></aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2301,19 +2324,19 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                true
+                true,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(true);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectMultiple
+                stateVariables["/_choiceinput1"].stateValues.selectMultiple,
             ).eq(true);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -2334,7 +2357,7 @@ describe("ChoiceInput Tag Tests", function () {
                 .select([...Array(i + 1).keys()].map((x) => String(x + 1)))
                 .then(() => {
                     let selectedInds = [...Array(i + 1).keys()].map((x) =>
-                        String(x + 1)
+                        String(x + 1),
                     );
                     cy.get(cesc("#\\/_choiceinput1"))
                         .invoke("val")
@@ -2343,36 +2366,38 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected values: " + choices.slice(0, i + 1).join(", ")
+                        "Selected values: " +
+                            choices.slice(0, i + 1).join(", "),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(i + 1).keys()]
                                 .map((x) => x + 1)
-                                .join(", ")
+                                .join(", "),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls(choices.slice(0, i + 1));
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([...Array(i + 1).keys()].map((x) => x + 1));
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder.indexOf(1) <= i
+                    choiceOrder.indexOf(1) <= i,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder.indexOf(2) <= i
+                    choiceOrder.indexOf(2) <= i,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder.indexOf(3) <= i
+                    choiceOrder.indexOf(3) <= i,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder.indexOf(4) <= i
+                    choiceOrder.indexOf(4) <= i,
                 );
             });
         }
@@ -2382,7 +2407,7 @@ describe("ChoiceInput Tag Tests", function () {
         for (let i = 0; i < 4; i++) {
             cy.window().then(async (win) => {
                 let indicesToSelect = [...Array(3 - i).keys()].map((x) =>
-                    String(x + 2 + i)
+                    String(x + 2 + i),
                 );
                 if (i === 3) {
                     indicesToSelect = [""];
@@ -2392,7 +2417,7 @@ describe("ChoiceInput Tag Tests", function () {
                     .select(indicesToSelect)
                     .then(() => {
                         let selectedInds = [...Array(3 - i).keys()].map((x) =>
-                            String(x + 2 + i)
+                            String(x + 2 + i),
                         );
                         cy.get(cesc("#\\/_choiceinput1"))
                             .invoke("val")
@@ -2402,14 +2427,14 @@ describe("ChoiceInput Tag Tests", function () {
                         cy.get(cesc("#\\/_p1")).should(
                             "have.text",
                             "Selected values: " +
-                                choices.slice(i + 1).join(", ")
+                                choices.slice(i + 1).join(", "),
                         );
                         cy.get(cesc("#\\/_p2")).should(
                             "have.text",
                             "Selected indices: " +
                                 [...Array(3 - i).keys()]
                                     .map((x) => x + 2 + i)
-                                    .join(", ")
+                                    .join(", "),
                         );
                     });
 
@@ -2417,23 +2442,23 @@ describe("ChoiceInput Tag Tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/_choiceinput1"].stateValues
-                            .selectedValues
+                            .selectedValues,
                     ).eqls(choices.slice(i + 1));
                     expect(
                         stateVariables["/_choiceinput1"].stateValues
-                            .selectedIndices
+                            .selectedIndices,
                     ).eqls([...Array(3 - i).keys()].map((x) => x + 2 + i));
                     expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                        choiceOrder.indexOf(1) > i
+                        choiceOrder.indexOf(1) > i,
                     );
                     expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                        choiceOrder.indexOf(2) > i
+                        choiceOrder.indexOf(2) > i,
                     );
                     expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                        choiceOrder.indexOf(3) > i
+                        choiceOrder.indexOf(3) > i,
                     );
                     expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                        choiceOrder.indexOf(4) > i
+                        choiceOrder.indexOf(4) > i,
                     );
                 });
             });
@@ -2446,7 +2471,7 @@ describe("ChoiceInput Tag Tests", function () {
                 .select([...Array(4 - i).keys()].map((x) => String(x + 1 + i)))
                 .then(() => {
                     let selectedInds = [...Array(4 - i).keys()].map((x) =>
-                        String(x + 1 + i)
+                        String(x + 1 + i),
                     );
                     cy.get(cesc("#\\/_choiceinput1"))
                         .invoke("val")
@@ -2455,36 +2480,37 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected values: " + choices.slice(i).join(", ")
+                        "Selected values: " + choices.slice(i).join(", "),
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
                         "Selected indices: " +
                             [...Array(4 - i).keys()]
                                 .map((x) => x + 1 + i)
-                                .join(", ")
+                                .join(", "),
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls(choices.slice(i));
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([...Array(4 - i).keys()].map((x) => x + 1 + i));
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder.indexOf(1) >= i
+                    choiceOrder.indexOf(1) >= i,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder.indexOf(2) >= i
+                    choiceOrder.indexOf(2) >= i,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder.indexOf(3) >= i
+                    choiceOrder.indexOf(3) >= i,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder.indexOf(4) >= i
+                    choiceOrder.indexOf(4) >= i,
                 );
             });
         }
@@ -2508,7 +2534,7 @@ describe("ChoiceInput Tag Tests", function () {
     <updateValue triggerWith="ci" target="t" newValue="$t $ci" type="text" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2549,7 +2575,7 @@ describe("ChoiceInput Tag Tests", function () {
     $g{name="g2" link="false"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2567,43 +2593,43 @@ describe("ChoiceInput Tag Tests", function () {
 
             cy.get(`label[for=${cesc2("/g/ci_choice1_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[0] - 1]
+                choices[choiceOrder[0] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice2_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[1] - 1]
+                choices[choiceOrder[1] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice3_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[2] - 1]
+                choices[choiceOrder[2] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice4_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[3] - 1]
+                choices[choiceOrder[3] - 1],
             );
             cy.get(`label[for=${cesc2("/g/ci_choice5_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[4] - 1]
+                choices[choiceOrder[4] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice1_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[0] - 1]
+                choices[choiceOrder[0] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice2_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[1] - 1]
+                choices[choiceOrder[1] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice3_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[2] - 1]
+                choices[choiceOrder[2] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice4_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[3] - 1]
+                choices[choiceOrder[3] - 1],
             );
             cy.get(`label[for=${cesc2("/g2/ci_choice5_input")}]`).should(
                 "have.text",
-                choices[choiceOrder[4] - 1]
+                choices[choiceOrder[4] - 1],
             );
         });
     });
@@ -2628,7 +2654,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2639,7 +2665,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/_p3")).should("have.text", "Selected value: ");
         cy.get(cesc("#\\/_p4")).should(
             "have.text",
-            "Selected value simplified: "
+            "Selected value simplified: ",
         );
 
         cy.get(cesc(`#\\/_choiceinput1_choice1_input`)).click({ force: true });
@@ -2719,7 +2745,7 @@ describe("ChoiceInput Tag Tests", function () {
   `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2735,7 +2761,7 @@ describe("ChoiceInput Tag Tests", function () {
             let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
             expect([...choiceOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = choiceOrder;
@@ -2756,7 +2782,7 @@ describe("ChoiceInput Tag Tests", function () {
             let choiceOrder = stateVariables["/ci"].stateValues.choiceOrder;
 
             expect([...choiceOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = choiceOrder;
@@ -2821,7 +2847,7 @@ describe("ChoiceInput Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2838,7 +2864,7 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choiceOrder).not.eqls(orders[[m, n]]);
 
             expect([...choiceOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = choiceOrder;
@@ -2861,7 +2887,7 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choiceOrder).not.eqls(orders[[m, n]]);
 
             expect([...choiceOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = choiceOrder;
@@ -2931,7 +2957,7 @@ describe("ChoiceInput Tag Tests", function () {
     `,
                     requestedVariantIndex: 4,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2944,11 +2970,11 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/pDog")).should("have.text", "Selected dog: false");
         cy.get(cesc("#\\/pMonkey")).should(
             "have.text",
-            "Selected monkey: false"
+            "Selected monkey: false",
         );
         cy.get(cesc("#\\/pNone")).should(
             "have.text",
-            "Selected none of the above: false"
+            "Selected none of the above: false",
         );
 
         let choices, choiceOrder;
@@ -2974,16 +3000,16 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -3000,50 +3026,51 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected value: " + choices[i]
+                        "Selected value: " + choices[i],
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        "Selected index: " + (i + 1)
+                        "Selected index: " + (i + 1),
                     );
 
                     cy.get(cesc("#\\/pCat")).should(
                         "have.text",
-                        `Selected cat: ${choiceOrder[i] === 1}`
+                        `Selected cat: ${choiceOrder[i] === 1}`,
                     );
                     cy.get(cesc("#\\/pDog")).should(
                         "have.text",
-                        `Selected dog: ${choiceOrder[i] === 2}`
+                        `Selected dog: ${choiceOrder[i] === 2}`,
                     );
                     cy.get(cesc("#\\/pMonkey")).should(
                         "have.text",
-                        `Selected monkey: ${choiceOrder[i] === 3}`
+                        `Selected monkey: ${choiceOrder[i] === 3}`,
                     );
                     cy.get(cesc("#\\/pNone")).should(
                         "have.text",
-                        `Selected none of the above: ${choiceOrder[i] === 4}`
+                        `Selected none of the above: ${choiceOrder[i] === 4}`,
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls([choices[i]]);
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([i + 1]);
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder[i] === 1
+                    choiceOrder[i] === 1,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder[i] === 2
+                    choiceOrder[i] === 2,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder[i] === 3
+                    choiceOrder[i] === 3,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder[i] === 4
+                    choiceOrder[i] === 4,
                 );
             });
         }
@@ -3073,7 +3100,7 @@ describe("ChoiceInput Tag Tests", function () {
     <p name="pMonkey">Selected monkey: $_choice4.selected</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3087,7 +3114,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/pCat")).should("have.text", "Selected cat: false");
         cy.get(cesc("#\\/pMonkey")).should(
             "have.text",
-            "Selected monkey: false"
+            "Selected monkey: false",
         );
 
         let choices, choiceOrder;
@@ -3109,16 +3136,16 @@ describe("ChoiceInput Tag Tests", function () {
             expect(choices[3]).not.eq(choices[1]);
             expect(choices[3]).not.eq(choices[2]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedValues
+                stateVariables["/_choiceinput1"].stateValues.selectedValues,
             ).eqls([]);
             expect(
-                stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                stateVariables["/_choiceinput1"].stateValues.selectedIndices,
             ).eqls([]);
             expect(stateVariables["/_choiceinput1"].stateValues.inline).eq(
-                false
+                false,
             );
             expect(
-                stateVariables["/_choiceinput1"].stateValues.shuffleOrder
+                stateVariables["/_choiceinput1"].stateValues.shuffleOrder,
             ).eq(false);
             expect(stateVariables["/_choice1"].stateValues.selected).eq(false);
             expect(stateVariables["/_choice2"].stateValues.selected).eq(false);
@@ -3135,50 +3162,51 @@ describe("ChoiceInput Tag Tests", function () {
                     // make this asynchronous so that choices is populated before line is executed
                     cy.get(cesc("#\\/_p1")).should(
                         "have.text",
-                        "Selected value: " + choices[i]
+                        "Selected value: " + choices[i],
                     );
                     cy.get(cesc("#\\/_p2")).should(
                         "have.text",
-                        "Selected index: " + (i + 1)
+                        "Selected index: " + (i + 1),
                     );
 
                     cy.get(cesc("#\\/pMouse")).should(
                         "have.text",
-                        `Selected mouse: ${choiceOrder[i] === 1}`
+                        `Selected mouse: ${choiceOrder[i] === 1}`,
                     );
                     cy.get(cesc("#\\/pDog")).should(
                         "have.text",
-                        `Selected dog: ${choiceOrder[i] === 2}`
+                        `Selected dog: ${choiceOrder[i] === 2}`,
                     );
                     cy.get(cesc("#\\/pCat")).should(
                         "have.text",
-                        `Selected cat: ${choiceOrder[i] === 3}`
+                        `Selected cat: ${choiceOrder[i] === 3}`,
                     );
                     cy.get(cesc("#\\/pMonkey")).should(
                         "have.text",
-                        `Selected monkey: ${choiceOrder[i] === 4}`
+                        `Selected monkey: ${choiceOrder[i] === 4}`,
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedValues
+                    stateVariables["/_choiceinput1"].stateValues.selectedValues,
                 ).eqls([choices[i]]);
                 expect(
-                    stateVariables["/_choiceinput1"].stateValues.selectedIndices
+                    stateVariables["/_choiceinput1"].stateValues
+                        .selectedIndices,
                 ).eqls([i + 1]);
                 expect(stateVariables["/_choice1"].stateValues.selected).eq(
-                    choiceOrder[i] === 1
+                    choiceOrder[i] === 1,
                 );
                 expect(stateVariables["/_choice2"].stateValues.selected).eq(
-                    choiceOrder[i] === 2
+                    choiceOrder[i] === 2,
                 );
                 expect(stateVariables["/_choice3"].stateValues.selected).eq(
-                    choiceOrder[i] === 3
+                    choiceOrder[i] === 3,
                 );
                 expect(stateVariables["/_choice4"].stateValues.selected).eq(
-                    choiceOrder[i] === 4
+                    choiceOrder[i] === 4,
                 );
             });
         }
@@ -3222,7 +3250,7 @@ describe("ChoiceInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3236,13 +3264,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc("#\\/pDog1")).should("have.text", "Selected dog1: false");
         cy.get(cesc("#\\/pMonkey1")).should(
             "have.text",
-            "Selected monkey1: false"
+            "Selected monkey1: false",
         );
         cy.get(cesc("#\\/pCat2")).should("have.text", "Selected cat2: false");
         cy.get(cesc("#\\/pDog2")).should("have.text", "Selected dog2: false");
         cy.get(cesc("#\\/pMonkey2")).should(
             "have.text",
-            "Selected monkey2: false"
+            "Selected monkey2: false",
         );
 
         cy.log("select options 1 in order");
@@ -3252,11 +3280,11 @@ describe("ChoiceInput Tag Tests", function () {
 
             cy.get(cesc("#\\/pSv1")).should(
                 "have.text",
-                "Selected value 1: " + choices[i]
+                "Selected value 1: " + choices[i],
             );
             cy.get(cesc("#\\/pSi1")).should(
                 "have.text",
-                "Selected index 1: " + (i + 1)
+                "Selected index 1: " + (i + 1),
             );
 
             cy.get(cesc("#\\/pSv2")).should("have.text", "Selected value 2: ");
@@ -3264,27 +3292,27 @@ describe("ChoiceInput Tag Tests", function () {
 
             cy.get(cesc("#\\/pCat1")).should(
                 "have.text",
-                `Selected cat1: ${i === 0}`
+                `Selected cat1: ${i === 0}`,
             );
             cy.get(cesc("#\\/pDog1")).should(
                 "have.text",
-                `Selected dog1: ${i === 1}`
+                `Selected dog1: ${i === 1}`,
             );
             cy.get(cesc("#\\/pMonkey1")).should(
                 "have.text",
-                `Selected monkey1: ${i == 2}`
+                `Selected monkey1: ${i == 2}`,
             );
             cy.get(cesc("#\\/pCat2")).should(
                 "have.text",
-                "Selected cat2: false"
+                "Selected cat2: false",
             );
             cy.get(cesc("#\\/pDog2")).should(
                 "have.text",
-                "Selected dog2: false"
+                "Selected dog2: false",
             );
             cy.get(cesc("#\\/pMonkey2")).should(
                 "have.text",
-                "Selected monkey2: false"
+                "Selected monkey2: false",
             );
         }
 
@@ -3295,43 +3323,43 @@ describe("ChoiceInput Tag Tests", function () {
 
             cy.get(cesc("#\\/pSv2")).should(
                 "have.text",
-                "Selected value 2: " + choices[i]
+                "Selected value 2: " + choices[i],
             );
             cy.get(cesc("#\\/pSi2")).should(
                 "have.text",
-                "Selected index 2: " + (i + 1)
+                "Selected index 2: " + (i + 1),
             );
 
             cy.get(cesc("#\\/pSv1")).should(
                 "have.text",
-                "Selected value 1: monkey"
+                "Selected value 1: monkey",
             );
             cy.get(cesc("#\\/pSi1")).should("have.text", "Selected index 1: 3");
 
             cy.get(cesc("#\\/pCat1")).should(
                 "have.text",
-                "Selected cat1: false"
+                "Selected cat1: false",
             );
             cy.get(cesc("#\\/pDog1")).should(
                 "have.text",
-                "Selected dog1: false"
+                "Selected dog1: false",
             );
             cy.get(cesc("#\\/pMonkey1")).should(
                 "have.text",
-                "Selected monkey1: true"
+                "Selected monkey1: true",
             );
 
             cy.get(cesc("#\\/pCat2")).should(
                 "have.text",
-                `Selected cat2: ${i === 0}`
+                `Selected cat2: ${i === 0}`,
             );
             cy.get(cesc("#\\/pDog2")).should(
                 "have.text",
-                `Selected dog2: ${i === 1}`
+                `Selected dog2: ${i === 1}`,
             );
             cy.get(cesc("#\\/pMonkey2")).should(
                 "have.text",
-                `Selected monkey2: ${i == 2}`
+                `Selected monkey2: ${i == 2}`,
             );
         }
     });
@@ -3354,7 +3382,7 @@ describe("ChoiceInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3401,25 +3429,25 @@ describe("ChoiceInput Tag Tests", function () {
     <updateValue triggerWith="toggleLabels" target="_label2.hide" newValue="!$_label2.hide" type="boolean" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc2("#/ci1-label")).should("contain.text", "Select an option");
         cy.get(cesc2("#/ci2-label")).should(
             "contain.text",
-            "Select another option"
+            "Select another option",
         );
 
         cy.log("hide labels");
         cy.get(cesc2("#/toggleLabels")).click();
         cy.get(cesc2("#/ci1-label")).should(
             "not.contain.text",
-            "Select an option"
+            "Select an option",
         );
         cy.get(cesc2("#/ci2-label")).should(
             "not.contain.text",
-            "Select another option"
+            "Select another option",
         );
 
         cy.log("show labels again");
@@ -3427,7 +3455,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/ci1-label")).should("contain.text", "Select an option");
         cy.get(cesc2("#/ci2-label")).should(
             "contain.text",
-            "Select another option"
+            "Select another option",
         );
     });
 
@@ -3509,12 +3537,12 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected value: ");
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "no"
+            "no",
         );
         cy.get(cesc2("#/fromMacroCi") + "_input").should("have.value", "yes");
 
         cy.log(
-            "Change value from text ci.selectedValue works after starting afresh"
+            "Change value from text ci.selectedValue works after starting afresh",
         );
         cy.get(cesc2("#/fromTextSelectedValue") + "_input")
             .clear()
@@ -3525,7 +3553,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/fromMacroCi") + "_input").should("have.value", "maybe");
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "maybe"
+            "maybe",
         );
 
         cy.log("We can now change from macros");
@@ -3546,24 +3574,24 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected value: ");
 
         cy.log(
-            "Change value from math ci.selectedIndices works after starting afresh"
+            "Change value from math ci.selectedIndices works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndices") + " textarea").type(
             "3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: maybe");
 
         cy.log(
-            "Invalid value into from math ci.selectedIndex deselects all options"
+            "Invalid value into from math ci.selectedIndex deselects all options",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: ");
 
@@ -3572,7 +3600,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: maybe");
 
@@ -3581,7 +3609,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: no");
 
@@ -3590,7 +3618,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: yes");
 
@@ -3606,7 +3634,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3618,7 +3646,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3626,13 +3654,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected value: ");
 
         cy.log(
-            "can add value into from math ci.selectedIndex even after starting afresh"
+            "can add value into from math ci.selectedIndex even after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected value: no");
     });
@@ -3666,7 +3694,7 @@ describe("ChoiceInput Tag Tests", function () {
 
         cy.log("typing in wrong value doesn't do anything");
         cy.get(cesc2("#/fromTextSelectedValue") + "_input").type(
-            "nothing{enter}"
+            "nothing{enter}",
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3675,7 +3703,7 @@ describe("ChoiceInput Tag Tests", function () {
 
         cy.log("Select value from text ci.selectedValue");
         cy.get(cesc2("#/fromTextSelectedValue") + "_input").type(
-            "maybe{enter}"
+            "maybe{enter}",
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: maybe");
 
@@ -3695,7 +3723,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: no, maybe");
 
         cy.log(
-            "Repeat first value from text ci.selectedValue2 reduces to one value"
+            "Repeat first value from text ci.selectedValue2 reduces to one value",
         );
         cy.get(cesc2("#/fromTextSelectedValue2") + "_input")
             .clear()
@@ -3709,7 +3737,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: yes, no");
 
         cy.log(
-            "Repeat second value from text ci.selectedValue reduces to one value"
+            "Repeat second value from text ci.selectedValue reduces to one value",
         );
         cy.get(cesc2("#/fromTextSelectedValue") + "_input")
             .clear()
@@ -3732,7 +3760,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "yes"
+            "yes",
         );
 
         cy.get(cesc2("#/fromMacroSelectedValue2") + "_input")
@@ -3744,15 +3772,15 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
         cy.get(cesc2("#/fromMacroSelectedValue2") + "_input").should(
             "have.value",
-            "no"
+            "no",
         );
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "yes"
+            "yes",
         );
 
         cy.log(
-            "Change value from text ci.selectedValue2 works after starting afresh"
+            "Change value from text ci.selectedValue2 works after starting afresh",
         );
         cy.get(cesc2("#/fromTextSelectedValue2") + "_input")
             .clear()
@@ -3762,11 +3790,11 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("Textinput from first macro is now attached");
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "maybe"
+            "maybe",
         );
         cy.get(cesc2("#/fromMacroSelectedValue2") + "_input").should(
             "have.value",
-            "no"
+            "no",
         );
         cy.log("Add second value from text ci.selectedValue2");
         cy.get(cesc2("#/fromTextSelectedValue2") + "_input")
@@ -3776,11 +3804,11 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("Textinputs from both macros are now attached");
         cy.get(cesc2("#/fromMacroSelectedValue") + "_input").should(
             "have.value",
-            "yes"
+            "yes",
         );
         cy.get(cesc2("#/fromMacroSelectedValue2") + "_input").should(
             "have.value",
-            "maybe"
+            "maybe",
         );
 
         cy.log("We can now change from macros");
@@ -3801,13 +3829,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
 
         cy.log(
-            "Change value from math ci.selectedIndex works after starting afresh"
+            "Change value from math ci.selectedIndex works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: maybe");
 
@@ -3816,7 +3844,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3828,7 +3856,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: yes, maybe");
 
@@ -3837,7 +3865,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: no, maybe");
 
@@ -3846,18 +3874,18 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: yes, no");
 
         cy.log(
-            "Enter repeated value into from macro ci.selectedIndex2 selects just one"
+            "Enter repeated value into from macro ci.selectedIndex2 selects just one",
         );
         cy.get(cesc2("#/fromMacroSelectedIndex2") + " textarea").type(
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: yes");
 
@@ -3873,7 +3901,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3885,7 +3913,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -3893,13 +3921,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
 
         cy.log(
-            "can add value into from math ci.selectedIndex2 even after starting afresh"
+            "can add value into from math ci.selectedIndex2 even after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex2") + " textarea").type(
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p")).should("have.text", "Selected values: no");
     });
@@ -3950,30 +3978,30 @@ describe("ChoiceInput Tag Tests", function () {
         });
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "z"
+            "z",
         );
 
         cy.log("Change value from math ci.selectedValue");
         cy.get(cesc2("#/fromMathSelectedValue") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "y"
+            "y",
         );
 
         cy.log("Invalid value into math ci.selectedValue does nothing");
         cy.get(cesc2("#/fromMathSelectedValue") + " textarea").type(
             "{end}{backspace}bad{enter}",
-            { force: true }
+            { force: true },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
         cy.get(cesc2("#/b")).should("have.text", "false");
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "y"
+            "y",
         );
 
         cy.reload();
@@ -4004,7 +4032,7 @@ describe("ChoiceInput Tag Tests", function () {
             "y{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4024,17 +4052,17 @@ describe("ChoiceInput Tag Tests", function () {
             });
 
         cy.log(
-            "Change value from math ci.selectedValue works after starting afresh"
+            "Change value from math ci.selectedValue works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedValue") + " textarea").type(
             "z{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "z"
+            "z",
         );
 
         cy.log("Mathinputs from macros are now attached");
@@ -4052,20 +4080,20 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("We can now change from macros");
         cy.get(cesc2("#/fromMacroCi") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc2("#/fromMacroSelectedValue") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "y"
+            "y",
         );
 
         cy.reload();
@@ -4077,31 +4105,31 @@ describe("ChoiceInput Tag Tests", function () {
             .should("have.text", "\uff3f");
 
         cy.log(
-            "Change value from math ci.selectedIndices works after starting afresh"
+            "Change value from math ci.selectedIndices works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndices") + " textarea").type(
             "3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "z"
+            "z",
         );
 
         cy.log(
-            "Invalid value into from math ci.selectedIndex deselects all options"
+            "Invalid value into from math ci.selectedIndex deselects all options",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow")
             .eq(0)
@@ -4112,11 +4140,11 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "z"
+            "z",
         );
 
         cy.log("Enter value into from macro ci.selectedIndices");
@@ -4124,11 +4152,11 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "y"
+            "y",
         );
 
         cy.log("Enter value into from macro ci.selectedIndex");
@@ -4136,11 +4164,11 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.reload();
@@ -4157,7 +4185,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4171,7 +4199,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4181,17 +4209,17 @@ describe("ChoiceInput Tag Tests", function () {
             .should("have.text", "\uff3f");
 
         cy.log(
-            "can add value into from math ci.selectedIndex even after starting afresh"
+            "can add value into from math ci.selectedIndex even after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/selectedValue") + " .mjx-mrow").should(
             "have.text",
-            "y"
+            "y",
         );
     });
 
@@ -4225,7 +4253,7 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("typing in wrong value doesn't do anything");
         cy.get(cesc2("#/fromMathSelectedValue") + " textarea").type(
             "nothing{enter}",
-            { force: true }
+            { force: true },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4237,7 +4265,7 @@ describe("ChoiceInput Tag Tests", function () {
             "z{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "z");
 
@@ -4246,7 +4274,7 @@ describe("ChoiceInput Tag Tests", function () {
             "y{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "yz");
 
@@ -4255,7 +4283,7 @@ describe("ChoiceInput Tag Tests", function () {
             "bad{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4263,11 +4291,11 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "yz");
 
         cy.log(
-            "Repeat first value from math ci.selectedValue2 reduces to one value"
+            "Repeat first value from math ci.selectedValue2 reduces to one value",
         );
         cy.get(cesc2("#/fromMathSelectedValue2") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "y");
 
@@ -4279,11 +4307,11 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "xy");
 
         cy.log(
-            "Repeat second value from math ci.selectedValue reduces to one value"
+            "Repeat second value from math ci.selectedValue reduces to one value",
         );
         cy.get(cesc2("#/fromMathSelectedValue") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "y");
 
@@ -4298,7 +4326,7 @@ describe("ChoiceInput Tag Tests", function () {
             "x{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4314,7 +4342,7 @@ describe("ChoiceInput Tag Tests", function () {
             "y{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4332,13 +4360,13 @@ describe("ChoiceInput Tag Tests", function () {
             });
 
         cy.log(
-            "Change value from math ci.selectedValue2 works after starting afresh"
+            "Change value from math ci.selectedValue2 works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedValue2") + " textarea").type(
             "z{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "z");
 
@@ -4359,7 +4387,7 @@ describe("ChoiceInput Tag Tests", function () {
             "x{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "xz");
         cy.log("Mathinputs from both macros are now attached");
@@ -4377,13 +4405,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.log("We can now change from macros");
         cy.get(cesc2("#/fromMacroSelectedValue") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "yz");
 
         cy.get(cesc2("#/fromMacroSelectedValue2") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "xy");
 
@@ -4394,13 +4422,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
 
         cy.log(
-            "Change value from math ci.selectedIndex works after starting afresh"
+            "Change value from math ci.selectedIndex works after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex") + " textarea").type(
             "3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "z");
 
@@ -4409,7 +4437,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}4{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4421,7 +4449,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "xz");
 
@@ -4430,7 +4458,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "yz");
 
@@ -4439,18 +4467,18 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "xy");
 
         cy.log(
-            "Enter repeated value into from macro ci.selectedIndex2 selects just one"
+            "Enter repeated value into from macro ci.selectedIndex2 selects just one",
         );
         cy.get(cesc2("#/fromMacroSelectedIndex2") + " textarea").type(
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "x");
 
@@ -4466,7 +4494,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4478,7 +4506,7 @@ describe("ChoiceInput Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         // since nothing will change, wait for core to respond to booleaninput change
         cy.get(cesc2("#/bi")).click();
@@ -4486,13 +4514,13 @@ describe("ChoiceInput Tag Tests", function () {
         cy.get(cesc2("#/p")).should("have.text", "Selected values: ");
 
         cy.log(
-            "can add value into from math ci.selectedIndex2 even after starting afresh"
+            "can add value into from math ci.selectedIndex2 even after starting afresh",
         );
         cy.get(cesc2("#/fromMathSelectedIndex2") + " textarea").type(
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/p") + " .mjx-mrow").should("have.text", "y");
     });

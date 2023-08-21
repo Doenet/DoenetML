@@ -3,7 +3,7 @@ import { cesc } from "../../../src/utils/url";
 describe("Single Character Tag Tests", function () {
     beforeEach(() => {
         cy.clearIndexedDB();
-        cy.visit("/src/Tools/cypressTest");
+        cy.visit("/src/Tools/cypressTest/");
     });
 
     it("dashes", () => {
