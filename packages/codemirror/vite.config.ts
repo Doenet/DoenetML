@@ -9,7 +9,7 @@ export default defineConfig({
         minify: false,
         sourcemap: true,
         lib: {
-            entry: "./src/CodeMirror.jsx",
+            entry: "./src/CodeMirror.tsx",
             fileName: "index",
             formats: ["es"],
         },
