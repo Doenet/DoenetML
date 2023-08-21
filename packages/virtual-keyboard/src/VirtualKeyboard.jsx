@@ -15,7 +15,6 @@ import {
     Tooltip,
     IconButton,
 } from "@chakra-ui/react";
-import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
@@ -33,7 +32,7 @@ import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 
-export default function VirtualKeyboard() {
+export function VirtualKeyboard() {
     const [toggleLetters, setToggleLetters] = useState(false);
     const [toggleABCCase, setToggleABCCase] = useState(false);
     const [toggleGreekCase, setToggleGreekCase] = useState(false);

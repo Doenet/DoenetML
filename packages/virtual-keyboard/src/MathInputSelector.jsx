@@ -1,12 +1,4 @@
-import React, { useEffect, useRef, useState, Suspense } from "react";
-import {
-    atom,
-    useRecoilState,
-    selector,
-    atomFamily,
-    selectorFamily,
-    useRecoilValueLoadable,
-} from "recoil";
+import { atom } from "recoil";
 
 export const focusedMathField = atom({
     key: "focusedMathField",
