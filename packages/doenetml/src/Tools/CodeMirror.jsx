@@ -223,7 +223,7 @@ export default function CodeMirror({
                     tagNameNode.to,
                 );
 
-                //an ineffecient hack to make it so the modified document is saved directly after tagMatch
+                //an inefficient hack to make it so the modified document is saved directly after tagMatch
                 let tra = tr.state.update({
                     changes: {
                         from: cursorPos,
@@ -321,7 +321,7 @@ export default function CodeMirror({
     ]);
 
     //TODO any updates would force an update of each part of the config.
-    //Doesn't matter since there's only one toggle at the moment, but could cause unneccesary work later
+    //Doesn't matter since there's only one toggle at the moment, but could cause unnecessary work later
     useEffect(() => {
         // console.log(">>>config update")
         if (editorConfig.matchTag) {
