@@ -4,7 +4,7 @@
     "outDir": "./dist/",
     "rootDir": "./src"
   },
-  "include": ["./**/*.ts", "./**/*.tsx", "./src/generated-assets/*.js"],
+  "include": ["./**/*.ts", "./**/*.tsx"],
   "exclude": [
     "./**/*.test.ts",
     "./**/*.stub.ts",

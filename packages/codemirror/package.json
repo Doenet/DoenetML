@@ -20,6 +20,7 @@
         "build": "vite build"
     },
     "dependencies": {
+        "@doenet/parser": "file:parser",
         "@codemirror/basic-setup": "^0.19.0",
         "@codemirror/commands": "^0.19.5",
         "@codemirror/gutter": "^0.19.9",

@@ -32,6 +32,7 @@
         "resolveJsonModule": true,
         "skipLibCheck": true,
         "paths": {
+            "@doenet/parser": ["./packages/parser/dist"],
             "@doenet/*": ["./packages/*"]
         }
     }
