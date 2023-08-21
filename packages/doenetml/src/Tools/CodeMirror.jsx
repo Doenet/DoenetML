@@ -5,12 +5,12 @@ import React, {
     useRef,
     useState,
 } from "react";
-import { basicSetup } from "@codemirror/basic-setup";
+import { basicSetup } from "codemirror";
 import { EditorState, Transaction, StateEffect } from "@codemirror/state";
 import { selectLine, deleteLine, cursorLineUp } from "@codemirror/commands";
 import { EditorView, keymap } from "@codemirror/view";
-import { styleTags, tags as t } from "@codemirror/highlight";
-import { gutter, lineNumbers } from "@codemirror/gutter";
+import { styleTags, tags as t } from "@lezer/highlight";
+import { gutter, lineNumbers } from "@codemirror/view";
 import {
     LRLanguage,
     LanguageSupport,
@@ -125,7 +125,7 @@ export default function CodeMirror({
             state.update(state.replaceSelection(tab), {
                 scrollIntoView: true,
                 annotations: Transaction.userEvent.of("input"),
-            })
+            }),
         );
         return true;
     };
@@ -174,7 +174,7 @@ export default function CodeMirror({
                 state.update(state.replaceSelection(""), {
                     scrollIntoView: true,
                     annotations: Transaction.userEvent.of("input"),
-                })
+                }),
             );
         }
         return true;
@@ -200,7 +200,7 @@ export default function CodeMirror({
             EditorState.changeFilter.of(changeFunc),
             EditorView.updateListener.of(changeFunc),
         ],
-        [changeFunc]
+        [changeFunc],
     );
 
     const matchTag = useCallback(
@@ -220,7 +220,7 @@ export default function CodeMirror({
                 let tagNameNode = node.firstChild.nextSibling;
                 let tagName = tr.newDoc.sliceString(
                     tagNameNode.from,
-                    tagNameNode.to
+                    tagNameNode.to,
                 );
 
                 //an ineffecient hack to make it so the modified document is saved directly after tagMatch
@@ -247,7 +247,7 @@ export default function CodeMirror({
                 return tr;
             }
         },
-        [changeFunc]
+        [changeFunc],
     );
 
     const state = EditorState.create({
@@ -305,7 +305,7 @@ export default function CodeMirror({
                 if (editorConfig.matchTag) {
                     view.current.dispatch({
                         effects: StateEffect.appendConfig.of(
-                            EditorState.transactionFilter.of(matchTag)
+                            EditorState.transactionFilter.of(matchTag),
                         ),
                     });
                 }
@@ -327,7 +327,7 @@ export default function CodeMirror({
         if (editorConfig.matchTag) {
             view.current.dispatch({
                 effects: StateEffect.appendConfig.of(
-                    EditorState.transactionFilter.of(matchTag)
+                    EditorState.transactionFilter.of(matchTag),
                 ),
             });
         } else {
@@ -427,7 +427,7 @@ const doenet = (conf = {}) =>
         doenetLanguage.data.of({
             autocomplete: completeFromSchema(
                 conf.elements || [],
-                conf.attributes || []
+                conf.attributes || [],
             ),
-        })
+        }),
     );

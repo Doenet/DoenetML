@@ -15,3 +15,4 @@ export {
 } from "./src/Core/utils/serializedStateProcessing";
 export { returnAllPossibleVariants } from "./src/Core/utils/returnAllPossibleVariants";
 export { default as CodeMirror } from "./src/Tools/CodeMirror";
+export { default as CodeEditor } from "./src/Viewer/renderers/codeEditor";
