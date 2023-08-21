@@ -70,7 +70,7 @@ Button.defaultProps = {
 
 export default function ToggleButton(props) {
     const [isSelected, setSelected] = useState(
-        props.isSelected ? props.isSelected : false
+        props.isSelected ? props.isSelected : false,
     );
     const labelVisible = props.label ? "static" : "none";
     const align = props.vertical ? "static" : "flex";
@@ -136,7 +136,7 @@ export default function ToggleButton(props) {
             props.onClick(
                 props.index !== null && props.index !== undefined
                     ? props.index
-                    : null
+                    : null,
             );
     }
 

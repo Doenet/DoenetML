@@ -54,14 +54,14 @@ const ActionButtonGroup = (props) => {
                 elem
                     .slice(1, -1)
                     .map((x) =>
-                        React.cloneElement(x, { overflow: overflow_prop })
-                    )
+                        React.cloneElement(x, { overflow: overflow_prop }),
+                    ),
             )
             .concat(
                 React.cloneElement(elem[elem.length - 1], {
                     num: last_prop,
                     overflow: overflow_prop,
-                })
+                }),
             );
     }
 
