@@ -51,18 +51,19 @@ export function parse(inText: string) {
     return parser.parse(inText).cursor();
 }
 /**
- * parse string and output a convinent to use object.
+ * parse string and output a convenient to use object.
  * ignores macros.
  * @param {string} inText
  */
-export function parseAndCompile(inText) {
-    let errors = [];
+export function parseAndCompile(inText: string) {
+    let errors: ParseError[] = [];
 
-    function compileElement(cursor) {
+    function compileElement(cursor: TreeCursor) {
         if (cursor.name !== "Element") {
             throw Error("compileElement() called on a non-Element");
         }
         cursor.firstChild();
+        // @ts-ignore
         if (cursor.name === "OpenTag") {
             //skip the start tag node
             cursor.firstChild();
@@ -84,8 +85,8 @@ export function parseAndCompile(inText) {
                 adjustedTagName = "_error";
             }
 
-            let attrs = {};
-            let attrRanges = {};
+            let attrs: Element["props"] = {};
+            let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
                 //All of the siblings must b.name Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
@@ -178,14 +179,14 @@ export function parseAndCompile(inText) {
 
             let tagOpenEnd = cursor.to;
 
-            let element = {
+            let element: Element = {
                 componentType: adjustedTagName,
                 props: {},
                 children: [],
             };
 
             if (adjustedTagName === "_error") {
-                element.state = { message };
+                element.state = { message: message || "" };
                 element.doenetAttributes = {
                     createNameFromComponentType: tagName,
                 };
@@ -203,7 +204,7 @@ export function parseAndCompile(inText) {
             // the text case, in which case we'll just push a string into the children,
             // and the element case, in which case we recurse
 
-            //Corrosponds to the entity non-terminal in the grammar
+            // Corresponds to the entity non-terminal in the grammar
             while (cursor.nextSibling()) {
                 if (cursor.name === "Text") {
                     let txt = inText.substring(cursor.from, cursor.to);
@@ -327,6 +328,7 @@ export function parseAndCompile(inText) {
                 };
             }
             return element;
+            // @ts-ignore
         } else if (cursor.name === "SelfClosingTag") {
             cursor.firstChild();
             cursor.nextSibling();
@@ -347,8 +349,8 @@ export function parseAndCompile(inText) {
                 adjustedTagName = "_error";
             }
 
-            let attrs = {};
-            let attrRanges = {};
+            let attrs: Element["props"] = {};
+            let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
                 //All of the siblings must be Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
@@ -427,7 +429,7 @@ export function parseAndCompile(inText) {
             let selfCloseEnd = cursor.to;
             let match = inText.substring(cursor.to).match("/>");
             if (match) {
-                selfCloseEnd += match.index + 2;
+                selfCloseEnd += match.index! + 2;
             }
 
             let doenetMLrange = {
@@ -439,14 +441,14 @@ export function parseAndCompile(inText) {
 
             //I have no idea why attrs needs to be destructured
             // but if it isn't, it doesn't work ~50% of the time
-            let element = {
+            let element: Element = {
                 componentType: adjustedTagName,
                 props: {},
                 children: [],
                 doenetMLrange,
             };
             if (adjustedTagName === "_error") {
-                element.state = { message };
+                element.state = { message: message || "" };
                 element.doenetAttributes = {
                     createNameFromComponentType: tagName,
                 };
@@ -465,7 +467,7 @@ export function parseAndCompile(inText) {
             );
         }
     }
-    function compileTopLevel(tc) {
+    function compileTopLevel(tc: TreeCursor): Node | undefined {
         if (tc.node.name === "Element") {
             return compileElement(tc.node.cursor);
         } else if (tc.node.name === "Comment") {
@@ -508,7 +510,7 @@ export function parseAndCompile(inText) {
         return { components: [], errors };
     }
     let tc = parse(inText);
-    let out = [];
+    let out: Node[] = [];
     if (!tc.firstChild()) {
         return { components: out, errors };
     }
@@ -535,11 +537,11 @@ export function parseAndCompile(inText) {
  * @param {TreeCursor} cursor
  * @returns {string}
  */
-export function showCursor(cursor) {
+export function showCursor(cursor: TreeCursor) {
     return showNode(cursor.node);
 }
 
-export function showNode(node) {
+export function showNode(node: SyntaxNode) {
     let str = node.name;
     if (node.firstChild !== null) {
         str += "(" + showNode(node.firstChild) + ")";

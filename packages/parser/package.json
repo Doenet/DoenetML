@@ -21,15 +21,15 @@
         "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
     },
     "dependencies": {
-        "@lezer/generator": "^0.15.2",
         "@lezer/common": "^0.15.10",
+        "@lezer/generator": "^0.15.2",
         "@lezer/lr": "^0.15.5",
         "@types/xast": "^2.0.0",
-        "vite-plugin-dts": "^3.5.2",
         "xast-util-to-xml": "^4.0.0"
     },
     "devDependencies": {
         "glob": "^10.3.3",
-        "vite": "^4.4.9"
+        "vite": "^4.4.9",
+        "vite-plugin-dts": "^3.5.2"
     }
 }
