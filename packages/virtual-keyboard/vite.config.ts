@@ -1,17 +1,17 @@
 import { defineConfig } from "vite";
-//import dts from "vite-plugin-dts";
+import dts from "vite-plugin-dts";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    //    plugins: [dts({ rollupTypes: true })],
+    plugins: [dts({ rollupTypes: true })],
     build: {
         minify: false,
         sourcemap: true,
         lib: {
             entry: {
-                index: "./src/VirtualKeyboard.jsx",
-                "math-input": "./src/MathInputSelector.jsx",
+                index: "./src/VirtualKeyboard.tsx",
+                "math-input": "./src/MathInputSelector.tsx",
             },
             formats: ["es"],
         },

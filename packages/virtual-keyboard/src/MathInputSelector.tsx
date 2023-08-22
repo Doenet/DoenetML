@@ -1,6 +1,6 @@
-import { atom } from "recoil";
+import { RecoilState, atom } from "recoil";
 
-export const focusedMathField = atom({
+export const focusedMathField = atom<(command: string) => void>({
     key: "focusedMathField",
     default: () => {},
 });
@@ -10,12 +10,12 @@ export const focusedMathFieldReturn = atom({
     default: () => {},
 });
 
-export const palletRef = atom({
+export const palletRef = atom<React.MutableRefObject<null> | null>({
     key: "palletRef",
     default: null,
 });
 
-export const handleRef = atom({
+export const handleRef = atom<React.MutableRefObject<null> | null>({
     key: "handleRef",
     default: null,
 });
