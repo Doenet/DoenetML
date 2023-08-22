@@ -10,7 +10,7 @@ export default defineConfig({
         sourcemap: true,
         lib: {
             entry: {
-                index: "./src/VirtualKeyboard.tsx",
+                index: "./src/virtual-keyboard/index.ts",
                 "math-input": "./src/MathInputSelector.tsx",
             },
             formats: ["es"],

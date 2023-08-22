@@ -23,27 +23,43 @@ import {
 
 import { faBackspace, faArrowUp } from "@fortawesome/free-solid-svg-icons";
 
-import { useRecoilValue, useSetRecoilState } from "recoil";
-
-import {
-    focusedMathField,
-    palletRef,
-    focusedMathFieldReturn,
-} from "./MathInputSelector";
-
 import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 
-export function VirtualKeyboard() {
+
+/**
+ * Virtual keyboard without Recoil integration. You must handle its state and pass in the callbacks yourself.
+ */
+export function ControlledVirtualKeyboard({
+    returnCallback,
+    setPalletRef,
+    callback,
+    isOpen,
+    onClose,
+    onToggle,
+}: {
+    /**
+     * Callback triggered when the return button is clicked
+     */
+    returnCallback: () => void;
+    /**
+     * Function used to set the ref to the pallet (the div containing the buttons)
+     */
+    setPalletRef: (ref: React.MutableRefObject<null>) => void;
+    /**
+     * Callback triggered when a button is clicked
+     */
+    callback: (command: string) => void;
+    isOpen: boolean;
+    onClose: () => void;
+    onToggle: () => void;
+}) {
     const [toggleLetters, setToggleLetters] = useState(false);
     const [toggleABCCase, setToggleABCCase] = useState(false);
     const [toggleGreekCase, setToggleGreekCase] = useState(false);
     const [toggleFn, setToggleFn] = useState(0);
     const [toggleNumpad, setToggleNumpad] = useState(0);
-    const callback = useRecoilValue(focusedMathField);
-    const returncallback = useRecoilValue(focusedMathFieldReturn);
-    const setPalletRef = useSetRecoilState(palletRef);
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -230,7 +246,7 @@ export function VirtualKeyboard() {
                     () => callback("keystroke Right"),
                     <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -303,7 +319,7 @@ export function VirtualKeyboard() {
                     () => callback("keystroke Right"),
                     <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -388,7 +404,7 @@ export function VirtualKeyboard() {
                 () => callback("keystroke Right"),
                 <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
 
@@ -471,7 +487,7 @@ export function VirtualKeyboard() {
                 () => callback("keystroke Right"),
                 <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
     let sectionUpperGreek = (
@@ -542,7 +558,7 @@ export function VirtualKeyboard() {
                     () => callback("keystroke Right"),
                     <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -615,7 +631,7 @@ export function VirtualKeyboard() {
                     () => callback("keystroke Right"),
                     <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -680,22 +696,15 @@ export function VirtualKeyboard() {
                 () => callback("keystroke Right"),
                 <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
 
     // function MathKeyboard() {
     const keyboardBtnRef = useRef(null);
 
-    const {
-        isOpen: keyboardIsOpen,
-        // onOpen: keyboardOnOpen,
-        onClose: keyboardOnClose,
-        onToggle: keyboardOnToggle,
-    } = useDisclosure();
-
     return (
-        <Slide direction="bottom" in={keyboardIsOpen} style={{ zIndex: 1000 }}>
+        <Slide direction="bottom" in={isOpen} style={{ zIndex: 1000 }}>
             <Box
                 p="4px"
                 mt="4"
@@ -706,7 +715,7 @@ export function VirtualKeyboard() {
             >
                 <Tooltip
                     hasArrow
-                    label={keyboardIsOpen ? "Close Keyboard" : "Open Keyboard"}
+                    label={isOpen ? "Close Keyboard" : "Open Keyboard"}
                 >
                     <IconButton
                         aria-label="Toggle Keyboard"
@@ -716,11 +725,11 @@ export function VirtualKeyboard() {
                         roundedBottom="0px"
                         height="24px"
                         width="50px"
-                        top={keyboardIsOpen ? "-8px" : "-24px"}
+                        top={isOpen ? "-8px" : "-24px"}
                         variant="ghost"
                         // variant="outline"
                         icon={<FaKeyboard />}
-                        onClick={keyboardOnToggle}
+                        onClick={onToggle}
                         ref={keyboardBtnRef}
                         background="doenet.canvas"
                     />
@@ -734,7 +743,7 @@ export function VirtualKeyboard() {
                     size="sm"
                     icon={<CloseIcon />}
                     variant="ghost"
-                    onClick={keyboardOnClose}
+                    onClick={onClose}
                 />
                 <Center tabIndex={0} ref={containerRef} className="keyboard">
                     <Tabs width="740px">
