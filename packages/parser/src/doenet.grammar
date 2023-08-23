@@ -44,9 +44,9 @@ AttributeValue {singleQuoteAttributeValue | doubleQuoteAttributeValue}
 
 Comment { beginComment commentContent* "-->" }
 
-@context elementContext from "./tokens.js"
+@context elementContext from "../tokens"
 
-@external tokens startTag from "./tokens.js" {
+@external tokens startTag from "../tokens" {
   StartTag[closedBy="SelfCloseEndTag EndTag"]
   StartCloseTag
   MissingCloseTag
@@ -54,7 +54,7 @@ Comment { beginComment commentContent* "-->" }
   incompleteStartCloseTag[@name=StartCloseTag]
 }
 
-@external tokens commentContent from "./tokens.js" { commentContent }
+@external tokens commentContent from "../tokens" { commentContent }
 
 singleQuoteAttributeValue { "'" attributeContentSingleQuote* "'" }
 doubleQuoteAttributeValue { "\"" attributeContentDoubleQuote* "\"" }

@@ -1,0 +1,35 @@
+{
+    "name": "@doenet/parser",
+    "type": "module",
+    "description": "Parse DoenetML",
+    "version": "0.6.0-alpha3",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "watch": "vite build --watch",
+        "build": "vite build",
+        "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
+    },
+    "dependencies": {
+        "@lezer/common": "^0.15.10",
+        "@lezer/generator": "^0.15.2",
+        "@lezer/lr": "^0.15.5",
+        "@types/xast": "^2.0.0",
+        "xast-util-to-xml": "^4.0.0"
+    },
+    "devDependencies": {
+        "glob": "^10.3.3",
+        "vite": "^4.4.9",
+        "vite-plugin-dts": "^3.5.2"
+    }
+}

@@ -1,6 +1,6 @@
 /* Hand-written tokenizer for XML tag matching. */
 
-import { ExternalTokenizer, ContextTracker } from "@lezer/lr";
+import { ExternalTokenizer, ContextTracker, InputStream } from "@lezer/lr";
 import {
     StartTag,
     StartCloseTag,
@@ -10,9 +10,9 @@ import {
     Element,
     OpenTag,
     commentContent as _commentContent,
-} from "./doenet.terms.js";
+} from "./generated-assets/lezer-doenet.terms";
 
-function nameChar(ch) {
+function nameChar(ch: number) {
     return (
         ch == 45 ||
         ch == 46 ||
@@ -24,14 +24,14 @@ function nameChar(ch) {
     );
 }
 
-function isSpace(ch) {
+function isSpace(ch: number) {
     return ch == 9 || ch == 10 || ch == 13 || ch == 32;
 }
 
-let cachedName = null,
-    cachedInput = null,
+let cachedName: string | null = null,
+    cachedInput: InputStream | null = null,
     cachedPos = 0;
-function tagNameAfter(input, offset) {
+function tagNameAfter(input: InputStream, offset: number) {
     let pos = input.pos + offset;
     if (cachedInput == input && cachedPos == pos) return cachedName;
     while (isSpace(input.peek(offset))) offset++;
@@ -47,16 +47,24 @@ function tagNameAfter(input, offset) {
     return (cachedName = name || null);
 }
 
-function ElementContext(name, parent) {
-    this.name = name;
-    this.parent = parent;
-    this.hash = parent ? parent.hash : 0;
-    for (let i = 0; i < name.length; i++)
-        this.hash +=
-            (this.hash << 4) + name.charCodeAt(i) + (name.charCodeAt(i) << 8);
+class ElementContext {
+    name: string;
+    parent: ElementContext | null;
+    hash: number;
+    constructor(name: string, parent: ElementContext | undefined | null) {
+        this.name = name;
+        this.parent = parent ?? null;
+        this.hash = parent ? parent.hash : 0;
+        for (let i = 0; i < name.length; i++) {
+            this.hash +=
+                (this.hash << 4) +
+                name.charCodeAt(i) +
+                (name.charCodeAt(i) << 8);
+        }
+    }
 }
 
-export const elementContext = new ContextTracker({
+export const elementContext = new ContextTracker<ElementContext | null>({
     start: null,
     shift(context, term, stack, input) {
         return term == StartTag
@@ -82,6 +90,7 @@ export const startTag = new ExternalTokenizer(
     (input, stack) => {
         if (input.next != 60 /* '<' */) return;
         input.advance();
+        // @ts-ignore
         if (input.next == 47 /* '/' */) {
             input.advance();
             let name = tagNameAfter(input, 0);
@@ -96,17 +105,19 @@ export const startTag = new ExternalTokenizer(
                     return input.acceptToken(MissingCloseTag, -2);
             input.acceptToken(mismatchedStartCloseTag);
         } else if (
+            // @ts-ignore
             input.next != 33 /* '!' */ &&
+            // @ts-ignore
             input.next != 63 /* '?' */ &&
             !isSpace(input.next)
         ) {
             return input.acceptToken(StartTag);
         }
     },
-    { contextual: true }
+    { contextual: true },
 );
 
-function scanTo(type, end) {
+function scanTo(type: number, end: string) {
     return new ExternalTokenizer((input) => {
         for (let endPos = 0, len = 0; ; len++) {
             if (input.next < 0) {
