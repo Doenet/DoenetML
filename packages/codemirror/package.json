@@ -1,0 +1,40 @@
+{
+    "name": "@doenet/codemirror",
+    "type": "module",
+    "description": "CodeMirror component for DoenetML",
+    "version": "0.6.0-alpha3",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "watch": "vite build --watch",
+        "build": "vite build"
+    },
+    "dependencies": {
+        "@doenet/parser": "file:parser",
+        "@codemirror/basic-setup": "^0.19.0",
+        "@codemirror/commands": "^0.19.5",
+        "@codemirror/gutter": "^0.19.9",
+        "@codemirror/highlight": "^0.19.6",
+        "@codemirror/lang-xml": "^0.19.2",
+        "@codemirror/language": "^0.19.7",
+        "@lezer/common": "^0.15.10",
+        "@lezer/lr": "^0.15.5",
+        "@lezer/xml": "^0.15.1"
+    },
+    "devDependencies": {
+        "glob": "^10.3.3",
+        "vite": "^4.4.9",
+        "vite-plugin-dts": "^3.5.2"
+    }
+}

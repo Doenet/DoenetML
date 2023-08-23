@@ -14,4 +14,4 @@ export {
     serializedComponentsReviver,
 } from "./src/Core/utils/serializedStateProcessing";
 export { returnAllPossibleVariants } from "./src/Core/utils/returnAllPossibleVariants";
-export { default as CodeMirror } from "./src/Tools/CodeMirror";
+export { CodeMirror } from "@doenet/codemirror";

@@ -8,7 +8,7 @@ import React, {
 import { basicSetup } from "@codemirror/basic-setup";
 import { EditorState, Transaction, StateEffect } from "@codemirror/state";
 import { selectLine, deleteLine, cursorLineUp } from "@codemirror/commands";
-import { EditorView, keymap } from "@codemirror/view";
+import { EditorView, keymap, Command } from "@codemirror/view";
 import { styleTags, tags as t } from "@codemirror/highlight";
 import { gutter, lineNumbers } from "@codemirror/gutter";
 import {
@@ -20,15 +20,23 @@ import {
 } from "@codemirror/language";
 import { completeFromSchema } from "@codemirror/lang-xml";
 import { parser } from "@doenet/parser";
-import doenetSchema from "../Core/doenetSchema.json";
+// @ts-ignore
+import doenetSchema from "../../doenetml/src/Core/doenetSchema.json";
 
-export default function CodeMirror({
+export function CodeMirror({
     setInternalValueTo,
     onBeforeChange,
     readOnly,
     onBlur,
     onFocus,
     paddingBottom,
+}: {
+    setInternalValueTo: string;
+    onBeforeChange: (str: string) => void;
+    readOnly?: boolean;
+    onBlur?: () => void;
+    onFocus?: () => void;
+    paddingBottom?: string;
 }) {
     if (readOnly === undefined) {
         readOnly = false;
@@ -74,16 +82,17 @@ export default function CodeMirror({
     let [editorConfig, setEditorConfig] = useState({
         matchTag: false,
     });
-    let view = useRef(null);
-    let parent = useRef(null);
+    let view = useRef<EditorView | null>(null);
+    let parent = useRef<HTMLDivElement>(null);
     const [count, setCount] = useState(0);
 
-    const changeFunc = useCallback((tr) => {
+    const changeFunc = useCallback((tr: Transaction) => {
         if (tr.docChanged) {
             let strOfDoc = tr.state.sliceDoc();
             onBeforeChange(strOfDoc);
             return true;
         }
+        return false;
         //trust in the system
         //eslint-disable-next-line
     }, []);
@@ -120,12 +129,12 @@ export default function CodeMirror({
 
     //tabs = 2 spaces
     const tab = "  ";
-    const tabCommand = ({ state, dispatch }) => {
+    const tabCommand: Command = ({ state, dispatch }) => {
         dispatch(
             state.update(state.replaceSelection(tab), {
                 scrollIntoView: true,
                 annotations: Transaction.userEvent.of("input"),
-            })
+            }),
         );
         return true;
     };
@@ -137,7 +146,7 @@ export default function CodeMirror({
         },
     ]);
 
-    const copyCommand = ({ state, dispatch }) => {
+    const copyCommand: Command = ({ state, dispatch }) => {
         if (state.selection.main.empty) {
             selectLine({ state: state, dispatch: dispatch });
             document.execCommand("copy");
@@ -154,9 +163,9 @@ export default function CodeMirror({
         },
     ]);
 
-    const cutCommand = ({ state, dispatch }) => {
+    const cutCommand: Command = ({ state, dispatch }) => {
         //if the selection is empty
-        if (state.selection.main.empty) {
+        if (state.selection.main.empty && view.current) {
             selectLine({ state: state, dispatch: dispatch });
             document.execCommand("copy");
             if (
@@ -174,7 +183,7 @@ export default function CodeMirror({
                 state.update(state.replaceSelection(""), {
                     scrollIntoView: true,
                     annotations: Transaction.userEvent.of("input"),
-                })
+                }),
             );
         }
         return true;
@@ -198,13 +207,15 @@ export default function CodeMirror({
             onBlurExtension,
             onFocusExtension,
             EditorState.changeFilter.of(changeFunc),
+            // XXX This type appears to be incorrect, but I am not sure what this function is doing...
+            // @ts-ignore
             EditorView.updateListener.of(changeFunc),
         ],
-        [changeFunc]
+        [changeFunc],
     );
 
     const matchTag = useCallback(
-        (tr) => {
+        (tr: Transaction) => {
             const cursorPos = tr.newSelection.main.from;
             //if we may be closing an OpenTag
             if (
@@ -217,10 +228,10 @@ export default function CodeMirror({
                     return tr;
                 }
                 //first node is the StartTag
-                let tagNameNode = node.firstChild.nextSibling;
+                let tagNameNode = node.firstChild?.nextSibling;
                 let tagName = tr.newDoc.sliceString(
-                    tagNameNode.from,
-                    tagNameNode.to
+                    tagNameNode?.from || 0,
+                    tagNameNode?.to,
                 );
 
                 //an ineffecient hack to make it so the modified document is saved directly after tagMatch
@@ -247,7 +258,7 @@ export default function CodeMirror({
                 return tr;
             }
         },
-        [changeFunc]
+        [changeFunc],
     );
 
     const state = EditorState.create({
@@ -305,7 +316,7 @@ export default function CodeMirror({
                 if (editorConfig.matchTag) {
                     view.current.dispatch({
                         effects: StateEffect.appendConfig.of(
-                            EditorState.transactionFilter.of(matchTag)
+                            EditorState.transactionFilter.of(matchTag),
                         ),
                     });
                 }
@@ -325,20 +336,20 @@ export default function CodeMirror({
     useEffect(() => {
         // console.log(">>>config update")
         if (editorConfig.matchTag) {
-            view.current.dispatch({
+            view.current?.dispatch({
                 effects: StateEffect.appendConfig.of(
-                    EditorState.transactionFilter.of(matchTag)
+                    EditorState.transactionFilter.of(matchTag),
                 ),
             });
         } else {
-            view.current.dispatch({
+            view.current?.dispatch({
                 //this will also need to change when more options are added, as this paves all of the added extensions.
                 effects: StateEffect.reconfigure.of(doenetExtensions),
             });
         }
     }, [editorConfig, matchTag, doenetExtensions]);
 
-    let divStyle = {};
+    let divStyle: React.CSSProperties = {};
 
     if (paddingBottom) {
         divStyle.paddingBottom = paddingBottom;
@@ -366,7 +377,7 @@ let parserWithMetadata = parser.configure({
                 );
             },
             "OpenTag CloseTag SelfClosingTag"(context) {
-                if (context.node.firstChild.name == "TagName") {
+                if (context.node.firstChild?.name == "TagName") {
                     return context.column(context.node.from);
                 }
                 return context.column(context.node.from) + context.unit;
@@ -379,7 +390,7 @@ let parserWithMetadata = parser.configure({
                 if (!first || first.name != "OpenTag") return null;
                 return {
                     from: first.to,
-                    to: last.name == "CloseTag" ? last.from : subtree.to,
+                    to: last?.name == "CloseTag" ? last.from : subtree.to,
                 };
             },
         }),
@@ -421,13 +432,15 @@ const doenetLanguage = LRLanguage.define({
 //   );
 // }
 
-const doenet = (conf = {}) =>
+const doenet = (
+    conf: Partial<typeof doenetSchema> & { attributes?: [] } = {},
+) =>
     new LanguageSupport(
         doenetLanguage,
         doenetLanguage.data.of({
             autocomplete: completeFromSchema(
                 conf.elements || [],
-                conf.attributes || []
+                conf.attributes || [],
             ),
-        })
+        }),
     );
