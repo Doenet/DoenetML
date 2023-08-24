@@ -32,7 +32,7 @@ export default defineConfig({
     build: {
         minify: false,
         lib: {
-            entry: "index.js",
+            entry: "src/index.js",
             name: "DoenetML",
             fileName: "doenetml",
             formats: [
