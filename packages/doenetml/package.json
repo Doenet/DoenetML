@@ -34,6 +34,7 @@
         "styled-components": "^5.3.11"
     },
     "dependencies": {
+        "@doenet/virtual-keyboard": "file:virtual-keyboard",
         "@chakra-ui/icons": "^2.0.19",
         "@chakra-ui/react": "^2.7.0",
         "@fortawesome/fontawesome-svg-core": "^6.1.2",

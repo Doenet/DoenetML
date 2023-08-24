@@ -16,7 +16,7 @@ Semantic markup for building interactive web activities.
 
 -   Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
 
-## Quickstart
+## Quick Start
 
 In the project folder:
 
@@ -24,7 +24,7 @@ In the project folder:
 
 `$ npm run dev`
 
-Paste demo code into `src/test/testCode.doenet`
+Paste demo code into `packages/test-viewer/src/test/testCode.doenet`
 
 Navigate to `localhost:5173`
 

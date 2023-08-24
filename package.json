@@ -6,6 +6,9 @@
     "workspaces": [
         "./packages/parser",
         "./packages/doenetml-worker",
+        "./packages/virtual-keyboard",
+        "./packages/codemirror",
+        "./packages/doenetml",
         "./packages/*"
     ],
     "scripts": {

@@ -1,0 +1,40 @@
+{
+    "name": "@doenet/virtual-keyboard",
+    "type": "module",
+    "description": "VirtualKeyboard component for DoenetML",
+    "version": "0.6.0-alpha3",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": "github:Doenet/DoenetML",
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/index.js"
+        },
+        "./math-input": {
+            "import": "./dist/math-input.js"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "watch": "vite build --watch",
+        "build": "vite build"
+    },
+    "dependencies": {
+        "recoil": "^0.7.7",
+        "react": "^18.2.0",
+        "@chakra-ui/icons": "^2.0.19",
+        "@chakra-ui/react": "^2.7.0",
+        "better-react-mathjax": "^2.0.1",
+        "@fortawesome/react-fontawesome": "^0.2.0",
+        "@fortawesome/free-solid-svg-icons": "^6.1.2",
+        "react-icons": "^4.9.0"
+    },
+    "devDependencies": {
+        "vite": "^4.4.9",
+        "vite-plugin-dts": "^3.5.2"
+    }
+}

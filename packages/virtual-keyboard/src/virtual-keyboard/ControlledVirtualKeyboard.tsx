@@ -15,33 +15,51 @@ import {
     Tooltip,
     IconButton,
 } from "@chakra-ui/react";
-import styled from "styled-components";
 import { MathJax } from "better-react-mathjax";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+    FontAwesomeIcon,
+    FontAwesomeIconProps,
+} from "@fortawesome/react-fontawesome";
 
 import { faBackspace, faArrowUp } from "@fortawesome/free-solid-svg-icons";
-
-import { useRecoilValue, useSetRecoilState } from "recoil";
-
-import {
-    focusedMathField,
-    palletRef,
-    focusedMathFieldReturn,
-} from "./MathInputSelector";
 
 import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 
-export default function VirtualKeyboard() {
+
+/**
+ * Virtual keyboard without Recoil integration. You must handle its state and pass in the callbacks yourself.
+ */
+export function ControlledVirtualKeyboard({
+    returnCallback,
+    setPalletRef,
+    callback,
+    isOpen,
+    onClose,
+    onToggle,
+}: {
+    /**
+     * Callback triggered when the return button is clicked
+     */
+    returnCallback: () => void;
+    /**
+     * Function used to set the ref to the pallet (the div containing the buttons)
+     */
+    setPalletRef: (ref: React.MutableRefObject<null>) => void;
+    /**
+     * Callback triggered when a button is clicked
+     */
+    callback: (command: string) => void;
+    isOpen: boolean;
+    onClose: () => void;
+    onToggle: () => void;
+}) {
     const [toggleLetters, setToggleLetters] = useState(false);
     const [toggleABCCase, setToggleABCCase] = useState(false);
     const [toggleGreekCase, setToggleGreekCase] = useState(false);
     const [toggleFn, setToggleFn] = useState(0);
     const [toggleNumpad, setToggleNumpad] = useState(0);
-    const callback = useRecoilValue(focusedMathField);
-    const returncallback = useRecoilValue(focusedMathFieldReturn);
-    const setPalletRef = useSetRecoilState(palletRef);
     const containerRef = useRef(null);
 
     useEffect(() => {
@@ -62,7 +80,7 @@ export default function VirtualKeyboard() {
 
     /* Keyboard component styling starts HERE */
 
-    function LetterButton(letter) {
+    function LetterButton(letter: string) {
         return (
             <Button
                 flexBasis="9.5%"
@@ -74,7 +92,7 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function GreekLetterButton(letter) {
+    function GreekLetterButton(letter: string) {
         return (
             <Button
                 flexBasis="9.5%"
@@ -88,7 +106,7 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function NumberButton(number, action) {
+    function NumberButton(number: string | number, action: string) {
         // write ___
         return (
             <Button
@@ -99,7 +117,7 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function SymbolButton(symbol, action) {
+    function SymbolButton(symbol: string, action: string) {
         // type ___
         return (
             <Button
@@ -110,7 +128,7 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function MathButton(input, action) {
+    function MathButton(input: string, action: string) {
         // cmd ___
         return (
             <Button variant="outline" onClick={() => callback("cmd " + input)}>
@@ -118,7 +136,10 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function CustomButton(onClickHandler, action) {
+    function CustomButton(
+        onClickHandler: React.MouseEventHandler<HTMLButtonElement>,
+        action: string,
+    ) {
         return (
             <Button variant="outline" onClick={onClickHandler}>
                 <MathJax dynamic>{action}</MathJax>
@@ -136,14 +157,20 @@ export default function VirtualKeyboard() {
             </Button>
         );
     }
-    function LetterTransitionButton(onClickHandler, icon) {
+    function LetterTransitionButton(
+        onClickHandler: React.MouseEventHandler<HTMLButtonElement>,
+        icon: FontAwesomeIconProps["icon"],
+    ) {
         return (
             <Button flexBasis="15%" variant="solid" onClick={onClickHandler}>
                 <FontAwesomeIcon icon={icon} />
             </Button>
         );
     }
-    function LetterArrowButton(onClickHandler, icon) {
+    function LetterArrowButton(
+        onClickHandler: React.MouseEventHandler<HTMLButtonElement>,
+        icon: React.ReactNode,
+    ) {
         return (
             <Button flexBasis="9.5%" variant="solid" onClick={onClickHandler}>
                 {icon}
@@ -206,20 +233,20 @@ export default function VirtualKeyboard() {
                 {LetterButton("M")}
                 {LetterTransitionButton(
                     () => callback("keystroke Backspace"),
-                    faBackspace
+                    faBackspace,
                 )}
                 {LetterButton(",")}
                 {LetterButton("'")}
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>
+                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>
+                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -279,20 +306,20 @@ export default function VirtualKeyboard() {
                 {LetterButton("m")}
                 {LetterTransitionButton(
                     () => callback("keystroke Backspace"),
-                    faBackspace
+                    faBackspace,
                 )}
                 {LetterButton(",")}
                 {LetterButton("'")}
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>
+                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>
+                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -301,13 +328,13 @@ export default function VirtualKeyboard() {
         <SimpleGrid columns={5} spacing={2} margin="4px">
             {MathButton("{", `{`)}
             {MathButton("}", `}`)}
-            {LetterButton(",", ",")}
-            {LetterButton(":", ":")}
+            {LetterButton(",")}
+            {LetterButton(":")}
             {CustomButton(() => callback("write \\vert"), `\\(\\vert\\)`)}
             {CustomButton(() => callback("write \\subset"), "\\(\\subset\\)")}
             {CustomButton(
                 () => callback("write \\subseteq"),
-                "\\(\\subseteq\\)"
+                "\\(\\subseteq\\)",
             )}
             {CustomButton(() => callback("write \\neq"), "\\(\\neq\\)")}
             {CustomButton(() => callback("write \\in"), "\\(\\in\\)")}
@@ -318,7 +345,7 @@ export default function VirtualKeyboard() {
             {CustomButton(() => callback("cmd ]"), `]`)}
             {CustomButton(
                 () => callback("write \\emptyset"),
-                "\\(\\emptyset\\)"
+                "\\(\\emptyset\\)",
             )}
             {/* <Button onClick={() => callback('write \\mathbb{N}')}>
           <MathJax dynamic>{`\\(\\mathbb{N}\\)`}</MathJax>
@@ -354,7 +381,7 @@ export default function VirtualKeyboard() {
             {CustomButton(() => callback("write \\angle"), `\\(\\angle\\)`)}
             {CustomButton(
                 () => callback("write {}^\\circ"),
-                `\\({a}^\\circ\\)`
+                `\\({a}^\\circ\\)`,
             )}
             {CustomButton(() => callback("write \\exists"), `\\(\\exists\\)`)}
             {CustomButton(() => callback("write \\forall"), `\\(\\forall\\)`)}
@@ -362,7 +389,7 @@ export default function VirtualKeyboard() {
             {LetterButton("$")}
             {LetterTransitionButton(
                 () => callback("keystroke Backspace"),
-                faBackspace
+                faBackspace,
             )}
             {CustomButton(() => callback("cmd _"), `\\(a_b\\)`)}
 
@@ -371,13 +398,13 @@ export default function VirtualKeyboard() {
         </Button> */}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>
+                <MathJax dynamic>\(\leftarrow\)</MathJax>,
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>
+                <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
 
@@ -405,7 +432,7 @@ export default function VirtualKeyboard() {
             }, `\\(\\log_b\\)`)}
             {CustomButton(
                 () => callback("write \\log_{10}"),
-                `\\(\\log_{10}\\)`
+                `\\(\\log_{10}\\)`,
             )}
             {CustomButton(() => {
                 callback("write e^{}");
@@ -437,7 +464,7 @@ export default function VirtualKeyboard() {
             }, `\\(\\int_{a}^{b}\\)`)}
             {SymbolButton("nPr(", `operatorname{nPr}`)}
             {SymbolButton("nCr(", `operatorname{nCr}`)}
-            {LetterButton("!", "!")}
+            {LetterButton("!")}
             {CustomButton(() => {
                 callback("write \\lfloor");
                 callback("write \\rfloor");
@@ -450,17 +477,17 @@ export default function VirtualKeyboard() {
             }, `\\(\\lceil{a}\\rceil\\)`)}
             {LetterTransitionButton(
                 () => callback("keystroke Backspace"),
-                faBackspace
+                faBackspace,
             )}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>
+                <MathJax dynamic>\(\leftarrow\)</MathJax>,
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>
+                <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
     let sectionUpperGreek = (
@@ -518,20 +545,20 @@ export default function VirtualKeyboard() {
                 {LetterButton("M")}
                 {LetterTransitionButton(
                     () => callback("keystroke Backspace"),
-                    faBackspace
+                    faBackspace,
                 )}
                 {LetterButton(",")}
                 {LetterButton("'")}
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>
+                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>
+                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -591,20 +618,20 @@ export default function VirtualKeyboard() {
                 {GreekLetterButton("mu")}
                 {LetterTransitionButton(
                     () => callback("keystroke Backspace"),
-                    faBackspace
+                    faBackspace,
                 )}
                 {LetterButton(",")}
                 {LetterButton("'")}
                 {SpaceBar()}
                 {LetterArrowButton(
                     () => callback("keystroke Left"),
-                    <MathJax dynamic>\(\leftarrow\)</MathJax>
+                    <MathJax dynamic>\(\leftarrow\)</MathJax>,
                 )}
                 {LetterArrowButton(
                     () => callback("keystroke Right"),
-                    <MathJax dynamic>\(\rightarrow\)</MathJax>
+                    <MathJax dynamic>\(\rightarrow\)</MathJax>,
                 )}
-                {LetterArrowButton(() => returncallback(), "Enter")}
+                {LetterArrowButton(() => returnCallback(), "Enter")}
             </Box>
         </Box>
     );
@@ -657,34 +684,27 @@ export default function VirtualKeyboard() {
             {NumberButton("=", "=")}
             {LetterTransitionButton(
                 () => callback("keystroke Backspace"),
-                faBackspace
+                faBackspace,
             )}
             {NumberButton(0, `\\(0\\)`)}
             {NumberButton(".", ".")}
             {LetterArrowButton(
                 () => callback("keystroke Left"),
-                <MathJax dynamic>\(\leftarrow\)</MathJax>
+                <MathJax dynamic>\(\leftarrow\)</MathJax>,
             )}
             {LetterArrowButton(
                 () => callback("keystroke Right"),
-                <MathJax dynamic>\(\rightarrow\)</MathJax>
+                <MathJax dynamic>\(\rightarrow\)</MathJax>,
             )}
-            {LetterArrowButton(() => returncallback(), "Enter")}
+            {LetterArrowButton(() => returnCallback(), "Enter")}
         </SimpleGrid>
     );
 
     // function MathKeyboard() {
     const keyboardBtnRef = useRef(null);
 
-    const {
-        isOpen: keyboardIsOpen,
-        // onOpen: keyboardOnOpen,
-        onClose: keyboardOnClose,
-        onToggle: keyboardOnToggle,
-    } = useDisclosure();
-
     return (
-        <Slide direction="bottom" in={keyboardIsOpen} style={{ zIndex: 1000 }}>
+        <Slide direction="bottom" in={isOpen} style={{ zIndex: 1000 }}>
             <Box
                 p="4px"
                 mt="4"
@@ -695,35 +715,37 @@ export default function VirtualKeyboard() {
             >
                 <Tooltip
                     hasArrow
-                    label={keyboardIsOpen ? "Close Keyboard" : "Open Keyboard"}
+                    label={isOpen ? "Close Keyboard" : "Open Keyboard"}
                 >
                     <IconButton
+                        aria-label="Toggle Keyboard"
                         position="absolute"
                         left="10px"
                         size="md"
                         roundedBottom="0px"
                         height="24px"
                         width="50px"
-                        top={keyboardIsOpen ? "-8px" : "-24px"}
+                        top={isOpen ? "-8px" : "-24px"}
                         variant="ghost"
                         // variant="outline"
                         icon={<FaKeyboard />}
-                        onClick={keyboardOnToggle}
+                        onClick={onToggle}
                         ref={keyboardBtnRef}
                         background="doenet.canvas"
                     />
                 </Tooltip>
 
                 <IconButton
+                    aria-label="Close Keyboard"
                     position="absolute"
                     top="20px"
                     right="6px"
                     size="sm"
                     icon={<CloseIcon />}
                     variant="ghost"
-                    onClick={keyboardOnClose}
+                    onClick={onClose}
                 />
-                <Center tabIndex="0" ref={containerRef} className="keyboard">
+                <Center tabIndex={0} ref={containerRef} className="keyboard">
                     <Tabs width="740px">
                         <TabList>
                             <Tab>123</Tab>
@@ -735,33 +757,48 @@ export default function VirtualKeyboard() {
 
                         <TabPanels height="240px">
                             <TabPanel>
-                                <Flex variant="keyboardSection">
+                                <Flex
+                                    // @ts-ignore
+                                    variant="keyboardSection"
+                                >
                                     {sectionXYZ}
                                     {section123}
                                 </Flex>
                             </TabPanel>
                             <TabPanel>
-                                <Flex variant="keyboardSection">
+                                <Flex
+                                    // @ts-ignore
+                                    variant="keyboardSection"
+                                >
                                     {sectionTrig1}
                                     {sectionFx}
                                 </Flex>
                             </TabPanel>
                             <TabPanel>
-                                <Flex variant="keyboardSection">
+                                <Flex
+                                    // @ts-ignore
+                                    variant="keyboardSection"
+                                >
                                     {toggleABCCase
                                         ? sectionUpperABC
                                         : sectionLowerABC}
                                 </Flex>
                             </TabPanel>
                             <TabPanel>
-                                <Flex variant="keyboardSection">
+                                <Flex
+                                    // @ts-ignore
+                                    variant="keyboardSection"
+                                >
                                     {toggleGreekCase
                                         ? sectionUpperGreek
                                         : sectionLowerGreek}
                                 </Flex>
                             </TabPanel>
                             <TabPanel>
-                                <Flex variant="keyboardSection">
+                                <Flex
+                                    // @ts-ignore
+                                    variant="keyboardSection"
+                                >
                                     {sectionSymbols1}
                                     {sectionSymbols2}
                                 </Flex>
