@@ -15,7 +15,7 @@ import {
     focusedMathFieldReturn,
     palletRef,
     handleRef,
-} from "../../Tools/Footers/MathInputSelector";
+} from "@doenet/virtual-keyboard/math-input";
 import { MathJax } from "better-react-mathjax";
 
 import { useRecoilValue, useSetRecoilState } from "recoil";
@@ -69,7 +69,7 @@ export default function MathInput(props) {
     // Need to use ref for includeCheckWork
     // or handlePressEnter doesn't get the new value when the SV changes
     let includeCheckWork = useRef(
-        SVs.includeCheckWork && !SVs.suppressCheckwork
+        SVs.includeCheckWork && !SVs.suppressCheckwork,
     );
     includeCheckWork.current = SVs.includeCheckWork && !SVs.suppressCheckwork;
 
@@ -234,14 +234,14 @@ export default function MathInput(props) {
     if (SVs.disabled) {
         // Disable the checkWorkButton
         checkWorkStyle.backgroundColor = getComputedStyle(
-            document.documentElement
+            document.documentElement,
         ).getPropertyValue("--mainGray");
         checkWorkStyle.color = "black";
         checkWorkStyle.cursor = "not-allowed";
 
         // Disable the mathInput
         mathInputStyle.borderColor = getComputedStyle(
-            document.documentElement
+            document.documentElement,
         ).getPropertyValue("--mainGray");
         mathInputStyle.backgroundColor = "rgba(239, 239, 239, 0.3)";
         mathInputStyle.pointerEvents = "none";
@@ -286,7 +286,7 @@ export default function MathInput(props) {
             if (SVs.showCorrectness) {
                 if (validationState.current === "correct") {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
                         <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -309,7 +309,7 @@ export default function MathInput(props) {
                 } else {
                     //incorrect
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
                         <Button id={id + "_incorrect"} style={checkWorkStyle}>
@@ -406,13 +406,13 @@ export default function MathInput(props) {
                                             // https://stackoverflow.com/a/22754453
                                             let keyboards = Array.from(
                                                 document.getElementsByClassName(
-                                                    "keyboardcontainer"
-                                                )
+                                                    "keyboardcontainer",
+                                                ),
                                             );
                                             keyboards.forEach((keyboard) => {
                                                 if (
                                                     keyboard?.contains(
-                                                        e.relatedTarget
+                                                        e.relatedTarget,
                                                     )
                                                 ) {
                                                     e.target.focus();
@@ -421,7 +421,7 @@ export default function MathInput(props) {
                                                 }
                                             });
                                         },
-                                        false
+                                        false,
                                     );
                                     return textareaRef.current;
                                 },

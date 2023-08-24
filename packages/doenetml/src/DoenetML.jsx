@@ -5,7 +5,7 @@ import { ActivityViewer } from "./Viewer/ActivityViewer.jsx";
 import { RecoilRoot } from "recoil";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig } from "./Core/utils/math";
-import VirtualKeyboard from "./Tools/Footers/VirtualKeyboard";
+import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import { ChakraProvider, extendTheme } from "@chakra-ui/react";
 
 let rngClass = prng_alea;
