@@ -17,6 +17,7 @@ import { atom, atomFamily, useRecoilCallback, useRecoilValue } from "recoil";
 import { get as idb_get, set as idb_set } from "idb-keyval";
 import axios from "axios";
 import { cesc } from "../utils/url";
+import { doenetGlobalConfig } from "../global-config";
 
 const rendererUpdatesToIgnore = atomFamily({
     key: "rendererUpdatesToIgnore",
@@ -83,7 +84,7 @@ export function PageViewer({
 
                 if (baseStateVariable) {
                     let updatesToIgnore = snapshot.getLoadable(
-                        rendererUpdatesToIgnore(rendererName)
+                        rendererUpdatesToIgnore(rendererName),
                     ).contents;
 
                     if (Object.keys(updatesToIgnore).length > 0) {
@@ -96,7 +97,7 @@ export function PageViewer({
                                 valueFromRenderer.length ==
                                     valueFromCore.length &&
                                 valueFromRenderer.every(
-                                    (v, i) => valueFromCore[i] === v
+                                    (v, i) => valueFromCore[i] === v,
                                 ))
                         ) {
                             // console.log(`ignoring update of ${componentName} to ${valueFromCore}`)
@@ -107,7 +108,7 @@ export function PageViewer({
                                     let newUpdatesToIgnore = { ...was };
                                     delete newUpdatesToIgnore[actionId];
                                     return newUpdatesToIgnore;
-                                }
+                                },
                             );
                         } else {
                             // since value was changed from the time the update was created
@@ -128,14 +129,14 @@ export function PageViewer({
 
                 if (childrenInstructions === undefined) {
                     let previousRendererState = snapshot.getLoadable(
-                        rendererState(rendererName)
+                        rendererState(rendererName),
                     ).contents;
                     newRendererState.childrenInstructions =
                         previousRendererState.childrenInstructions;
                 }
 
                 set(rendererState(rendererName), newRendererState);
-            }
+            },
     );
     const updateRendererUpdatesToIgnore = useRecoilCallback(
         ({ snapshot, set }) =>
@@ -150,7 +151,7 @@ export function PageViewer({
                     newUpdatesToIgnore[actionId] = baseVariableValue;
                     return newUpdatesToIgnore;
                 });
-            }
+            },
     );
 
     const [errMsg, setErrMsg] = useState(null);
@@ -271,7 +272,7 @@ export function PageViewer({
                     saveStateCallback?.();
                 } else if (e.data.messageType === "sendAlert") {
                     console.log(
-                        `Sending alert message: ${e.data.args.message}`
+                        `Sending alert message: ${e.data.args.message}`,
                     );
                     sendAlert(e.data.args.message, e.data.args.alertType);
                 } else if (e.data.messageType === "resolveAction") {
@@ -470,7 +471,7 @@ export function PageViewer({
 
             resolveAction({ actionId });
         },
-        [location]
+        [location],
     );
 
     function terminateCoreAndAnimations() {
@@ -535,7 +536,7 @@ export function PageViewer({
 
         if (args?.skippable) {
             let nActionsInProgress = Object.keys(
-                resolveActionPromises.current
+                resolveActionPromises.current,
             ).length;
 
             if (nActionsInProgress > 0) {
@@ -701,7 +702,7 @@ export function PageViewer({
             pageVariant: {
                 variantInfo: JSON.parse(
                     coreInfo.current.generatedVariantString,
-                    serializedComponentsReviver
+                    serializedComponentsReviver,
                 ),
                 allPossibleVariants: coreInfo.current.allPossibleVariants,
                 itemNumber,
@@ -742,7 +743,7 @@ export function PageViewer({
                         location,
                         linkSettings,
                         scrollableContainer,
-                    })
+                    }),
                 );
 
                 renderersInitializedCallback?.();
@@ -807,7 +808,7 @@ export function PageViewer({
         if (newAttemptNumber !== attemptNumber) {
             sendAlert(
                 `Reverted activity as attempt number changed on other device`,
-                "info"
+                "info",
             );
             if (updateAttemptNumber) {
                 updateAttemptNumber(newAttemptNumber);
@@ -815,14 +816,14 @@ export function PageViewer({
                 // what do we do in this case?
                 setIsInErrorState?.(true);
                 setErrMsg(
-                    "how to reset attempt number when not given updateAttemptNumber function?"
+                    "how to reset attempt number when not given updateAttemptNumber function?",
                 );
             }
         } else {
             // TODO: are there cases where will get an infinite loop here?
             sendAlert(
                 `Reverted page to state saved on device ${changedOnDevice}`,
-                "info"
+                "info",
             );
 
             coreId.current = nanoid();
@@ -839,7 +840,7 @@ export function PageViewer({
 
             try {
                 localInfo = await idb_get(
-                    `${activityId}|${pageNumber}|${attemptNumber}|${cid}`
+                    `${activityId}|${pageNumber}|${attemptNumber}|${cid}`,
                 );
             } catch (e) {
                 // ignore error
@@ -850,9 +851,8 @@ export function PageViewer({
                     // attempt to save local info to database,
                     // reseting data to that from database if it has changed since last save
 
-                    let result = await saveLoadedLocalStateToDatabase(
-                        localInfo
-                    );
+                    let result =
+                        await saveLoadedLocalStateToDatabase(localInfo);
 
                     if (result.changedOnDevice) {
                         if (Number(result.newAttemptNumber) !== attemptNumber) {
@@ -860,7 +860,7 @@ export function PageViewer({
                                 changedOnDevice: result.changedOnDevice,
                                 newCid: result.newCid,
                                 newAttemptNumber: Number(
-                                    result.newAttemptNumber
+                                    result.newAttemptNumber,
                                 ),
                             });
                             return;
@@ -873,11 +873,11 @@ export function PageViewer({
                         // if just the localInfo changed, use that instead
                         localInfo = result.newLocalInfo;
                         console.log(
-                            `sending alert: Reverted page to state saved on device ${result.changedOnDevice}`
+                            `sending alert: Reverted page to state saved on device ${result.changedOnDevice}`,
                         );
                         sendAlert(
                             `Reverted page to state saved on device ${result.changedOnDevice}`,
-                            "info"
+                            "info",
                         );
                     }
                 }
@@ -904,7 +904,7 @@ export function PageViewer({
                     serverSaveId: localInfo.saveId,
                     requestedVariant: JSON.parse(
                         localInfo.coreInfo.generatedVariantString,
-                        serializedComponentsReviver
+                        serializedComponentsReviver,
                     ),
                 };
 
@@ -941,7 +941,7 @@ export function PageViewer({
                     if (flags.allowLoadState) {
                         setIsInErrorState?.(true);
                         setErrMsg(
-                            `Error loading page state: ${resp.data.message}`
+                            `Error loading page state: ${resp.data.message}`,
                         );
                         return;
                     } else {
@@ -952,12 +952,12 @@ export function PageViewer({
                 if (resp.data.loadedState) {
                     let coreInfo = JSON.parse(
                         resp.data.coreInfo,
-                        serializedComponentsReviver
+                        serializedComponentsReviver,
                     );
 
                     let rendererState = JSON.parse(
                         resp.data.rendererState,
-                        serializedComponentsReviver
+                        serializedComponentsReviver,
                     );
 
                     if (rendererState.__componentNeedingUpdateValue) {
@@ -979,12 +979,12 @@ export function PageViewer({
                     initialCoreData.current = {
                         coreState: JSON.parse(
                             resp.data.coreState,
-                            serializedComponentsReviver
+                            serializedComponentsReviver,
                         ),
                         serverSaveId: resp.data.saveId,
                         requestedVariant: JSON.parse(
                             coreInfo.generatedVariantString,
-                            serializedComponentsReviver
+                            serializedComponentsReviver,
                         ),
                     };
                 }
@@ -1015,22 +1015,22 @@ export function PageViewer({
         }
 
         let serverSaveId = await idb_get(
-            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`
+            `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
         );
 
         let pageStateToBeSavedToDatabase = {
             cid,
             coreInfo: JSON.stringify(
                 localInfo.coreInfo,
-                serializedComponentsReplacer
+                serializedComponentsReplacer,
             ),
             coreState: JSON.stringify(
                 localInfo.coreState,
-                serializedComponentsReplacer
+                serializedComponentsReplacer,
             ),
             rendererState: JSON.stringify(
                 localInfo.rendererState,
-                serializedComponentsReplacer
+                serializedComponentsReplacer,
             ),
             pageNumber,
             attemptNumber,
@@ -1045,7 +1045,7 @@ export function PageViewer({
         try {
             resp = await axios.post(
                 apiURLs.savePageState,
-                pageStateToBeSavedToDatabase
+                pageStateToBeSavedToDatabase,
             );
         } catch (e) {
             // since this is initial load, don't show error message
@@ -1061,29 +1061,29 @@ export function PageViewer({
 
         await idb_set(
             `${activityId}|${pageNumber}|${attemptNumber}|${cid}|ServerSaveId`,
-            data.saveId
+            data.saveId,
         );
 
         if (data.stateOverwritten) {
             let newLocalInfo = {
                 coreState: JSON.parse(
                     data.coreState,
-                    serializedComponentsReviver
+                    serializedComponentsReviver,
                 ),
                 rendererState: JSON.parse(
                     data.rendererState,
-                    serializedComponentsReviver
+                    serializedComponentsReviver,
                 ),
                 coreInfo: JSON.parse(
                     data.coreInfo,
-                    serializedComponentsReviver
+                    serializedComponentsReviver,
                 ),
                 saveId: data.saveId,
             };
 
             await idb_set(
                 `${activityId}|${pageNumber}|${data.attemptNumber}|${data.cid}`,
-                newLocalInfo
+                newLocalInfo,
             );
 
             return {
@@ -1106,10 +1106,9 @@ export function PageViewer({
         resolveActionPromises.current = {};
 
         // console.log(`send message to create core ${pageNumber}`)
-        coreWorker.current = new Worker(
-            new URL("doenetml-worker/CoreWorker.js", window.location),
-            { type: "module" }
-        );
+        coreWorker.current = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
+            type: "module",
+        });
 
         coreWorker.current.postMessage({
             messageType: "createCore",
@@ -1156,7 +1155,7 @@ export function PageViewer({
                             actionArgs,
                             animationId,
                         }),
-                    delay
+                    delay,
                 );
                 animationInfo.current[animationId] = { timeoutId };
             } else {
@@ -1172,7 +1171,7 @@ export function PageViewer({
             callAction({
                 action,
                 args: actionArgs,
-            })
+            }),
         );
 
         let animationInfoObj = animationInfo.current[animationId];
