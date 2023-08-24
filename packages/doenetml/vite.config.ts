@@ -40,13 +40,11 @@ export default defineConfig({
     build: {
         minify: false,
         lib: {
-            entry: "index.js",
-            name: "DoenetML",
-            fileName: "doenetml",
-            formats: [
-                "es",
-                //"umd"
-            ],
+            entry: {
+                doenetml: "./src/index.js",
+                "doenetml-inline-worker": "./src/index-inline-worker.ts",
+            },
+            formats: ["es"],
         },
         rollupOptions: {
             external: EXTERNAL_DEPS,
@@ -98,11 +96,19 @@ function transformPackageJson(contents: string, filePath: string) {
         "./dist/package.json",
     );
     if (Array.isArray(pkg.files)) {
-        pkg.files = pkg.files.map((file) => getPathRelativeToPackageJson(file, outputPackageJsonPath));
+        pkg.files = pkg.files.map((file) =>
+            getPathRelativeToPackageJson(file, outputPackageJsonPath),
+        );
     }
-    for (const exp of Object.values(pkg.exports ?? {}) as Record<string, string>[]) {
+    for (const exp of Object.values(pkg.exports ?? {}) as Record<
+        string,
+        string
+    >[]) {
         for (const [format, path] of Object.entries(exp)) {
-            exp[format] = getPathRelativeToPackageJson(path, outputPackageJsonPath);
+            exp[format] = getPathRelativeToPackageJson(
+                path,
+                outputPackageJsonPath,
+            );
         }
     }
 
