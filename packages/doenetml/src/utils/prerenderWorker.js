@@ -6,6 +6,7 @@ import {
     determineNumberOfActivityVariants,
     parseActivityDefinition,
 } from "./activityUtils";
+import { doenetGlobalConfig } from "../global-config";
 
 onmessage = function (e) {
     if (e.data.messageType === "prerenderActivity") {
@@ -36,9 +37,8 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
 
     let activityDefinition = parseResult.activityJSON;
 
-    let { numVariants } = await determineNumberOfActivityVariants(
-        activityDefinition
-    );
+    let { numVariants } =
+        await determineNumberOfActivityVariants(activityDefinition);
 
     postMessage({ messageType: "status", stage: "gathering", complete: 0 });
 
@@ -57,7 +57,7 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
 
         if (result.errors.length > 0) {
             console.error(
-                `Couldn't save initial renderer state: ${result.message}`
+                `Couldn't save initial renderer state: ${result.message}`,
             );
             continue;
         }
@@ -104,7 +104,7 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
 
     let { data } = await axios.post(
         "/api/getSavedInitialRendererStates.php",
-        payload
+        payload,
     );
 
     if (!data.success) {
@@ -129,7 +129,7 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
 
     let totalnumVariants = Object.values(variantsNeededByPage).reduce(
         (a, c) => a + c.length,
-        0
+        0,
     );
 
     let nFinished = 0;
@@ -162,32 +162,32 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
                 autoSubmit: flags.autoSubmit,
                 rendererState: JSON.stringify(
                     rendererState,
-                    serializedComponentsReplacer
+                    serializedComponentsReplacer,
                 ),
                 coreInfo: JSON.stringify(
                     coreInfo,
-                    serializedComponentsReplacer
+                    serializedComponentsReplacer,
                 ),
             };
 
             try {
                 let resp = await axios.post(
                     "/api/saveInitialRendererState.php",
-                    payload
+                    payload,
                 );
 
                 if (!resp.data.success) {
                     console.error(
-                        `Couldn't save initial renderer state: ${resp.data.message}`
+                        `Couldn't save initial renderer state: ${resp.data.message}`,
                     );
                 } else if (resp.data.message) {
                     console.log(
-                        `Initial renderer state not saved: ${resp.data.message}`
+                        `Initial renderer state not saved: ${resp.data.message}`,
                     );
                 }
             } catch (e) {
                 console.error(
-                    `Couldn't save initial renderer state: ${e.message}`
+                    `Couldn't save initial renderer state: ${e.message}`,
                 );
             }
 
@@ -199,8 +199,8 @@ async function prerenderActivity({ cid, doenetId, flags = {} }) {
             });
             console.log(
                 `progress rendering: ${Math.round(
-                    (nFinished / totalnumVariants) * 100
-                )}%`
+                    (nFinished / totalnumVariants) * 100,
+                )}%`,
             );
         }
     }
@@ -214,10 +214,9 @@ function calculateInitialRendererState({
     requestedVariantIndex,
     flags = {},
 }) {
-    let coreWorker = new Worker(
-        new URL("doenetml-worker/CoreWorker.js", window.location),
-        { type: "module" }
-    );
+    let coreWorker = new Worker(doenetGlobalConfig.doenetWorkerUrl, {
+        type: "module",
+    });
 
     coreWorker.postMessage({
         messageType: "createCore",
