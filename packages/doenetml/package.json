@@ -14,6 +14,9 @@
         ".": {
             "import": "./dist/doenetml.js",
             "require": "./dist/doenetml.umd.cjs"
+        },
+        "./*": {
+            "import": "./dist/*"
         }
     },
     "scripts": {
