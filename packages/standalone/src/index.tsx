@@ -6,6 +6,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { DoenetML } from "@doenet/doenetml/doenetml-inline-worker.js";
+import "@doenet/doenetml/style.css";
 
 // Re-export React and friends in case a user really wants to use them
 export { React, ReactDOM, DoenetML };
