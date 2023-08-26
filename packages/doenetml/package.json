@@ -34,9 +34,9 @@
         "styled-components": "^5.3.11"
     },
     "dependencies": {
-        "@doenet/virtual-keyboard": "file:virtual-keyboard",
         "@chakra-ui/icons": "^2.0.19",
         "@chakra-ui/react": "^2.7.0",
+        "@doenet/virtual-keyboard": "file:virtual-keyboard",
         "@fortawesome/fontawesome-svg-core": "^6.1.2",
         "@fortawesome/free-regular-svg-icons": "^6.1.2",
         "@fortawesome/free-solid-svg-icons": "^6.1.2",
@@ -44,7 +44,7 @@
         "@handsontable/react": "^12.4.0",
         "axios": "^0.27.2",
         "better-react-mathjax": "^2.0.1",
-        "compromise": "^14.9.0",
+        "compromise": "^13.11.4",
         "compromise-numbers": "^1.4.0",
         "copy-to-clipboard": "^3.3.2",
         "crypto-js": "^4.1.1",
