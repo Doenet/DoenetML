@@ -1,7 +1,7 @@
 import {
     runRegularPolygonTests,
     setupRegularPolygonScene,
-} from "../../../support/utils/regularPolygon";
+} from "../../support/utils/regularPolygon";
 
 describe("Regular Polygon Tag Tests", function () {
     beforeEach(() => {
