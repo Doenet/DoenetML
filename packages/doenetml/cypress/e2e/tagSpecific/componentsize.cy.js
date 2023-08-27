@@ -73,7 +73,7 @@ describe("Component Size Tag Tests", function () {
     </document>
     `,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -92,7 +92,7 @@ describe("Component Size Tag Tests", function () {
                         .then((width) => {
                             expect(Number(width)).closeTo(
                                 expectedWidthPixels,
-                                0.1
+                                0.1,
                             );
                         });
                 });
@@ -110,7 +110,7 @@ describe("Component Size Tag Tests", function () {
                 .then((text) => {
                     expect(parseFloat(text)).closeTo(thisWidth, 1e-6);
                     expect(text.slice(text.length - thisUnit.length)).eq(
-                        thisUnit
+                        thisUnit,
                     );
                 });
             cy.get(cesc("#\\/wNum"))
@@ -133,17 +133,17 @@ describe("Component Size Tag Tests", function () {
 
             cy.get(cesc("#\\/absExtract")).should(
                 "have.text",
-                isAbsolutes[ind].toString()
+                isAbsolutes[ind].toString(),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                     sizes[ind],
-                    1e-6
+                    1e-6,
                 );
                 expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(
-                    isAbsolutes[ind]
+                    isAbsolutes[ind],
                 );
             });
         }
@@ -166,7 +166,7 @@ describe("Component Size Tag Tests", function () {
 <p>Change width 2: <mathinput name="w2" bindValueTo="$ae.width" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -192,7 +192,7 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 500,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
         });
@@ -200,7 +200,7 @@ describe("Component Size Tag Tests", function () {
         cy.log(`changed prescribed width`);
         cy.get(cesc("#\\/wPrescribed") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}312{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "312px");
@@ -226,7 +226,7 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 312,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
         });
@@ -234,7 +234,7 @@ describe("Component Size Tag Tests", function () {
         cy.log(`changed width from inverse direction`);
         cy.get(cesc("#\\/w2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}476{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "476px");
@@ -260,7 +260,7 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 476,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
         });
@@ -284,7 +284,7 @@ describe("Component Size Tag Tests", function () {
 </document>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -315,17 +315,17 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 50,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(
-                false
+                false,
             );
         });
 
         cy.log(`changed prescribed width`);
         cy.get(cesc("#\\/wPrescribed") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}31{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "31%");
@@ -356,17 +356,17 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 31,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(
-                false
+                false,
             );
         });
 
         cy.log(`changed width from inverse direction`);
         cy.get(cesc("#\\/w2") + " textarea").type(
             "{end}{backspace}{backspace}76{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "76%");
@@ -397,10 +397,10 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 76,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(
-                false
+                false,
             );
         });
     });
@@ -419,7 +419,7 @@ describe("Component Size Tag Tests", function () {
 <p>Change height 2: <mathinput name="h2" bindValueTo="$(ae.height)" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -441,22 +441,22 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 500,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
             expect(stateVariables["/ae"].stateValues.height.size).closeTo(
                 250,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.height.isAbsolute).eq(
-                true
+                true,
             );
         });
 
         cy.log(`changed prescribed width`);
         cy.get(cesc("#\\/wPrescribed") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}312{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "312px");
@@ -477,22 +477,22 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 312,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
             expect(stateVariables["/ae"].stateValues.height.size).closeTo(
                 156,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.height.isAbsolute).eq(
-                true
+                true,
             );
         });
 
         cy.log(`changed width from inverse direction`);
         cy.get(cesc("#\\/w2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}476{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "476px");
@@ -513,22 +513,22 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 476,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
             expect(stateVariables["/ae"].stateValues.height.size).closeTo(
                 238,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.height.isAbsolute).eq(
-                true
+                true,
             );
         });
 
         cy.log(`changed height from inverse direction`);
         cy.get(cesc("#\\/h2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}321{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/w")).should("have.text", "642px");
@@ -549,15 +549,15 @@ describe("Component Size Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ae"].stateValues.width.size).closeTo(
                 642,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.width.isAbsolute).eq(true);
             expect(stateVariables["/ae"].stateValues.height.size).closeTo(
                 321,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/ae"].stateValues.height.isAbsolute).eq(
-                true
+                true,
             );
         });
     });

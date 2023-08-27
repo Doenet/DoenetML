@@ -308,7 +308,7 @@ export default class CodeViewer extends BlockComponent {
                         {
                             setEssentialValue: "codeChanged",
                             value: Boolean(
-                                desiredStateVariableValues.codeChanged
+                                desiredStateVariableValues.codeChanged,
                             ),
                         },
                     ],

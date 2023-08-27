@@ -20,14 +20,14 @@ describe("base component property Tests", function () {
   <p><booleaninput name="bi" /> <boolean name="b" copySource="bi" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pIsFixed")).should("have.text", "Is fixed? false");
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -40,7 +40,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log("have point fixed");
@@ -61,7 +61,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log("have point not fixed");
@@ -79,7 +79,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
     });
 
@@ -97,14 +97,14 @@ describe("base component property Tests", function () {
   <p><booleaninput name="bi" /> <boolean name="b" copySource="bi" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pIsFixed")).should("have.text", "Is fixed? false");
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -117,7 +117,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log("have point fixed");
@@ -138,7 +138,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log("have point not fixed");
@@ -156,7 +156,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
     });
 
@@ -174,14 +174,14 @@ describe("base component property Tests", function () {
   <p><booleaninput name="bi" /> <boolean name="b" copySource="bi" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pIsFixed")).should("have.text", "Is fixed? true");
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -197,7 +197,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.log("have point not fixed");
@@ -215,7 +215,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,4)"
+            "(3,4)",
         );
 
         cy.log("have point fixed again");
@@ -236,7 +236,7 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,4)"
+            "(3,4)",
         );
     });
 
@@ -269,7 +269,7 @@ describe("base component property Tests", function () {
   <p name="pCCoords">Coordinates of C: $C</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -280,15 +280,15 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,4)"
+            "(3,4)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.window().then(async (win) => {
@@ -311,15 +311,15 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−4)"
+            "(−3,−4)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−2)"
+            "(−1,−2)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.log("A changes fixed with g");
@@ -351,15 +351,15 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−2)"
+            "(−1,−2)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.log("change fixed of points");
@@ -393,15 +393,15 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5)"
+            "(6,5)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(10,9)"
+            "(10,9)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
 
         cy.log("changing fixed of g does not affect points");
@@ -474,7 +474,7 @@ describe("base component property Tests", function () {
   <p name="pDCoords">Coordinates of D: $D</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -484,49 +484,49 @@ describe("base component property Tests", function () {
         cy.get(cesc("#\\/pDIsFixed")).should("have.text", "Is D fixed? false");
         cy.get(cesc("#\\/pA2IsFixed")).should(
             "have.text",
-            "Is A2 fixed? false"
+            "Is A2 fixed? false",
         );
         cy.get(cesc("#\\/pB2IsFixed")).should(
             "have.text",
-            "Is B2 fixed? false"
+            "Is B2 fixed? false",
         );
         cy.get(cesc("#\\/pC2IsFixed")).should("have.text", "Is C2 fixed? true");
         cy.get(cesc("#\\/pD2IsFixed")).should(
             "have.text",
-            "Is D2 fixed? false"
+            "Is D2 fixed? false",
         );
         cy.get(cesc("#\\/pA3IsFixed")).should(
             "have.text",
-            "Is A3 fixed? false"
+            "Is A3 fixed? false",
         );
         cy.get(cesc("#\\/pB3IsFixed")).should(
             "have.text",
-            "Is B3 fixed? false"
+            "Is B3 fixed? false",
         );
         cy.get(cesc("#\\/pC3IsFixed")).should(
             "have.text",
-            "Is C3 fixed? false"
+            "Is C3 fixed? false",
         );
         cy.get(cesc("#\\/pD3IsFixed")).should(
             "have.text",
-            "Is D3 fixed? false"
+            "Is D3 fixed? false",
         );
 
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
         cy.get(cesc("#\\/pDCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,4)"
+            "(3,4)",
         );
 
         cy.log("can change coords of all but fixed C2");
@@ -556,19 +556,19 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pDCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−7,−8)"
+            "(−7,−8)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−2)"
+            "(−1,−2)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−4)"
+            "(−3,−4)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.log("cannot change coords of C3 even though not fixed");
@@ -598,19 +598,19 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pDCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(4,3)"
+            "(4,3)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(10,9)"
+            "(10,9)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.log("toggle fixed");
@@ -628,24 +628,24 @@ describe("base component property Tests", function () {
         cy.get(cesc("#\\/pB2IsFixed")).should("have.text", "Is B2 fixed? true");
         cy.get(cesc("#\\/pC2IsFixed")).should(
             "have.text",
-            "Is C2 fixed? false"
+            "Is C2 fixed? false",
         );
         cy.get(cesc("#\\/pD2IsFixed")).should("have.text", "Is D2 fixed? true");
         cy.get(cesc("#\\/pA3IsFixed")).should(
             "have.text",
-            "Is A3 fixed? false"
+            "Is A3 fixed? false",
         );
         cy.get(cesc("#\\/pB3IsFixed")).should(
             "have.text",
-            "Is B3 fixed? false"
+            "Is B3 fixed? false",
         );
         cy.get(cesc("#\\/pC3IsFixed")).should(
             "have.text",
-            "Is C3 fixed? false"
+            "Is C3 fixed? false",
         );
         cy.get(cesc("#\\/pD3IsFixed")).should(
             "have.text",
-            "Is D3 fixed? false"
+            "Is D3 fixed? false",
         );
 
         cy.log("can only change coords of C2");
@@ -675,19 +675,19 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,8)"
+            "(9,8)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(10,9)"
+            "(10,9)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
         cy.get(cesc("#\\/pDCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(4,3)"
+            "(4,3)",
         );
 
         cy.log("can only change coords of C3, even though not fixed");
@@ -717,19 +717,19 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pCCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,−8)"
+            "(7,−8)",
         );
         cy.get(cesc("#\\/pACoords") + " .mjx-mrow").should(
             "contain.text",
-            "(10,9)"
+            "(10,9)",
         );
         cy.get(cesc("#\\/pBCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
         cy.get(cesc("#\\/pDCoords") + " .mjx-mrow").should(
             "contain.text",
-            "(4,3)"
+            "(4,3)",
         );
     });
 
@@ -746,13 +746,13 @@ describe("base component property Tests", function () {
   <p name="pText">Text: $ti</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pIsDisabled")).should(
             "have.text",
-            "Is disabled? false"
+            "Is disabled? false",
         );
         cy.get(cesc("#\\/pText")).should("have.text", "Text: a");
 
@@ -763,7 +763,7 @@ describe("base component property Tests", function () {
         cy.get(cesc("#\\/makeDisabled")).click();
         cy.get(cesc("#\\/pIsDisabled")).should(
             "have.text",
-            "Is disabled? true"
+            "Is disabled? true",
         );
 
         cy.get(cesc("#\\/ti_input")).should("be.disabled");
@@ -772,7 +772,7 @@ describe("base component property Tests", function () {
         cy.get(cesc("#\\/makeNotDisabled")).click();
         cy.get(cesc("#\\/pIsDisabled")).should(
             "have.text",
-            "Is disabled? false"
+            "Is disabled? false",
         );
 
         cy.get(cesc("#\\/ti_input")).type("{end}{backspace}c{enter}");
@@ -808,25 +808,25 @@ describe("base component property Tests", function () {
   <p name="pti3Text">Text: $ti3</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? false"
+            "Is ti1 disabled? false",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? true"
+            "Is ti2 disabled? true",
         );
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? false"
+            "Is ti3 disabled? false",
         );
         cy.get(cesc("#\\/psIsDisabled")).should(
             "have.text",
-            "Is s disabled? false"
+            "Is s disabled? false",
         );
         cy.get(cesc("#\\/pti1Text")).should("have.text", "Text: a");
         cy.get(cesc("#\\/pti2Text")).should("have.text", "Text: b");
@@ -846,19 +846,19 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/psIsDisabled")).should(
             "have.text",
-            "Is s disabled? true"
+            "Is s disabled? true",
         );
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? true"
+            "Is ti1 disabled? true",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? true"
+            "Is ti2 disabled? true",
         );
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? false"
+            "Is ti3 disabled? false",
         );
 
         cy.get(cesc("#\\/ti1_input")).should("be.disabled");
@@ -875,15 +875,15 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? true"
+            "Is ti3 disabled? true",
         );
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? false"
+            "Is ti1 disabled? false",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? false"
+            "Is ti2 disabled? false",
         );
 
         cy.get(cesc("#\\/ti1_input")).type("{end}{backspace}g{enter}");
@@ -900,38 +900,38 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/psIsDisabled")).should(
             "have.text",
-            "Is s disabled? false"
+            "Is s disabled? false",
         );
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? true"
+            "Is ti3 disabled? true",
         );
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? false"
+            "Is ti1 disabled? false",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? false"
+            "Is ti2 disabled? false",
         );
 
         cy.get(cesc("#\\/makesDisabled")).click();
 
         cy.get(cesc("#\\/psIsDisabled")).should(
             "have.text",
-            "Is s disabled? true"
+            "Is s disabled? true",
         );
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? true"
+            "Is ti3 disabled? true",
         );
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? false"
+            "Is ti1 disabled? false",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? false"
+            "Is ti2 disabled? false",
         );
     });
 
@@ -978,45 +978,45 @@ describe("base component property Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? false"
+            "Is ti1 disabled? false",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? true"
+            "Is ti2 disabled? true",
         );
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? false"
+            "Is ti3 disabled? false",
         );
         cy.get(cesc("#\\/pti12IsDisabled")).should(
             "have.text",
-            "Is ti12 disabled? false"
+            "Is ti12 disabled? false",
         );
         cy.get(cesc("#\\/pti22IsDisabled")).should(
             "have.text",
-            "Is ti22 disabled? true"
+            "Is ti22 disabled? true",
         );
         cy.get(cesc("#\\/pti32IsDisabled")).should(
             "have.text",
-            "Is ti32 disabled? false"
+            "Is ti32 disabled? false",
         );
         cy.get(cesc("#\\/pti13IsDisabled")).should(
             "have.text",
-            "Is ti13 disabled? false"
+            "Is ti13 disabled? false",
         );
         cy.get(cesc("#\\/pti23IsDisabled")).should(
             "have.text",
-            "Is ti23 disabled? false"
+            "Is ti23 disabled? false",
         );
         cy.get(cesc("#\\/pti33IsDisabled")).should(
             "have.text",
-            "Is ti33 disabled? false"
+            "Is ti33 disabled? false",
         );
 
         cy.get(cesc("#\\/ti1_input")).should("not.be.disabled");
@@ -1039,39 +1039,39 @@ describe("base component property Tests", function () {
 
         cy.get(cesc("#\\/pti3IsDisabled")).should(
             "have.text",
-            "Is ti3 disabled? true"
+            "Is ti3 disabled? true",
         );
         cy.get(cesc("#\\/pti1IsDisabled")).should(
             "have.text",
-            "Is ti1 disabled? true"
+            "Is ti1 disabled? true",
         );
         cy.get(cesc("#\\/pti2IsDisabled")).should(
             "have.text",
-            "Is ti2 disabled? false"
+            "Is ti2 disabled? false",
         );
         cy.get(cesc("#\\/pti12IsDisabled")).should(
             "have.text",
-            "Is ti12 disabled? true"
+            "Is ti12 disabled? true",
         );
         cy.get(cesc("#\\/pti22IsDisabled")).should(
             "have.text",
-            "Is ti22 disabled? false"
+            "Is ti22 disabled? false",
         );
         cy.get(cesc("#\\/pti32IsDisabled")).should(
             "have.text",
-            "Is ti32 disabled? true"
+            "Is ti32 disabled? true",
         );
         cy.get(cesc("#\\/pti13IsDisabled")).should(
             "have.text",
-            "Is ti13 disabled? false"
+            "Is ti13 disabled? false",
         );
         cy.get(cesc("#\\/pti23IsDisabled")).should(
             "have.text",
-            "Is ti23 disabled? false"
+            "Is ti23 disabled? false",
         );
         cy.get(cesc("#\\/pti33IsDisabled")).should(
             "have.text",
-            "Is ti33 disabled? false"
+            "Is ti33 disabled? false",
         );
 
         cy.get(cesc("#\\/ti1_input")).should("be.disabled");
@@ -1100,7 +1100,7 @@ describe("base component property Tests", function () {
   <p name="pText">Text: $ti</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1138,7 +1138,7 @@ describe("base component property Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 

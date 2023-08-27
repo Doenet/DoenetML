@@ -111,7 +111,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.cells = {
@@ -149,7 +149,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
                     dependencyValues.allIterates.length > 0 &&
                     Array.isArray(dependencyValues.allIterates[0].tree) &&
                     vectorOperators.includes(
-                        dependencyValues.allIterates[0].tree[0]
+                        dependencyValues.allIterates[0].tree[0],
                     )
                 ) {
                     numComponents =
@@ -161,7 +161,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
                     let headerRow = [];
                     let headerLen = Math.min(
                         dependencyValues.headerRow.length,
-                        numComponents + 1
+                        numComponents + 1,
                     );
                     for (let comp = 0; comp < headerLen; comp++) {
                         headerRow.push(dependencyValues.headerRow[comp]);

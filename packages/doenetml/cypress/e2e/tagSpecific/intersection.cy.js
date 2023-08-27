@@ -30,7 +30,7 @@ describe("Integer Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -39,7 +39,7 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`no intersection when lines coincide`);
@@ -63,11 +63,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(3,−5)"
+            "(3,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -92,11 +92,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,5)"
+            "(−4,5)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−5)"
+            "(−4,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -129,19 +129,19 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4,6)"
+            "(4,6)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−6)"
+            "(−4,−6)",
         );
 
         cy.window().then(async (win) => {
@@ -166,11 +166,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,9)"
+            "(6,9)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(−6,−9)"
+            "(−6,−9)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -195,7 +195,7 @@ describe("Integer Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -209,7 +209,7 @@ describe("Integer Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Haven't implemented intersection for more than two items`
+                `Haven't implemented intersection for more than two items`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
@@ -252,7 +252,7 @@ describe("Integer Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -287,11 +287,11 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(3,−5)"
+            "(3,−5)",
         );
 
         cy.get(cesc("#\\/i1") + " .mjx-mrow").should("not.exist");
@@ -330,11 +330,11 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,5)"
+            "(−4,5)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−5)"
+            "(−4,−5)",
         );
 
         cy.get(cesc("#\\/i1") + " .mjx-mrow").should("not.exist");
@@ -374,19 +374,19 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4,6)"
+            "(4,6)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−6)"
+            "(−4,−6)",
         );
 
         cy.get(cesc("#\\/i1") + " .mjx-mrow").should("not.exist");
@@ -426,11 +426,11 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,9)"
+            "(6,9)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(−6,−9)"
+            "(−6,−9)",
         );
 
         cy.get(cesc("#\\/i1") + " .mjx-mrow").should("not.exist");
@@ -466,7 +466,7 @@ describe("Integer Tag Tests", function () {
       </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -495,12 +495,12 @@ describe("Integer Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/int1"].stateValues.xs[0]).closeTo(
                 3 + Math.sqrt(3) / 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/int1"].stateValues.xs[1]).eq(5.5);
             expect(stateVariables["/int2"].stateValues.xs[0]).closeTo(
                 3 - Math.sqrt(3) / 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/int2"].stateValues.xs[1]).eq(5.5);
         });
@@ -582,19 +582,19 @@ describe("Integer Tag Tests", function () {
 
             expect(stateVariables["/int1"].stateValues.xs[0]).closeTo(
                 3 - Math.sqrt(3),
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/int1"].stateValues.xs[1]).closeTo(
                 5 + h,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/int2"].stateValues.xs[0]).closeTo(
                 3 - Math.sqrt(3),
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/int2"].stateValues.xs[1]).closeTo(
                 5 - h,
-                1e-12
+                1e-12,
             );
         });
 
@@ -646,7 +646,7 @@ describe("Integer Tag Tests", function () {
       </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -714,12 +714,12 @@ describe("Integer Tag Tests", function () {
             "{end}{backspace}9/\\sqrt{2}{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should(
             "contain.text",
-            "(−0.5,0.5)"
+            "(−0.5,0.5)",
         );
 
         cy.window().then(async (win) => {
@@ -734,12 +734,12 @@ describe("Integer Tag Tests", function () {
             "{end}{backspace}{backspace}{backspace}{backspace}9{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,5)"
+            "(−5,5)",
         );
 
         cy.window().then(async (win) => {
@@ -768,7 +768,7 @@ describe("Integer Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -812,7 +812,7 @@ describe("Integer Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -821,7 +821,7 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`no intersection when line segments coincide`);
@@ -845,11 +845,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(3,−5)"
+            "(3,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -869,7 +869,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(3.01,2)"
+            "(3.01,2)",
         );
 
         cy.window().then(async (win) => {
@@ -892,11 +892,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -916,7 +916,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(3.99,2)"
+            "(3.99,2)",
         );
 
         cy.window().then(async (win) => {
@@ -935,7 +935,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(6,2)"
+            "(6,2)",
         );
 
         cy.window().then(async (win) => {
@@ -954,7 +954,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(4.01,2)"
+            "(4.01,2)",
         );
 
         cy.window().then(async (win) => {
@@ -977,11 +977,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,3)"
+            "(5,3)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(5,1)"
+            "(5,1)",
         );
 
         cy.window().then(async (win) => {
@@ -1001,7 +1001,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4.99,2)"
+            "(4.99,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1034,19 +1034,19 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4,6)"
+            "(4,6)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−6)"
+            "(−4,−6)",
         );
 
         cy.window().then(async (win) => {
@@ -1066,7 +1066,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2.01,3)"
+            "(2.01,3)",
         );
 
         cy.window().then(async (win) => {
@@ -1100,7 +1100,7 @@ describe("Integer Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1109,7 +1109,7 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`no intersection when line and line segment coincide`);
@@ -1133,11 +1133,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(3,−5)"
+            "(3,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -1157,7 +1157,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(3.01,2)"
+            "(3.01,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1180,11 +1180,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,5)"
+            "(4,5)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -1204,7 +1204,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(3.99,2)"
+            "(3.99,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1223,7 +1223,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(6,2)"
+            "(6,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1242,7 +1242,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(4.01,2)"
+            "(4.01,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1265,11 +1265,11 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,3)"
+            "(5,3)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(5,1)"
+            "(5,1)",
         );
 
         cy.window().then(async (win) => {
@@ -1289,7 +1289,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4.99,2)"
+            "(4.99,2)",
         );
 
         cy.window().then(async (win) => {
@@ -1322,19 +1322,19 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
         cy.get(cesc("#\\/coords3") + " .mjx-mrow").should(
             "contain.text",
-            "(4,6)"
+            "(4,6)",
         );
         cy.get(cesc("#\\/coords4") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−6)"
+            "(−4,−6)",
         );
 
         cy.window().then(async (win) => {
@@ -1354,7 +1354,7 @@ describe("Integer Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2.01,3)"
+            "(2.01,3)",
         );
 
         cy.window().then(async (win) => {
@@ -1393,7 +1393,7 @@ describe("Integer Tag Tests", function () {
       </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1532,12 +1532,12 @@ describe("Integer Tag Tests", function () {
             "{end}{backspace}9/\\sqrt{2}{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should(
             "contain.text",
-            "(−0.5,0.5)"
+            "(−0.5,0.5)",
         );
 
         cy.window().then(async (win) => {
@@ -1552,7 +1552,7 @@ describe("Integer Tag Tests", function () {
             "{end}{backspace}{backspace}{backspace}{backspace}9{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should("not.exist");
@@ -1574,7 +1574,7 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−4)"
+            "(4,−4)",
         );
 
         cy.window().then(async (win) => {
@@ -1594,7 +1594,7 @@ describe("Integer Tag Tests", function () {
 
         cy.get(cesc2("#/int1a") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,5)"
+            "(−5,5)",
         );
 
         cy.window().then(async (win) => {
@@ -1623,7 +1623,7 @@ describe("Integer Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1639,7 +1639,7 @@ describe("Integer Tag Tests", function () {
         });
 
         cy.log(
-            `extending rectangle to upper right does not change intersections`
+            `extending rectangle to upper right does not change intersections`,
         );
         cy.window().then(async (win) => {
             win.callAction1({
@@ -1761,7 +1761,7 @@ describe("Integer Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1915,7 +1915,7 @@ describe("Integer Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1949,7 +1949,7 @@ describe("Integer Tag Tests", function () {
             expect(stateVariables["/int3"].stateValues.xs[0]).closeTo(1, 0.1);
             expect(stateVariables["/int3"].stateValues.xs[1]).closeTo(
                 -0.1,
-                0.1
+                0.1,
             );
             expect(stateVariables["/int4"].stateValues.xs).eqls([0, -1]);
             expect(stateVariables["/int5"]).eq(undefined);
@@ -2012,17 +2012,17 @@ describe("Integer Tag Tests", function () {
             expect(stateVariables["/int4"].stateValues.xs[0]).closeTo(2.5, 0.1);
             expect(stateVariables["/int4"].stateValues.xs[1]).closeTo(
                 -5.5,
-                0.1
+                0.1,
             );
             expect(stateVariables["/int5"].stateValues.xs[0]).closeTo(-6, 0.1);
             expect(stateVariables["/int5"].stateValues.xs[1]).closeTo(0.9, 0.1);
             expect(stateVariables["/int6"].stateValues.xs[0]).closeTo(
                 -2.5,
-                0.1
+                0.1,
             );
             expect(stateVariables["/int6"].stateValues.xs[1]).closeTo(
                 -5.5,
-                0.1
+                0.1,
             );
             expect(stateVariables["/int7"]).eq(undefined);
         });
@@ -2057,7 +2057,7 @@ describe("Integer Tag Tests", function () {
   <p name="pnolist"><intersection asList="false" copySource="int"/></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 

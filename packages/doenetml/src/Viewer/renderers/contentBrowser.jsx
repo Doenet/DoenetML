@@ -112,7 +112,7 @@ export default React.memo(function ContentBrowser(props) {
                     >
                         {itemInfo.label}
                     </Link>
-                </td>
+                </td>,
             );
         }
         labelRows.push(<tr key={rowInd}>{row}</tr>);

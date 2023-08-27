@@ -105,7 +105,7 @@ export default class CodeEditor extends BlockComponent {
                 if (
                     !componentInfoObjects.componentIsSpecifiedType(
                         child,
-                        "codeViewer"
+                        "codeViewer",
                     )
                 ) {
                     keepSerializedInds.push(ind);
@@ -278,7 +278,7 @@ export default class CodeEditor extends BlockComponent {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],
@@ -394,7 +394,7 @@ export default class CodeEditor extends BlockComponent {
                         {
                             setEssentialValue: "immediateValueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.immediateValueChanged
+                                desiredStateVariableValues.immediateValueChanged,
                             ),
                         },
                     ],

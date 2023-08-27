@@ -239,12 +239,12 @@ export default class Substitute extends CompositeComponent {
                             "\\b" +
                                 escapeRegExp(dependencyValues.match) +
                                 "\\b",
-                            flag
+                            flag,
                         );
                     } else {
                         re = new RegExp(
                             escapeRegExp(dependencyValues.match),
-                            flag
+                            flag,
                         );
                     }
 
@@ -299,7 +299,7 @@ export default class Substitute extends CompositeComponent {
                         // XRegExp('(?=^|$|[^\\p{L}])') suggested in https://stackoverflow.com/a/32554839
                         reForMatch = new RegExp(
                             "\\b" + escapeRegExp(match) + "\\b",
-                            flag
+                            flag,
                         );
                         if (
                             dependencyValues.matchCase &&
@@ -313,12 +313,12 @@ export default class Substitute extends CompositeComponent {
                                 "\\b" +
                                     escapeRegExp(preserveCaseReplacer(match)) +
                                     "\\b",
-                                flag
+                                flag,
                             );
                         } else {
                             reForReplacement = new RegExp(
                                 "\\b" + escapeRegExp(replacement) + "\\b",
-                                flag
+                                flag,
                             );
                         }
                     } else {
@@ -333,12 +333,12 @@ export default class Substitute extends CompositeComponent {
                                 returnPreserveCaseReplacer(replacement);
                             reForReplacement = new RegExp(
                                 escapeRegExp(preserveCaseReplacer(match)),
-                                flag
+                                flag,
                             );
                         } else {
                             reForReplacement = new RegExp(
                                 escapeRegExp(replacement),
-                                flag
+                                flag,
                             );
                         }
                     }
@@ -348,7 +348,7 @@ export default class Substitute extends CompositeComponent {
                     // as it would be impossible to still have match after substitution
                     if (
                         dependencyValues.originalValue.search(
-                            reForReplacement
+                            reForReplacement,
                         ) !== -1 ||
                         desiredValue.search(reForMatch) !== -1
                     ) {
@@ -357,7 +357,7 @@ export default class Substitute extends CompositeComponent {
 
                     desiredValue = desiredValue.replace(
                         reForReplacement,
-                        match
+                        match,
                     );
 
                     return {

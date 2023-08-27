@@ -43,15 +43,15 @@ export default React.memo(function Math(props) {
     }
 
     let latexOrInputChildren = SVs.latexWithInputChildren.map((x) =>
-        typeof x === "number" ? this.children[x] : beginDelim + x + endDelim
+        typeof x === "number" ? this.children[x] : beginDelim + x + endDelim,
     );
 
     let anchors = [React.createElement("a", { name, key: name })];
     if (SVs.mrowChildNames) {
         anchors.push(
             SVs.mrowChildNames.map((x) =>
-                React.createElement("a", { name: x, key: x })
-            )
+                React.createElement("a", { name: x, key: x }),
+            ),
         );
     }
 

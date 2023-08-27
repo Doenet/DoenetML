@@ -17,7 +17,7 @@ export const rendererState = atomFamily({
 // TODO: potentially remove initializeChildrenOnConstruction
 export default function useDoenetRenderer(
     props,
-    initializeChildrenOnConstruction = true
+    initializeChildrenOnConstruction = true,
 ) {
     let actions = props.componentInstructions.actions;
     let componentName = props.componentInstructions.componentName;
@@ -39,7 +39,7 @@ export default function useDoenetRenderer(
     for (let childInstructions of childrenInstructions) {
         let child = createChildFromInstructions(
             childInstructions,
-            loadMoreRenderers
+            loadMoreRenderers,
         );
         children.push(child);
     }
@@ -48,7 +48,7 @@ export default function useDoenetRenderer(
         if (Object.keys(renderersToLoad).length > 0) {
             renderersloadComponent(
                 Object.values(renderersToLoad),
-                Object.keys(renderersToLoad)
+                Object.keys(renderersToLoad),
             ).then((newRendererClasses) => {
                 Object.assign(props.rendererClasses, newRendererClasses);
                 setRenderersToLoad({});

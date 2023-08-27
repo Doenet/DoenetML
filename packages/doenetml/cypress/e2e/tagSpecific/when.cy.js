@@ -23,7 +23,7 @@ describe("When Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -99,7 +99,7 @@ describe("When Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -174,7 +174,7 @@ describe("When Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 

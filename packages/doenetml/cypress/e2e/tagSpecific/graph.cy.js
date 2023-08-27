@@ -17,7 +17,7 @@ describe("Graph Tag Tests", function () {
     <graph>x^2</graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -41,7 +41,7 @@ describe("Graph Tag Tests", function () {
     <graph>y=x^2</graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -70,7 +70,7 @@ describe("Graph Tag Tests", function () {
     <graph>y^2=x</graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -102,7 +102,7 @@ describe("Graph Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -116,10 +116,10 @@ describe("Graph Tag Tests", function () {
                 stateVariables["/_graph1"].activeChildren[1].componentName;
 
             let f1 = createFunctionFromDefinition(
-                stateVariables[curve1Name].stateValues.fDefinitions[0]
+                stateVariables[curve1Name].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables[curve2Name].stateValues.fDefinitions[0]
+                stateVariables[curve2Name].stateValues.fDefinitions[0],
             );
             expect(f1(-2)).eq(4);
             expect(f1(3)).eq(9);
@@ -153,7 +153,7 @@ describe("Graph Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -356,7 +356,7 @@ describe("Graph Tag Tests", function () {
     </tabular>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -385,10 +385,10 @@ describe("Graph Tag Tests", function () {
             expect(stateVariables["/g"].stateValues.xlabelPosition).eq("left");
             expect(stateVariables["/g"].stateValues.ylabel).eq("bye");
             expect(stateVariables["/g"].stateValues.ylabelPosition).eq(
-                "bottom"
+                "bottom",
             );
             expect(stateVariables["/g"].stateValues.ylabelAlignment).eq(
-                "right"
+                "right",
             );
         });
     });
@@ -406,7 +406,7 @@ describe("Graph Tag Tests", function () {
     <p name="pylabel">y-label: $g.ylabel</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -448,7 +448,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -543,7 +543,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -625,7 +625,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -707,7 +707,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -787,7 +787,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -867,7 +867,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -949,7 +949,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1031,7 +1031,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1113,7 +1113,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1193,7 +1193,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1273,7 +1273,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1353,7 +1353,7 @@ describe("Graph Tag Tests", function () {
    
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1436,7 +1436,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1473,7 +1473,7 @@ describe("Graph Tag Tests", function () {
         cy.log("set xmin to -5");
         cy.get(cesc("#\\/xminInput") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}-5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/xmin")).should("have.text", "-5");
@@ -1493,7 +1493,7 @@ describe("Graph Tag Tests", function () {
         cy.log("set ymax to 0");
         cy.get(cesc("#\\/ymaxInput") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/ymax")).should("have.text", "0");
@@ -1552,7 +1552,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1626,7 +1626,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1712,7 +1712,7 @@ describe("Graph Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1724,7 +1724,7 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.xlabel).eq(
-                "\\(\uff3f\\)"
+                "\\(\uff3f\\)",
             );
 
             let mathinputName =
@@ -1737,7 +1737,7 @@ describe("Graph Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_graph1"].stateValues.xlabel).eq(
-                    "\\(x\\)"
+                    "\\(x\\)",
                 );
             });
         });
@@ -1760,7 +1760,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1772,10 +1772,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels,
             ).eq(false);
             expect(
-                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels,
             ).eq(true);
         });
 
@@ -1786,10 +1786,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels,
             ).eq(true);
             expect(
-                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels,
             ).eq(true);
         });
 
@@ -1800,10 +1800,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels,
             ).eq(true);
             expect(
-                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels,
             ).eq(false);
         });
 
@@ -1814,10 +1814,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels,
             ).eq(false);
             expect(
-                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels,
             ).eq(false);
         });
 
@@ -1828,10 +1828,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayXAxisTickLabels,
             ).eq(false);
             expect(
-                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels
+                stateVariables["/_graph1"].stateValues.displayYAxisTickLabels,
             ).eq(true);
         });
     });
@@ -1881,7 +1881,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1925,7 +1925,7 @@ describe("Graph Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             for (let name in expectedSizes) {
                 expect(stateVariables["/" + name].stateValues.size).eq(
-                    expectedSizes[name]
+                    expectedSizes[name],
                 );
             }
         });
@@ -1954,7 +1954,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1963,19 +1963,19 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/gleft"].stateValues.horizontalAlign).eq(
-                "left"
+                "left",
             );
             expect(stateVariables["/gright"].stateValues.horizontalAlign).eq(
-                "right"
+                "right",
             );
             expect(stateVariables["/gcenter"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/ginvalid"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
         });
 
@@ -1996,7 +1996,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2006,13 +2006,13 @@ describe("Graph Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g"].stateValues.displayMode).eq("block");
             expect(stateVariables["/ginline"].stateValues.displayMode).eq(
-                "inline"
+                "inline",
             );
             expect(stateVariables["/gblock"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
             expect(stateVariables["/ginvalid"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
         });
 
@@ -2047,7 +2047,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2109,7 +2109,7 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#\\/ye_navigationbar") + " > :nth-child(1)").click();
         cy.get(cesc("#\\/bothe_navigationbar") + " > :nth-child(1)").click();
         cy.get(
-            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)"
+            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)",
         ).click();
 
         cy.get(cesc("#\\/xmax")).should("have.text", "12.5");
@@ -2165,7 +2165,7 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#\\/ye_navigationbar") + " > :nth-child(1)").click();
         cy.get(cesc("#\\/bothe_navigationbar") + " > :nth-child(1)").click();
         cy.get(
-            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)"
+            cesc("#\\/ignorebad_navigationbar") + " > :nth-child(1)",
         ).click();
 
         cy.get(cesc("#\\/xmax")).should("have.text", "15.625");
@@ -2236,7 +2236,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2248,10 +2248,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.displayXAxis).eq(
-                false
+                false,
             );
             expect(stateVariables["/_graph1"].stateValues.displayYAxis).eq(
-                true
+                true,
             );
         });
 
@@ -2262,10 +2262,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.displayXAxis).eq(
-                true
+                true,
             );
             expect(stateVariables["/_graph1"].stateValues.displayYAxis).eq(
-                true
+                true,
             );
         });
 
@@ -2276,10 +2276,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.displayXAxis).eq(
-                true
+                true,
             );
             expect(stateVariables["/_graph1"].stateValues.displayYAxis).eq(
-                false
+                false,
             );
         });
 
@@ -2290,10 +2290,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.displayXAxis).eq(
-                false
+                false,
             );
             expect(stateVariables["/_graph1"].stateValues.displayYAxis).eq(
-                false
+                false,
             );
         });
 
@@ -2304,10 +2304,10 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.displayXAxis).eq(
-                false
+                false,
             );
             expect(stateVariables["/_graph1"].stateValues.displayYAxis).eq(
-                true
+                true,
             );
         });
     });
@@ -2326,7 +2326,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2337,7 +2337,7 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.showNavigation).eq(
-                false
+                false,
             );
         });
 
@@ -2347,7 +2347,7 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.showNavigation).eq(
-                true
+                true,
             );
         });
 
@@ -2357,7 +2357,7 @@ describe("Graph Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_graph1"].stateValues.showNavigation).eq(
-                false
+                false,
             );
         });
     });
@@ -2393,7 +2393,7 @@ describe("Graph Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2402,35 +2402,35 @@ describe("Graph Tag Tests", function () {
         cy.get(cesc("#\\/p")).should("have.text", "-45.03, 8.29, -5.58, 7.84");
         cy.get(cesc("#\\/pdg3")).should(
             "have.text",
-            "-45.032, 8.2857, -5.5823, 7.8371"
+            "-45.032, 8.2857, -5.5823, 7.8371",
         );
         cy.get(cesc("#\\/pdg3b")).should(
             "have.text",
-            "-45.032, 8.2857, -5.5823, 7.8371"
+            "-45.032, 8.2857, -5.5823, 7.8371",
         );
         cy.get(cesc("#\\/pdg3c")).should(
             "have.text",
-            "-45.032, 8.2857, -5.5823, 7.8371"
+            "-45.032, 8.2857, -5.5823, 7.8371",
         );
         cy.get(cesc("#\\/pdg3d")).should(
             "have.text",
-            "-45.032, 8.2857, -5.5823, 7.8371"
+            "-45.032, 8.2857, -5.5823, 7.8371",
         );
         cy.get(cesc("#\\/pdc5")).should(
             "have.text",
-            "-45.03233, 8.28572, -5.58234, 7.8371"
+            "-45.03233, 8.28572, -5.58234, 7.8371",
         );
         cy.get(cesc("#\\/pdc5b")).should(
             "have.text",
-            "-45.03233, 8.28572, -5.58234, 7.8371"
+            "-45.03233, 8.28572, -5.58234, 7.8371",
         );
         cy.get(cesc("#\\/pdc5c")).should(
             "have.text",
-            "-45.03233, 8.28572, -5.58234, 7.8371"
+            "-45.03233, 8.28572, -5.58234, 7.8371",
         );
         cy.get(cesc("#\\/pdc5d")).should(
             "have.text",
-            "-45.03233, 8.28572, -5.58234, 7.8371"
+            "-45.03233, 8.28572, -5.58234, 7.8371",
         );
     });
 
@@ -2450,7 +2450,7 @@ describe("Graph Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2487,7 +2487,7 @@ describe("Graph Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2526,7 +2526,7 @@ describe("Graph Tag Tests", function () {
     
   `,
                 },
-                "*"
+                "*",
             );
 
             cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load

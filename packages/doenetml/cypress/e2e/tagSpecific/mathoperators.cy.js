@@ -30,7 +30,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -146,115 +146,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(21);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["+", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberSum"].stateValues.value).eq(
-                    21
+                    21,
                 );
                 expect(
                     stateVariables["/withNumberSum"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberSum"].stateValues.isNumber
+                    stateVariables["/withNumberSum"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "+",
@@ -266,7 +267,7 @@ describe("Math Operator Tag Tests", function () {
                     "z",
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eqls([
@@ -277,27 +278,27 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(21);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "+",
@@ -309,7 +310,7 @@ describe("Math Operator Tag Tests", function () {
                     "z",
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -350,7 +351,7 @@ describe("Math Operator Tag Tests", function () {
       <sum name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</sum>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -509,189 +510,191 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(21);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    21
+                    21,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls(["+", ["/", 6, 2], 17, 5, -4]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(21);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(21);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(21);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    21
+                    21,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["+", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(21);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "+",
@@ -703,7 +706,7 @@ describe("Math Operator Tag Tests", function () {
                     "z",
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.value).eqls([
@@ -717,32 +720,33 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.value
+                    stateVariables["/varsAsStringSimplify"].stateValues.value,
                 ).eqls(["+", ["*", 3, "x"], ["*", 2, "y"], "z"]);
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -816,7 +820,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -980,58 +984,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(21);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "sum", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(251);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "sum", ["tuple", 3, 17, 1]]);
                 expect(
                     await await stateVariables["/numberComponentsCommas"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "sum", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -1040,26 +1046,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(21);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "sum", ["*", 3, 17, 1]]
+                    ["apply", "sum", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -1069,20 +1076,20 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(
-                    stateVariables["/groupPlusGroup"].stateValues.value
+                    stateVariables["/groupPlusGroup"].stateValues.value,
                 ).eqls([
                     "+",
                     ["apply", "sum", ["tuple", 3, 17, 1]],
                     ["apply", "sum", ["tuple", 3, 17, 1]],
                 ]);
                 expect(
-                    stateVariables["/groupPlusGroup"].stateValues.isNumber
+                    stateVariables["/groupPlusGroup"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    21
+                    21,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -1091,13 +1098,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(42);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -1106,13 +1113,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(42);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -1121,13 +1128,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(42);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -1156,7 +1163,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1272,115 +1279,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(21);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["+", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["+", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(21);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberSum"].stateValues.value).eq(
-                    21
+                    21,
                 );
                 expect(
                     stateVariables["/withNumberSum"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberSum"].stateValues.isNumber
+                    stateVariables["/withNumberSum"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "+",
@@ -1392,7 +1400,7 @@ describe("Math Operator Tag Tests", function () {
                     "z",
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eqls([
@@ -1403,27 +1411,27 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(21);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "+",
@@ -1435,7 +1443,7 @@ describe("Math Operator Tag Tests", function () {
                     "z",
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -1465,7 +1473,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1582,115 +1590,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(51);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["*", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberProduct"].stateValues.value
+                    stateVariables["/withNumberProduct"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumberProduct"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberProduct"].stateValues.isNumber
+                    stateVariables["/withNumberProduct"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "*",
@@ -1699,7 +1708,7 @@ describe("Math Operator Tag Tests", function () {
                     ["+", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsExpand"].stateValues.value).eqls([
@@ -1711,27 +1720,27 @@ describe("Math Operator Tag Tests", function () {
                     ["*", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/varsExpand"].stateValues.isNumericOperator
+                    stateVariables["/varsExpand"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsExpand"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(51);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "*",
@@ -1740,7 +1749,7 @@ describe("Math Operator Tag Tests", function () {
                     ["+", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -1781,7 +1790,7 @@ describe("Math Operator Tag Tests", function () {
       <product name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</product>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1940,189 +1949,191 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(51);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    51
+                    51,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls(["*", ["/", 6, 2], 17, ["+", 5, -4]]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(51);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(51);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(51);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    51
+                    51,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["*", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "*",
@@ -2131,7 +2142,7 @@ describe("Math Operator Tag Tests", function () {
                     ["+", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.value).eqls([
@@ -2142,13 +2153,13 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsAsStringExpand"].stateValues.value
+                    stateVariables["/varsAsStringExpand"].stateValues.value,
                 ).eqls([
                     "+",
                     ["^", "x", 3],
@@ -2159,22 +2170,22 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsStringExpand"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/varsAsStringExpand"].stateValues.isNumber
+                    stateVariables["/varsAsStringExpand"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -2245,7 +2256,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2402,58 +2413,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "prod", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(251);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "prod", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "prod", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -2462,26 +2475,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "prod", ["*", 3, 17, 1]]
+                    ["apply", "prod", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -2491,10 +2505,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    51
+                    51,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -2503,13 +2517,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(2601);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -2518,13 +2532,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(2601);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -2533,13 +2547,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(2601);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -2568,7 +2582,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2684,115 +2698,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(51);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["*", 3, 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["*", ["/", 6, 2], 17, 1]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberProduct"].stateValues.value
+                    stateVariables["/withNumberProduct"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/withNumberProduct"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberProduct"].stateValues.isNumber
+                    stateVariables["/withNumberProduct"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "*",
@@ -2801,7 +2816,7 @@ describe("Math Operator Tag Tests", function () {
                     ["+", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsExpand"].stateValues.value).eqls([
@@ -2813,27 +2828,27 @@ describe("Math Operator Tag Tests", function () {
                     ["*", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/varsExpand"].stateValues.isNumericOperator
+                    stateVariables["/varsExpand"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsExpand"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(51);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "*",
@@ -2842,7 +2857,7 @@ describe("Math Operator Tag Tests", function () {
                     ["+", "x", "y", "z"],
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -2884,7 +2899,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3022,184 +3037,184 @@ describe("Math Operator Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 expect(stateVariables["/_clampnumber1"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(stateVariables["/_clampnumber2"].stateValues.value).eq(
-                    0
+                    0,
                 );
                 expect(stateVariables["/_clampnumber3"].stateValues.value).eq(
-                    0.3
+                    0.3,
                 );
                 expect(stateVariables["/_clampnumber4"].stateValues.value).eq(
-                    40
+                    40,
                 );
                 expect(stateVariables["/_clampnumber5"].stateValues.value).eq(
-                    10
+                    10,
                 );
                 expect(stateVariables["/_clampnumber6"].stateValues.value).eq(
-                    12
+                    12,
                 );
                 expect(stateVariables["/_clampnumber7"].stateValues.value).eq(
-                    40
+                    40,
                 );
                 expect(stateVariables["/_clampnumber8"].stateValues.value).eq(
-                    10
+                    10,
                 );
                 expect(stateVariables["/_clampnumber9"].stateValues.value).eq(
-                    12
+                    12,
                 );
                 expect(
-                    stateVariables["/_clampnumber10"].stateValues.value
+                    stateVariables["/_clampnumber10"].stateValues.value,
                 ).eqls(NaN);
                 expect(
-                    stateVariables["/_clampnumber11"].stateValues.value
+                    stateVariables["/_clampnumber11"].stateValues.value,
                 ).eqls(NaN);
                 expect(stateVariables["/_clampnumber12"].stateValues.value).eq(
-                    40
+                    40,
                 );
                 expect(stateVariables["/_clampnumber13"].stateValues.value).eq(
-                    10
+                    10,
                 );
                 expect(stateVariables["/_clampnumber14"].stateValues.value).eq(
-                    12
+                    12,
                 );
                 expect(stateVariables["/clampnumber1b"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(stateVariables["/clampnumber5b"].stateValues.value).eq(
-                    10
+                    10,
                 );
                 expect(stateVariables["/clampnumber9b"].stateValues.value).eq(
-                    12
+                    12,
                 );
                 expect(stateVariables["/clampnumber14b"].stateValues.value).eq(
-                    12
+                    12,
                 );
                 expect(
                     stateVariables["/_clampnumber1"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber3"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber4"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber5"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber6"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber7"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber8"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber9"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber10"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber11"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber12"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber13"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_clampnumber14"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/clampnumber1b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/clampnumber5b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/clampnumber9b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/clampnumber14b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber1"].stateValues.isNumber
+                    stateVariables["/_clampnumber1"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber2"].stateValues.isNumber
+                    stateVariables["/_clampnumber2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber3"].stateValues.isNumber
+                    stateVariables["/_clampnumber3"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber4"].stateValues.isNumber
+                    stateVariables["/_clampnumber4"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber5"].stateValues.isNumber
+                    stateVariables["/_clampnumber5"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber6"].stateValues.isNumber
+                    stateVariables["/_clampnumber6"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber7"].stateValues.isNumber
+                    stateVariables["/_clampnumber7"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber8"].stateValues.isNumber
+                    stateVariables["/_clampnumber8"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber9"].stateValues.isNumber
+                    stateVariables["/_clampnumber9"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber10"].stateValues.isNumber
+                    stateVariables["/_clampnumber10"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/_clampnumber11"].stateValues.isNumber
+                    stateVariables["/_clampnumber11"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/_clampnumber12"].stateValues.isNumber
+                    stateVariables["/_clampnumber12"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber13"].stateValues.isNumber
+                    stateVariables["/_clampnumber13"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_clampnumber14"].stateValues.isNumber
+                    stateVariables["/_clampnumber14"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/clampnumber1b"].stateValues.isNumber
+                    stateVariables["/clampnumber1b"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/clampnumber5b"].stateValues.isNumber
+                    stateVariables["/clampnumber5b"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/clampnumber9b"].stateValues.isNumber
+                    stateVariables["/clampnumber9b"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/clampnumber14b"].stateValues.isNumber
+                    stateVariables["/clampnumber14b"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -3240,7 +3255,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3378,190 +3393,202 @@ describe("Math Operator Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 expect(
-                    stateVariables["/_wrapnumberperiodic1"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic1"].stateValues.value,
                 ).closeTo(0.3, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic2"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic2"].stateValues.value,
                 ).closeTo(0.7, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic3"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic3"].stateValues.value,
                 ).closeTo(0.3, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic4"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic4"].stateValues.value,
                 ).closeTo(25.3, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic5"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic5"].stateValues.value,
                 ).closeTo(34.7, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic6"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic6"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic7"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic7"].stateValues.value,
                 ).closeTo(25.3, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic8"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic8"].stateValues.value,
                 ).closeTo(34.7, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic9"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic9"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic10"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic10"].stateValues.value,
                 ).eqls(NaN);
                 expect(
-                    stateVariables["/_wrapnumberperiodic11"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic11"].stateValues.value,
                 ).eqls(NaN);
                 expect(
-                    stateVariables["/_wrapnumberperiodic12"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic12"].stateValues.value,
                 ).closeTo(18, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic13"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic13"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
-                    stateVariables["/_wrapnumberperiodic14"].stateValues.value
+                    stateVariables["/_wrapnumberperiodic14"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
-                    stateVariables["/wrapnumberperiodic1b"].stateValues.value
+                    stateVariables["/wrapnumberperiodic1b"].stateValues.value,
                 ).closeTo(0.3, 1e-12);
                 expect(
-                    stateVariables["/wrapnumberperiodic5b"].stateValues.value
+                    stateVariables["/wrapnumberperiodic5b"].stateValues.value,
                 ).closeTo(34.7, 1e-12);
                 expect(
-                    stateVariables["/wrapnumberperiodic9b"].stateValues.value
+                    stateVariables["/wrapnumberperiodic9b"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
-                    stateVariables["/wrapnumberperiodic14b"].stateValues.value
+                    stateVariables["/wrapnumberperiodic14b"].stateValues.value,
                 ).closeTo(12, 1e-12);
                 expect(
                     stateVariables["/_wrapnumberperiodic1"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic3"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic4"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic5"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic6"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic7"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic8"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic9"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic10"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic11"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic12"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic13"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic14"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/wrapnumberperiodic1b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/wrapnumberperiodic5b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/wrapnumberperiodic9b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/wrapnumberperiodic14b"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic1"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic1"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic2"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic2"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic3"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic3"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic4"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic4"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic5"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic5"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic6"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic6"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic7"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic7"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic8"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic8"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/_wrapnumberperiodic9"].stateValues.isNumber
+                    stateVariables["/_wrapnumberperiodic9"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic10"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/_wrapnumberperiodic11"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/_wrapnumberperiodic12"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic13"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/_wrapnumberperiodic14"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/wrapnumberperiodic1b"].stateValues.isNumber
+                    stateVariables["/wrapnumberperiodic1b"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/wrapnumberperiodic5b"].stateValues.isNumber
+                    stateVariables["/wrapnumberperiodic5b"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/wrapnumberperiodic9b"].stateValues.isNumber
+                    stateVariables["/wrapnumberperiodic9b"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/wrapnumberperiodic14b"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
             });
         });
@@ -3590,7 +3617,7 @@ describe("Math Operator Tag Tests", function () {
       $_graph1{name="g2"}
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -3610,7 +3637,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(x);
             expect((await g2children[0].stateValues.xs)[1]).eq(y);
@@ -3638,7 +3665,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(x);
             expect((await g2children[0].stateValues.xs)[1]).eq(y);
@@ -3666,7 +3693,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(clamp(x));
             expect((await g2children[0].stateValues.xs)[1]).eq(wrap(y));
@@ -3694,7 +3721,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(clamp(x));
             expect((await g2children[0].stateValues.xs)[1]).eq(wrap(y));
@@ -3725,7 +3752,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(x);
             expect((await g2children[0].stateValues.xs)[1]).eq(y);
@@ -3756,7 +3783,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(clamp(x));
             expect((await g2children[0].stateValues.xs)[1]).eq(wrap(y));
@@ -3788,7 +3815,7 @@ describe("Math Operator Tag Tests", function () {
             expect(stateVariables["/_point3"].stateValues.xs[1]).eq(clamp(x));
 
             let g2children = stateVariables["/g2"].activeChildren.map(
-                (x) => stateVariables[x.componentName]
+                (x) => stateVariables[x.componentName],
             );
             expect((await g2children[0].stateValues.xs)[0]).eq(clamp(x));
             expect((await g2children[0].stateValues.xs)[1]).eq(wrap(y));
@@ -3828,7 +3855,7 @@ describe("Math Operator Tag Tests", function () {
   
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3953,7 +3980,7 @@ describe("Math Operator Tag Tests", function () {
                 expect(stateVariables["/_round7"].stateValues.value).eq(55.3);
                 expect(stateVariables["/_round8"].stateValues.value).eq(3.434);
                 expect(stateVariables["/_round9"].stateValues.value).eq(
-                    0.55556
+                    0.55556,
                 );
                 expect(stateVariables["/_round10"].stateValues.value).eqls([
                     "apply",
@@ -3962,7 +3989,7 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/_round11"].stateValues.value).eq(62.7);
                 expect(stateVariables["/_round12"].stateValues.value).eq(
-                    1524000000
+                    1524000000,
                 );
                 expect(stateVariables["/round1b"].stateValues.value).eq(55);
                 expect(stateVariables["/round5b"].stateValues.value).eq(3.43);
@@ -4010,7 +4037,7 @@ describe("Math Operator Tag Tests", function () {
   
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4117,7 +4144,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4216,13 +4243,13 @@ describe("Math Operator Tag Tests", function () {
                     1,
                 ]);
                 expect(
-                    stateVariables["/_convertsettolist1"].stateValues.value
+                    stateVariables["/_convertsettolist1"].stateValues.value,
                 ).eqls(["list", 1, 2, 3]);
                 expect(
-                    stateVariables["/_convertsettolist2"].stateValues.value
+                    stateVariables["/_convertsettolist2"].stateValues.value,
                 ).eqls(["tuple", 1, 2, 3, 2, 1]);
                 expect(
-                    stateVariables["/_convertsettolist3"].stateValues.value
+                    stateVariables["/_convertsettolist3"].stateValues.value,
                 ).eqls(["list", 1, 2, 3, 2, 1]);
                 expect(stateVariables["/r1"].stateValues.value).eqls([
                     "list",
@@ -4247,13 +4274,13 @@ describe("Math Operator Tag Tests", function () {
                     1,
                 ]);
                 expect(
-                    stateVariables["/_convertsettolist1"].stateValues.unordered
+                    stateVariables["/_convertsettolist1"].stateValues.unordered,
                 ).eq(true);
                 expect(
-                    stateVariables["/_convertsettolist2"].stateValues.unordered
+                    stateVariables["/_convertsettolist2"].stateValues.unordered,
                 ).eq(true);
                 expect(
-                    stateVariables["/_convertsettolist3"].stateValues.unordered
+                    stateVariables["/_convertsettolist3"].stateValues.unordered,
                 ).eq(true);
                 expect(stateVariables["/r1"].stateValues.unordered).eq(true);
                 expect(stateVariables["/r2"].stateValues.unordered).eq(true);
@@ -4285,7 +4312,7 @@ describe("Math Operator Tag Tests", function () {
       <number name="num3">1</number></p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4295,7 +4322,7 @@ describe("Math Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let p = await stateVariables["/p"].stateValues.value;
             expect(
-                stateVariables["/_convertsettolist1"].stateValues.value
+                stateVariables["/_convertsettolist1"].stateValues.value,
             ).eqls(["list", 7, 3, p]);
             expect(stateVariables["/csl2"].stateValues.value).eqls([
                 "list",
@@ -4304,7 +4331,7 @@ describe("Math Operator Tag Tests", function () {
                 p,
             ]);
             expect(
-                stateVariables["/_convertsettolist1"].stateValues.unordered
+                stateVariables["/_convertsettolist1"].stateValues.unordered,
             ).eq(true);
             expect(stateVariables["/csl2"].stateValues.unordered).eq(true);
         });
@@ -4335,7 +4362,7 @@ describe("Math Operator Tag Tests", function () {
   
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4467,7 +4494,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4633,7 +4660,7 @@ describe("Math Operator Tag Tests", function () {
       <abs>-x</abs>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4676,7 +4703,7 @@ describe("Math Operator Tag Tests", function () {
       $a2.value{assignNames="a3"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4789,7 +4816,7 @@ describe("Math Operator Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "|x|"
+                    "|x|",
                 );
             });
         cy.get(cesc("#\\/a3"))
@@ -4821,7 +4848,7 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/a2") + " textarea").type(
             "{end}{leftArrow}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/a3")).should("contain.text", "|y|");
 
@@ -4836,7 +4863,7 @@ describe("Math Operator Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "|y|"
+                    "|y|",
                 );
             });
         cy.get(cesc("#\\/a3"))
@@ -4891,7 +4918,7 @@ describe("Math Operator Tag Tests", function () {
       $_graph1{name="g2"}
       `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -4900,7 +4927,7 @@ describe("Math Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             g2ChildrenNames = stateVariables["/g2"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
         });
 
@@ -4910,32 +4937,32 @@ describe("Math Operator Tag Tests", function () {
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(x);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(y);
                 expect(stateVariables["/_point2"].stateValues.xs[0]).eq(
-                    Math.floor(x)
+                    Math.floor(x),
                 );
                 expect(stateVariables["/_point2"].stateValues.xs[1]).eq(
-                    Math.ceil(y)
+                    Math.ceil(y),
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[0]).eq(
-                    Math.abs(Math.ceil(y))
+                    Math.abs(Math.ceil(y)),
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).eq(
-                    Math.round(x)
+                    Math.round(x),
                 );
 
                 let g2Children = g2ChildrenNames.map((x) => stateVariables[x]);
                 expect((await g2Children[0].stateValues.xs)[0]).eq(x);
                 expect((await g2Children[0].stateValues.xs)[1]).eq(y);
                 expect((await g2Children[1].stateValues.xs)[0]).eq(
-                    Math.floor(x)
+                    Math.floor(x),
                 );
                 expect((await g2Children[1].stateValues.xs)[1]).eq(
-                    Math.ceil(y)
+                    Math.ceil(y),
                 );
                 expect((await g2Children[2].stateValues.xs)[0]).eq(
-                    Math.abs(Math.ceil(y))
+                    Math.abs(Math.ceil(y)),
                 );
                 expect((await g2Children[2].stateValues.xs)[1]).eq(
-                    Math.round(x)
+                    Math.round(x),
                 );
             });
         };
@@ -5099,7 +5126,7 @@ describe("Math Operator Tag Tests", function () {
       <sign>0</sign>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5158,7 +5185,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5274,115 +5301,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(7);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["/", ["+", 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["/", ["+", 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["/", ["+", ["/", 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberMean"].stateValues.value).eq(
-                    6
+                    6,
                 );
                 expect(
                     stateVariables["/withNumberMean"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMean"].stateValues.isNumber
+                    stateVariables["/withNumberMean"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "/",
@@ -5390,7 +5418,7 @@ describe("Math Operator Tag Tests", function () {
                     3,
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eqls([
@@ -5400,27 +5428,27 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(7);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "/",
@@ -5428,7 +5456,7 @@ describe("Math Operator Tag Tests", function () {
                     3,
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -5469,7 +5497,7 @@ describe("Math Operator Tag Tests", function () {
       <mean name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</mean>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5628,189 +5656,191 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(7);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    7
+                    7,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["/", ["+", 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls(["/", ["+", ["/", 6, 2], 17, 5, -4], 3]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(7);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(7);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(7);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    7
+                    7,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["/", ["+", 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["/", ["+", 3, 17, 1], 3]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["/", ["+", ["/", 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(7);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "/",
@@ -5818,7 +5848,7 @@ describe("Math Operator Tag Tests", function () {
                     3,
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.value).eqls([
@@ -5828,32 +5858,33 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.value
+                    stateVariables["/varsAsStringSimplify"].stateValues.value,
                 ).eqls(["/", ["+", ["*", 3, "x"], ["*", 2, "y"], "z"], 3]);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -5924,7 +5955,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6081,58 +6112,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(7);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "mean", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(251);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "mean", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(7);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "mean", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -6141,26 +6174,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(7);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "mean", ["*", 3, 17, 1]]
+                    ["apply", "mean", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -6170,10 +6204,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    7
+                    7,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -6182,13 +6216,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(7);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -6197,13 +6231,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(7);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -6212,13 +6246,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(7);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -6239,7 +6273,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6297,20 +6331,20 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/meanPrime"].stateValues.value).eq(4.25);
                 expect(stateVariables["/meanPrimeb"].stateValues.value).eq(
-                    4.25
+                    4.25,
                 );
                 expect(
                     stateVariables[
                         stateVariables["/pPrimeb"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(4.25);
                 expect(stateVariables["/mean100"].stateValues.value).eq(50.5);
                 expect(stateVariables["/mean100b"].stateValues.value).eq(50.5);
                 expect(
                     stateVariables[
                         stateVariables["/p100b"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(50.5);
             });
         });
@@ -6326,7 +6360,7 @@ describe("Math Operator Tag Tests", function () {
       <median name="noSymbolic">1 4 5 x+1</median>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6345,7 +6379,7 @@ describe("Math Operator Tag Tests", function () {
 
             expect(stateVariables["/numbers"].stateValues.value).eq(3);
             expect(stateVariables["/numbers"].stateValues.isNumericOperator).eq(
-                true
+                true,
             );
             expect(stateVariables["/numbers"].stateValues.isNumber).eq(true);
         });
@@ -6375,7 +6409,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6457,7 +6491,7 @@ describe("Math Operator Tag Tests", function () {
                     expect(text.trim()).equal(
                         me.math
                             .variance([3, me.math.variance([17, 1])])
-                            .toString()
+                            .toString(),
                     );
                 });
             cy.get(cesc("#\\/vars"))
@@ -6466,7 +6500,7 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                     );
                 });
             // cy.get(cesc('#\\/varsSimplify')).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
@@ -6492,152 +6526,153 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                     );
                 });
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables['/numbersForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumericMath'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberVariance"].stateValues.value
+                    stateVariables["/withNumberVariance"].stateValues.value,
                 ).eq(me.math.variance([3, me.math.variance([17, 1])]));
                 expect(
                     stateVariables["/withNumberVariance"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberVariance"].stateValues.isNumber
+                    stateVariables["/withNumberVariance"].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/vars'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 // expect(stateVariables['/varsSimplify'].stateValues.value).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables["/varsb"].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -6678,7 +6713,7 @@ describe("Math Operator Tag Tests", function () {
       <variance name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</variance>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6812,7 +6847,7 @@ describe("Math Operator Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                    "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                 );
             });
         cy.get(cesc("#\\/varsAsString"))
@@ -6821,7 +6856,7 @@ describe("Math Operator Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                    "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                 );
             });
         // cy.get(cesc('#\\/varsAsStringSimplify')).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
@@ -6839,212 +6874,215 @@ describe("Math Operator Tag Tests", function () {
 
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersAsStringForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numericAsString'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 5, -4], 3]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(theVariance);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(theVariance);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersAsMacrosForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/withNumberMathMacroForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/withNumericMathMacro'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/vars'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 // expect(stateVariables['/varsAsString'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 // expect(stateVariables['/varsAsStringSimplify'].stateValues.value).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -7115,7 +7153,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7277,58 +7315,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(theVariance);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "variance", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(0);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "variance", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "variance", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(0);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -7337,26 +7377,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(theVariance);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "variance", ["*", 3, 17, 1]]
+                    ["apply", "variance", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(0);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -7366,10 +7407,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -7378,13 +7419,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 13],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(theVariance2);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -7393,13 +7434,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 13, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(theVariance2);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -7408,13 +7449,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 13],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(theVariance2);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -7435,7 +7476,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7443,7 +7484,7 @@ describe("Math Operator Tag Tests", function () {
 
         let variancePrimes = me.math.variance(2, 3, 5, 7);
         let variance100 = me.math.variance(
-            Array.from({ length: 100 }, (_, i) => i + 1)
+            Array.from({ length: 100 }, (_, i) => i + 1),
         );
 
         cy.log("Test value displayed in browser");
@@ -7496,29 +7537,29 @@ describe("Math Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/variancePrime"].stateValues.value).closeTo(
                 variancePrimes,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/variancePrimeb"].stateValues.value).closeTo(
                 variancePrimes,
-                1e-12
+                1e-12,
             );
             expect(
                 stateVariables[
                     stateVariables["/pPrimeb"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(variancePrimes, 1e-12);
             expect(stateVariables["/variance100"].stateValues.value).closeTo(
                 variance100,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/variance100b"].stateValues.value).closeTo(
                 variance100,
-                1e-12
+                1e-12,
             );
             expect(
                 stateVariables[
                     stateVariables["/p100b"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(variance100, 1e-12);
         });
     });
@@ -7547,7 +7588,7 @@ describe("Math Operator Tag Tests", function () {
         $vars{name="varsb"}
         `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7630,9 +7671,9 @@ describe("Math Operator Tag Tests", function () {
                         me.math
                             .variance(
                                 [4, me.math.variance([17, 1], "uncorrected")],
-                                "uncorrected"
+                                "uncorrected",
                             )
-                            .toString()
+                            .toString(),
                     );
                 });
             cy.get(cesc("#\\/vars"))
@@ -7641,7 +7682,7 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233"
+                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233",
                     );
                 });
             // cy.get(cesc('#\\/varsSimplify')).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
@@ -7667,157 +7708,158 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233"
+                        "x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233",
                     );
                 });
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables['/numbersForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumericMath'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theVariance);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberVariance"].stateValues.value
+                    stateVariables["/withNumberVariance"].stateValues.value,
                 ).eq(
                     me.math.variance(
                         [4, me.math.variance([17, 1], "uncorrected")],
-                        "uncorrected"
-                    )
+                        "uncorrected",
+                    ),
                 );
                 expect(
                     stateVariables["/withNumberVariance"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberVariance"].stateValues.isNumber
+                    stateVariables["/withNumberVariance"].stateValues.isNumber,
                 ).eq(true);
                 // expect(stateVariables['/vars'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 // expect(stateVariables['/varsSimplify'].stateValues.value).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(
-                    theVariance
+                    theVariance,
                 );
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables["/varsb"].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -7839,7 +7881,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7848,7 +7890,7 @@ describe("Math Operator Tag Tests", function () {
         let variancePrimes = me.math.variance([2, 3, 5, 7], "uncorrected");
         let variance100 = me.math.variance(
             Array.from({ length: 100 }, (_, i) => i + 1),
-            "uncorrected"
+            "uncorrected",
         );
 
         cy.log("Test value displayed in browser");
@@ -7901,29 +7943,29 @@ describe("Math Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/variancePrime"].stateValues.value).closeTo(
                 variancePrimes,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/variancePrimeb"].stateValues.value).closeTo(
                 variancePrimes,
-                1e-12
+                1e-12,
             );
             expect(
                 stateVariables[
                     stateVariables["/pPrimeb"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(variancePrimes, 1e-12);
             expect(stateVariables["/variance100"].stateValues.value).closeTo(
                 variance100,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/variance100b"].stateValues.value).closeTo(
                 variance100,
-                1e-12
+                1e-12,
             );
             expect(
                 stateVariables[
                     stateVariables["/p100b"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(variance100, 1e-12);
         });
     });
@@ -7952,7 +7994,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8032,7 +8074,7 @@ describe("Math Operator Tag Tests", function () {
                 .then((text) => {
                     expect(Number(text)).closeTo(
                         me.math.std([3, me.math.std([17, 1])]),
-                        1e-6
+                        1e-6,
                     );
                 });
             cy.get(cesc("#\\/vars"))
@@ -8041,7 +8083,7 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                     );
                 });
             // cy.get(cesc('#\\/varsSimplify')).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
@@ -8067,156 +8109,157 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232"
+                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)232",
                     );
                 });
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).closeTo(
                     theStandardDeviation,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables['/numbersForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numbersForceSymbolicSimplify"].stateValues
+                        .value,
                 ).eqls(["apply", "sqrt", 76]);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).closeTo(theStandardDeviation, 1e-16);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["apply", "sqrt", 76]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(false);
                 // expect(stateVariables['/numbersWithNumericMath'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "sqrt", 76]);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).closeTo(theStandardDeviation, 1e-12);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .value
+                        .value,
                 ).closeTo(me.math.std([3, me.math.std([17, 1])]), 1e-12);
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/vars'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 // expect(stateVariables['/varsSimplify'].stateValues.value).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).closeTo(
                     theStandardDeviation,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables["/varsb"].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -8270,7 +8313,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8388,58 +8431,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 13, 25, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(theStd);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "std", ["+", ["*", 13, 25, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(0);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "std", ["tuple", 13, 25, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(theStd);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "std", ["*", 13, 25, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(0);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -8448,26 +8493,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 13, 25, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(theStd);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "std", ["*", 13, 25, 1]]
+                    ["apply", "std", ["*", 13, 25, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(0);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -8477,10 +8523,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    theStd
+                    theStd,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -8501,7 +8547,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8559,26 +8605,26 @@ describe("Math Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/standarddeviationPrime"].stateValues.value
+                stateVariables["/standarddeviationPrime"].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
-                stateVariables["/standarddeviationPrimeb"].stateValues.value
+                stateVariables["/standarddeviationPrimeb"].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
                 stateVariables[
                     stateVariables["/pPrimeb"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
-                stateVariables["/standarddeviation100"].stateValues.value
+                stateVariables["/standarddeviation100"].stateValues.value,
             ).closeTo(std100, 1e-12);
             expect(
-                stateVariables["/standarddeviation100b"].stateValues.value
+                stateVariables["/standarddeviation100b"].stateValues.value,
             ).closeTo(std100, 1e-12);
             expect(
                 stateVariables[
                     stateVariables["/p100b"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(std100, 1e-12);
         });
     });
@@ -8607,7 +8653,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8688,9 +8734,9 @@ describe("Math Operator Tag Tests", function () {
                     expect(Number(text)).closeTo(
                         me.math.std(
                             [3, me.math.std([17, 1], "uncorrected")],
-                            "uncorrected"
+                            "uncorrected",
                         ),
-                        1e-6
+                        1e-6,
                     );
                 });
             cy.get(cesc("#\\/vars"))
@@ -8699,7 +8745,7 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233"
+                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233",
                     );
                 });
             // cy.get(cesc('#\\/varsSimplify')).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
@@ -8725,162 +8771,163 @@ describe("Math Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.trim()).equal(
-                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233"
+                        "√x2+(x+y)2+(x+y+z)2−(x+x+y+x+y+z)233",
                     );
                 });
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).closeTo(
                     theStandardDeviation,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables['/numbersForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numbersForceSymbolicSimplify"].stateValues
+                        .value,
                 ).eqls(["apply", "sqrt", 42]);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).closeTo(theStandardDeviation, 1e-16);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/numbersWithNumberMathForceSymbolic'].stateValues.value).eqls(['/', ['+', 3, 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["apply", "sqrt", 42]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(false);
                 // expect(stateVariables['/numbersWithNumericMath'].stateValues.value).eqls(['/', ['+', ['/', 6, 2], 17, 1], 3]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "sqrt", 42]);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).closeTo(theStandardDeviation, 1e-12);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .value
+                        .value,
                 ).closeTo(
                     me.math.std(
                         [3, me.math.std([17, 1], "uncorrected")],
-                        "uncorrected"
+                        "uncorrected",
                     ),
-                    1e-12
+                    1e-12,
                 );
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberStandardDeviation"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 // expect(stateVariables['/vars'].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 // expect(stateVariables['/varsSimplify'].stateValues.value).eqls(['/', ['+', ['*', 3, 'x'], ['*', 2, 'y'], 'z'], 3]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).closeTo(
                     theStandardDeviation,
-                    1e-12
+                    1e-12,
                 );
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 // expect(stateVariables["/varsb"].stateValues.value).eqls(['/', ['+', 'x', 'x', 'y', 'x', 'y', 'z'], 3]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -8902,7 +8949,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8911,7 +8958,7 @@ describe("Math Operator Tag Tests", function () {
         let stdPrimes = me.math.std([2, 3, 5, 7], "uncorrected");
         let std100 = me.math.std(
             Array.from({ length: 100 }, (_, i) => i + 1),
-            "uncorrected"
+            "uncorrected",
         );
 
         cy.log("Test value displayed in browser");
@@ -8963,26 +9010,26 @@ describe("Math Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/standarddeviationPrime"].stateValues.value
+                stateVariables["/standarddeviationPrime"].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
-                stateVariables["/standarddeviationPrimeb"].stateValues.value
+                stateVariables["/standarddeviationPrimeb"].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
                 stateVariables[
                     stateVariables["/pPrimeb"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(stdPrimes, 1e-12);
             expect(
-                stateVariables["/standarddeviation100"].stateValues.value
+                stateVariables["/standarddeviation100"].stateValues.value,
             ).closeTo(std100, 1e-12);
             expect(
-                stateVariables["/standarddeviation100b"].stateValues.value
+                stateVariables["/standarddeviation100b"].stateValues.value,
             ).closeTo(std100, 1e-12);
             expect(
                 stateVariables[
                     stateVariables["/p100b"].activeChildren[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).closeTo(std100, 1e-12);
         });
     });
@@ -9010,7 +9057,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9126,149 +9173,150 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberCount"].stateValues.value).eq(
-                    2
+                    2,
                 );
                 expect(
                     stateVariables["/withNumberCount"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberCount"].stateValues.isNumber
+                    stateVariables["/withNumberCount"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(true);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eq(3);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(true);
             });
@@ -9309,7 +9357,7 @@ describe("Math Operator Tag Tests", function () {
       <count name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</count>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9468,224 +9516,227 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    3
+                    3,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/numericAsString"].stateValues.value).eq(
-                    3
+                    3,
                 );
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(true);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(3);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(3);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(true);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    3
+                    3,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eq(3);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(true);
                 expect(stateVariables["/varsAsString"].stateValues.value).eq(3);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.value
+                    stateVariables["/varsAsStringSimplify"].stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(3);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
             });
         });
@@ -9757,7 +9808,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9914,58 +9965,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(3);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "count", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(1);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "count", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(3);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "count", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -9974,26 +10027,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(3);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "count", ["*", 3, 17, 1]]
+                    ["apply", "count", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -10003,10 +10057,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    3
+                    3,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -10015,13 +10069,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(6);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -10030,13 +10084,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(6);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -10045,13 +10099,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(6);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -10072,7 +10126,7 @@ describe("Math Operator Tag Tests", function () {
     $p100{name="p100b"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10134,14 +10188,14 @@ describe("Math Operator Tag Tests", function () {
                     stateVariables[
                         stateVariables["/pPrimeb"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(4);
                 expect(stateVariables["/count100"].stateValues.value).eq(100);
                 expect(stateVariables["/count100b"].stateValues.value).eq(100);
                 expect(
                     stateVariables[
                         stateVariables["/p100b"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(100);
             });
         });
@@ -10170,7 +10224,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10286,115 +10340,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(1);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["apply", "min", ["tuple", ["/", 6, 2], 17, 1]]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberMin"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(
                     stateVariables["/withNumberMin"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMin"].stateValues.isNumber
+                    stateVariables["/withNumberMin"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "apply",
@@ -10402,7 +10457,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eqls([
@@ -10412,27 +10467,27 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(1);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "apply",
@@ -10440,7 +10495,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -10481,7 +10536,7 @@ describe("Math Operator Tag Tests", function () {
       <min name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</min>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10640,47 +10695,47 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(1);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls([
                     "apply",
                     "min",
@@ -10688,145 +10743,147 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(1);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(1);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(1);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["apply", "min", ["tuple", ["/", 6, 2], 17, 1]]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(1);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "apply",
@@ -10834,7 +10891,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.value).eqls([
@@ -10844,13 +10901,13 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.value
+                    stateVariables["/varsAsStringSimplify"].stateValues.value,
                 ).eqls([
                     "apply",
                     "min",
@@ -10858,22 +10915,23 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -10944,7 +11002,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11101,58 +11159,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(1);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "min", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(251);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "min", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(1);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "min", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -11161,26 +11221,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(1);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "min", ["*", 3, 17, 1]]
+                    ["apply", "min", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -11190,10 +11251,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    1
+                    1,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -11202,13 +11263,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(1);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -11217,13 +11278,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(1);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -11232,13 +11293,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(1);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -11273,7 +11334,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11307,36 +11368,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "1");
@@ -11369,36 +11430,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "3");
@@ -11431,36 +11492,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths01") + " .mjx-mrow").should("contain.text", "6");
@@ -11493,41 +11554,41 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should(
             "contain.text",
-            "min(3,x)"
+            "min(3,x)",
         );
 
         cy.get(cesc("#\\/numbers00") + " .mjx-mrow")
@@ -11558,41 +11619,41 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{shift+home}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{shift+home}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should(
             "contain.text",
-            "min(3,y)"
+            "min(3,y)",
         );
 
         cy.get(cesc("#\\/numbers00") + " .mjx-mrow")
@@ -11623,36 +11684,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{shift+home}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{shift+home}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "2");
@@ -11707,7 +11768,7 @@ describe("Math Operator Tag Tests", function () {
       $vars{name="varsb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11823,115 +11884,116 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(17);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["apply", "max", ["tuple", ["/", 6, 2], 17, 1]]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberMax"].stateValues.value).eq(
-                    17
+                    17,
                 );
                 expect(
                     stateVariables["/withNumberMax"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMax"].stateValues.isNumber
+                    stateVariables["/withNumberMax"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "apply",
@@ -11939,7 +12001,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.value).eqls([
@@ -11949,27 +12011,27 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsSimplify"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.value
+                    stateVariables["/varsForcedNumeric"].stateValues.value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsForcedNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/varsForcedNumeric"].stateValues.isNumber
+                    stateVariables["/varsForcedNumeric"].stateValues.isNumber,
                 ).eq(false);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(17);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/varsb"].stateValues.value).eqls([
                     "apply",
@@ -11977,7 +12039,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/varsb"].stateValues.isNumericOperator
+                    stateVariables["/varsb"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsb"].stateValues.isNumber).eq(false);
             });
@@ -12018,7 +12080,7 @@ describe("Math Operator Tag Tests", function () {
       <max name="varsAsStringForceNumeric" forceNumeric>x x+y x+y+z</max>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12177,47 +12239,47 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(17);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    17
+                    17,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls([
                     "apply",
                     "max",
@@ -12225,145 +12287,147 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(17);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(17);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(17);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    17
+                    17,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["apply", "max", ["tuple", ["/", 6, 2], 17, 1]]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(17);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/vars"].stateValues.value).eqls([
                     "apply",
@@ -12371,7 +12435,7 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", "x", ["+", "x", "y"], ["+", "x", "y", "z"]],
                 ]);
                 expect(
-                    stateVariables["/vars"].stateValues.isNumericOperator
+                    stateVariables["/vars"].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/vars"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.value).eqls([
@@ -12381,13 +12445,13 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(stateVariables["/varsAsString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.value
+                    stateVariables["/varsAsStringSimplify"].stateValues.value,
                 ).eqls([
                     "apply",
                     "max",
@@ -12395,22 +12459,23 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/varsAsStringSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/varsAsStringSimplify"].stateValues.isNumber
+                    stateVariables["/varsAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eqls(NaN);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/varsAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
             });
         });
@@ -12481,7 +12546,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12638,58 +12703,60 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, ["+", 5, -4]],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(17);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.value
+                    stateVariables["/numberStringProduct"].stateValues.value,
                 ).eqls(["apply", "max", ["+", ["*", 3, 17, 5], -4]]);
                 expect(
-                    stateVariables["/numberStringProduct"].stateValues.isNumber
+                    stateVariables["/numberStringProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(251);
                 expect(
                     stateVariables["/numberStringProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "max", ["tuple", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(17);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numberComponentsProduct"].stateValues.value
+                    stateVariables["/numberComponentsProduct"].stateValues
+                        .value,
                 ).eqls(["apply", "max", ["*", 3, 17, 1]]);
                 expect(
                     stateVariables["/numberComponentsProduct"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/numberComponentsProductSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -12698,26 +12765,27 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(17);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/macrosProduct"].stateValues.value).eqls(
-                    ["apply", "max", ["*", 3, 17, 1]]
+                    ["apply", "max", ["*", 3, 17, 1]],
                 );
                 expect(
-                    stateVariables["/macrosProduct"].stateValues.isNumber
+                    stateVariables["/macrosProduct"].stateValues.isNumber,
                 ).eq(false);
                 expect(
-                    stateVariables["/macrosProductSimplify"].stateValues.value
+                    stateVariables["/macrosProductSimplify"].stateValues.value,
                 ).eq(51);
                 expect(
                     stateVariables["/macrosProductSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -12727,10 +12795,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    17
+                    17,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus"].stateValues.value).eqls([
@@ -12739,13 +12807,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.value
+                    stateVariables["/groupPlusSimplify"].stateValues.value,
                 ).eq(17);
                 expect(
-                    stateVariables["/groupPlusSimplify"].stateValues.isNumber
+                    stateVariables["/groupPlusSimplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus2"].stateValues.value).eqls([
@@ -12754,13 +12822,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 1, 3, 17, 1],
                 ]);
                 expect(stateVariables["/groupPlus2"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.value
+                    stateVariables["/groupPlus2Simplify"].stateValues.value,
                 ).eq(17);
                 expect(
-                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus2Simplify"].stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/groupPlus3"].stateValues.value).eqls([
@@ -12769,13 +12837,13 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 3, 17, 3, 17, 1, 1],
                 ]);
                 expect(stateVariables["/groupPlus3"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.value
+                    stateVariables["/groupPlus3Simplify"].stateValues.value,
                 ).eq(17);
                 expect(
-                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber
+                    stateVariables["/groupPlus3Simplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -12810,7 +12878,7 @@ describe("Math Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12844,36 +12912,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "9");
@@ -12906,36 +12974,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "5");
@@ -12968,36 +13036,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "3");
@@ -13030,41 +13098,41 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should(
             "contain.text",
-            "max(3,x)"
+            "max(3,x)",
         );
 
         cy.get(cesc("#\\/numbers00") + " .mjx-mrow")
@@ -13095,41 +13163,41 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{shift+home}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{shift+home}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should(
             "contain.text",
-            "max(3,y)"
+            "max(3,y)",
         );
 
         cy.get(cesc("#\\/numbers00") + " .mjx-mrow")
@@ -13160,36 +13228,36 @@ describe("Math Operator Tag Tests", function () {
 
         cy.get(cesc("#\\/minumbers00") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers11") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers01") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/minumbers10") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mimaths00") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths11") + " textarea").type(
             "{end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths01") + " textarea").type(
             "{end}{shift+home}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mimaths10") + " textarea").type(
             "{end}{shift+home}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maths10") + " .mjx-mrow").should("contain.text", "7");
@@ -13240,7 +13308,7 @@ describe("Math Operator Tag Tests", function () {
       $numbers{name="numbersb"}
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13328,122 +13396,123 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(2);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.value
+                    stateVariables["/numbersForceSymbolic"].stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/numbersForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numbersForceSymbolic"].stateValues.isNumber
+                    stateVariables["/numbersForceSymbolic"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersForceSymbolicSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumberMath"].stateValues.value
+                    stateVariables["/numbersWithNumberMath"].stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumberMathForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumericOperator
+                    ].stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables[
                         "/numbersWithNumberMathForceSymbolicSimplify"
-                    ].stateValues.isNumber
+                    ].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersWithNumericMath"].stateValues.value
+                    stateVariables["/numbersWithNumericMath"].stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMath"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersWithNumericMathSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersWithNumericMathForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/withNumberMod"].stateValues.value).eq(
-                    3
+                    3,
                 );
                 expect(
                     stateVariables["/withNumberMod"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMod"].stateValues.isNumber
+                    stateVariables["/withNumberMod"].stateValues.isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.value).eq(2);
                 expect(
-                    stateVariables["/numbersb"].stateValues.isNumericOperator
+                    stateVariables["/numbersb"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbersb"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
             });
         });
@@ -13478,7 +13547,7 @@ describe("Math Operator Tag Tests", function () {
       <mod name="withNumericMathMacroForceNumeric" forceNumeric>$a$bNumericMath</mod>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13609,189 +13678,191 @@ describe("Math Operator Tag Tests", function () {
             cy.window().then(async (win) => {
                 expect(stateVariables["/numbers"].stateValues.value).eq(2);
                 expect(
-                    stateVariables["/numbers"].stateValues.isNumericOperator
+                    stateVariables["/numbers"].stateValues.isNumericOperator,
                 ).eq(true);
                 expect(stateVariables["/numbers"].stateValues.isNumber).eq(
-                    true
+                    true,
                 );
                 expect(stateVariables["/numbersAsString"].stateValues.value).eq(
-                    2
+                    2,
                 );
                 expect(
                     stateVariables["/numbersAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsString"].stateValues.isNumber
+                    stateVariables["/numbersAsString"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsStringForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.value
+                    stateVariables["/numericAsString"].stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
                 expect(
                     stateVariables["/numericAsString"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/numericAsString"].stateValues.isNumber
-                ).eq(false);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues.value
-                ).eq(2);
-                expect(
-                    stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumericOperator
+                    stateVariables["/numericAsString"].stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numericAsStringSimplify"].stateValues
-                        .isNumber
+                        .value,
+                ).eq(2);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumericOperator,
+                ).eq(false);
+                expect(
+                    stateVariables["/numericAsStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .value
+                        .value,
                 ).eq(2);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/numericAsStringForceNumeric"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(stateVariables["/numbersAsMacros"].stateValues.value).eq(
-                    2
+                    2,
                 );
                 expect(
                     stateVariables["/numbersAsMacros"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .value
+                        .value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolic"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/numbersAsMacrosForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.value
+                    stateVariables["/numbersAsMacros2"].stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numbersAsMacros2"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/numbersAsMacros2"].stateValues.isNumber
+                    stateVariables["/numbersAsMacros2"].stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.value
+                    stateVariables["/withNumberMathMacro"].stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/withNumberMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumberMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumberMathMacro"].stateValues.isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolic"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumberMathMacroForceSymbolicSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.value
+                    stateVariables["/withNumericMathMacro"].stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, ["/", 6, 2]]]);
                 expect(
                     stateVariables["/withNumericMathMacro"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
-                    stateVariables["/withNumericMathMacro"].stateValues.isNumber
+                    stateVariables["/withNumericMathMacro"].stateValues
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .value
+                        .value,
                 ).eq(2);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumericOperator
+                        .isNumericOperator,
                 ).eq(false);
                 expect(
                     stateVariables["/withNumericMathMacroSimplify"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumericOperator
+                        .stateValues.isNumericOperator,
                 ).eq(true);
                 expect(
                     stateVariables["/withNumericMathMacroForceNumeric"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -13829,7 +13900,7 @@ describe("Math Operator Tag Tests", function () {
       </math>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13902,29 +13973,30 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 17, 3],
                 ]);
                 expect(stateVariables["/numberString"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.value
+                    stateVariables["/numberStringSimplify"].stateValues.value,
                 ).eq(2);
                 expect(
-                    stateVariables["/numberStringSimplify"].stateValues.isNumber
+                    stateVariables["/numberStringSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
 
                 expect(
-                    stateVariables["/numberComponentsCommas"].stateValues.value
+                    stateVariables["/numberComponentsCommas"].stateValues.value,
                 ).eqls(["apply", "mod", ["tuple", 17, 3]]);
                 expect(
                     stateVariables["/numberComponentsCommas"].stateValues
-                        .isNumber
+                        .isNumber,
                 ).eq(false);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.value
+                        .stateValues.value,
                 ).eq(2);
                 expect(
                     stateVariables["/numberComponentsCommasSimplify"]
-                        .stateValues.isNumber
+                        .stateValues.isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/macrosCommas"].stateValues.value).eqls([
@@ -13933,13 +14005,14 @@ describe("Math Operator Tag Tests", function () {
                     ["tuple", 17, 3],
                 ]);
                 expect(stateVariables["/macrosCommas"].stateValues.isNumber).eq(
-                    false
+                    false,
                 );
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.value
+                    stateVariables["/macrosCommasSimplify"].stateValues.value,
                 ).eq(2);
                 expect(
-                    stateVariables["/macrosCommasSimplify"].stateValues.isNumber
+                    stateVariables["/macrosCommasSimplify"].stateValues
+                        .isNumber,
                 ).eq(true);
 
                 expect(stateVariables["/group"].stateValues.value).eqls([
@@ -13949,10 +14022,10 @@ describe("Math Operator Tag Tests", function () {
                 ]);
                 expect(stateVariables["/group"].stateValues.isNumber).eq(false);
                 expect(stateVariables["/groupSimplify"].stateValues.value).eq(
-                    2
+                    2,
                 );
                 expect(
-                    stateVariables["/groupSimplify"].stateValues.isNumber
+                    stateVariables["/groupSimplify"].stateValues.isNumber,
                 ).eq(true);
             });
         });
@@ -13969,7 +14042,7 @@ describe("Math Operator Tag Tests", function () {
       <gcd>x y z</gcd>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14044,7 +14117,7 @@ describe("Math Operator Tag Tests", function () {
       <p>Resulting argument: <extractMath type="functionArgument" argumentNumber="$nArgument" name="argumentN">$operandN</extractMath></p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14255,7 +14328,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/argumentN") + " .mjx-mrow").should(
             "contain.text",
-            "＿"
+            "＿",
         );
         cy.get(cesc("#\\/argumentN"))
             .find(".mjx-mrow")
@@ -14274,7 +14347,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/operandN") + " .mjx-mrow").should(
             "contain.text",
-            "g(y,z)"
+            "g(y,z)",
         );
         cy.get(cesc("#\\/operandN"))
             .find(".mjx-mrow")
@@ -14313,7 +14386,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/argumentN") + " .mjx-mrow").should(
             "contain.text",
-            "＿"
+            "＿",
         );
         cy.get(cesc("#\\/argumentN"))
             .find(".mjx-mrow")
@@ -14332,7 +14405,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/argumentN") + " .mjx-mrow").should(
             "contain.text",
-            "y"
+            "y",
         );
         cy.get(cesc("#\\/argumentN"))
             .find(".mjx-mrow")
@@ -14351,7 +14424,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/operandN") + " .mjx-mrow").should(
             "contain.text",
-            "hq"
+            "hq",
         );
         cy.get(cesc("#\\/operandN"))
             .find(".mjx-mrow")
@@ -14390,7 +14463,7 @@ describe("Math Operator Tag Tests", function () {
             .blur();
         cy.get(cesc("#\\/operandN") + " .mjx-mrow").should(
             "contain.text",
-            "＿"
+            "＿",
         );
         cy.get(cesc("#\\/operandN"))
             .find(".mjx-mrow")
@@ -14431,7 +14504,7 @@ describe("Math Operator Tag Tests", function () {
       <p>Bad operand: <extractMath type="Operand" name="operand1">$expr</extractMath></p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14448,7 +14521,7 @@ describe("Math Operator Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Must specify a operandNumber when extracting a math operand`
+                `Must specify a operandNumber when extracting a math operand`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(4);
@@ -14469,7 +14542,7 @@ describe("Math Operator Tag Tests", function () {
       <p>Abs treats as product of three factors: <abs name="abs">$$f(0) $(f.minimumValues) $$f(2)</abs>.</p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 

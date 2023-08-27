@@ -21,7 +21,7 @@ describe("Point Tag Tests", function () {
     $_point2.coords{assignNames="coords2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -29,11 +29,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,6)"
+            "(1,6)",
         );
 
         cy.window().then(async (win) => {
@@ -63,11 +63,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,−7)"
+            "(1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -106,7 +106,7 @@ describe("Point Tag Tests", function () {
     $_point2.coords{assignNames="coords2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -114,11 +114,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,6)"
+            "(1,6)",
         );
 
         cy.window().then(async (win) => {
@@ -150,11 +150,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,−7)"
+            "(1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -193,7 +193,7 @@ describe("Point Tag Tests", function () {
   $_point2.coords{assignNames="coords2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -201,11 +201,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,6)"
+            "(1,6)",
         );
 
         cy.window().then(async (win) => {
@@ -235,11 +235,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,−7)"
+            "(1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -278,7 +278,7 @@ describe("Point Tag Tests", function () {
   $_point2.coords{assignNames="coords2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -286,11 +286,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,6)"
+            "(1,6)",
         );
 
         cy.window().then(async (win) => {
@@ -322,11 +322,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(1,−7)"
+            "(1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -366,7 +366,7 @@ describe("Point Tag Tests", function () {
   </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -397,7 +397,7 @@ describe("Point Tag Tests", function () {
   </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -459,7 +459,7 @@ describe("Point Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -496,43 +496,43 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/P"].stateValues.labelForGraph).eq("P");
             expect(stateVariables["/_point2"].stateValues.label).eq(`_point2`);
             expect(stateVariables["/_point2"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P2Name].stateValues.label).eq("P");
             expect(stateVariables[P2Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q2Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q2Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables["/P3"].stateValues.label).eq("P");
             expect(stateVariables["/P3"].stateValues.labelForGraph).eq("P");
             expect(stateVariables["/Q3"].stateValues.label).eq(`_point2`);
             expect(stateVariables["/Q3"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables["/P4"].stateValues.label).eq("P");
             expect(stateVariables["/P4"].stateValues.labelForGraph).eq("P");
             expect(stateVariables["/Q4"].stateValues.label).eq(`_point2`);
             expect(stateVariables["/Q4"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P5Name].stateValues.label).eq("P");
             expect(stateVariables[P5Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q5Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q5Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P6Name].stateValues.label).eq("P");
             expect(stateVariables[P6Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q6Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q6Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P7Name].stateValues.label).eq("P");
             expect(stateVariables[P7Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q7Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q7Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
         });
     });
@@ -594,7 +594,7 @@ describe("Point Tag Tests", function () {
   $g6{name="g12"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -605,40 +605,40 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let g1ChildNames = stateVariables["/g1"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g2ChildNames = stateVariables["/g2"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g3ChildNames = stateVariables["/g3"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g4ChildNames = stateVariables["/g4"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g5ChildNames = stateVariables["/g5"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g6ChildNames = stateVariables["/g6"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g7ChildNames = stateVariables["/g7"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g8ChildNames = stateVariables["/g8"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g9ChildNames = stateVariables["/g9"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g10ChildNames = stateVariables["/g10"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g11ChildNames = stateVariables["/g11"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let g12ChildNames = stateVariables["/g12"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
 
             let g1ChildLabels = Array(5).fill("");
@@ -650,63 +650,63 @@ describe("Point Tag Tests", function () {
 
             for (let [ind, name] of g1ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g1ChildLabels[ind]
+                    g1ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g2ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g2ChildLabels[ind]
+                    g2ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g3ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g3ChildLabels[ind]
+                    g3ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g4ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g4ChildLabels[ind]
+                    g4ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g5ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g5ChildLabels[ind]
+                    g5ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g6ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g6ChildLabels[ind]
+                    g6ChildLabels[ind],
                 );
             }
 
             for (let [ind, name] of g7ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g1ChildLabels[ind]
+                    g1ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g8ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g2ChildLabels[ind]
+                    g2ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g9ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g3ChildLabels[ind]
+                    g3ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g10ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g4ChildLabels[ind]
+                    g4ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g11ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g5ChildLabels[ind]
+                    g5ChildLabels[ind],
                 );
             }
             for (let [ind, name] of g12ChildNames.entries()) {
                 expect(stateVariables[name].stateValues.label).eq(
-                    g6ChildLabels[ind]
+                    g6ChildLabels[ind],
                 );
             }
         });
@@ -738,7 +738,7 @@ describe("Point Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -759,31 +759,31 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/P"].stateValues.labelForGraph).eq("P");
             expect(stateVariables["/_point2"].stateValues.label).eq(`_point2`);
             expect(stateVariables["/_point2"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P2Name].stateValues.label).eq("P");
             expect(stateVariables[P2Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q2Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q2Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables["/P3"].stateValues.label).eq("P");
             expect(stateVariables["/P3"].stateValues.labelForGraph).eq("P");
             expect(stateVariables["/Q3"].stateValues.label).eq(`_point2`);
             expect(stateVariables["/Q3"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P4Name].stateValues.label).eq("P");
             expect(stateVariables[P4Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q4Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q4Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
             expect(stateVariables[P5Name].stateValues.label).eq("P");
             expect(stateVariables[P5Name].stateValues.labelForGraph).eq("P");
             expect(stateVariables[Q5Name].stateValues.label).eq(`_point2`);
             expect(stateVariables[Q5Name].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
         });
     });
@@ -802,7 +802,7 @@ describe("Point Tag Tests", function () {
   </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -813,10 +813,10 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/g/P"].stateValues.label).eq("P");
             expect(stateVariables["/g/_point2"].stateValues.label).eq(
-                `_point2`
+                `_point2`,
             );
             expect(stateVariables["/g/_point2"].stateValues.labelForGraph).eq(
-                `&UnderBar;point2`
+                `&UnderBar;point2`,
             );
         });
     });
@@ -844,7 +844,7 @@ describe("Point Tag Tests", function () {
   <p><label copySource="the_SiXiTH-Point" copyProp="label" name="l6" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -860,22 +860,22 @@ describe("Point Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/the_first_point"].stateValues.label).eq(
-                "the first point"
+                "the first point",
             );
             expect(stateVariables["/the-second-point"].stateValues.label).eq(
-                "the second point"
+                "the second point",
             );
             expect(stateVariables["/theThirdPoint"].stateValues.label).eq(
-                "the third point"
+                "the third point",
             );
             expect(stateVariables["/TheFourthPoint"].stateValues.label).eq(
-                "The Fourth Point"
+                "The Fourth Point",
             );
             expect(stateVariables["/the-FIFTH_Point"].stateValues.label).eq(
-                "the FIFTH Point"
+                "the FIFTH Point",
             );
             expect(stateVariables["/the_SiXiTH-Point"].stateValues.label).eq(
-                "the SiXiTH Point"
+                "the SiXiTH Point",
             );
         });
     });
@@ -925,7 +925,7 @@ describe("Point Tag Tests", function () {
   <p><textinput bindValueTo="$grp[1].label" name="tic3" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -953,7 +953,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("E");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -987,7 +987,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("E");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -1021,7 +1021,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("E");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -1055,7 +1055,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("E");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -1089,7 +1089,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("E");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -1123,7 +1123,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("J");
             expect(stateVariables["/_point4"].stateValues.label).eq("_point4");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "&UnderBar;point4"
+                "&UnderBar;point4",
             );
             let c3p =
                 stateVariables[
@@ -1134,7 +1134,7 @@ describe("Point Tag Tests", function () {
         });
 
         cy.get(cesc("#\\/tip4_input")).type(
-            "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}K{enter}"
+            "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}K{enter}",
         );
 
         cy.get(cesc("#\\/lA")).should("have.text", "H");
@@ -1159,7 +1159,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("J");
             expect(stateVariables["/_point4"].stateValues.label).eq("K");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "K"
+                "K",
             );
             let c3p =
                 stateVariables[
@@ -1193,7 +1193,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/E"].stateValues.labelForGraph).eq("J");
             expect(stateVariables["/_point4"].stateValues.label).eq("K");
             expect(stateVariables["/_point4"].stateValues.labelForGraph).eq(
-                "K"
+                "K",
             );
             let c3p =
                 stateVariables[
@@ -1264,7 +1264,7 @@ describe("Point Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1551,7 +1551,7 @@ describe("Point Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1850,7 +1850,7 @@ describe("Point Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2126,7 +2126,7 @@ describe("Point Tag Tests", function () {
   <p>text of label for F: <text copySource="F" copyProp="label" name="tF" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2164,31 +2164,31 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.label).eq("x_1");
             expect(stateVariables["/A"].stateValues.labelForGraph).eq(
-                "x&UnderBar;1"
+                "x&UnderBar;1",
             );
             expect(stateVariables["/B"].stateValues.label).eq("\\(x_1\\)");
             expect(stateVariables["/B"].stateValues.labelForGraph).eq(
-                "\\(x_1\\)"
+                "\\(x_1\\)",
             );
             expect(stateVariables["/C"].stateValues.label).eq("x^1");
             expect(stateVariables["/C"].stateValues.labelForGraph).eq(
-                "x&Hat;1"
+                "x&Hat;1",
             );
             expect(stateVariables["/D"].stateValues.label).eq("\\(x^1\\)");
             expect(stateVariables["/D"].stateValues.labelForGraph).eq(
-                "\\(x^1\\)"
+                "\\(x^1\\)",
             );
             expect(stateVariables["/E"].stateValues.label).eq(
-                "x^1 or \\(x^2\\) or x_3 or \\(x_4\\)"
+                "x^1 or \\(x^2\\) or x_3 or \\(x_4\\)",
             );
             expect(stateVariables["/E"].stateValues.labelForGraph).eq(
-                "x&Hat;1 or \\(x^2\\) or x&UnderBar;3 or \\(x_4\\)"
+                "x&Hat;1 or \\(x^2\\) or x&UnderBar;3 or \\(x_4\\)",
             );
             expect(stateVariables["/F"].stateValues.label).eq(
-                "x_a^b or \\(x_c^d\\)"
+                "x_a^b or \\(x_c^d\\)",
             );
             expect(stateVariables["/F"].stateValues.labelForGraph).eq(
-                "x&UnderBar;a&Hat;b or \\(x_c^d\\)"
+                "x&UnderBar;a&Hat;b or \\(x_c^d\\)",
             );
         });
     });
@@ -2210,7 +2210,7 @@ describe("Point Tag Tests", function () {
     $Q.coords{assignNames="Qcoords"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2220,11 +2220,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2242,11 +2242,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -2279,11 +2279,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -2314,11 +2314,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
 
         cy.window().then(async (win) => {
@@ -2340,16 +2340,16 @@ describe("Point Tag Tests", function () {
         cy.log("make point undefined again");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2379,16 +2379,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 3D point");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{end}{backspace}{backspace}(6,5,4){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
 
         cy.window().then(async (win) => {
@@ -2412,16 +2412,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 2D point from altvector");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 5,-2\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -2452,11 +2452,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
 
         cy.window().then(async (win) => {
@@ -2493,7 +2493,7 @@ describe("Point Tag Tests", function () {
     $Q.coords{assignNames="Qcoords"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2503,11 +2503,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2525,11 +2525,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -2562,11 +2562,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -2597,11 +2597,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
 
         cy.window().then(async (win) => {
@@ -2623,16 +2623,16 @@ describe("Point Tag Tests", function () {
         cy.log("make point undefined again");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2662,16 +2662,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 3D point");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{end}{backspace}{backspace}(6,5,4){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
 
         cy.window().then(async (win) => {
@@ -2695,16 +2695,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 2D point from altvector");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 5,-2\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -2735,11 +2735,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
 
         cy.window().then(async (win) => {
@@ -2776,7 +2776,7 @@ describe("Point Tag Tests", function () {
     $Q.coords{assignNames="Qcoords"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2786,11 +2786,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2808,11 +2808,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -2845,11 +2845,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -2880,11 +2880,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
 
         cy.window().then(async (win) => {
@@ -2906,16 +2906,16 @@ describe("Point Tag Tests", function () {
         cy.log("make point undefined again");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -2945,16 +2945,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 3D point");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{end}{backspace}{backspace}(6,5,4){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
 
         cy.window().then(async (win) => {
@@ -2978,16 +2978,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 2D point from altvector");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 5,-2\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -3018,11 +3018,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
 
         cy.window().then(async (win) => {
@@ -3060,7 +3060,7 @@ describe("Point Tag Tests", function () {
     $Q.coords{assignNames="Qcoords"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3070,11 +3070,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -3092,11 +3092,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7)"
+            "(−1,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -3129,11 +3129,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -3164,11 +3164,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(9,1)"
+            "(9,1)",
         );
 
         cy.window().then(async (win) => {
@@ -3190,16 +3190,16 @@ describe("Point Tag Tests", function () {
         cy.log("make point undefined again");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         cy.window().then(async (win) => {
@@ -3229,16 +3229,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 3D point");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{end}{backspace}{backspace}(6,5,4){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(6,5,4)"
+            "(6,5,4)",
         );
 
         cy.window().then(async (win) => {
@@ -3262,16 +3262,16 @@ describe("Point Tag Tests", function () {
         cy.log("create 2D point from altvector");
         cy.get(cesc("#\\/coords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 5,-2\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -3302,11 +3302,11 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
         cy.get(cesc("#\\/Qcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8)"
+            "(7,8)",
         );
 
         cy.window().then(async (win) => {
@@ -3340,7 +3340,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3348,7 +3348,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,1)"
+            "(3,1)",
         );
 
         cy.log(`we can move point`);
@@ -3362,27 +3362,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(7,−5)"
+            "(7,−5)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -5,
-                1e-12
+                1e-12,
             );
             expect(
                 me
                     .fromAst(stateVariables["/_math1"].stateValues.value)
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             ).closeTo(7 / 1.5, 1e-12);
             expect(stateVariables["/_math2"].stateValues.value).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/y"].stateValues.value).closeTo(-5, 1e-12);
         });
@@ -3406,7 +3406,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3416,27 +3416,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2,3)"
+            "(2,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
         });
 
@@ -3451,27 +3451,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−7)"
+            "(−4,−7)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -3494,7 +3494,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3504,27 +3504,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2,3)"
+            "(2,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
         });
 
@@ -3540,27 +3540,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−7)"
+            "(−4,−7)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -3580,7 +3580,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3590,7 +3590,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2,3)"
+            "(2,3)",
         );
 
         cy.window().then(async (win) => {
@@ -3598,20 +3598,20 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
         });
 
@@ -3626,27 +3626,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−7)"
+            "(−4,−7)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -3669,7 +3669,7 @@ describe("Point Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3679,27 +3679,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(2,3)"
+            "(2,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
         });
 
@@ -3714,27 +3714,27 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,−7)"
+            "(−4,−7)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[0]).eq("a");
             expect(stateVariables["/source"].stateValues.xs[1]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/source"].stateValues.xs[2]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -3756,7 +3756,7 @@ describe("Point Tag Tests", function () {
   $p3.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3764,7 +3764,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.window().then(async (win) => {
@@ -3785,7 +3785,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,6)"
+            "(4,6)",
         );
 
         cy.window().then(async (win) => {
@@ -3806,7 +3806,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−7)"
+            "(−3,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -3827,7 +3827,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,−2)"
+            "(9,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -3852,7 +3852,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3860,7 +3860,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(110,1)"
+            "(110,1)",
         );
 
         cy.window().then(async (win) => {
@@ -3884,7 +3884,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(185,6)"
+            "(185,6)",
         );
 
         cy.window().then(async (win) => {
@@ -3908,7 +3908,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(910,−3)"
+            "(910,−3)",
         );
 
         cy.window().then(async (win) => {
@@ -3936,7 +3936,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3944,7 +3944,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,sin(1))"
+            "(1,sin(1))",
         );
 
         cy.window().then(async (win) => {
@@ -3968,7 +3968,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−9,sin(−9))"
+            "(−9,sin(−9))",
         );
 
         cy.window().then(async (win) => {
@@ -3992,7 +3992,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,sin(9))"
+            "(9,sin(9))",
         );
 
         cy.window().then(async (win) => {
@@ -4022,7 +4022,7 @@ describe("Point Tag Tests", function () {
   $_point2.coords{assignNames="coords2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4030,7 +4030,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(2,1)"
+            "(2,1)",
         );
 
         cy.window().then(async (win) => {
@@ -4052,7 +4052,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(6,−9)"
+            "(6,−9)",
         );
 
         cy.window().then(async (win) => {
@@ -4074,7 +4074,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(0,−3)"
+            "(0,−3)",
         );
 
         cy.window().then(async (win) => {
@@ -4098,7 +4098,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4142,7 +4142,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4151,7 +4151,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -4171,7 +4171,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(8,−5)"
+            "(8,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -4200,7 +4200,7 @@ describe("Point Tag Tests", function () {
   <math name="a">$_point2.x+1</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4277,7 +4277,7 @@ describe("Point Tag Tests", function () {
   <math name="d" simplify modifyIndirectly="true">5</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4303,19 +4303,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/d"].stateValues.value).closeTo(d, 1e-12);
             expect(stateVariables["/c"].stateValues.value).closeTo(c, 1e-12);
@@ -4343,19 +4343,19 @@ describe("Point Tag Tests", function () {
             });
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/d"].stateValues.value).closeTo(d, 1e-12);
             expect(stateVariables["/c"].stateValues.value).closeTo(c, 1e-12);
@@ -4383,19 +4383,19 @@ describe("Point Tag Tests", function () {
             });
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/d"].stateValues.value).closeTo(d, 1e-12);
             expect(stateVariables["/c"].stateValues.value).closeTo(c, 1e-12);
@@ -4424,19 +4424,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/d"].stateValues.value).closeTo(d, 1e-12);
             expect(stateVariables["/c"].stateValues.value).closeTo(c, 1e-12);
@@ -4465,19 +4465,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 point1x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 point1y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 point2x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 point2y,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/d"].stateValues.value).closeTo(d, 1e-12);
             expect(stateVariables["/c"].stateValues.value).closeTo(c, 1e-12);
@@ -4504,7 +4504,7 @@ describe("Point Tag Tests", function () {
   <number name="a">2</number>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4528,19 +4528,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(-3, 1e-12);
         });
@@ -4560,19 +4560,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(0, 1e-12);
         });
@@ -4593,19 +4593,19 @@ describe("Point Tag Tests", function () {
 
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -6,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(9, 1e-12);
         });
@@ -4625,19 +4625,19 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(0, 1e-12);
         });
@@ -4661,7 +4661,7 @@ describe("Point Tag Tests", function () {
   <number name="a">3</number>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4684,19 +4684,19 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(-3, 1e-12);
         });
@@ -4715,19 +4715,19 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(0, 1e-12);
         });
@@ -4747,19 +4747,19 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -6,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 9,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(9, 1e-12);
         });
@@ -4779,19 +4779,19 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/a"].stateValues.value).closeTo(0, 1e-12);
         });
@@ -4816,7 +4816,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4825,7 +4825,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`move point to (1.2,3.6)`);
@@ -4839,7 +4839,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -4852,7 +4852,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -4874,7 +4874,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−10,−7)"
+            "(−10,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -4887,7 +4887,7 @@ describe("Point Tag Tests", function () {
                 -7,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -4910,7 +4910,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -4923,7 +4923,7 @@ describe("Point Tag Tests", function () {
                 0,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -4956,7 +4956,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4965,7 +4965,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`move point to (1.2,3.6)`);
@@ -4979,7 +4979,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -4992,7 +4992,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5014,7 +5014,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−10,−7)"
+            "(−10,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -5027,7 +5027,7 @@ describe("Point Tag Tests", function () {
                 -7,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5060,7 +5060,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5069,7 +5069,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`move point to (1.2,3.6)`);
@@ -5083,7 +5083,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -5096,7 +5096,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5118,7 +5118,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−10,−7)"
+            "(−10,−7)",
         );
 
         cy.window().then(async (win) => {
@@ -5131,7 +5131,7 @@ describe("Point Tag Tests", function () {
                 -7,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5162,7 +5162,7 @@ describe("Point Tag Tests", function () {
   <math>$_point1.coords</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5171,7 +5171,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.04,2.08)"
+            "(1.04,2.08)",
         );
 
         cy.log(`move point to (10,3.6)`);
@@ -5185,7 +5185,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(10.4,3.12)"
+            "(10.4,3.12)",
         );
 
         cy.log(`move point to (-11,-7.4)`);
@@ -5198,7 +5198,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−11.44,−7.28)"
+            "(−11.44,−7.28)",
         );
 
         cy.log(`move point to (10,-10)`);
@@ -5212,7 +5212,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(10.4,−10.4)"
+            "(10.4,−10.4)",
         );
 
         cy.log(`move point to (-2,12)`);
@@ -5226,7 +5226,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−2.08,12.48)"
+            "(−2.08,12.48)",
         );
     });
 
@@ -5246,7 +5246,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5255,7 +5255,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2,3)"
+            "(1,2,3)",
         );
 
         cy.log(`move point to (1.2,3.6,5.4)`);
@@ -5269,7 +5269,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4,5)"
+            "(1,4,5)",
         );
 
         cy.window().then(async (win) => {
@@ -5284,7 +5284,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5306,7 +5306,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−10,−7,−5)"
+            "(−10,−7,−5)",
         );
 
         cy.window().then(async (win) => {
@@ -5321,7 +5321,7 @@ describe("Point Tag Tests", function () {
                 -5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5344,7 +5344,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0,0)"
+            "(0,0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -5359,7 +5359,7 @@ describe("Point Tag Tests", function () {
                 0,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5393,7 +5393,7 @@ describe("Point Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5411,7 +5411,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5424,7 +5424,7 @@ describe("Point Tag Tests", function () {
         cy.get(cesc("#\\/_boolean1")).should("have.text", "true");
 
         cy.log(
-            `Unexpected results when moving since constraints applied twice`
+            `Unexpected results when moving since constraints applied twice`,
         );
         // Note: the behavior isn't necessarily desired, but it is a consequence
         // of applying the constraints in the inverse direction, and then
@@ -5441,7 +5441,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(7,5)"
+            "(7,5)",
         );
 
         cy.window().then(async (win) => {
@@ -5454,7 +5454,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5487,7 +5487,7 @@ describe("Point Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5499,7 +5499,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/_point1"].stateValues.xs[0]).eq(-1);
             expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5522,7 +5522,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,0)"
+            "(9,0)",
         );
 
         cy.window().then(async (win) => {
@@ -5530,7 +5530,7 @@ describe("Point Tag Tests", function () {
             expect(stateVariables["/_point1"].stateValues.xs[0]).eq(9);
             expect(stateVariables["/_point1"].stateValues.xs[1]).eq(0);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -5577,7 +5577,7 @@ describe("Point Tag Tests", function () {
   <boolean>$D.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5586,7 +5586,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`move point A to (105,3)`);
@@ -5600,7 +5600,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9.8,3)"
+            "(9.8,3)",
         );
 
         cy.window().then(async (win) => {
@@ -5639,7 +5639,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−9.8,9.8)"
+            "(−9.8,9.8)",
         );
 
         cy.window().then(async (win) => {
@@ -5678,7 +5678,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,1)"
+            "(−3,1)",
         );
 
         cy.window().then(async (win) => {
@@ -5717,7 +5717,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−9.8,9.8)"
+            "(−9.8,9.8)",
         );
 
         cy.window().then(async (win) => {
@@ -5756,7 +5756,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9.8,−9.8)"
+            "(9.8,−9.8)",
         );
 
         cy.window().then(async (win) => {
@@ -5795,7 +5795,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(9.5,−9.5)"
+            "(9.5,−9.5)",
         );
 
         cy.window().then(async (win) => {
@@ -5835,7 +5835,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(5,9.5)"
+            "(5,9.5)",
         );
 
         cy.window().then(async (win) => {
@@ -5874,7 +5874,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(−9.5,−9.5)"
+            "(−9.5,−9.5)",
         );
 
         cy.window().then(async (win) => {
@@ -5930,7 +5930,7 @@ describe("Point Tag Tests", function () {
   <boolean>$follower.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5939,7 +5939,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.log(`move point1 to (1.2,3.6)`);
@@ -5952,7 +5952,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.2,3.6)"
+            "(1.2,3.6)",
         );
 
         cy.window().then(async (win) => {
@@ -5965,7 +5965,7 @@ describe("Point Tag Tests", function () {
                 3.6,
             ]);
             expect(stateVariables["/original"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
             expect(stateVariables["/constrained"].stateValues.xs[0]).eq(2);
             expect(stateVariables["/constrained"].stateValues.xs[1]).eq(5);
@@ -5975,7 +5975,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(
-                stateVariables["/constrained"].stateValues.constraintUsed
+                stateVariables["/constrained"].stateValues.constraintUsed,
             ).eq(true);
             expect(stateVariables["/follower"].stateValues.xs[0]).eq(3);
             expect(stateVariables["/follower"].stateValues.xs[1]).eq(6);
@@ -5985,7 +5985,7 @@ describe("Point Tag Tests", function () {
                 6,
             ]);
             expect(stateVariables["/follower"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6024,7 +6024,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,6)"
+            "(−4,6)",
         );
 
         cy.window().then(async (win) => {
@@ -6037,7 +6037,7 @@ describe("Point Tag Tests", function () {
                 6,
             ]);
             expect(stateVariables["/original"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
             expect(stateVariables["/constrained"].stateValues.xs[0]).eq(-3);
             expect(stateVariables["/constrained"].stateValues.xs[1]).eq(7);
@@ -6047,7 +6047,7 @@ describe("Point Tag Tests", function () {
                 7,
             ]);
             expect(
-                stateVariables["/constrained"].stateValues.constraintUsed
+                stateVariables["/constrained"].stateValues.constraintUsed,
             ).eq(true);
             expect(stateVariables["/follower"].stateValues.xs[0]).eq(-2);
             expect(stateVariables["/follower"].stateValues.xs[1]).eq(8);
@@ -6057,7 +6057,7 @@ describe("Point Tag Tests", function () {
                 8,
             ]);
             expect(stateVariables["/follower"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6095,7 +6095,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,−4)"
+            "(3,−4)",
         );
 
         cy.window().then(async (win) => {
@@ -6108,7 +6108,7 @@ describe("Point Tag Tests", function () {
                 -4,
             ]);
             expect(stateVariables["/original"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
             expect(stateVariables["/constrained"].stateValues.xs[0]).eq(4);
             expect(stateVariables["/constrained"].stateValues.xs[1]).eq(-3);
@@ -6118,7 +6118,7 @@ describe("Point Tag Tests", function () {
                 -3,
             ]);
             expect(
-                stateVariables["/constrained"].stateValues.constraintUsed
+                stateVariables["/constrained"].stateValues.constraintUsed,
             ).eq(true);
             expect(stateVariables["/follower"].stateValues.xs[0]).eq(5);
             expect(stateVariables["/follower"].stateValues.xs[1]).eq(-2);
@@ -6128,7 +6128,7 @@ describe("Point Tag Tests", function () {
                 -2,
             ]);
             expect(stateVariables["/follower"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6185,7 +6185,7 @@ describe("Point Tag Tests", function () {
   <math>$follower.coords</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6248,15 +6248,15 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.2,3.6)"
+            "(1.2,3.6)",
         );
         cy.get(cesc("#\\/_math2") + " .mjx-mrow").should(
             "contain.text",
-            "(2,5)"
+            "(2,5)",
         );
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(3,6)"
+            "(3,6)",
         );
 
         cy.window().then(async (win) => {
@@ -6316,15 +6316,15 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−3)"
+            "(4,−3)",
         );
         cy.get(cesc("#\\/_math2") + " .mjx-mrow").should(
             "contain.text",
-            "(5,−2)"
+            "(5,−2)",
         );
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(6,−1)"
+            "(6,−1)",
         );
 
         cy.window().then(async (win) => {
@@ -6385,16 +6385,16 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/yoffset") + " textarea").type(
             "{end}{backspace}0.1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−3)"
+            "(4,−3)",
         );
         cy.get(cesc("#\\/_math2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−1.9)"
+            "(4,−1.9)",
         );
 
         cy.window().then(async (win) => {
@@ -6415,13 +6415,13 @@ describe("Point Tag Tests", function () {
             ]);
             expect(stateVariables["/follower"].stateValues.xs[0]).eq(5);
             expect(
-                stateVariables["/follower"].stateValues.xs[1]
+                stateVariables["/follower"].stateValues.xs[1],
             ).to.be.approximately(-0.9, 1e-10);
             expect(
-                stateVariables["/follower"].stateValues.coords.slice(0, 2)
+                stateVariables["/follower"].stateValues.coords.slice(0, 2),
             ).eqls(["vector", 5]);
             expect(
-                stateVariables["/follower"].stateValues.coords[2]
+                stateVariables["/follower"].stateValues.coords[2],
             ).to.be.approximately(-0.9, 1e-10);
         });
         cy.get(cesc("#\\/_math1"))
@@ -6453,15 +6453,15 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−9.4)"
+            "(−3,−9.4)",
         );
         cy.get(cesc("#\\/_math2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−8.4)"
+            "(−2,−8.4)",
         );
         cy.get(cesc("#\\/_math3") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−7.4)"
+            "(−1,−7.4)",
         );
 
         cy.window().then(async (win) => {
@@ -6530,7 +6530,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6539,7 +6539,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−7,9)"
+            "(−7,9)",
         );
 
         cy.window().then(async (win) => {
@@ -6552,7 +6552,7 @@ describe("Point Tag Tests", function () {
                 9,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow")
@@ -6574,7 +6574,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.1,3.6)"
+            "(1.1,3.6)",
         );
 
         cy.window().then(async (win) => {
@@ -6587,7 +6587,7 @@ describe("Point Tag Tests", function () {
                 3.6,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6609,7 +6609,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -6622,7 +6622,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6645,7 +6645,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -6658,7 +6658,7 @@ describe("Point Tag Tests", function () {
                 0,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6693,7 +6693,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6710,7 +6710,7 @@ describe("Point Tag Tests", function () {
                 9,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow")
@@ -6731,7 +6731,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.1,3.6)"
+            "(1.1,3.6)",
         );
 
         cy.window().then(async (win) => {
@@ -6744,7 +6744,7 @@ describe("Point Tag Tests", function () {
                 3.6,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6766,7 +6766,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -6779,7 +6779,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6808,7 +6808,7 @@ describe("Point Tag Tests", function () {
   <boolean>$_point1.constraintUsed</boolean>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6827,7 +6827,7 @@ describe("Point Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow")
@@ -6848,7 +6848,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.1,3.9,5.4)"
+            "(1.1,3.9,5.4)",
         );
 
         cy.window().then(async (win) => {
@@ -6863,7 +6863,7 @@ describe("Point Tag Tests", function () {
                 5.4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6885,7 +6885,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4,6)"
+            "(1,4,6)",
         );
 
         cy.window().then(async (win) => {
@@ -6900,7 +6900,7 @@ describe("Point Tag Tests", function () {
                 6,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6923,7 +6923,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0,0)"
+            "(0,0,0)",
         );
 
         cy.window().then(async (win) => {
@@ -6938,7 +6938,7 @@ describe("Point Tag Tests", function () {
                 0,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -6972,7 +6972,7 @@ describe("Point Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6997,7 +6997,7 @@ describe("Point Tag Tests", function () {
                 -3.4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
 
@@ -7011,7 +7011,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.3,4)"
+            "(1.3,4)",
         );
 
         cy.window().then(async (win) => {
@@ -7024,7 +7024,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7046,7 +7046,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,4)"
+            "(1,4)",
         );
 
         cy.window().then(async (win) => {
@@ -7059,7 +7059,7 @@ describe("Point Tag Tests", function () {
                 4,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7081,7 +7081,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(1.3,3.7)"
+            "(1.3,3.7)",
         );
 
         cy.window().then(async (win) => {
@@ -7094,7 +7094,7 @@ describe("Point Tag Tests", function () {
                 3.7,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7134,7 +7134,7 @@ describe("Point Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7153,7 +7153,7 @@ describe("Point Tag Tests", function () {
                 8.9,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow")
@@ -7178,7 +7178,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−7,9)"
+            "(−7,9)",
         );
 
         cy.window().then(async (win) => {
@@ -7191,7 +7191,7 @@ describe("Point Tag Tests", function () {
                 9,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7215,12 +7215,12 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/yoffset") + " textarea").type(
             "{end}{backspace}0.1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−7.1,8.9)"
+            "(−7.1,8.9)",
         );
 
         cy.window().then(async (win) => {
@@ -7233,7 +7233,7 @@ describe("Point Tag Tests", function () {
                 8.9,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7247,16 +7247,16 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/xthreshold") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1.0",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ythreshold") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0.3{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,9.1)"
+            "(−8,9.1)",
         );
 
         cy.window().then(async (win) => {
@@ -7269,7 +7269,7 @@ describe("Point Tag Tests", function () {
                 9.1,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/_math1"))
@@ -7302,7 +7302,7 @@ describe("Point Tag Tests", function () {
   <math>$_point1.coords</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7311,7 +7311,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,6)"
+            "(−3,6)",
         );
 
         cy.log(`move point to (8.5,3.1)`);
@@ -7325,7 +7325,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,3)"
+            "(9,3)",
         );
 
         cy.log(`move point to (-8.5,-6.4)`);
@@ -7338,7 +7338,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−9,−6)"
+            "(−9,−6)",
         );
 
         cy.log(`move point to (8.5,-8.5)`);
@@ -7352,7 +7352,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,−9)"
+            "(9,−9)",
         );
 
         cy.log(`move point to (-3.2,8.5)`);
@@ -7366,14 +7366,14 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,9)"
+            "(−3,9)",
         );
 
         cy.get(cesc("#\\/includeGridlines")).click();
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,9)"
+            "(−3,9)",
         );
 
         cy.log(`move point to (8.5,3.1)`);
@@ -7387,7 +7387,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,3)"
+            "(9,3)",
         );
 
         cy.log(`move point to (-8.5,-6.4)`);
@@ -7400,7 +7400,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−9,−6)"
+            "(−9,−6)",
         );
 
         cy.log(`move point to (8.5,-8.5)`);
@@ -7414,7 +7414,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(9,−9)"
+            "(9,−9)",
         );
 
         cy.log(`move point to (-3.2,8.5)`);
@@ -7428,7 +7428,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,9)"
+            "(−3,9)",
         );
     });
 
@@ -7452,7 +7452,7 @@ describe("Point Tag Tests", function () {
   $A.coords{assignNames="coords"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7463,17 +7463,17 @@ describe("Point Tag Tests", function () {
             cy.log(`point is on line`);
             cy.get(cesc("#\\/coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(3,−1)"
+                "(3,−1)",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/A"].stateValues.xs[0] +
-                        stateVariables["/A"].stateValues.xs[1]
+                        stateVariables["/A"].stateValues.xs[1],
                 ).eq(2);
                 expect(stateVariables["/A"].stateValues.constraintUsed).eq(
-                    true
+                    true,
                 );
             });
             cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7488,17 +7488,17 @@ describe("Point Tag Tests", function () {
             });
             cy.get(cesc("#\\/coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(7,−5)"
+                "(7,−5)",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/A"].stateValues.xs[0] +
-                        stateVariables["/A"].stateValues.xs[1]
+                        stateVariables["/A"].stateValues.xs[1],
                 ).eq(2);
                 expect(stateVariables["/A"].stateValues.constraintUsed).eq(
-                    true
+                    true,
                 );
             });
             cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7513,17 +7513,17 @@ describe("Point Tag Tests", function () {
             });
             cy.get(cesc("#\\/coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(2,0)"
+                "(2,0)",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/A"].stateValues.xs[0] -
-                        stateVariables["/A"].stateValues.xs[1]
+                        stateVariables["/A"].stateValues.xs[1],
                 ).eq(2);
                 expect(stateVariables["/A"].stateValues.constraintUsed).eq(
-                    true
+                    true,
                 );
             });
             cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7538,17 +7538,17 @@ describe("Point Tag Tests", function () {
             });
             cy.get(cesc("#\\/coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(4,2)"
+                "(4,2)",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/A"].stateValues.xs[0] -
-                        stateVariables["/A"].stateValues.xs[1]
+                        stateVariables["/A"].stateValues.xs[1],
                 ).eq(2);
                 expect(stateVariables["/A"].stateValues.constraintUsed).eq(
-                    true
+                    true,
                 );
             });
             cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7575,7 +7575,7 @@ describe("Point Tag Tests", function () {
   $A.coords{assignNames="coords"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7585,7 +7585,7 @@ describe("Point Tag Tests", function () {
         cy.log(`point is not on line`);
         cy.get(cesc("#\\/coords") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−5)"
+            "(−1,−5)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -7614,7 +7614,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).closeTo(2, 1e-14);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -7633,7 +7633,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).closeTo(2, 1e-14);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -7652,7 +7652,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).closeTo(2, 1e-14);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -7689,7 +7689,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7700,17 +7700,17 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(4,1)"
+            "(4,1)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_point1"].stateValues.xs[1] -
-                    stateVariables["/_point1"].stateValues.xs[0]
+                    stateVariables["/_point1"].stateValues.xs[0],
             ).eq(-3);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7725,17 +7725,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3.5,0.5)"
+            "(3.5,0.5)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_point1"].stateValues.xs[1] -
-                    stateVariables["/_point1"].stateValues.xs[0]
+                    stateVariables["/_point1"].stateValues.xs[0],
             ).eq(-3);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7750,7 +7750,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
 
         cy.window().then(async (win) => {
@@ -7763,7 +7763,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7778,17 +7778,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,3)"
+            "(−4,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_point1"].stateValues.xs[1] -
-                    stateVariables["/_point1"].stateValues.xs[0]
+                    stateVariables["/_point1"].stateValues.xs[0],
             ).eq(7);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
         cy.get(cesc("#\\/constraintUsed")).should("have.text", "true");
@@ -7824,7 +7824,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7835,7 +7835,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            "(3,2)"
+            "(3,2)",
         );
 
         cy.window().then(async (win) => {
@@ -7848,7 +7848,7 @@ describe("Point Tag Tests", function () {
                 2,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
         cy.get(cesc("#\\/constraintUsed")).should("have.text", "false");
@@ -7866,10 +7866,10 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_point1"].stateValues.xs[1] -
-                    stateVariables["/_point1"].stateValues.xs[0]
+                    stateVariables["/_point1"].stateValues.xs[0],
             ).eq(-3);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
 
@@ -7892,7 +7892,7 @@ describe("Point Tag Tests", function () {
                 -5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
 
@@ -7915,7 +7915,7 @@ describe("Point Tag Tests", function () {
                 5,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
 
@@ -7938,7 +7938,7 @@ describe("Point Tag Tests", function () {
                 8,
             ]);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                false
+                false,
             );
         });
 
@@ -7955,10 +7955,10 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_point1"].stateValues.xs[1] -
-                    stateVariables["/_point1"].stateValues.xs[0]
+                    stateVariables["/_point1"].stateValues.xs[0],
             ).eq(7);
             expect(stateVariables["/_point1"].stateValues.constraintUsed).eq(
-                true
+                true,
             );
         });
     });
@@ -7989,7 +7989,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7999,17 +7999,17 @@ describe("Point Tag Tests", function () {
         cy.log(`point on grid`);
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(8,4)"
+            "(8,4)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8025,13 +8025,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−7.65,7.65)"
+            "(−7.65,7.65)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8047,13 +8047,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(7.65,7.65)"
+            "(7.65,7.65)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8069,13 +8069,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(3.4,−2.3)"
+            "(3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8091,13 +8091,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−3.4,−2.3)"
+            "(−3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(-8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8132,7 +8132,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8143,18 +8143,18 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(7,3)"
+            "(7,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8173,11 +8173,11 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8195,11 +8195,11 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -7.1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 8.2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8217,7 +8217,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8235,11 +8235,11 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 7.1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 8.2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8257,7 +8257,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8272,13 +8272,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(3.4,−2.3)"
+            "(3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8294,13 +8294,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−3.4,−2.3)"
+            "(−3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(-8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8341,7 +8341,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8352,18 +8352,18 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(7,3)"
+            "(7,3)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8379,17 +8379,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−7.1,8.2)"
+            "(−7.1,8.2)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -7.1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 8.2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8408,7 +8408,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8426,11 +8426,11 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 7.1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 8.2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(false);
         });
@@ -8448,7 +8448,7 @@ describe("Point Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8463,13 +8463,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(3.4,−2.3)"
+            "(3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8485,13 +8485,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−3.4,−2.3)"
+            "(−3.4,−2.3)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(-8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8507,17 +8507,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8533,17 +8533,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(2.67,−2.67)"
+            "(2.67,−2.67)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8559,17 +8559,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(8,−8)"
+            "(8,−8)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8585,17 +8585,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−8)"
+            "(−8,−8)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8611,17 +8611,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−2.67,−2.67)"
+            "(−2.67,−2.67)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8637,17 +8637,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(0,−4)"
+            "(0,−4)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8688,7 +8688,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8699,14 +8699,14 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(5,5)"
+            "(5,5)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8722,13 +8722,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−8.55,8.55)"
+            "(−8.55,8.55)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    stateVariables["/A"].stateValues.xs[1]
+                    stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(0, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8744,13 +8744,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(8.4,0.2)"
+            "(8.4,0.2)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] -
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8766,13 +8766,13 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−8.4,0.2)"
+            "(−8.4,0.2)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/A"].stateValues.xs[0] +
-                    2 * stateVariables["/A"].stateValues.xs[1]
+                    2 * stateVariables["/A"].stateValues.xs[1],
             ).to.be.closeTo(-8, 1e-12);
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8788,17 +8788,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(0,0)"
+            "(0,0)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8814,17 +8814,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(2.67,−2.67)"
+            "(2.67,−2.67)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8840,17 +8840,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(8,−8)"
+            "(8,−8)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8866,17 +8866,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−8)"
+            "(−8,−8)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8892,17 +8892,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(−2.67,−2.67)"
+            "(−2.67,−2.67)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -8 / 3,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8918,17 +8918,17 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coordsA") + " .mjx-mrow").should(
             "contain.text",
-            "(0,−4)"
+            "(0,−4)",
         );
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/A"].stateValues.xs[0]).to.be.closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.xs[1]).to.be.closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/A"].stateValues.constraintUsed).eq(true);
         });
@@ -8951,7 +8951,7 @@ describe("Point Tag Tests", function () {
   <text>a</text>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9019,7 +9019,7 @@ describe("Point Tag Tests", function () {
   $_point2.coords{assignNames="coords2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9028,7 +9028,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(2,1)"
+            "(2,1)",
         );
 
         cy.window().then(async (win) => {
@@ -9049,7 +9049,7 @@ describe("Point Tag Tests", function () {
         });
         cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,9)"
+            "(−4,9)",
         );
 
         cy.window().then(async (win) => {
@@ -9085,7 +9085,7 @@ describe("Point Tag Tests", function () {
   $p1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9100,7 +9100,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(1,2)`
+            `(1,2)`,
         );
 
         cy.window().then(async (win) => {
@@ -9127,11 +9127,11 @@ describe("Point Tag Tests", function () {
             });
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -9158,7 +9158,7 @@ describe("Point Tag Tests", function () {
   $_point1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9169,7 +9169,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(1,2)`
+            `(1,2)`,
         );
 
         cy.window().then(async (win) => {
@@ -9197,11 +9197,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9228,11 +9228,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9266,7 +9266,7 @@ describe("Point Tag Tests", function () {
     $p1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9277,7 +9277,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(3,7)`
+            `(3,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -9307,11 +9307,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9347,11 +9347,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9394,7 +9394,7 @@ describe("Point Tag Tests", function () {
   $p1.coords{assignNames="coords1"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9405,7 +9405,7 @@ describe("Point Tag Tests", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(3,7)`
+            `(3,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -9436,11 +9436,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9470,11 +9470,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -9504,11 +9504,11 @@ describe("Point Tag Tests", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {

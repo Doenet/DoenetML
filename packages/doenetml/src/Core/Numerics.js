@@ -77,7 +77,7 @@ export default class Numerics {
         if (Array.isArray(x0)) {
             if (x0.length < 2) {
                 throw new Error(
-                    "fzero: length of array x0 has to be at least two."
+                    "fzero: length of array x0 has to be at least two.",
                 );
             }
 
@@ -284,7 +284,7 @@ export default class Numerics {
 
         if (!Array.isArray(x0) || x0.length < 2) {
             throw new Error(
-                "Numerics.fminbr: length of array x0 has to be at least two."
+                "Numerics.fminbr: length of array x0 has to be at least two.",
             );
         }
 

@@ -26,7 +26,7 @@ describe("MathInput Tag Tests", function () {
     <copy prop='immediatevalue' source="mi2" assignNames="iv2"  />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -37,14 +37,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -110,7 +110,7 @@ describe("MathInput Tag Tests", function () {
                 1,
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -132,24 +132,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -215,7 +215,7 @@ describe("MathInput Tag Tests", function () {
                 12,
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -265,24 +265,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+13"
+            "x+13",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+13"
+            "x+13",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+13"
+                    "x+13",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+13"
+                    "x+13",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -348,7 +348,7 @@ describe("MathInput Tag Tests", function () {
                 13,
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -372,14 +372,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+13"
+                    "x+13",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+13"
+                    "x+13",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -449,7 +449,7 @@ describe("MathInput Tag Tests", function () {
                 13,
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -494,31 +494,31 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/mi1") + " textarea").blur();
         cy.get(cesc(`#\\/mi1a`) + ` textarea`).type(
             `{end}{backspace}{backspace}y`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc(`#\\/iv1`)).should("contain.text", "x+y");
 
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+y"
+            "x+y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+y"
+            "x+y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -586,7 +586,7 @@ describe("MathInput Tag Tests", function () {
                 "y",
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -608,24 +608,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+y"
+            "x+y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+y"
+            "x+y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
@@ -693,7 +693,7 @@ describe("MathInput Tag Tests", function () {
                 "y",
             ]);
             expect(stateVariables["/mi2"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -743,27 +743,27 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "pq"
+            "pq",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "pq"
+                    "pq",
                 );
             });
 
@@ -853,21 +853,21 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+y"
+                    "x+y",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "pq"
+                    "pq",
                 );
             });
 
@@ -955,38 +955,38 @@ describe("MathInput Tag Tests", function () {
         cy.log("Typing abc in second mathinput");
         cy.get(cesc(`#\\/mi1a`) + ` textarea`).type(
             `{ctrl+home}{shift+end}{backspace}abc`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc(`#\\/iv1`)).should("contain.text", "abc");
 
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "pq"
+                    "pq",
                 );
             });
 
@@ -1081,31 +1081,31 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "pq"
+                    "pq",
                 );
             });
 
@@ -1198,7 +1198,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("Enter abc in first mathinput");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}`,
-            { force: true }
+            { force: true },
         );
         // pause after deleting so can detect change (given going from abc back to abc)
         cy.get(cesc(`#\\/iv1`)).should("contain.text", "＿");
@@ -1212,31 +1212,31 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abc"
+            "abc",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "pq"
+                    "pq",
                 );
             });
 
@@ -1327,34 +1327,34 @@ describe("MathInput Tag Tests", function () {
         cy.log("Typing u/v in third mathinput");
         cy.get(cesc("#\\/mi2") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}u/v`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc(`#\\/iv2`)).should("contain.text", "uv");
 
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "uv"
+            "uv",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abc"
+                    "abc",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "uv"
+                    "uv",
                 );
             });
 
@@ -1450,31 +1450,31 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abcd"
+                    "abcd",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abcd"
+                    "abcd",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "uv"
+                    "uv",
                 );
             });
 
@@ -1571,31 +1571,31 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abcd"
+                    "abcd",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "abcd"
+                    "abcd",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "uv"
+                    "uv",
                 );
             });
 
@@ -1690,18 +1690,18 @@ describe("MathInput Tag Tests", function () {
         cy.log("Clearing second mathinput");
         cy.get(cesc(`#\\/mi1a`) + ` textarea`).type(
             "{ctrl+home}{shift+end}{backspace}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc(`#\\/iv1`)).should("contain.text", "\uFF3F");
 
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "not.contain.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "not.contain.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -1717,14 +1717,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "uv"
+                    "uv",
                 );
             });
 
         cy.get(cesc(`#\\/iv1`) + ` .mjx-mrow`).should("contain.text", "\uFF3F");
         cy.get(cesc(`#\\/iv1a`) + ` .mjx-mrow`).should(
             "contain.text",
-            "\uFF3F"
+            "\uFF3F",
         );
         cy.get(cesc(`#\\/v1`))
             .find(".mjx-mrow")
@@ -1773,10 +1773,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls([
                 "/",
@@ -1811,11 +1811,11 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "not.contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "not.contain.text",
-            "abcd"
+            "abcd",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -1831,7 +1831,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "uv"
+                    "uv",
                 );
             });
 
@@ -1884,10 +1884,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).to.eq(
-                "\uFF3F"
+                "\uFF3F",
             );
             expect(stateVariables["/mi2"].stateValues.immediateValue).eqls([
                 "/",
@@ -1926,7 +1926,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1977,10 +1977,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("＿");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("＿");
@@ -2003,24 +2003,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x~"
+            "x~",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x~"
+            "x~",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x~"
+                    "x~",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x~"
+                    "x~",
                 );
             });
 
@@ -2057,10 +2057,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("＿");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("＿");
@@ -2077,7 +2077,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2092,24 +2092,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x~"
+            "x~",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x~"
+            "x~",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x~"
+                    "x~",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x~"
+                    "x~",
                 );
             });
 
@@ -2146,10 +2146,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("＿");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("＿");
@@ -2164,24 +2164,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
 
@@ -2240,24 +2240,24 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc(`#\\/v1a`) + ` .mjx-mrow`).should("contain.text", "x−y");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
 
@@ -2322,11 +2322,11 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y@"
+            "x−y@",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y@"
+            "x−y@",
         );
         cy.get(cesc(`#\\/iv1`) + ` .mjx-mrow`).should("contain.text", "＿");
         cy.get(cesc(`#\\/iv1a`) + ` .mjx-mrow`).should("contain.text", "＿");
@@ -2334,14 +2334,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y@"
+                    "x−y@",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y@"
+                    "x−y@",
                 );
             });
 
@@ -2378,10 +2378,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls([
                 "+",
@@ -2405,11 +2405,11 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·z"
+            "x−y·z",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·z"
+            "x−y·z",
         );
         cy.get(cesc(`#\\/iv1`) + ` .mjx-mrow`).should("contain.text", "x−yz");
         cy.get(cesc(`#\\/iv1a`) + ` .mjx-mrow`).should("contain.text", "x−yz");
@@ -2417,14 +2417,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
 
@@ -2485,14 +2485,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
 
@@ -2573,7 +2573,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2624,10 +2624,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "＿"
+                "＿",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("＿");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("＿");
@@ -2650,24 +2650,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−"
+            "x−",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−"
+            "x−",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−"
+                    "x−",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−"
+                    "x−",
                 );
             });
 
@@ -2704,10 +2704,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "x-"
+                "x-",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "x-"
+                "x-",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("x-");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("x-");
@@ -2724,7 +2724,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2739,24 +2739,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−"
+            "x−",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−"
+            "x−",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−"
+                    "x−",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−"
+                    "x−",
                 );
             });
 
@@ -2793,10 +2793,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.immediateValue).eqls(
-                "x-"
+                "x-",
             );
             expect(stateVariables["/mi1a"].stateValues.immediateValue).eqls(
-                "x-"
+                "x-",
             );
             expect(stateVariables["/mi1"].stateValues.value).eqls("x-");
             expect(stateVariables["/mi1a"].stateValues.value).eqls("x-");
@@ -2809,24 +2809,24 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
 
@@ -2885,24 +2885,24 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc(`#\\/v1a`) + ` .mjx-mrow`).should("contain.text", "x−y");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y"
+            "x−y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y"
+                    "x−y",
                 );
             });
 
@@ -2967,11 +2967,11 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·"
+            "x−y·",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·"
+            "x−y·",
         );
         cy.get(cesc(`#\\/iv1`) + ` .mjx-mrow`).should("contain.text", "x−y＿");
         cy.get(cesc(`#\\/iv1a`) + ` .mjx-mrow`).should("contain.text", "x−y＿");
@@ -2979,14 +2979,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·"
+                    "x−y·",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·"
+                    "x−y·",
                 );
             });
 
@@ -3052,11 +3052,11 @@ describe("MathInput Tag Tests", function () {
         cy.log("Test values displayed in browser");
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·z"
+            "x−y·z",
         );
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x−y·z"
+            "x−y·z",
         );
         cy.get(cesc(`#\\/iv1`) + ` .mjx-mrow`).should("contain.text", "x−yz");
         cy.get(cesc(`#\\/iv1a`) + ` .mjx-mrow`).should("contain.text", "x−yz");
@@ -3064,14 +3064,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
 
@@ -3140,14 +3140,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
         cy.get(cesc(`#\\/mi1a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x−y·z"
+                    "x−y·z",
                 );
             });
 
@@ -3221,7 +3221,7 @@ describe("MathInput Tag Tests", function () {
     <p>Immediate value of copied mathinput: <copy source="mi2" prop="immediateValue" assignNames="immediate2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3231,14 +3231,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
 
@@ -3310,38 +3310,38 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}xy`,
-            { force: true, delay: 100 }
+            { force: true, delay: 100 },
         );
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -3419,24 +3419,24 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -3514,34 +3514,34 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
 
@@ -3629,7 +3629,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3639,14 +3639,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
 
@@ -3733,7 +3733,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3743,14 +3743,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3x+1"
+                    "3x+1",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3x+1"
+                    "3x+1",
                 );
             });
 
@@ -3828,41 +3828,41 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}xy{enter}`,
-            { force: true, delay: 100 }
+            { force: true, delay: 100 },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -3940,41 +3940,41 @@ describe("MathInput Tag Tests", function () {
         cy.log("enter new values in reffed");
         cy.get(cesc(`#\\/mi2`) + ` textarea`).type(
             `{end}{backspace}{backspace}qr{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
 
@@ -4065,7 +4065,7 @@ describe("MathInput Tag Tests", function () {
     <p>Immediate value of copied mathinput: <copy source="mi2" prop="immediateValue" assignNames="immediate2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4075,14 +4075,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
 
@@ -4154,38 +4154,38 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}xy`,
-            { force: true, delay: 100 }
+            { force: true, delay: 100 },
         );
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -4263,24 +4263,24 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -4358,34 +4358,34 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
 
@@ -4473,7 +4473,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4483,14 +4483,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2x"
+                    "1+2x",
                 );
             });
 
@@ -4573,7 +4573,7 @@ describe("MathInput Tag Tests", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4583,7 +4583,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2x+1"
+                    "2x+1",
                 );
             });
 
@@ -4606,7 +4606,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}2y+1{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/_math1") + " .mjx-mrow").should("contain.text", "y");
@@ -4622,7 +4622,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2y+1"
+                    "2y+1",
                 );
             });
 
@@ -4648,7 +4648,7 @@ describe("MathInput Tag Tests", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4679,7 +4679,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}2z{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/value`))
@@ -4694,7 +4694,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2z"
+                    "2z",
                 );
             });
 
@@ -4724,7 +4724,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4734,14 +4734,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3x+1"
+                    "3x+1",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3x+1"
+                    "3x+1",
                 );
             });
 
@@ -4819,41 +4819,41 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}xy{enter}`,
-            { force: true, delay: 100 }
+            { force: true, delay: 100 },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "xy");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -4931,41 +4931,41 @@ describe("MathInput Tag Tests", function () {
         cy.log("enter new values in reffed");
         cy.get(cesc(`#\\/mi2`) + ` textarea`).type(
             `{end}{backspace}{backspace}qr{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should("contain.text", "qr");
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
 
@@ -5057,7 +5057,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5067,14 +5067,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
 
@@ -5147,50 +5147,50 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}xy`,
-            { force: true, delay: 50 }
+            { force: true, delay: 50 },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
 
@@ -5265,45 +5265,45 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
 
@@ -5376,50 +5376,50 @@ describe("MathInput Tag Tests", function () {
         cy.log("type new values in copy");
         cy.get(cesc(`#\\/mi2`) + ` textarea`).type(
             `{ctrl+home}{shift+end}{backspace}qr`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "qr"
+            "qr",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "qr"
+                    "qr",
                 );
             });
 
@@ -5494,45 +5494,45 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/value2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "1+2xz"
+            "1+2xz",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "1+2xz"
+                    "1+2xz",
                 );
             });
 
@@ -5619,7 +5619,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5696,11 +5696,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "x");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "x");
@@ -5708,11 +5708,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -5776,11 +5776,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "x");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "x");
@@ -5788,11 +5788,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -5858,11 +5858,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "x");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "x");
@@ -5870,11 +5870,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -5938,11 +5938,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/immediate1`) + ` .mjx-mrow`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/immediate2`) + ` .mjx-mrow`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/_math1`) + ` .mjx-mrow`).should("contain.text", "x");
         cy.get(cesc(`#\\/value1`) + ` .mjx-mrow`).should("contain.text", "x");
@@ -5950,11 +5950,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1`) + ` .mq-editable-field`)
             .invoke("text")
@@ -6027,7 +6027,7 @@ describe("MathInput Tag Tests", function () {
     <p>Value of second: <math name="secondvalue"><copy prop="value" source="_mathinput2"/></math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6035,14 +6035,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
 
@@ -6078,7 +6078,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 1]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6086,7 +6086,7 @@ describe("MathInput Tag Tests", function () {
                 1,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 1]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6102,29 +6102,29 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+1"
+            "x+1",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
 
@@ -6160,7 +6160,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6168,7 +6168,7 @@ describe("MathInput Tag Tests", function () {
                 1,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 1]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6184,41 +6184,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
 
@@ -6254,7 +6254,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6262,7 +6262,7 @@ describe("MathInput Tag Tests", function () {
                 12,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6278,29 +6278,29 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
 
@@ -6337,7 +6337,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6345,7 +6345,7 @@ describe("MathInput Tag Tests", function () {
                 12,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6359,41 +6359,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
 
@@ -6429,7 +6429,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6437,7 +6437,7 @@ describe("MathInput Tag Tests", function () {
                 123,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6460,7 +6460,7 @@ describe("MathInput Tag Tests", function () {
     <p>Value of second: <math name="secondvalue"><copy prop="value" source="_mathinput2"/></math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6468,14 +6468,14 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+1"
+                    "x+1",
                 );
             });
 
@@ -6511,7 +6511,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 1]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6519,7 +6519,7 @@ describe("MathInput Tag Tests", function () {
                 1,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 1]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6535,41 +6535,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+1"
+            "x+1",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
 
@@ -6605,7 +6605,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6613,7 +6613,7 @@ describe("MathInput Tag Tests", function () {
                 1,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6629,41 +6629,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
 
@@ -6699,7 +6699,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6707,7 +6707,7 @@ describe("MathInput Tag Tests", function () {
                 12,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6723,41 +6723,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+12"
+            "x+12",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+12"
+                    "x+12",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
         cy.get(cesc("#\\/originalimmediate"))
@@ -6792,7 +6792,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 12]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6800,7 +6800,7 @@ describe("MathInput Tag Tests", function () {
                 12,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6814,41 +6814,41 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/originalimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/originalvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/secondvalue") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc("#\\/secondimmediate") + " .mjx-mrow").should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
 
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "x+123"
+            "x+123",
         );
         cy.get(cesc(`#\\/_mathinput1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
         cy.get(cesc(`#\\/_mathinput2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x+123"
+                    "x+123",
                 );
             });
 
@@ -6884,7 +6884,7 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_mathinput1"].stateValues.immediateValue
+                stateVariables["/_mathinput1"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput1"].stateValues.value).eqls([
                 "+",
@@ -6892,7 +6892,7 @@ describe("MathInput Tag Tests", function () {
                 123,
             ]);
             expect(
-                stateVariables["/_mathinput2"].stateValues.immediateValue
+                stateVariables["/_mathinput2"].stateValues.immediateValue,
             ).eqls(["+", "x", 123]);
             expect(stateVariables["/_mathinput2"].stateValues.value).eqls([
                 "+",
@@ -6912,7 +6912,7 @@ describe("MathInput Tag Tests", function () {
     <copy source="a" prop="value" assignNames="b" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6935,7 +6935,7 @@ describe("MathInput Tag Tests", function () {
             });
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(2,3){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b") + " .mjx-mrow").should("contain.text", "(2,3)");
         cy.get(cesc("#\\/b"))
@@ -6960,7 +6960,7 @@ describe("MathInput Tag Tests", function () {
     <p><copy source="b" prop="value" assignNames="b2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7031,11 +7031,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}g(f){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}g(f){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "g(f)");
@@ -7081,11 +7081,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(q){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(q){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "hq");
@@ -7131,11 +7131,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}q(z){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}q(z){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "qz");
@@ -7200,7 +7200,7 @@ describe("MathInput Tag Tests", function () {
     <p>b6: <copy source="b2" prop="immediateValue" assignNames="b6" displayDigits="16" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7210,7 +7210,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(2x)"
+                    "sin(2x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -7238,7 +7238,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10e3y"
+                    "10e3y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -7327,27 +7327,27 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}345.15389319{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a5") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15389319x)"
+            "sin(345.15389319x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.15389319x)"
+            "sin(345.15389319x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "sin(2x)");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.15389319x)"
+                    "sin(345.15389319x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -7381,31 +7381,31 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{rightArrow}{backspace}{backspace}2.047529344518{ctrl+end}{leftArrow}{leftArrow}{backspace}0.0000073013048309{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/b6") + " .mjx-mrow").should(
             "contain.text",
-            "2.047529344518e0.0000073013048309y"
+            "2.047529344518e0.0000073013048309y",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.15x)"
+                    "sin(345.15x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -7426,12 +7426,12 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/b") + " .mjx-mrow").should("contain.text", "10e3y");
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "2.047529344518e0.0000073013048309y"
+            "2.047529344518e0.0000073013048309y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should("contain.text", "10e3y");
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "2.05e0.0000073y"
+            "2.05e0.0000073y",
         );
 
         cy.get(cesc("#\\/b"))
@@ -7445,7 +7445,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.047529344518e0.0000073013048309y"
+                    "2.047529344518e0.0000073013048309y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -7467,19 +7467,19 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "2.047529345e0.000007301304831y"
+            "2.047529345e0.000007301304831y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "2.05e0.0000073y"
+            "2.05e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "2.05e0.0000073y"
+            "2.05e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "2.05e0.0000073y"
+            "2.05e0.0000073y",
         );
         cy.get(cesc("#\\/b"))
             .find(".mjx-mrow")
@@ -7492,7 +7492,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.05e0.0000073y"
+                    "2.05e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -7584,27 +7584,27 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}4{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.14x)"
+                    "sin(345.14x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -7660,26 +7660,26 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.14x)"
+                    "sin(345.14x)",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2"))
             .find(".mjx-mrow")
@@ -7732,24 +7732,24 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{backspace}6{ctrl+home}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "2.047529345e0.000007301304831y"
+            "2.047529345e0.000007301304831y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "2.05e0.0000073y"
+            "2.05e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b"))
             .find(".mjx-mrow")
@@ -7762,7 +7762,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "6.05e0.0000073y"
+                    "6.05e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -7823,19 +7823,19 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "6.05e0.0000073y"
+            "6.05e0.0000073y",
         );
         cy.get(cesc("#\\/b"))
             .find(".mjx-mrow")
@@ -7848,7 +7848,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "6.05e0.0000073y"
+                    "6.05e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -7922,7 +7922,7 @@ describe("MathInput Tag Tests", function () {
     <p>b4: <copy source="b2" prop="immediateValue" assignNames="b4" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7932,7 +7932,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(2x)"
+                    "sin(2x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -7960,7 +7960,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10e3y"
+                    "10e3y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8049,23 +8049,23 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}345.15389319{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.15389319x)"
+            "sin(345.15389319x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "sin(2x)");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.15389319x)"
+                    "sin(345.15389319x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -8085,26 +8085,26 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{rightArrow}{backspace}{backspace}2.047529344518{ctrl+end}{leftArrow}{leftArrow}{backspace}0.0000073013048309{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.15x)"
+                    "sin(345.15x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -8125,12 +8125,12 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/b") + " .mjx-mrow").should("contain.text", "10e3y");
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "2.047529344518e0.0000073013048309y"
+            "2.047529344518e0.0000073013048309y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should("contain.text", "10e3y");
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "2.04752934e0.0000073y"
+            "2.04752934e0.0000073y",
         );
 
         cy.get(cesc("#\\/b"))
@@ -8144,7 +8144,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.047529344518e0.0000073013048309y"
+                    "2.047529344518e0.0000073013048309y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8166,19 +8166,19 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "2.047529345e0.000007301304831y"
+            "2.047529345e0.000007301304831y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "2.04752934e0.0000073y"
+            "2.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "2.04752934e0.0000073y"
+            "2.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "2.04752934e0.0000073y"
+            "2.04752934e0.0000073y",
         );
 
         cy.get(cesc("#\\/b"))
@@ -8192,7 +8192,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.04752934e0.0000073y"
+                    "2.04752934e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8281,26 +8281,26 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}4{ctrl+end}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.15x)"
+            "sin(345.15x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.14x)"
+                    "sin(345.14x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -8356,26 +8356,26 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(345.14x)"
+                    "sin(345.14x)",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(345.14x)"
+            "sin(345.14x)",
         );
         cy.get(cesc("#\\/a2"))
             .find(".mjx-mrow")
@@ -8428,24 +8428,24 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{backspace}6{ctrl+home}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "2.047529345e0.000007301304831y"
+            "2.047529345e0.000007301304831y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "2.04752934e0.0000073y"
+            "2.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
 
         cy.get(cesc("#\\/b"))
@@ -8459,7 +8459,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "6.04752934e0.0000073y"
+                    "6.04752934e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8520,24 +8520,24 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "6.04752934e0.0000073y"
+            "6.04752934e0.0000073y",
         );
         cy.get(cesc("#\\/b"))
             .find(".mjx-mrow")
@@ -8550,7 +8550,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "6.04752934e0.0000073y"
+                    "6.04752934e0.0000073y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8635,7 +8635,7 @@ describe("MathInput Tag Tests", function () {
     <p>d4: <copy source="d2" prop="immediatevalue" assignNames="d4" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8645,7 +8645,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(2x)"
+                    "sin(2x)",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -8673,7 +8673,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10e3y"
+                    "10e3y",
                 );
             });
         cy.get(cesc("#\\/b3"))
@@ -8694,7 +8694,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "sin(2x)"
+                    "sin(2x)",
                 );
             });
         cy.get(cesc("#\\/c2"))
@@ -8722,7 +8722,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10e3y"
+                    "10e3y",
                 );
             });
         cy.get(cesc("#\\/d3"))
@@ -8876,34 +8876,34 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+end}{leftArrow}{leftArrow}{backspace}0.000000000000000472946384739473{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{rightArrow}{backspace}{backspace}0.0000000000000934720357236{ctrl+end}{leftArrow}{leftArrow}{backspace}0.0000000000000073013048309{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/c") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}0.000000000000000472946384739473{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/d2") + " textarea")
             .type(
                 "{ctrl+home}{rightArrow}{rightArrow}{backspace}{backspace}0.0000000000000934720357236{ctrl+end}{leftArrow}{leftArrow}{backspace}0.0000000000000073013048309{enter}",
-                { force: true }
+                { force: true },
             )
             .blur();
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(4.7295"
+            "sin(4.7295",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(4.7295"
+            "sin(4.7295",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(4.7295"
+            "sin(4.7295",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
@@ -8912,7 +8912,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("sin(4.7295⋅10−16x)");
             });
         cy.get(cesc("#\\/a2"))
@@ -8932,11 +8932,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "9.347203572"
+            "9.347203572",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "9.35"
+            "9.35",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should("contain.text", "9.35");
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should("contain.text", "9.35");
@@ -8947,7 +8947,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "9.347203572⋅10−14e7.301304831⋅10−15y"
+                    "9.347203572⋅10−14e7.301304831⋅10−15y",
                 );
             });
         cy.get(cesc("#\\/b2") + " .mq-editable-field")
@@ -8956,7 +8956,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("9.35⋅10−14e7.3⋅10−15y");
             });
         cy.get(cesc("#\\/b3"))
@@ -8976,7 +8976,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/c") + " .mq-editable-field").should(
             "contain.text",
-            "sin(0x)"
+            "sin(0x)",
         );
         cy.get(cesc("#\\/c2") + " .mjx-mrow").should("contain.text", "sin(0x)");
         cy.get(cesc("#\\/c3") + " .mjx-mrow").should("contain.text", "sin(0x)");
@@ -8986,7 +8986,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("sin(0x)");
             });
         cy.get(cesc("#\\/c2"))
@@ -9006,11 +9006,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/d") + " .mjx-mrow").should(
             "contain.text",
-            "9.347203572"
+            "9.347203572",
         );
         cy.get(cesc("#\\/d2") + " .mq-editable-field").should(
             "contain.text",
-            "9.35"
+            "9.35",
         );
         cy.get(cesc("#\\/d3") + " .mjx-mrow").should("contain.text", "9.35");
         cy.get(cesc("#\\/d4") + " .mjx-mrow").should("contain.text", "9.35");
@@ -9020,7 +9020,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "9.347203572⋅10−14e7.301304831⋅10−15y"
+                    "9.347203572⋅10−14e7.301304831⋅10−15y",
                 );
             });
         cy.get(cesc("#\\/d2") + " .mq-editable-field")
@@ -9029,7 +9029,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("9.35⋅10−14e0y");
             });
         cy.get(cesc("#\\/d3"))
@@ -9184,15 +9184,15 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{home}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b2") + " textarea").type(
             "{ctrl+home}{rightArrow}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/c") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{leftArrow}3{enter}",
-            { force: true, delay: 100 }
+            { force: true, delay: 100 },
         );
         cy.get(cesc("#\\/d2") + " textarea")
             .type("{ctrl+home}{rightArrow}{backspace}6{enter}", { force: true })
@@ -9200,15 +9200,15 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "sin(5.7295"
+            "sin(5.7295",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(5.7295"
+            "sin(5.7295",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(5.7295"
+            "sin(5.7295",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
@@ -9217,7 +9217,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("sin(5.7295⋅10−16x)");
             });
         cy.get(cesc("#\\/a2"))
@@ -9238,7 +9238,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/b") + " .mjx-mrow").should("contain.text", "8.35");
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "8.35"
+            "8.35",
         );
         cy.get(cesc("#\\/b3") + " .mjx-mrow").should("contain.text", "8.35");
         cy.get(cesc("#\\/b4") + " .mjx-mrow").should("contain.text", "8.35");
@@ -9256,7 +9256,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("8.35⋅10−14e7.3⋅10−15y");
             });
         cy.get(cesc("#\\/b3"))
@@ -9276,15 +9276,15 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/c") + " .mq-editable-field").should(
             "contain.text",
-            "sin(30x)"
+            "sin(30x)",
         );
         cy.get(cesc("#\\/c2") + " .mjx-mrow").should(
             "contain.text",
-            "sin(30x)"
+            "sin(30x)",
         );
         cy.get(cesc("#\\/c3") + " .mjx-mrow").should(
             "contain.text",
-            "sin(30x)"
+            "sin(30x)",
         );
         cy.get(cesc("#\\/c") + " .mq-editable-field")
             .invoke("text")
@@ -9292,7 +9292,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("sin(30x)");
             });
         cy.get(cesc("#\\/c2"))
@@ -9313,7 +9313,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/d") + " .mjx-mrow").should("contain.text", "6.35");
         cy.get(cesc("#\\/d2") + " .mq-editable-field").should(
             "contain.text",
-            "6.35"
+            "6.35",
         );
         cy.get(cesc("#\\/d3") + " .mjx-mrow").should("contain.text", "6.35");
         cy.get(cesc("#\\/d4") + " .mjx-mrow").should("contain.text", "6.35");
@@ -9330,7 +9330,7 @@ describe("MathInput Tag Tests", function () {
                 expect(
                     text
                         .replace(/[\s\u200B-\u200D\uFEFF]/g, "")
-                        .replace(/\u00B7/g, "\u22C5")
+                        .replace(/\u00B7/g, "\u22C5"),
                 ).equal("6.35⋅10−14e0y");
             });
         cy.get(cesc("#\\/d3"))
@@ -9511,7 +9511,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9521,7 +9521,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "123.4567891"
+                    "123.4567891",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -9558,7 +9558,7 @@ describe("MathInput Tag Tests", function () {
                 "{ctrl+home}{ctrl+shift+end}{backspace}98765.4321876{ctrl+end}",
                 {
                     force: true,
-                }
+                },
             )
             .blur();
 
@@ -9567,7 +9567,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "98765.43219"
+                    "98765.43219",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -9614,7 +9614,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9624,7 +9624,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "123.4567891"
+                    "123.4567891",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -9661,19 +9661,19 @@ describe("MathInput Tag Tests", function () {
                 "{ctrl+home}{ctrl+shift+end}{backspace}0.00000000000000004736286523434185{ctrl+end}",
                 {
                     force: true,
-                }
+                },
             )
             .blur();
 
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "4.736286523"
+            "4.736286523",
         );
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "4.736286523·10−17"
+                    "4.736286523·10−17",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -9722,7 +9722,7 @@ describe("MathInput Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9759,7 +9759,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{backspace}2.4295639461593{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b2") + " textarea")
             .type("{end}{backspace}9.3935596792746{enter}", { force: true })
@@ -9767,22 +9767,22 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "2.4296"
+            "2.4296",
         );
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "9.393559679"
+            "9.393559679",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "9.39"
+            "9.39",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.4296"
+                    "2.4296",
                 );
             });
         cy.get(cesc("#\\/b"))
@@ -9796,7 +9796,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "9.39"
+                    "9.39",
                 );
             });
 
@@ -9820,22 +9820,22 @@ describe("MathInput Tag Tests", function () {
 
             cy.get(cesc("#\\/a") + " .mq-editable-field").should(
                 "contain.text",
-                "7.9365"
+                "7.9365",
             );
             cy.get(cesc("#\\/b") + " .mjx-mrow").should(
                 "contain.text",
-                "2.142218346"
+                "2.142218346",
             );
             cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
                 "contain.text",
-                "2.14"
+                "2.14",
             );
 
             cy.get(cesc("#\\/a") + " .mq-editable-field")
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "7.9365"
+                        "7.9365",
                     );
                 });
             cy.get(cesc("#\\/b"))
@@ -9849,32 +9849,32 @@ describe("MathInput Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2.14"
+                        "2.14",
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/a"].stateValues.value).eq(
-                    7.936497798143
+                    7.936497798143,
                 );
                 expect(stateVariables["/a"].stateValues.valueForDisplay).eq(
-                    7.9365
+                    7.9365,
                 );
                 expect(stateVariables["/p"].stateValues.xs[0]).eq(
-                    7.936497798143
+                    7.936497798143,
                 );
                 expect(stateVariables["/b"].stateValues.value).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
                 expect(stateVariables["/b2"].stateValues.value).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
                 expect(stateVariables["/b2"].stateValues.valueForDisplay).eq(
-                    2.14
+                    2.14,
                 );
                 expect(stateVariables["/p"].stateValues.xs[1]).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
             });
         });
@@ -9896,7 +9896,7 @@ describe("MathInput Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9933,7 +9933,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{backspace}2.4295639461593{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/b2") + " textarea")
             .type("{end}{backspace}9.3935596792746{enter}", { force: true })
@@ -9941,22 +9941,22 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "2.4296"
+            "2.4296",
         );
         cy.get(cesc("#\\/b") + " .mjx-mrow").should(
             "contain.text",
-            "9.393559679"
+            "9.393559679",
         );
         cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
             "contain.text",
-            "9.39"
+            "9.39",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.4296"
+                    "2.4296",
                 );
             });
         cy.get(cesc("#\\/b"))
@@ -9970,7 +9970,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "9.39"
+                    "9.39",
                 );
             });
 
@@ -9994,22 +9994,22 @@ describe("MathInput Tag Tests", function () {
 
             cy.get(cesc("#\\/a") + " .mq-editable-field").should(
                 "contain.text",
-                "7.9365"
+                "7.9365",
             );
             cy.get(cesc("#\\/b") + " .mjx-mrow").should(
                 "contain.text",
-                "2.142218346"
+                "2.142218346",
             );
             cy.get(cesc("#\\/b2") + " .mq-editable-field").should(
                 "contain.text",
-                "2.14"
+                "2.14",
             );
 
             cy.get(cesc("#\\/a") + " .mq-editable-field")
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "7.9365"
+                        "7.9365",
                     );
                 });
             cy.get(cesc("#\\/b"))
@@ -10023,32 +10023,32 @@ describe("MathInput Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "2.14"
+                        "2.14",
                     );
                 });
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/a"].stateValues.value).eq(
-                    7.936497798143
+                    7.936497798143,
                 );
                 expect(stateVariables["/a"].stateValues.valueForDisplay).eq(
-                    7.9365
+                    7.9365,
                 );
                 expect(stateVariables["/p"].stateValues.xs[0]).eq(
-                    7.936497798143
+                    7.936497798143,
                 );
                 expect(stateVariables["/b"].stateValues.value).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
                 expect(stateVariables["/b2"].stateValues.value).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
                 expect(stateVariables["/b2"].stateValues.valueForDisplay).eq(
-                    2.14
+                    2.14,
                 );
                 expect(stateVariables["/p"].stateValues.xs[1]).eq(
-                    2.142218345836
+                    2.142218345836,
                 );
             });
         });
@@ -10065,7 +10065,7 @@ describe("MathInput Tag Tests", function () {
     <p>a3: <copy prop="value" source="a" simplify assignNames="a3" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10079,7 +10079,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "√4"
+            "√4",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "√4");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "2");
@@ -10088,7 +10088,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "√4"
+                    "√4",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10118,7 +10118,7 @@ describe("MathInput Tag Tests", function () {
     <p>a3: <copy prop="value" source="a" simplify assignNames="a3" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10131,7 +10131,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "α"
+            "α",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "α");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "α");
@@ -10166,12 +10166,12 @@ describe("MathInput Tag Tests", function () {
         // Note: first {enter} changes \beta to β and second {enter} is detected as an Enter
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{backspace}\\alpha\\beta{enter}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "αβ"
+            "αβ",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "αβ");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "αβ");
@@ -10180,7 +10180,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "αβ"
+                    "αβ",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10220,12 +10220,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{end}{backspace}{backspace}y\u2212z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "y−z"
+            "y−z",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "y−z");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "y−z");
@@ -10234,7 +10234,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "y−z"
+                    "y−z",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10274,12 +10274,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}a-b{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "a−b"
+            "a−b",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "a−b");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "a−b");
@@ -10288,7 +10288,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "a−b"
+                    "a−b",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10328,12 +10328,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}y\u22C5z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "y⋅z"
+            "y⋅z",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "yz");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "yz");
@@ -10342,7 +10342,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "y⋅z"
+                    "y⋅z",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10382,12 +10382,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}a*b{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "a\u00B7b"
+            "a\u00B7b",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "ab");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "ab");
@@ -10396,7 +10396,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "a\u00B7b"
+                    "a\u00B7b",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10436,12 +10436,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}y\u00B7z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "y\u00B7z"
+            "y\u00B7z",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "yz");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "yz");
@@ -10450,7 +10450,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "y\u00B7z"
+                    "y\u00B7z",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10490,12 +10490,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}u\u00D7v{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "u\u00D7v"
+            "u\u00D7v",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "uv");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "uv");
@@ -10504,7 +10504,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "u\u00D7v"
+                    "u\u00D7v",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10544,27 +10544,27 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}A\u222AB{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "A\u222AB"
+            "A\u222AB",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "A\u222AB"
+            "A\u222AB",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "A\u222AB"
+            "A\u222AB",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A\u222AB"
+                    "A\u222AB",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10604,27 +10604,27 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}A\u2229B{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "A\u2229B"
+            "A\u2229B",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should(
             "contain.text",
-            "A\u2229B"
+            "A\u2229B",
         );
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "A\u2229B"
+            "A\u2229B",
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A\u2229B"
+                    "A\u2229B",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10664,12 +10664,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\u221E{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "\u221E"
+            "\u221E",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "\u221E");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "\u221E");
@@ -10678,7 +10678,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "\u221E"
+                    "\u221E",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10706,12 +10706,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\u00B5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "\u00B5"
+            "\u00B5",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "\u03BC");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "\u03BC");
@@ -10720,7 +10720,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "\u00B5"
+                    "\u00B5",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10748,12 +10748,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\u03BC{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "\u03BC"
+            "\u03BC",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "\u03BC");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "\u03BC");
@@ -10762,7 +10762,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "\u03BC"
+                    "\u03BC",
                 );
             });
         cy.get(cesc("#\\/a2"))
@@ -10798,7 +10798,7 @@ describe("MathInput Tag Tests", function () {
     <p>a3: <math simplify name="a3">$a</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10811,7 +10811,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "325"
+            "325",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32⋅5");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "45");
@@ -10833,17 +10833,17 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3^25{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "325"
+            "325",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "325");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should(
             "contain.text",
-            "847288609443"
+            "847288609443",
         );
 
         cy.window().then(async (win) => {
@@ -10855,12 +10855,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3^2x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "32x"
+            "32x",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32x");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "32x");
@@ -10886,12 +10886,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3^2{rightarrow}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "32x"
+            "32x",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32x");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "9x");
@@ -10913,12 +10913,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3^x2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "3x2"
+            "3x2",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "3x2");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "3x2");
@@ -10940,12 +10940,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3^x{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "3x2"
+            "3x2",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "3x⋅2");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "2⋅3x");
@@ -10971,12 +10971,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}f^3{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "f32"
+            "f32",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "f3⋅2");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "2f3");
@@ -11002,12 +11002,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x^3{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "x32"
+            "x32",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "x3⋅2");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "2x3");
@@ -11043,7 +11043,7 @@ describe("MathInput Tag Tests", function () {
     <p>a3: <math simplify name="a3">$a</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11058,7 +11058,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "325"
+                    "325",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32⋅5");
@@ -11085,12 +11085,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3_25{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "325"
+            "325",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "325");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "325");
@@ -11104,12 +11104,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3_2x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "32x"
+            "32x",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32x");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "32x");
@@ -11135,14 +11135,14 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3_2{rightarrow}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "32x"
+                    "32x",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "32x");
@@ -11169,12 +11169,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3_x2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/a") + " .mq-editable-field").should(
             "contain.text",
-            "3x2"
+            "3x2",
         );
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "3x2");
         cy.get(cesc("#\\/a3") + " .mjx-mrow").should("contain.text", "3x2");
@@ -11196,14 +11196,14 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}3_x{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3x2"
+                    "3x2",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "3x⋅2");
@@ -11230,14 +11230,14 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}f_3{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "f32"
+                    "f32",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "f3⋅2");
@@ -11264,14 +11264,14 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/a") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x_3{rightarrow}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/a`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x32"
+                    "x32",
                 );
             });
         cy.get(cesc("#\\/a2") + " .mjx-mrow").should("contain.text", "x3⋅2");
@@ -11321,7 +11321,7 @@ describe("MathInput Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11365,14 +11365,14 @@ describe("MathInput Tag Tests", function () {
             "{end}{backspace}-7.4{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/Ax") + " .mjx-mrow").should("contain.text", "−7");
         cy.get(cesc("#\\/mi2") + " .mjx-mrow").should("contain.text", "−7");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "−7"
+            "−7",
         );
 
         cy.get(cesc("#\\/Ax"))
@@ -11393,7 +11393,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "−7"
+                    "−7",
                 );
             });
 
@@ -11424,7 +11424,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/mi2") + " .mjx-mrow").should("contain.text", "4");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "4"
+            "4",
         );
 
         cy.get(cesc("#\\/Ax"))
@@ -11475,7 +11475,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/mi2") + " .mjx-mrow").should("contain.text", "5");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "5"
+            "5",
         );
 
         cy.get(cesc("#\\/Ax"))
@@ -11525,7 +11525,7 @@ describe("MathInput Tag Tests", function () {
     <updateValue triggerWith="mi" target="x" newValue="$x+$mi" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11617,7 +11617,7 @@ describe("MathInput Tag Tests", function () {
     <p>Split: <copy prop="value" source="mis" assignNames="ms"/></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11698,13 +11698,13 @@ describe("MathInput Tag Tests", function () {
             "{end}{backspace}_uv{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mis") + " textarea").type(
             "{end}{backspace}_uv{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mns") + " .mjx-mrow").should("contain.text", "xyuv");
         cy.get(cesc("#\\/ms") + " .mjx-mrow").should("contain.text", "xyuv");
@@ -11759,7 +11759,7 @@ describe("MathInput Tag Tests", function () {
     <p>Value: <copy prop="value" source="mi" assignNames="m"/></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11775,7 +11775,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,x,y,z,…"
+            "…,x,y,z,…",
         );
         cy.get(cesc("#\\/m"))
             .find(".mjx-mrow")
@@ -11809,12 +11809,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{home} {rightarrow} {rightarrow} {end} {leftarrow}{leftarrow} {leftarrow}{leftarrow}{leftarrow}{backspace}a{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,x,y,a,…"
+            "…,x,y,a,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -11849,12 +11849,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{home}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{rightarrow},{rightarrow}{backspace}b{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,b,y,a,…"
+            "…,b,y,a,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -11889,12 +11889,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{leftarrow}{leftarrow}{leftarrow}{leftarrow}{leftarrow},{leftarrow}{backspace}c{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,b,y,c,…"
+            "…,b,y,c,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -11929,12 +11929,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{backspace}{backspace}{leftarrow}{backspace}d{rightarrow}\\ldots {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,b,y,d,…"
+            "…,b,y,d,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -11969,12 +11969,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{home}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{backspace}{backspace}{backspace}{backspace}{backspace}\\ldots  {rightarrow}{rightarrow}{backspace}e{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,e,y,d,…"
+            "…,e,y,d,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -12009,12 +12009,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{home}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{rightarrow}{backspace}{backspace}f{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,f,y,d,…"
+            "…,f,y,d,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -12049,12 +12049,12 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{leftarrow}{backspace}{backspace}g{end}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "…,f,y,g,…"
+            "…,f,y,g,…",
         );
 
         cy.get(cesc("#\\/m"))
@@ -12100,7 +12100,7 @@ describe("MathInput Tag Tests", function () {
     <copy prop="value" source="noSplit2" assignNames="noSplit3"/>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12117,7 +12117,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x2"
+                    "x2",
                 );
             });
         cy.get(cesc("#\\/varWithNum3"))
@@ -12138,7 +12138,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc("#\\/noSplit3"))
@@ -12161,36 +12161,36 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/varWithNum2") + " textarea").type(
             "{end}{backspace}u9j{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/noSplit2") + " textarea").type(
             "{end}{backspace}uv{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/varWithNum") + " .mjx-mrow").should(
             "contain.text",
-            "xu9j"
+            "xu9j",
         );
         cy.get(cesc(`#\\/varWithNum2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xu9j"
+            "xu9j",
         );
         cy.get(cesc("#\\/varWithNum3") + " .mjx-mrow").should(
             "contain.text",
-            "xu9j"
+            "xu9j",
         );
         cy.get(cesc("#\\/noSplit") + " .mjx-mrow").should(
             "contain.text",
-            "xyuv"
+            "xyuv",
         );
         cy.get(cesc(`#\\/noSplit2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyuv"
+            "xyuv",
         );
         cy.get(cesc("#\\/noSplit3") + " .mjx-mrow").should(
             "contain.text",
-            "xyuv"
+            "xyuv",
         );
 
         cy.get(cesc("#\\/varWithNum"))
@@ -12204,7 +12204,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xu9j"
+                    "xu9j",
                 );
             });
         cy.get(cesc("#\\/varWithNum3"))
@@ -12225,7 +12225,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyuv"
+                    "xyuv",
                 );
             });
         cy.get(cesc("#\\/noSplit3"))
@@ -12321,7 +12321,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12331,49 +12331,49 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union4`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union5`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union6`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc(`#\\/union7`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "A∪B"
+                    "A∪B",
                 );
             });
         cy.get(cesc("#\\/union1m"))
@@ -12504,56 +12504,56 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits4`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits5`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits6`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits7`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc(`#\\/splits8`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xy"
+                    "xy",
                 );
             });
         cy.get(cesc("#\\/splits1m"))
@@ -12692,123 +12692,123 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc(`#\\/splits1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits3`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits4`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits5`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits6`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits7`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc(`#\\/splits8`) + ` .mq-editable-field`).should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits1m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits2m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits3m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits4m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits5m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits6m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits7m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
         cy.get(cesc("#\\/splits8m") + " .mjx-mrow").should(
             "contain.text",
-            "xyz"
+            "xyz",
         );
 
         cy.get(cesc(`#\\/splits1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits4`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits5`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits6`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits7`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc(`#\\/splits8`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "xyz"
+                    "xyz",
                 );
             });
         cy.get(cesc("#\\/splits1m"))
@@ -12932,56 +12932,56 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(x)"
+                    "h(x)",
                 );
             });
         cy.get(cesc(`#\\/hFunction2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(x)"
+                    "h(x)",
                 );
             });
         cy.get(cesc(`#\\/hFunction3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hx"
+                    "hx",
                 );
             });
         cy.get(cesc(`#\\/hFunction4`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hx"
+                    "hx",
                 );
             });
         cy.get(cesc(`#\\/hFunction5`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hx"
+                    "hx",
                 );
             });
         cy.get(cesc(`#\\/hFunction6`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(x)"
+                    "h(x)",
                 );
             });
         cy.get(cesc(`#\\/hFunction7`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(x)"
+                    "h(x)",
                 );
             });
         cy.get(cesc(`#\\/hFunction8`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(x)"
+                    "h(x)",
                 );
             });
         cy.get(cesc("#\\/hFunction1m"))
@@ -13127,156 +13127,156 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/hFunction1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction3") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction4") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction5") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction6") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction7") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/hFunction8") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}h(y){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc(`#\\/hFunction1`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction2`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction3`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction4`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction5`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction6`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction7`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc(`#\\/hFunction8`) + ` .mq-editable-field`).should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc("#\\/hFunction1m") + " .mjx-mrow").should(
             "contain.text",
-            "hy"
+            "hy",
         );
         cy.get(cesc("#\\/hFunction2m") + " .mjx-mrow").should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc("#\\/hFunction3m") + " .mjx-mrow").should(
             "contain.text",
-            "hy"
+            "hy",
         );
         cy.get(cesc("#\\/hFunction4m") + " .mjx-mrow").should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc("#\\/hFunction5m") + " .mjx-mrow").should(
             "contain.text",
-            "hy"
+            "hy",
         );
         cy.get(cesc("#\\/hFunction6m") + " .mjx-mrow").should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
         cy.get(cesc("#\\/hFunction7m") + " .mjx-mrow").should(
             "contain.text",
-            "hy"
+            "hy",
         );
         cy.get(cesc("#\\/hFunction8m") + " .mjx-mrow").should(
             "contain.text",
-            "h(y)"
+            "h(y)",
         );
 
         cy.get(cesc(`#\\/hFunction1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction4`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction5`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction6`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction7`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc(`#\\/hFunction8`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(y)"
+                    "h(y)",
                 );
             });
         cy.get(cesc("#\\/hFunction1m"))
@@ -13444,7 +13444,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13454,7 +13454,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "ab∫ba^f(x)dx"
+                    "ab∫ba^f(x)dx",
                 );
             });
         cy.get(cesc("#\\/pv1") + " .mjx-mrow")
@@ -13462,14 +13462,14 @@ describe("MathInput Tag Tests", function () {
             .should("have.text", "\uff3f");
         cy.get(cesc("#\\/pr1")).should(
             "have.text",
-            "Raw value: \\frac{a}{b} \\int_a^b \\hat{f}(x) dx"
+            "Raw value: \\frac{a}{b} \\int_a^b \\hat{f}(x) dx",
         );
 
         cy.get(cesc(`#\\/input2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hellothere(a)(b)"
+                    "hellothere(a)(b)",
                 );
             });
         cy.get(cesc("#\\/pv2") + " .mjx-mrow")
@@ -13477,14 +13477,14 @@ describe("MathInput Tag Tests", function () {
             .should("have.text", "hellothereab");
         cy.get(cesc("#\\/pr2")).should(
             "have.text",
-            "Raw value: hello\\ there (a)(b)"
+            "Raw value: hello\\ there (a)(b)",
         );
 
         cy.get(cesc(`#\\/input3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hellothere(a)(b)"
+                    "hellothere(a)(b)",
                 );
             });
         cy.get(cesc("#\\/pv3") + " .mjx-mrow")
@@ -13492,17 +13492,17 @@ describe("MathInput Tag Tests", function () {
             .should("have.text", "\uff3f");
         cy.get(cesc("#\\/pr3")).should(
             "have.text",
-            "Raw value: \\text{hello there} (a)(b)"
+            "Raw value: \\text{hello there} (a)(b)",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/input1"].stateValues.value).eq("\uff3f");
             expect(stateVariables["/input1"].stateValues.immediateValue).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/input1"].stateValues.rawRendererValue).eq(
-                "\\frac{a}{b} \\int_a^b \\hat{f}(x) dx"
+                "\\frac{a}{b} \\int_a^b \\hat{f}(x) dx",
             );
             expect(stateVariables["/input2"].stateValues.value).eqls([
                 "*",
@@ -13535,36 +13535,36 @@ describe("MathInput Tag Tests", function () {
                 "b",
             ]);
             expect(stateVariables["/input2"].stateValues.rawRendererValue).eq(
-                "hello\\ there (a)(b)"
+                "hello\\ there (a)(b)",
             );
             expect(stateVariables["/input3"].stateValues.value).eq("\uff3f");
             expect(stateVariables["/input3"].stateValues.immediateValue).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/input3"].stateValues.rawRendererValue).eq(
-                "\\text{hello there} (a)(b)"
+                "\\text{hello there} (a)(b)",
             );
         });
 
         cy.get(cesc("#\\/input1") + " textarea").type(
             "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pv1") + " .mjx-mrow").should(
             "contain.text",
-            "(ab)∫baf(x)dx"
+            "(ab)∫baf(x)dx",
         );
         cy.get(cesc(`#\\/input1`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "ab∫baf(x)dx"
+                    "ab∫baf(x)dx",
                 );
             });
         cy.get(cesc("#\\/pr1")).should(
             "have.text",
-            "Raw value: \\frac{a}{b}\\int_a^bf(x)dx"
+            "Raw value: \\frac{a}{b}\\int_a^bf(x)dx",
         );
 
         cy.window().then(async (win) => {
@@ -13572,24 +13572,24 @@ describe("MathInput Tag Tests", function () {
             // expect(stateVariables['/input1'].stateValues.value).eqls(["*", ["/", "a", "b"], "a", ["apply", "f", "x"], "d", "x"])
             // expect(stateVariables['/input1'].stateValues.immediateValue).eqls(["*", ["/", "a", "b"], "a", ["apply", "f", "x"], "d", "x"])
             expect(stateVariables["/input1"].stateValues.rawRendererValue).eq(
-                "\\frac{a}{b}\\int_a^bf(x)dx"
+                "\\frac{a}{b}\\int_a^bf(x)dx",
             );
         });
 
         cy.get(cesc("#\\/input2") + " textarea").type(
             "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pv2") + " .mjx-mrow").should(
             "contain.text",
-            "helloab"
+            "helloab",
         );
         cy.get(cesc(`#\\/input2`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "hello(a)(b)"
+                    "hello(a)(b)",
                 );
             });
         cy.get(cesc("#\\/pr2")).should("have.text", "Raw value: hello(a)(b)");
@@ -13617,24 +13617,24 @@ describe("MathInput Tag Tests", function () {
                 "b",
             ]);
             expect(stateVariables["/input2"].stateValues.rawRendererValue).eq(
-                "hello(a)(b)"
+                "hello(a)(b)",
             );
         });
 
         cy.get(cesc("#\\/input3") + " textarea").type(
             "{ctrl+end}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pr3")).should(
             "have.text",
-            "Raw value: \\text{h}(a)(b)"
+            "Raw value: \\text{h}(a)(b)",
         );
         cy.get(cesc(`#\\/input3`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "h(a)(b)"
+                    "h(a)(b)",
                 );
             });
         cy.get(cesc("#\\/pv3") + " .mjx-mrow")
@@ -13645,10 +13645,10 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/input3"].stateValues.value).eq("\uff3f");
             expect(stateVariables["/input3"].stateValues.immediateValue).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/input3"].stateValues.rawRendererValue).eq(
-                "\\text{h}(a)(b)"
+                "\\text{h}(a)(b)",
             );
         });
 
@@ -13661,7 +13661,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "(a)(b)"
+                    "(a)(b)",
                 );
             });
         cy.get(cesc("#\\/pr3")).should("have.text", "Raw value: (a)(b)");
@@ -13679,7 +13679,7 @@ describe("MathInput Tag Tests", function () {
                 "b",
             ]);
             expect(stateVariables["/input3"].stateValues.rawRendererValue).eq(
-                "(a)(b)"
+                "(a)(b)",
             );
         });
     });
@@ -13695,7 +13695,7 @@ describe("MathInput Tag Tests", function () {
     <p>Value: <copy prop="value" source="mi" assignNames="m"/></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13711,14 +13711,14 @@ describe("MathInput Tag Tests", function () {
         // cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`).should('contain.text', 'x=1 or u=x');
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "(x=1)∨(u=x)"
+            "(x=1)∨(u=x)",
         );
 
         cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x=1oru=x"
+                    "x=1oru=x",
                 );
             });
 
@@ -13747,20 +13747,20 @@ describe("MathInput Tag Tests", function () {
         cy.log("inequalities with and");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x>3 and x <= 5{enter}",
-            { force: true }
+            { force: true },
         );
 
         // cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`).should('contain.text', 'x>3 and x≤5');
         cy.get(cesc("#\\/m") + " .mjx-mrow").should(
             "contain.text",
-            "(x>3)∧(x≤5)"
+            "(x>3)∧(x≤5)",
         );
 
         cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`)
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "x>3andx≤5"
+                    "x>3andx≤5",
                 );
             });
 
@@ -13789,7 +13789,7 @@ describe("MathInput Tag Tests", function () {
         cy.log(`don't convert if not word`);
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}AandBorC{enter}",
-            { force: true }
+            { force: true },
         );
 
         // cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`).should('contain.text', 'AandBorC');
@@ -13799,7 +13799,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "AandBorC"
+                    "AandBorC",
                 );
             });
 
@@ -13840,7 +13840,7 @@ describe("MathInput Tag Tests", function () {
         cy.log(`add parens or spaces`);
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{home}({rightArrow}){rightArrow}{rightArrow}{rightArrow} {rightArrow} {rightArrow}{rightArrow}({rightArrow}){enter}",
-            { force: true }
+            { force: true },
         );
 
         // cy.get(cesc(`#\\/mi`) + ` .mq-editable-field`).should('contain.text', '(A)and B or(C)');
@@ -13850,7 +13850,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "(A)andBor(C)"
+                    "(A)andBor(C)",
                 );
             });
 
@@ -13889,7 +13889,7 @@ describe("MathInput Tag Tests", function () {
     <p>Value: <copy prop="value" source="mi" assignNames="m"/></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -13908,7 +13908,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "AUC"
+                    "AUC",
                 );
             });
 
@@ -13948,7 +13948,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "AUB"
+                    "AUB",
                 );
             });
 
@@ -13977,7 +13977,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("no substitution without spaces");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{leftArrow}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "AUB");
@@ -13986,7 +13986,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "AUB"
+                    "AUB",
                 );
             });
 
@@ -14017,7 +14017,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("add parens");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}){leftArrow}{leftArrow}({enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "A∪B");
@@ -14026,7 +14026,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "AU(B)"
+                    "AU(B)",
                 );
             });
 
@@ -14067,7 +14067,7 @@ describe("MathInput Tag Tests", function () {
   <p>Change y-coordinate: <mathinput name="x2" bindValueTo="$P.x2" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14079,7 +14079,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/coords") + " .mq-editable-field").should(
             "have.text",
-            "(3,2)"
+            "(3,2)",
         );
 
         cy.get(cesc("#\\/x2") + " textarea").type("{end}{backspace}4{enter}", {
@@ -14088,7 +14088,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/coords") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
     });
 
@@ -14106,7 +14106,7 @@ describe("MathInput Tag Tests", function () {
   <p>Change y-coordinate: <mathinput name="x2" bindValueTo="$P.x2" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14118,7 +14118,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/coords") + " .mq-editable-field").should(
             "have.text",
-            "(3,2)"
+            "(3,2)",
         );
 
         cy.get(cesc("#\\/x2") + " textarea").type("{end}{backspace}4{enter}", {
@@ -14127,7 +14127,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/coords") + " .mq-editable-field").should(
             "have.text",
-            "(3,4)"
+            "(3,4)",
         );
     });
 
@@ -14143,7 +14143,7 @@ describe("MathInput Tag Tests", function () {
   <p>Change prefill: <mathinput name="mipf" bindValueTo="$mi.prefill" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14164,11 +14164,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "(1,2)"
+            "(1,2)",
         );
         cy.get(cesc("#\\/mipf") + " .mq-editable-field").should(
             "have.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.window().then(async (win) => {
@@ -14193,11 +14193,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "(1,5)"
+            "(1,5)",
         );
         cy.get(cesc("#\\/mipf") + " .mq-editable-field").should(
             "have.text",
-            "(1,5)"
+            "(1,5)",
         );
         cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "(1,5)");
         cy.get(cesc("#\\/pf") + " .mjx-mrow").should("contain.text", "(1,5)");
@@ -14238,11 +14238,11 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "(1,9)");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "(1,9)"
+            "(1,9)",
         );
         cy.get(cesc("#\\/mipf") + " .mq-editable-field").should(
             "have.text",
-            "(1,5)"
+            "(1,5)",
         );
         cy.get(cesc("#\\/pf") + " .mjx-mrow").should("contain.text", "(1,5)");
         cy.get(cesc("#\\/m") + " .mjx-mrow")
@@ -14282,11 +14282,11 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/m") + " .mjx-mrow").should("contain.text", "(1,9)");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "(1,9)"
+            "(1,9)",
         );
         cy.get(cesc("#\\/mipf") + " .mq-editable-field").should(
             "have.text",
-            "(1,7)"
+            "(1,7)",
         );
         cy.get(cesc("#\\/pf") + " .mjx-mrow")
             .eq(0)
@@ -14331,7 +14331,7 @@ describe("MathInput Tag Tests", function () {
   <p>Value of n: $n.value{assignNames="n2"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14367,7 +14367,7 @@ describe("MathInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14388,7 +14388,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/c2")).should("contain.text", "xy");
         cy.get(cesc("#\\/c") + " .mq-editable-field").should(
             "contain.text",
-            "xy"
+            "xy",
         );
         cy.get(cesc("#\\/c2") + " .mjx-mrow")
             .eq(0)
@@ -14404,7 +14404,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/c2")).should("not.contain.text", "xy");
         cy.get(cesc("#\\/c") + " .mq-editable-field").should(
             "contain.text",
-            "x"
+            "x",
         );
         cy.get(cesc("#\\/c2") + " .mjx-mrow")
             .eq(0)
@@ -14425,7 +14425,7 @@ describe("MathInput Tag Tests", function () {
   <p>Immediate Value: $mi.immediateValue{assignNames="miv"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14552,11 +14552,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -14576,7 +14576,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3.141592654"
+                    "3.141592654",
                 );
             });
 
@@ -14584,14 +14584,14 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(Math.PI);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                Math.PI
+                Math.PI,
             );
         });
 
         cy.log("type x");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "x");
@@ -14674,7 +14674,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "23"
+                    "23",
                 );
             });
 
@@ -14693,11 +14693,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -14717,7 +14717,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.6666666667"
+                    "0.6666666667",
                 );
             });
 
@@ -14725,7 +14725,7 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(2 / 3);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                2 / 3
+                2 / 3,
             );
         });
     });
@@ -14741,7 +14741,7 @@ describe("MathInput Tag Tests", function () {
   <p>Immediate Value: $mi.immediateValue{assignNames="miv"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -14762,7 +14762,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "NaN"
+            "NaN",
         );
 
         cy.window().then(async (win) => {
@@ -14777,7 +14777,7 @@ describe("MathInput Tag Tests", function () {
         cy.wait(1000);
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}5",
-            { force: true, delay: 200 }
+            { force: true, delay: 200 },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "5");
@@ -14877,11 +14877,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -14901,7 +14901,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3.141592654"
+                    "3.141592654",
                 );
             });
 
@@ -14909,14 +14909,14 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(Math.PI);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                Math.PI
+                Math.PI,
             );
         });
 
         cy.log("type x");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "x");
@@ -14969,7 +14969,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "NaN"
+                    "NaN",
                 );
             });
 
@@ -14982,7 +14982,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("type 2/3");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}2/3",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "23");
@@ -15004,7 +15004,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "23"
+                    "23",
                 );
             });
 
@@ -15023,11 +15023,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -15047,7 +15047,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.6666666667"
+                    "0.6666666667",
                 );
             });
 
@@ -15055,7 +15055,7 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(2 / 3);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                2 / 3
+                2 / 3,
             );
         });
     });
@@ -15071,7 +15071,7 @@ describe("MathInput Tag Tests", function () {
   <p>Immediate Value: $mi.immediateValue{assignNames="miv"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15204,11 +15204,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "3.141592654"
+            "3.141592654",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -15228,7 +15228,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "3.141592654"
+                    "3.141592654",
                 );
             });
 
@@ -15236,14 +15236,14 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(Math.PI);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                Math.PI
+                Math.PI,
             );
         });
 
         cy.log("type x");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "x");
@@ -15328,7 +15328,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "23"
+                    "23",
                 );
             });
 
@@ -15347,11 +15347,11 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should(
             "contain.text",
-            "0.6666666667"
+            "0.6666666667",
         );
 
         cy.get(cesc("#\\/mv") + " .mjx-mrow")
@@ -15371,7 +15371,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "0.6666666667"
+                    "0.6666666667",
                 );
             });
 
@@ -15379,7 +15379,7 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls(2 / 3);
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                2 / 3
+                2 / 3,
             );
         });
     });
@@ -15397,7 +15397,7 @@ describe("MathInput Tag Tests", function () {
   <p>Immediate Value: $mi.immediateValue{assignNames="miv"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15553,7 +15553,7 @@ describe("MathInput Tag Tests", function () {
         cy.log("type x");
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+ctrl+end}{backspace}x",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/miv") + " .mjx-mrow").should("contain.text", "x");
@@ -15636,7 +15636,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "−3"
+                    "−3",
                 );
             });
 
@@ -15688,7 +15688,7 @@ describe("MathInput Tag Tests", function () {
   <text name="rv" copyprop="rawRendererValue" copySource="mi" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15701,7 +15701,7 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls("\uff3f");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("");
             expect(stateVariables["/rv"].stateValues.value).eqls("");
@@ -15720,7 +15720,7 @@ describe("MathInput Tag Tests", function () {
             expect(stateVariables["/mi"].stateValues.value).eqls("a");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls("a");
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a"
+                "a",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a");
         });
@@ -15746,7 +15746,7 @@ describe("MathInput Tag Tests", function () {
                 "\uff3f",
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a^{ }"
+                "a^{ }",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a^{ }");
         });
@@ -15759,7 +15759,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "a^{bc+}");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "abc+"
+            "abc+",
         );
 
         cy.window().then(async (win) => {
@@ -15775,7 +15775,7 @@ describe("MathInput Tag Tests", function () {
                 ["+", ["*", "b", "c"], "\uff3f"],
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a^{bc+}"
+                "a^{bc+}",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a^{bc+}");
         });
@@ -15788,7 +15788,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "a^{bc+d}");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "abc+d"
+            "abc+d",
         );
 
         cy.window().then(async (win) => {
@@ -15804,7 +15804,7 @@ describe("MathInput Tag Tests", function () {
                 ["+", ["*", "b", "c"], "d"],
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a^{bc+d}"
+                "a^{bc+d}",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a^{bc+d}");
         });
@@ -15817,7 +15817,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "a^{bc+d}-");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "abc+d−"
+            "abc+d−",
         );
 
         cy.window().then(async (win) => {
@@ -15833,7 +15833,7 @@ describe("MathInput Tag Tests", function () {
                 ["-", "\uff3f"],
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a^{bc+d}-"
+                "a^{bc+d}-",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a^{bc+d}-");
         });
@@ -15846,7 +15846,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "a^{bc+d}-e");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "abc+d−e"
+            "abc+d−e",
         );
 
         cy.window().then(async (win) => {
@@ -15862,7 +15862,7 @@ describe("MathInput Tag Tests", function () {
                 ["-", "e"],
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a^{bc+d}-e"
+                "a^{bc+d}-e",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a^{bc+d}-e");
         });
@@ -15878,7 +15878,7 @@ describe("MathInput Tag Tests", function () {
   <text name="rv" copyprop="rawRendererValue" copySource="mi" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -15891,7 +15891,7 @@ describe("MathInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls("\uff3f");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls("");
             expect(stateVariables["/rv"].stateValues.value).eqls("");
@@ -15910,7 +15910,7 @@ describe("MathInput Tag Tests", function () {
             expect(stateVariables["/mi"].stateValues.value).eqls("a");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls("a");
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a"
+                "a",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a");
         });
@@ -15923,17 +15923,17 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "a@");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "a@"
+            "a@",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls("\uff3f");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "a@"
+                "a@",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("a@");
         });
@@ -15946,17 +15946,17 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "ab+@");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "ab+@"
+            "ab+@",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi"].stateValues.value).eqls("\uff3f");
             expect(stateVariables["/mi"].stateValues.immediateValue).eqls(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "ab+@"
+                "ab+@",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("ab+@");
         });
@@ -15969,7 +15969,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/rv")).should("have.text", "ab+c");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "ab+c"
+            "ab+c",
         );
 
         cy.window().then(async (win) => {
@@ -15985,7 +15985,7 @@ describe("MathInput Tag Tests", function () {
                 "c",
             ]);
             expect(stateVariables["/mi"].stateValues.rawRendererValue).eqls(
-                "ab+c"
+                "ab+c",
             );
             expect(stateVariables["/rv"].stateValues.value).eqls("ab+c");
         });
@@ -16002,7 +16002,7 @@ describe("MathInput Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16010,14 +16010,14 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " .mq-editable-field").should(
             "have.text",
-            "5E+1"
+            "5E+1",
         );
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
             .eq(0)
             .should("have.text", "5E+1");
         cy.get(cesc("#\\/mi2") + " .mq-editable-field").should(
             "have.text",
-            "50"
+            "50",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow")
             .eq(0)
@@ -16031,7 +16031,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " .mq-editable-field").should(
             "have.text",
-            "2x−3E+2"
+            "2x−3E+2",
         );
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
             .eq(0)
@@ -16045,7 +16045,7 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi2") + " .mq-editable-field").should(
             "have.text",
-            "2x−3E+2"
+            "2x−3E+2",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow")
             .eq(0)
@@ -16070,7 +16070,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16093,7 +16093,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16117,7 +16117,7 @@ describe("MathInput Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16158,15 +16158,15 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{end}{shift+home}{backspace}$45.23{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{end}{shift+home}{backspace}$45.23{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             "{end}{shift+home}{backspace}$45.23{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "$45.23");
@@ -16186,15 +16186,15 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{end}{shift+home}{backspace}78%{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             "{end}{shift+home}{backspace}78%{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             "{end}{shift+home}{backspace}78%{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should("contain.text", "78%");
@@ -16214,20 +16214,20 @@ describe("MathInput Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1") + " textarea").type(
             `{end}{shift+home}{backspace}$34,000%dx{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2") + " textarea").type(
             `{end}{shift+home}{backspace}$34,000%dx{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             `{end}{shift+home}{backspace}$34,000%dx{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow").should(
             "contain.text",
-            "$(34000%)dx"
+            "$(34000%)dx",
         );
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should("contain.text", "34,0dx");
         cy.get(cesc("#\\/m3") + " .mjx-mrow").should("contain.text", "34000");
@@ -16259,7 +16259,7 @@ describe("MathInput Tag Tests", function () {
       </ol>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16301,42 +16301,42 @@ describe("MathInput Tag Tests", function () {
       <p>Result: <mathinput minWidth="$mw" name="result" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/mw") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "50px"
+            "50px",
         );
 
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type(
             "{end}{backspace}100{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "100px"
+            "100px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type("{end}{backspace}40{enter}", {
@@ -16345,7 +16345,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "40px"
+            "40px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type("{end}x{enter}", {
@@ -16354,27 +16354,27 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type(
             "{end}{backspace}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "47px"
+            "47px",
         );
 
         cy.get(cesc("#\\/mw") + " textarea").type(
             "{end}{backspace}{backspace}-20{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mq-editable-field").should(
             "have.css",
             "min-width",
-            "0px"
+            "0px",
         );
     });
 
@@ -16392,7 +16392,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16782,7 +16782,7 @@ describe("MathInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -16865,7 +16865,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "press enter in third marks first and third value/immediateValue as changed"
+            "press enter in third marks first and third value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/mi3") + " textarea").type("{enter}", { force: true });
@@ -16953,7 +16953,7 @@ describe("MathInput Tag Tests", function () {
         cy.get(cesc2("#/mi4ivchanged")).should("have.text", "true");
 
         cy.log(
-            "press enter in fourth marks third and fourth value/immediateValue as changed"
+            "press enter in fourth marks third and fourth value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/mi4") + " textarea").type("{enter}", { force: true });
@@ -17007,7 +17007,7 @@ describe("MathInput Tag Tests", function () {
 
      `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17020,10 +17020,10 @@ describe("MathInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mi1"].stateValues.label).eq(
-                "Type something"
+                "Type something",
             );
             expect(stateVariables["/mi2"].stateValues.label).eq(
-                "Hello \\(\\frac{a}{b}\\)"
+                "Hello \\(\\frac{a}{b}\\)",
             );
         });
     });
@@ -17046,7 +17046,7 @@ describe("MathInput Tag Tests", function () {
     <text name="mi2rv" copySource="mi2.rawRendererValue" /></p>
      `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -17117,7 +17117,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "12"
+                    "12",
                 );
             });
 
@@ -17181,7 +17181,7 @@ describe("MathInput Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "12"
+                    "12",
                 );
             });
 

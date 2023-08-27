@@ -97,7 +97,7 @@ export default React.memo(function MatrixInput(props) {
     // const inputKey = id + '_input';
 
     let surroundingBorderColor = getComputedStyle(
-        document.documentElement
+        document.documentElement,
     ).getPropertyValue("--mainGray");
     // if (this.focused) {
     //   surroundingBorderColor = "#82a5ff";
@@ -114,7 +114,7 @@ export default React.memo(function MatrixInput(props) {
         if (validationState.current === "unvalidated") {
             if (disabled) {
                 checkWorkStyle.backgroundColor = getComputedStyle(
-                    document.documentElement
+                    document.documentElement,
                 ).getPropertyValue("--mainGray");
             }
             checkWorkButton = (
@@ -146,7 +146,7 @@ export default React.memo(function MatrixInput(props) {
             if (SVs.showCorrectness) {
                 if (validationState.current === "correct") {
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainGreen");
                     checkWorkButton = (
                         <Button id={id + "_correct"} style={checkWorkStyle}>
@@ -169,7 +169,7 @@ export default React.memo(function MatrixInput(props) {
                 } else {
                     //incorrect
                     checkWorkStyle.backgroundColor = getComputedStyle(
-                        document.documentElement
+                        document.documentElement,
                     ).getPropertyValue("--mainRed");
                     checkWorkButton = (
                         <Button id={id + "_incorrect"} style={checkWorkStyle}>
@@ -226,7 +226,7 @@ export default React.memo(function MatrixInput(props) {
                     id={id + "_component_" + rowInd + "_" + colInd}
                 >
                     {children[rowInd * SVs.numColumns + colInd]}
-                </td>
+                </td>,
             );
         }
 

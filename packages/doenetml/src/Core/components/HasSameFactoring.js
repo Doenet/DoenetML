@@ -190,10 +190,10 @@ export default class HasSameFactoring extends BooleanComponent {
                     dependencyValues.allowOnlySignDifferences
                 ) {
                     let monomial1 = findMonomialFromFactors(
-                        expr1.tree.slice(1)
+                        expr1.tree.slice(1),
                     );
                     let monomial2 = findMonomialFromFactors(
-                        expr2.tree.slice(1)
+                        expr2.tree.slice(1),
                     );
                     if (!monomial1.equals(monomial2)) {
                         // also OK if monomials are opposites
@@ -221,7 +221,7 @@ export default class HasSameFactoring extends BooleanComponent {
                                         dependencyValues.includeErrorInNumberExponents,
                                     allowed_error_is_absolute:
                                         dependencyValues.allowedErrorIsAbsolute,
-                                }
+                                },
                             ),
                         },
                     };

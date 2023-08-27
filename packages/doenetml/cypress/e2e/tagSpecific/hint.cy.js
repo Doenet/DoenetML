@@ -22,17 +22,17 @@ describe("Hints Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
 
         cy.get(cesc("#\\/p1")).should("not.exist");
@@ -44,11 +44,11 @@ describe("Hints Tag Tests", function () {
         cy.get(cesc("#\\/p2")).should("not.exist");
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
         cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
 
@@ -57,11 +57,11 @@ describe("Hints Tag Tests", function () {
         cy.get(cesc("#\\/p1")).should("have.text", "Hello");
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
         cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
 
@@ -70,11 +70,11 @@ describe("Hints Tag Tests", function () {
         cy.get(cesc("#\\/p2")).should("have.text", "Good day!");
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
         cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
 
@@ -83,11 +83,11 @@ describe("Hints Tag Tests", function () {
         cy.get(cesc("#\\/p2")).should("not.exist");
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint"
+            "Hint",
         );
         cy.get(cesc("#\\/hint2") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
         cy.get(cesc("#\\/_title1")).should("have.text", "Hint 2");
     });
@@ -112,17 +112,17 @@ describe("Hints Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 1"
+            "Hint 1",
         );
         cy.get(cesc("#\\/revised") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hint 2"
+            "Hint 2",
         );
         cy.get(cesc("#\\/title1")).should("have.text", "Hint 1");
         cy.get(cesc("#\\/title2")).should("have.text", "Hint 2");
@@ -183,13 +183,13 @@ describe("Hints Tag Tests", function () {
       <p><textinput name="ti" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/hint1") + " [data-test=hint-heading]").should(
             "contain.text",
-            "Hello"
+            "Hello",
         );
 
         cy.get(cesc("#\\/_p1")).should("not.exist");

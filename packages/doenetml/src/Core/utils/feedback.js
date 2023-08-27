@@ -76,7 +76,7 @@ export function returnFeedbackDefinitionStateVariables() {
                 feedbackDefinitionChildren.push(
                     ...dependencyValues[
                         `feedbackDefinitionsOf${child.componentName}`
-                    ]
+                    ],
                 );
             }
 

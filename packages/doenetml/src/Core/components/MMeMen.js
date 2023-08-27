@@ -269,7 +269,7 @@ export class M extends InlineComponent {
                 let expression;
                 try {
                     expression = me.fromAst(
-                        latexToAst.convert(dependencyValues.latex)
+                        latexToAst.convert(dependencyValues.latex),
                     );
                 } catch (e) {
                     // just return latex if can't parse with math-expressions

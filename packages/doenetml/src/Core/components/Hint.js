@@ -126,7 +126,7 @@ export default class Hint extends BlockComponent {
                 let childIndicesToRender = [];
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
 
                 for (let [

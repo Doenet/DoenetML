@@ -35,15 +35,15 @@ describe("Ray Tag Tests", function () {
 
         cy.get(`#${cesc2(endpointInDomName)} .mjx-mrow`).should(
             "contain.text",
-            `(${nInDOM(endpointx)},${nInDOM(endpointy)})`
+            `(${nInDOM(endpointx)},${nInDOM(endpointy)})`,
         );
         cy.get(`#${cesc2(throughInDomName)} .mjx-mrow`).should(
             "contain.text",
-            `(${nInDOM(throughx)},${nInDOM(throughy)})`
+            `(${nInDOM(throughx)},${nInDOM(throughy)})`,
         );
         cy.get(`#${cesc2(directionInDomName)} .mjx-mrow`).should(
             "contain.text",
-            `(${nInDOM(directionx)},${nInDOM(directiony)})`
+            `(${nInDOM(directionx)},${nInDOM(directiony)})`,
         );
 
         cy.window().then(async (win) => {
@@ -77,7 +77,7 @@ describe("Ray Tag Tests", function () {
                 directiony + directionEndpointShifty,
             ]);
             expect(stateVariables[directionName].stateValues.displacement).eqls(
-                [directionx, directiony]
+                [directionx, directiony],
             );
         });
     }
@@ -103,7 +103,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -260,7 +260,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -417,7 +417,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -574,7 +574,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -731,7 +731,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -884,7 +884,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1037,7 +1037,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
  `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1200,7 +1200,7 @@ describe("Ray Tag Tests", function () {
   $(g3/ray3.direction{assignNames="dir3"})
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1261,7 +1261,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`
+                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`,
             );
         });
 
@@ -1292,7 +1292,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`
+                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1358,7 +1358,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`
+                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -1422,7 +1422,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`
+                `(${nInDOM(v1hx - v1tx)},${nInDOM(v1hy - v1ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1488,7 +1488,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`
+                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1554,7 +1554,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`
+                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1622,7 +1622,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`
+                `(${nInDOM(v2hx - v2tx)},${nInDOM(v2hy - v2ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1688,7 +1688,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`
+                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1754,7 +1754,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`
+                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1820,7 +1820,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`
+                `(${nInDOM(v3hx - v3tx)},${nInDOM(v3hy - v3ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -1886,7 +1886,7 @@ describe("Ray Tag Tests", function () {
   $ray1.direction{assignNames="dir1a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1942,7 +1942,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dir1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(direction_x)},${nInDOM(direction_y)})`
+                `(${nInDOM(direction_x)},${nInDOM(direction_y)})`,
             );
         });
 
@@ -1978,7 +1978,7 @@ describe("Ray Tag Tests", function () {
 
                     cy.get(cesc("#\\/dir1a") + " .mjx-mrow").should(
                         "contain.text",
-                        `(${nInDOM(direction_x)},${nInDOM(direction_y)})`
+                        `(${nInDOM(direction_x)},${nInDOM(direction_y)})`,
                     );
 
                     cy.window().then(async (win) => {
@@ -1986,13 +1986,13 @@ describe("Ray Tag Tests", function () {
                             await win.returnAllStateVariables1();
                         for (let name of rays) {
                             expect(
-                                stateVariables[name].stateValues.endpoint
+                                stateVariables[name].stateValues.endpoint,
                             ).eqls([ray_tx, ray_ty]);
                             expect(
-                                stateVariables[name].stateValues.through
+                                stateVariables[name].stateValues.through,
                             ).eqls([ray_hx, ray_hy]);
                             expect(
-                                stateVariables[name].stateValues.direction
+                                stateVariables[name].stateValues.direction,
                             ).eqls([direction_x, direction_y]);
                         }
                         for (let i = 0; i < 2; i++) {
@@ -2006,7 +2006,7 @@ describe("Ray Tag Tests", function () {
                                 dthrough_ys[i],
                             ]);
                             expect(
-                                stateVariables[name].stateValues.displacement
+                                stateVariables[name].stateValues.displacement,
                             ).eqls([direction_x, direction_y]);
                         }
                     });
@@ -2048,7 +2048,7 @@ describe("Ray Tag Tests", function () {
 
                     cy.get(cesc("#\\/dir1a") + " .mjx-mrow").should(
                         "contain.text",
-                        `(${nInDOM(direction_x)},${nInDOM(direction_y)})`
+                        `(${nInDOM(direction_x)},${nInDOM(direction_y)})`,
                     );
 
                     cy.window().then(async (win) => {
@@ -2057,13 +2057,13 @@ describe("Ray Tag Tests", function () {
 
                         for (let name of rays) {
                             expect(
-                                stateVariables[name].stateValues.endpoint
+                                stateVariables[name].stateValues.endpoint,
                             ).eqls([ray_tx, ray_ty]);
                             expect(
-                                stateVariables[name].stateValues.through
+                                stateVariables[name].stateValues.through,
                             ).eqls([ray_hx, ray_hy]);
                             expect(
-                                stateVariables[name].stateValues.direction
+                                stateVariables[name].stateValues.direction,
                             ).eqls([direction_x, direction_y]);
                         }
                         for (let j = 0; j < 2; j++) {
@@ -2077,7 +2077,7 @@ describe("Ray Tag Tests", function () {
                                 dthrough_ys[j],
                             ]);
                             expect(
-                                stateVariables[name].stateValues.displacement
+                                stateVariables[name].stateValues.displacement,
                             ).eqls([direction_x, direction_y]);
                         }
                     });
@@ -2107,7 +2107,7 @@ describe("Ray Tag Tests", function () {
   $_point3{name="p3a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2118,7 +2118,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(2)},${nInDOM(2)})`
+            `(${nInDOM(2)},${nInDOM(2)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2143,7 +2143,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(8)},${nInDOM(-8)})`
+            `(${nInDOM(8)},${nInDOM(-8)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2163,11 +2163,11 @@ describe("Ray Tag Tests", function () {
 
             expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                 p5x,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                 p5y,
-                1e-12
+                1e-12,
             );
         });
 
@@ -2191,18 +2191,18 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p5x)},${nInDOM(p5y)})`
+                `(${nInDOM(p5x)},${nInDOM(p5y)})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2227,7 +2227,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p5x)},${nInDOM(p5y)})`
+                `(${nInDOM(p5x)},${nInDOM(p5y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2235,11 +2235,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2264,7 +2264,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p5x)},${nInDOM(p5y)})`
+                `(${nInDOM(p5x)},${nInDOM(p5y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2272,11 +2272,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2303,7 +2303,7 @@ describe("Ray Tag Tests", function () {
   $_point3{name="p3a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2314,7 +2314,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(2)},${nInDOM(2)})`
+            `(${nInDOM(2)},${nInDOM(2)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2339,7 +2339,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/dir1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(8)},${nInDOM(-8)})`
+            `(${nInDOM(8)},${nInDOM(-8)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2370,7 +2370,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p5x)},${nInDOM(p5y)})`
+                `(${nInDOM(p5x)},${nInDOM(p5y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2378,11 +2378,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2408,8 +2408,8 @@ describe("Ray Tag Tests", function () {
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(p5x * 100) / 100)},${nInDOM(
-                    Math.round(p5y * 100) / 100
-                )})`
+                    Math.round(p5y * 100) / 100,
+                )})`,
             );
 
             cy.window().then(async (win) => {
@@ -2417,11 +2417,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2447,8 +2447,8 @@ describe("Ray Tag Tests", function () {
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
                 `(${nInDOM(Math.round(p5x * 10) / 10)},${nInDOM(
-                    Math.round(p5y * 10) / 10
-                )})`
+                    Math.round(p5y * 10) / 10,
+                )})`,
             );
 
             cy.window().then(async (win) => {
@@ -2456,11 +2456,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2485,7 +2485,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(p5x)},${nInDOM(p5y)})`
+                `(${nInDOM(p5x)},${nInDOM(p5y)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2493,11 +2493,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     p5x,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     p5y,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2515,7 +2515,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/p3a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4.4)},${nInDOM(4.5)})`
+                `(${nInDOM(-4.4)},${nInDOM(4.5)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2523,11 +2523,11 @@ describe("Ray Tag Tests", function () {
 
                 expect(stateVariables["/_point3"].stateValues.xs[0]).closeTo(
                     -4.4,
-                    1e-12
+                    1e-12,
                 );
                 expect(stateVariables["/_point3"].stateValues.xs[1]).closeTo(
                     4.5,
-                    1e-12
+                    1e-12,
                 );
             });
         });
@@ -2550,7 +2550,7 @@ describe("Ray Tag Tests", function () {
   $P{name="Pa" displayDigits="8"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2630,7 +2630,7 @@ describe("Ray Tag Tests", function () {
   <copy prop="direction" target='multiplied' assignNames="m2" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2641,7 +2641,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/o2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(1)},${nInDOM(3)})`
+            `(${nInDOM(1)},${nInDOM(3)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2673,7 +2673,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/o2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(-5)},${nInDOM(1)})`
+            `(${nInDOM(-5)},${nInDOM(1)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2705,7 +2705,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(6)},${nInDOM(-8)})`
+            `(${nInDOM(6)},${nInDOM(-8)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2731,7 +2731,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(-9)},${nInDOM(12)})`
+            `(${nInDOM(-9)},${nInDOM(12)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2763,7 +2763,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/m2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(-6)},${nInDOM(-3)})`
+            `(${nInDOM(-6)},${nInDOM(-3)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2798,7 +2798,7 @@ describe("Ray Tag Tests", function () {
   $v.direction{assignNames="va"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2814,7 +2814,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/va") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`
+            `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`,
         );
 
         cy.window().then(async (win) => {
@@ -2859,7 +2859,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/va") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`
+                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2905,7 +2905,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/va") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`
+                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2951,7 +2951,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/va") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`
+                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -2997,7 +2997,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/va") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`
+                `(${nInDOM(hx - tx)},${nInDOM(hy - ty)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3138,7 +3138,7 @@ describe("Ray Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3176,429 +3176,429 @@ describe("Ray Tag Tests", function () {
 
             expect(
                 me.fromAst(stateVariables["/tvt"].stateValues.coords).simplify()
-                    .tree
+                    .tree,
             ).eqls(["vector", ...tvt]);
             expect(
                 me.fromAst(stateVariables["/hvh"].stateValues.coords).simplify()
-                    .tree
+                    .tree,
             ).eqls(["vector", ...hvh]);
             expect(
                 me.fromAst(stateVariables["/dvd"].stateValues.coords).simplify()
-                    .tree
+                    .tree,
             ).eqls(["vector", ...dvd]);
             expect(
                 me
                     .fromAst(stateVariables["/tvth"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvth]);
             expect(
                 me
                     .fromAst(stateVariables["/hvth"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvth]);
             expect(
                 me
                     .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvtd]);
             expect(
                 me
                     .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...dvtd]);
             expect(
                 me
                     .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvhd]);
             expect(
                 me
                     .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...dvhd]);
 
             expect(
                 stateVariables["/vt"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvt]);
             expect(
                 stateVariables["/vt"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvt]);
             expect(
                 stateVariables["/vt"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvt]);
 
             expect(
                 stateVariables["/vh"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvh]);
             expect(
                 stateVariables["/vh"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvh]);
             expect(
                 stateVariables["/vh"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvh]);
 
             expect(
                 stateVariables["/vd"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvd]);
             expect(
                 stateVariables["/vd"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvd]);
             expect(
                 stateVariables["/vd"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvd]);
 
             expect(
                 stateVariables["/vth"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvth]);
             expect(
                 stateVariables["/vth"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvth]);
             expect(
                 stateVariables["/vth"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvth]);
 
             expect(
                 stateVariables["/vtd"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvtd]);
             expect(
                 stateVariables["/vtd"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvtd]);
             expect(
                 stateVariables["/vtd"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvtd]);
 
             expect(
                 stateVariables["/vhd"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvhd]);
             expect(
                 stateVariables["/vhd"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvhd]);
             expect(
                 stateVariables["/vhd"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvhd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvt]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvt]);
             expect(
                 stateVariables["/dfvt"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvt]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvh]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvh]);
             expect(
                 stateVariables["/dfvh"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvh]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvd]);
             expect(
                 stateVariables["/dfvd"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvth]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvth]);
             expect(
                 stateVariables["/dfvth"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvth]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvtd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvtd]);
             expect(
                 stateVariables["/dfvtd"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvtd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvhd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvhd]);
             expect(
                 stateVariables["/dfvhd"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvhd]);
 
             expect(
                 stateVariables["/vt2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvt]);
             expect(
                 stateVariables["/vt2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvt]);
             expect(
                 stateVariables["/vt2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvt]);
 
             expect(
                 stateVariables["/vh2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvh]);
             expect(
                 stateVariables["/vh2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvh]);
             expect(
                 stateVariables["/vh2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvh]);
 
             expect(
                 stateVariables["/vd2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvd]);
             expect(
                 stateVariables["/vd2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvd]);
             expect(
                 stateVariables["/vd2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvd]);
 
             expect(
                 stateVariables["/vth2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvth]);
             expect(
                 stateVariables["/vth2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvth]);
             expect(
                 stateVariables["/vth2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvth]);
 
             expect(
                 stateVariables["/vtd2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvtd]);
             expect(
                 stateVariables["/vtd2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvtd]);
             expect(
                 stateVariables["/vtd2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvtd]);
 
             expect(
                 stateVariables["/vhd2"].stateValues.endpoint.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...tvhd]);
             expect(
                 stateVariables["/vhd2"].stateValues.through.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...hvhd]);
             expect(
                 stateVariables["/vhd2"].stateValues.direction.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvhd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvt]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvt]);
             expect(
                 stateVariables["/dfvt2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvt]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvh]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvh]);
             expect(
                 stateVariables["/dfvh2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvh]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvd]);
             expect(
                 stateVariables["/dfvd2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvth]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvth]);
             expect(
                 stateVariables["/dfvth2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvth]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvtd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvtd]);
             expect(
                 stateVariables["/dfvtd2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvtd]);
 
             expect(
                 me
                     .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...tvhd]);
             expect(
                 me
                     .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                    .simplify().tree
+                    .simplify().tree,
             ).eqls(["vector", ...hvhd]);
             expect(
                 stateVariables["/dfvhd2"].stateValues.displacement.map(
-                    (x) => me.fromAst(x).simplify().tree
-                )
+                    (x) => me.fromAst(x).simplify().tree,
+                ),
             ).eqls([...dvhd]);
         });
 
@@ -3644,7 +3644,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/vhd_tdom")).should(
                 "contain.text",
-                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`
+                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`,
             );
 
             // since moved endpoints directly, throughs stay fixed and direction changes
@@ -3661,431 +3661,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -4132,7 +4132,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/vhd_hdom")).should(
                 "contain.text",
-                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`
+                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`,
             );
 
             // since moved throughs directly, endpoints stay fixed and direction changes
@@ -4149,431 +4149,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -4602,7 +4602,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/tvtd_dom")).should(
                 "contain.text",
-                `(${nInDOM(tvtd[0])},${nInDOM(tvtd[1])})`
+                `(${nInDOM(tvtd[0])},${nInDOM(tvtd[1])})`,
             );
 
             // defined by endpoint/through, through stays fixed and direction changes
@@ -4618,209 +4618,209 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
             });
         });
@@ -4849,7 +4849,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/hvhd_dom")).should(
                 "contain.text",
-                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`
+                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`,
             );
 
             // defined by through only or endpoint/through, endpoint stays fixed and direction changes
@@ -4865,209 +4865,209 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -5096,7 +5096,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dvhd_dom")).should(
                 "contain.text",
-                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`
+                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`,
             );
 
             // defined by direction only or endpoint/direction, endpoint stays fixed and through changes
@@ -5112,209 +5112,209 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -5361,7 +5361,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/tfvhd_dom")).should(
                 "contain.text",
-                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`
+                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`,
             );
 
             // if defined by through, through stays fixed and direction changes
@@ -5381,431 +5381,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -5852,7 +5852,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/hfvhd_dom")).should(
                 "contain.text",
-                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`
+                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`,
             );
 
             // for most rays, endpoints stay fixed and direction changes
@@ -5871,431 +5871,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -6342,7 +6342,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dfvhd_hdom")).should(
                 "contain.text",
-                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`
+                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`,
             );
 
             // for most rays, endpoints stay fixed and through changes
@@ -6361,431 +6361,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -6832,7 +6832,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/vhd2_tdom")).should(
                 "contain.text",
-                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`
+                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])})`,
             );
 
             // since moved endpoints directly, throughs stay fixed and direction changes
@@ -6849,431 +6849,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -7320,7 +7320,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/vhd2_hdom")).should(
                 "contain.text",
-                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`
+                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`,
             );
 
             // since moved throughs directly, endpoints stay fixed and direction changes
@@ -7337,431 +7337,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -7808,7 +7808,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/tfvhd2_dom")).should(
                 "contain.text",
-                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])}`
+                `(${nInDOM(tvhd[0])},${nInDOM(tvhd[1])}`,
             );
 
             // if defined by through, through stays fixed and direction changes
@@ -7828,431 +7828,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -8299,7 +8299,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/hfvhd2_dom")).should(
                 "contain.text",
-                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`
+                `(${nInDOM(hvhd[0])},${nInDOM(hvhd[1])})`,
             );
 
             // for most rays, endpoints stay fixed and direction changes
@@ -8318,431 +8318,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -8789,7 +8789,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/dfvhd2_hdom")).should(
                 "contain.text",
-                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`
+                `(${nInDOM(dvhd[0])},${nInDOM(dvhd[1])})`,
             );
 
             // for most rays, endpoints stay fixed and through changes
@@ -8808,431 +8808,431 @@ describe("Ray Tag Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/tvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/tvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/dvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...dvhd]);
 
                 expect(
                     stateVariables["/vt"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     stateVariables["/vt2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvt]);
                 expect(
                     stateVariables["/vt2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     stateVariables["/vh2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvh]);
                 expect(
                     stateVariables["/vh2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     stateVariables["/vd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvd]);
                 expect(
                     stateVariables["/vd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     stateVariables["/vth2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvth]);
                 expect(
                     stateVariables["/vth2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     stateVariables["/vtd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvtd]);
                 expect(
                     stateVariables["/vtd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     stateVariables["/vhd2"].stateValues.endpoint.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...tvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.through.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...hvhd]);
                 expect(
                     stateVariables["/vhd2"].stateValues.direction.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvt]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvt2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvt]);
                 expect(
                     stateVariables["/dfvt2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvt]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvh]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvh2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvh]);
                 expect(
                     stateVariables["/dfvh2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvh]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvd]);
                 expect(
                     stateVariables["/dfvd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvth]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvth2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvth]);
                 expect(
                     stateVariables["/dfvth2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvth]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvtd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvtd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvtd]);
                 expect(
                     stateVariables["/dfvtd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvtd]);
 
                 expect(
                     me
                         .fromAst(stateVariables["/tfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...tvhd]);
                 expect(
                     me
                         .fromAst(stateVariables["/hfvhd2"].stateValues.coords)
-                        .simplify().tree
+                        .simplify().tree,
                 ).eqls(["vector", ...hvhd]);
                 expect(
                     stateVariables["/dfvhd2"].stateValues.displacement.map(
-                        (x) => me.fromAst(x).simplify().tree
-                    )
+                        (x) => me.fromAst(x).simplify().tree,
+                    ),
                 ).eqls([...dvhd]);
             });
         });
@@ -9257,7 +9257,7 @@ describe("Ray Tag Tests", function () {
   $_ray3.endpoint{assignNames="v3t"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9273,7 +9273,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/v1h")).should(
             "contain.text",
-            `(${nInDOM(x2)},${nInDOM(y2)})`
+            `(${nInDOM(x2)},${nInDOM(y2)})`,
         );
 
         cy.window().then(async (win) => {
@@ -9308,7 +9308,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1h")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9353,7 +9353,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1t")).should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9398,7 +9398,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2t")).should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9442,7 +9442,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2h")).should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9486,7 +9486,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3h")).should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9531,7 +9531,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3t")).should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9576,7 +9576,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="v1a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9607,7 +9607,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
         });
 
@@ -9628,7 +9628,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9661,7 +9661,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="v1a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9692,7 +9692,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
         });
 
@@ -9713,7 +9713,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9746,7 +9746,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="v1a"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9777,7 +9777,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
         });
 
@@ -9798,7 +9798,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1a") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(directionx)},${nInDOM(directiony)})`
+                `(${nInDOM(directionx)},${nInDOM(directiony)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9857,7 +9857,7 @@ describe("Ray Tag Tests", function () {
   $v6.through{assignNames="v6h"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9866,7 +9866,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/v1h") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(3)},${nInDOM(4)})`
+            `(${nInDOM(3)},${nInDOM(4)})`,
         );
 
         cy.window().then(async (win) => {
@@ -9905,7 +9905,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(1)},${nInDOM(2)})`
+                `(${nInDOM(1)},${nInDOM(2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -9927,7 +9927,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4)},${nInDOM(5)})`
+                `(${nInDOM(-4)},${nInDOM(5)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -9950,7 +9950,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(1)},${nInDOM(2)})`
+                `(${nInDOM(1)},${nInDOM(2)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -9971,7 +9971,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4)},${nInDOM(5)})`
+                `(${nInDOM(-4)},${nInDOM(5)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -9994,7 +9994,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(1)},${nInDOM(2)})`
+                `(${nInDOM(1)},${nInDOM(2)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10015,7 +10015,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4)},${nInDOM(-5)})`
+                `(${nInDOM(-4)},${nInDOM(-5)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10037,7 +10037,7 @@ describe("Ray Tag Tests", function () {
             });
             cy.get(cesc("#\\/v5h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(1)},${nInDOM(2)})`
+                `(${nInDOM(1)},${nInDOM(2)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10057,7 +10057,7 @@ describe("Ray Tag Tests", function () {
             });
             cy.get(cesc("#\\/v5h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4)},${nInDOM(-5)})`
+                `(${nInDOM(-4)},${nInDOM(-5)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10079,7 +10079,7 @@ describe("Ray Tag Tests", function () {
             });
             cy.get(cesc("#\\/v4h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-8)},${nInDOM(-6)})`
+                `(${nInDOM(-8)},${nInDOM(-6)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10107,7 +10107,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v4h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(4)},${nInDOM(-8)})`
+                `(${nInDOM(4)},${nInDOM(-8)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10130,7 +10130,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v6h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-8)},${nInDOM(-6)})`
+                `(${nInDOM(-8)},${nInDOM(-6)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10158,7 +10158,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v6h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(4)},${nInDOM(-8)})`
+                `(${nInDOM(4)},${nInDOM(-8)})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10208,7 +10208,7 @@ describe("Ray Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10242,7 +10242,7 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/v0t") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(endpoints[0][0])},${nInDOM(endpoints[0][1])})`
+            `(${nInDOM(endpoints[0][0])},${nInDOM(endpoints[0][1])})`,
         );
 
         cy.window().then(async (win) => {
@@ -10251,13 +10251,13 @@ describe("Ray Tag Tests", function () {
             for (let i = 0; i < 7; i++) {
                 for (let j = 0; j < 2; j++) {
                     expect(
-                        stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                        stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                     ).eqls(endpoints[i]);
                     expect(
-                        stateVariables[`/g${j}/v${i}`].stateValues.through
+                        stateVariables[`/g${j}/v${i}`].stateValues.through,
                     ).eqls(throughs[i]);
                     expect(
-                        stateVariables[`/g${j}/v${i}`].stateValues.direction
+                        stateVariables[`/g${j}/v${i}`].stateValues.direction,
                     ).eqls(directions[i]);
                 }
             }
@@ -10292,7 +10292,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v0t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[0][0])},${nInDOM(endpoints[0][1])})`
+                `(${nInDOM(endpoints[0][0])},${nInDOM(endpoints[0][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10300,13 +10300,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10339,7 +10340,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v0h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[0][0])},${nInDOM(throughs[0][1])})`
+                `(${nInDOM(throughs[0][0])},${nInDOM(throughs[0][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10347,13 +10348,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10378,7 +10380,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[1][0])},${nInDOM(throughs[1][1])})`
+                `(${nInDOM(throughs[1][0])},${nInDOM(throughs[1][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10386,13 +10388,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10424,7 +10427,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v1t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[1][0])},${nInDOM(endpoints[1][1])})`
+                `(${nInDOM(endpoints[1][0])},${nInDOM(endpoints[1][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10432,13 +10435,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10463,7 +10467,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[2][0])},${nInDOM(endpoints[2][1])})`
+                `(${nInDOM(endpoints[2][0])},${nInDOM(endpoints[2][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10471,13 +10475,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10502,7 +10507,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v2h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[2][0])},${nInDOM(throughs[2][1])})`
+                `(${nInDOM(throughs[2][0])},${nInDOM(throughs[2][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10510,13 +10515,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10548,7 +10554,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[3][0])},${nInDOM(throughs[3][1])})`
+                `(${nInDOM(throughs[3][0])},${nInDOM(throughs[3][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10556,13 +10562,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10599,7 +10606,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v3t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[3][0])},${nInDOM(endpoints[3][1])})`
+                `(${nInDOM(endpoints[3][0])},${nInDOM(endpoints[3][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10607,13 +10614,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10642,7 +10650,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v4t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[4][0])},${nInDOM(endpoints[4][1])})`
+                `(${nInDOM(endpoints[4][0])},${nInDOM(endpoints[4][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10650,13 +10658,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10681,7 +10690,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v4h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[4][0])},${nInDOM(throughs[4][1])})`
+                `(${nInDOM(throughs[4][0])},${nInDOM(throughs[4][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10689,13 +10698,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10728,7 +10738,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v5h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[5][0])},${nInDOM(throughs[5][1])})`
+                `(${nInDOM(throughs[5][0])},${nInDOM(throughs[5][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10736,13 +10746,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10780,7 +10791,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v5t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[5][0])},${nInDOM(endpoints[5][1])})`
+                `(${nInDOM(endpoints[5][0])},${nInDOM(endpoints[5][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10788,13 +10799,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10827,7 +10839,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v6t") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(endpoints[6][0])},${nInDOM(endpoints[6][1])})`
+                `(${nInDOM(endpoints[6][0])},${nInDOM(endpoints[6][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10835,13 +10847,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10874,7 +10887,7 @@ describe("Ray Tag Tests", function () {
 
             cy.get(cesc("#\\/v6h") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(throughs[6][0])},${nInDOM(throughs[6][1])})`
+                `(${nInDOM(throughs[6][0])},${nInDOM(throughs[6][1])})`,
             );
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -10882,13 +10895,14 @@ describe("Ray Tag Tests", function () {
                 for (let i = 0; i < 7; i++) {
                     for (let j = 0; j < 2; j++) {
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint
+                            stateVariables[`/g${j}/v${i}`].stateValues.endpoint,
                         ).eqls(endpoints[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.through
+                            stateVariables[`/g${j}/v${i}`].stateValues.through,
                         ).eqls(throughs[i]);
                         expect(
-                            stateVariables[`/g${j}/v${i}`].stateValues.direction
+                            stateVariables[`/g${j}/v${i}`].stateValues
+                                .direction,
                         ).eqls(directions[i]);
                     }
                 }
@@ -10930,14 +10944,14 @@ describe("Ray Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         // to wait for page to load
         cy.get(cesc("#\\/vDirection") + " .mjx-mrow").should(
             "contain.text",
-            "(1,0)"
+            "(1,0)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -10962,12 +10976,12 @@ describe("Ray Tag Tests", function () {
         cy.log("change head using alt vector");
         cy.get(cesc("#\\/mivt") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 6,9{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow").should(
             "contain.text",
-            "(6,9)"
+            "(6,9)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -10992,11 +11006,11 @@ describe("Ray Tag Tests", function () {
         cy.log("change tail using alt vector");
         cy.get(cesc("#\\/mive") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle -3,7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vEndpoint") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,7)"
+            "(−3,7)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11021,11 +11035,11 @@ describe("Ray Tag Tests", function () {
         cy.log("change displacement using alt vector");
         cy.get(cesc("#\\/mivd") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle -4,1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vDirection") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,1)"
+            "(−4,1)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11050,11 +11064,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through displacement");
         cy.get(cesc("#\\/mivd") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(9,8,7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vDirection") + " .mjx-mrow").should(
             "contain.text",
-            "(9,8)"
+            "(9,8)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11079,11 +11093,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through tail");
         cy.get(cesc("#\\/mive") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(-5,-6,-7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vEndpoint") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−6)"
+            "(−5,−6)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11108,11 +11122,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through head");
         cy.get(cesc("#\\/mivt") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(9,-9,7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow").should(
             "contain.text",
-            "(9,−9)"
+            "(9,−9)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11137,11 +11151,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through copied head");
         cy.get(cesc("#\\/miv2t") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 0,1,2,3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow").should(
             "contain.text",
-            "(0,1)"
+            "(0,1)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11166,11 +11180,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through copied tail");
         cy.get(cesc("#\\/miv2e") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle 2, 4, 6, 8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vEndpoint") + " .mjx-mrow").should(
             "contain.text",
-            "(2,4)"
+            "(2,4)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11195,11 +11209,11 @@ describe("Ray Tag Tests", function () {
         cy.log("cannot change dimnension through copied displacement");
         cy.get(cesc("#\\/miv2d") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle -8, -6, =4, -2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/vDirection") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−6)"
+            "(−8,−6)",
         );
 
         cy.get(cesc("#\\/vThrough") + " .mjx-mrow")
@@ -11243,21 +11257,21 @@ describe("Ray Tag Tests", function () {
     <p name="Cdescrip">C is a $C.styleDescriptionWithNoun.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Ray A is thick brown."
+            "Ray A is thick brown.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a dark red ray."
+            "B is a dark red ray.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin black ray."
+            "C is a thin black ray.",
         );
 
         cy.log("set dark mode");
@@ -11268,15 +11282,15 @@ describe("Ray Tag Tests", function () {
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Ray A is thick yellow."
+            "Ray A is thick yellow.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a light red ray."
+            "B is a light red ray.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin white ray."
+            "C is a thin white ray.",
         );
     });
 
@@ -11307,7 +11321,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11478,7 +11492,7 @@ describe("Ray Tag Tests", function () {
   $_ray1.direction{assignNames="direction2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11656,7 +11670,7 @@ describe("Ray Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11707,7 +11721,7 @@ describe("Ray Tag Tests", function () {
     <vector copySource="_ray1.direction" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11722,7 +11736,7 @@ describe("Ray Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(4);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through"
+                "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(4);
@@ -11731,7 +11745,7 @@ describe("Ray Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(64);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "numDimensions mismatch in ray"
+                "numDimensions mismatch in ray",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(5);
@@ -11740,7 +11754,7 @@ describe("Ray Tag Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(48);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "numDimensions mismatch in ray"
+                "numDimensions mismatch in ray",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(6);
@@ -11749,7 +11763,7 @@ describe("Ray Tag Tests", function () {
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(49);
 
             expect(errorWarnings.warnings[3].message).contain(
-                "numDimensions mismatch in ray"
+                "numDimensions mismatch in ray",
             );
             expect(errorWarnings.warnings[3].level).eq(1);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(7);
@@ -11770,7 +11784,7 @@ describe("Ray Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

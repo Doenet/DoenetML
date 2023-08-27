@@ -14,14 +14,14 @@ describe("Single Character Tag Tests", function () {
   1 <ndash/> 2 <mdash/> that's it
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         // Note these dashes are different unicode even though they display the same here
         cy.get(cesc("#\\/_document1")).should(
             "contain.text",
-            "1 – 2 — that's it"
+            "1 – 2 — that's it",
         );
     });
 
@@ -33,13 +33,13 @@ describe("Single Character Tag Tests", function () {
    act<nbsp/>like<nbsp/>one<nbsp/>word
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_document1")).should(
             "contain.text",
-            "act\u00a0like\u00a0one\u00a0word"
+            "act\u00a0like\u00a0one\u00a0word",
         );
     });
 
@@ -51,13 +51,13 @@ describe("Single Character Tag Tests", function () {
    we could do that<ellipsis/>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_document1")).should(
             "contain.text",
-            "we could do that…"
+            "we could do that…",
         );
     });
 
@@ -69,7 +69,7 @@ describe("Single Character Tag Tests", function () {
    <rq/><lq/><rsq/><lsq/>
   `,
                 },
-                "*"
+                "*",
             );
         });
 

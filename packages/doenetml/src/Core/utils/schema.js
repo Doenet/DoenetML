@@ -210,7 +210,7 @@ function checkIfInheritOrAdapt({
     for (let n = 0; n < numAdapters; n++) {
         let adapterComponentType = startingClass.getAdapterComponentType(
             n,
-            componentInfoObjects.publicStateVariableInfo
+            componentInfoObjects.publicStateVariableInfo,
         );
 
         let adapterClass =

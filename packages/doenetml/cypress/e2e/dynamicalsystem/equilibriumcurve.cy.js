@@ -42,7 +42,7 @@ describe("Equilibriumcurve Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -65,28 +65,28 @@ describe("Equilibriumcurve Tag Tests", function () {
             expect(stateVariables["/g/C"].stateValues.stable).eq(false);
             expect(stateVariables["/g/D"].stateValues.stable).eq(false);
             expect(
-                stateVariables["/g/A"].stateValues.numericalThroughPoints
+                stateVariables["/g/A"].stateValues.numericalThroughPoints,
             ).eqls([
                 [1, 2],
                 [3, 4],
                 [2, 6],
             ]);
             expect(
-                stateVariables["/g/B"].stateValues.numericalThroughPoints
+                stateVariables["/g/B"].stateValues.numericalThroughPoints,
             ).eqls([
                 [3, 2],
                 [5, 4],
                 [4, 6],
             ]);
             expect(
-                stateVariables["/g/C"].stateValues.numericalThroughPoints
+                stateVariables["/g/C"].stateValues.numericalThroughPoints,
             ).eqls([
                 [-3, 2],
                 [-5, 4],
                 [-4, 6],
             ]);
             expect(
-                stateVariables["/g/D"].stateValues.numericalThroughPoints
+                stateVariables["/g/D"].stateValues.numericalThroughPoints,
             ).eqls([
                 [-1, 2],
                 [-3, 4],
@@ -98,28 +98,28 @@ describe("Equilibriumcurve Tag Tests", function () {
             expect(stateVariables["/g2/C"].stateValues.stable).eq(false);
             expect(stateVariables["/g2/D"].stateValues.stable).eq(false);
             expect(
-                stateVariables["/g2/A"].stateValues.numericalThroughPoints
+                stateVariables["/g2/A"].stateValues.numericalThroughPoints,
             ).eqls([
                 [1, 2],
                 [3, 4],
                 [2, 6],
             ]);
             expect(
-                stateVariables["/g2/B"].stateValues.numericalThroughPoints
+                stateVariables["/g2/B"].stateValues.numericalThroughPoints,
             ).eqls([
                 [3, 2],
                 [5, 4],
                 [4, 6],
             ]);
             expect(
-                stateVariables["/g2/C"].stateValues.numericalThroughPoints
+                stateVariables["/g2/C"].stateValues.numericalThroughPoints,
             ).eqls([
                 [-3, 2],
                 [-5, 4],
                 [-4, 6],
             ]);
             expect(
-                stateVariables["/g2/D"].stateValues.numericalThroughPoints
+                stateVariables["/g2/D"].stateValues.numericalThroughPoints,
             ).eqls([
                 [-1, 2],
                 [-3, 4],

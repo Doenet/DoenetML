@@ -9,7 +9,7 @@ import me from "math-expressions";
 export default React.memo(function Image(props) {
     let { name, id, SVs, actions, callAction } = useDoenetRenderer(
         props,
-        false
+        false,
     );
     let [url, setUrl] = useState(null);
 
@@ -168,7 +168,7 @@ export default React.memo(function Image(props) {
         let newImageJXG = board.create(
             "image",
             [urlOrSource, offset, [width, height]],
-            jsxImageAttributes
+            jsxImageAttributes,
         );
 
         newImageJXG.isDraggable = !fixLocation.current;
@@ -185,7 +185,7 @@ export default React.memo(function Image(props) {
                     return -newImageJXG.Y() - newImageJXG.H() * 0.5;
                 },
             ],
-            { type: "translate" }
+            { type: "translate" },
         );
         var tOffInverse = board.create(
             "transform",
@@ -197,7 +197,7 @@ export default React.memo(function Image(props) {
                     return newImageJXG.Y() + newImageJXG.H() * 0.5;
                 },
             ],
-            { type: "translate" }
+            { type: "translate" },
         );
         var tRot = board.create("transform", [SVs.rotate], { type: "rotate" });
 
@@ -330,11 +330,11 @@ export default React.memo(function Image(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -349,11 +349,11 @@ export default React.memo(function Image(props) {
 
             newImageJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                currentOffset.current
+                currentOffset.current,
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -430,7 +430,7 @@ export default React.memo(function Image(props) {
         } else {
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             // imageJXG.current.setImage(SVs.image)
@@ -520,7 +520,7 @@ export default React.memo(function Image(props) {
 
                 imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    offset
+                    offset,
                 );
 
                 previousPositionFromAnchor.current = SVs.positionFromAnchor;
@@ -529,7 +529,7 @@ export default React.memo(function Image(props) {
             } else {
                 imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    currentOffset.current
+                    currentOffset.current,
                 );
                 imageJXG.current.update();
             }

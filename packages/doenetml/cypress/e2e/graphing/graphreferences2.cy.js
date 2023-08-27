@@ -59,7 +59,7 @@ describe("Graph Reference Test 2", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -302,7 +302,7 @@ describe("Graph Reference Test 2", function () {
                         ...ov_h,
                     ]);
                     expect(
-                        stateVariables[vector].stateValues.displacement
+                        stateVariables[vector].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsA) {
@@ -313,7 +313,7 @@ describe("Graph Reference Test 2", function () {
                         ...d1_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsB) {
@@ -324,7 +324,7 @@ describe("Graph Reference Test 2", function () {
                         ...d2_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsC) {
@@ -335,7 +335,7 @@ describe("Graph Reference Test 2", function () {
                         ...d3_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let tail of tails) {
@@ -386,7 +386,7 @@ describe("Graph Reference Test 2", function () {
                         ...ov_h,
                     ]);
                     expect(
-                        stateVariables[vector].stateValues.displacement
+                        stateVariables[vector].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsA) {
@@ -397,7 +397,7 @@ describe("Graph Reference Test 2", function () {
                         ...d1_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsB) {
@@ -408,7 +408,7 @@ describe("Graph Reference Test 2", function () {
                         ...d2_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsC) {
@@ -419,7 +419,7 @@ describe("Graph Reference Test 2", function () {
                         ...d3_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let tail of tails) {
@@ -471,7 +471,7 @@ describe("Graph Reference Test 2", function () {
                         ...ov_h,
                     ]);
                     expect(
-                        stateVariables[vector].stateValues.displacement
+                        stateVariables[vector].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsA) {
@@ -482,7 +482,7 @@ describe("Graph Reference Test 2", function () {
                         ...d1_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsB) {
@@ -493,7 +493,7 @@ describe("Graph Reference Test 2", function () {
                         ...d2_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsC) {
@@ -504,7 +504,7 @@ describe("Graph Reference Test 2", function () {
                         ...d3_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let tail of tails) {
@@ -556,7 +556,7 @@ describe("Graph Reference Test 2", function () {
                         ...ov_h,
                     ]);
                     expect(
-                        stateVariables[vector].stateValues.displacement
+                        stateVariables[vector].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsA) {
@@ -567,7 +567,7 @@ describe("Graph Reference Test 2", function () {
                         ...d1_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsB) {
@@ -578,7 +578,7 @@ describe("Graph Reference Test 2", function () {
                         ...d2_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsC) {
@@ -589,7 +589,7 @@ describe("Graph Reference Test 2", function () {
                         ...d3_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let tail of tails) {
@@ -641,7 +641,7 @@ describe("Graph Reference Test 2", function () {
                         ...ov_h,
                     ]);
                     expect(
-                        stateVariables[vector].stateValues.displacement
+                        stateVariables[vector].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsA) {
@@ -652,7 +652,7 @@ describe("Graph Reference Test 2", function () {
                         ...d1_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsB) {
@@ -663,7 +663,7 @@ describe("Graph Reference Test 2", function () {
                         ...d2_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let displacement of displacementsC) {
@@ -674,7 +674,7 @@ describe("Graph Reference Test 2", function () {
                         ...d3_h,
                     ]);
                     expect(
-                        stateVariables[displacement].stateValues.displacement
+                        stateVariables[displacement].stateValues.displacement,
                     ).eqls([...d]);
                 }
                 for (let tail of tails) {

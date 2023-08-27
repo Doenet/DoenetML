@@ -24,7 +24,7 @@ root.render(
         >
             <CypressTest />
         </MathJaxContext>
-    </RecoilRoot>
+    </RecoilRoot>,
 );
 
 // Hot Module Replacement (HMR) - Remove this snippet to remove HMR.

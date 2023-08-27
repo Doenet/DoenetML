@@ -49,7 +49,7 @@ export default class SolveEquations extends InlineComponent {
                     (child) =>
                         typeof child === "string" ||
                         (child.doenetAttributes &&
-                            child.doenetAttributes.createdFromMacro)
+                            child.doenetAttributes.createdFromMacro),
                 )
             ) {
                 return { success: false };
@@ -142,7 +142,7 @@ export default class SolveEquations extends InlineComponent {
                     setValue: {
                         variables: returnNVariables(
                             arraySize[0],
-                            variablesSpecified
+                            variablesSpecified,
                         ),
                     },
                 };
@@ -433,13 +433,13 @@ export default class SolveEquations extends InlineComponent {
                                                 numerics.fzero(f_or_nan, [
                                                     originalLastX,
                                                     lastX,
-                                                ])
+                                                ]),
                                             );
                                             numericalSolutions.push(thisX);
                                         } else {
                                             if (
                                                 !numericalSolutions.includes(
-                                                    thisX
+                                                    thisX,
                                                 )
                                             ) {
                                                 numericalSolutions.push(thisX);
@@ -464,7 +464,7 @@ export default class SolveEquations extends InlineComponent {
                         }
                     } else if (thisF * lastF < 0) {
                         numericalSolutions.push(
-                            numerics.fzero(f_or_nan, [lastX, thisX])
+                            numerics.fzero(f_or_nan, [lastX, thisX]),
                         );
                     } else if (lastF !== 0) {
                         // if not last point, check if is a local min or max
@@ -492,7 +492,7 @@ export default class SolveEquations extends InlineComponent {
                                     fFlip,
                                     [lastX, nextX],
                                     undefined,
-                                    1e-10
+                                    1e-10,
                                 );
 
                                 if (res.success) {
@@ -505,7 +505,7 @@ export default class SolveEquations extends InlineComponent {
                                             numerics.fzero(f_or_nan, [
                                                 lastX,
                                                 extremumX,
-                                            ])
+                                            ]),
                                         );
 
                                         // use the extremum values of x
@@ -526,7 +526,7 @@ export default class SolveEquations extends InlineComponent {
 
                 // since added extra points outside range, filter out any extra solutions
                 numericalSolutions = numericalSolutions.filter(
-                    (x) => x >= minVar && x <= maxVar
+                    (x) => x >= minVar && x <= maxVar,
                 );
 
                 let allSolutions = numericalSolutions.map((x) => me.fromAst(x));

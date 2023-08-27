@@ -17,7 +17,7 @@ describe("Solution Tag Tests", function () {
   </solution>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -33,13 +33,13 @@ describe("Solution Tag Tests", function () {
 
         cy.get(cesc("#\\/solutionText")).should(
             "have.text",
-            "This is the text of the solution."
+            "This is the text of the solution.",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/solutionText"].stateValues.text).eq(
-                "This is the text of the solution."
+                "This is the text of the solution.",
             );
         });
     });
@@ -62,7 +62,7 @@ describe("Solution Tag Tests", function () {
       <p><textinput name="ti" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -93,7 +93,7 @@ describe("Solution Tag Tests", function () {
   <boolean name="solOpen" copySource="sol.open" />
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load

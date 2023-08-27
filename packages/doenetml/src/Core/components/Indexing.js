@@ -52,7 +52,7 @@ export class Idx extends CompositeComponent {
                 let terms;
                 if (dependencyValues.hChildren.length > 0) {
                     terms = dependencyValues.hChildren.map(
-                        (x) => x.stateValues.value
+                        (x) => x.stateValues.value,
                     );
                 } else {
                     let value = "";

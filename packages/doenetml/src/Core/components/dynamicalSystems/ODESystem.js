@@ -102,7 +102,7 @@ export default class ODESystem extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let selectedStyleDefinition =
@@ -213,7 +213,7 @@ export default class ODESystem extends InlineComponent {
 
                 if (
                     variables.some((x) =>
-                        x.equals(globalDependencyValues.independentVariable)
+                        x.equals(globalDependencyValues.independentVariable),
                     )
                 ) {
                     warnings.push({
@@ -225,7 +225,7 @@ export default class ODESystem extends InlineComponent {
 
                 if (validVariables.length < numDims) {
                     validVariables.push(
-                        ...Array(numDims - validVariables.length).fill(true)
+                        ...Array(numDims - validVariables.length).fill(true),
                     );
                 }
 
@@ -399,7 +399,7 @@ export default class ODESystem extends InlineComponent {
                     return {
                         setValue: {
                             equationTag: String(
-                                dependencyValues.equationCounter
+                                dependencyValues.equationCounter,
                             ),
                         },
                     };
@@ -493,7 +493,7 @@ export default class ODESystem extends InlineComponent {
                     });
 
                     let thisLatex = `\\frac{d${variable}}{d${indVar}} &=  ${rhs.toLatex(
-                        params
+                        params,
                     )}`;
                     if (dependencyValues.number && dim === 0) {
                         thisLatex += `\\tag{${dependencyValues.equationTag}}`;
@@ -521,8 +521,8 @@ export default class ODESystem extends InlineComponent {
 
                         systemDisplay.push(
                             `${variable}(${indVarVal0}) &= ${ic.toLatex(
-                                params
-                            )}\\notag`
+                                params,
+                            )}\\notag`,
                         );
                     }
                 }
@@ -589,7 +589,7 @@ export default class ODESystem extends InlineComponent {
                     dependencyValues.independentVariable.subscripts_to_strings()
                         .tree;
                 let varNames = dependencyValues.variables.map(
-                    (x) => x.subscripts_to_strings().tree
+                    (x) => x.subscripts_to_strings().tree,
                 );
 
                 if (varNames.includes(indVarName)) {
@@ -608,7 +608,7 @@ export default class ODESystem extends InlineComponent {
                 let fs;
                 try {
                     fs = dependencyValues.rhss.map((x) =>
-                        x.subscripts_to_strings().f()
+                        x.subscripts_to_strings().f(),
                     );
                 } catch (e) {
                     warnings.push({
@@ -651,7 +651,7 @@ export default class ODESystem extends InlineComponent {
                                 formula: x,
                                 numInputs: varNames.length + 1,
                                 variables: [indVarName, ...varNames],
-                            })
+                            }),
                         ),
                     },
                 };
@@ -674,7 +674,7 @@ export default class ODESystem extends InlineComponent {
                 let t0 =
                     dependencyValues.initialIndependentVariableValue.evaluate_to_constant();
                 let x0s = dependencyValues.initialConditions.map((x) =>
-                    x.evaluate_to_constant()
+                    x.evaluate_to_constant(),
                 );
 
                 let haveNumericalInitialConditions =
@@ -834,13 +834,13 @@ export default class ODESystem extends InlineComponent {
                                     x0,
                                     numericalRHSf,
                                     tolerance,
-                                    maxIterations
+                                    maxIterations,
                                 );
                                 workspace.endingNumericalValues.push(
-                                    result.y[result.y.length - 1]
+                                    result.y[result.y.length - 1],
                                 );
                                 workspace.calculatedNumericSolutions.push(
-                                    result.at.bind(result)
+                                    result.at.bind(result),
                                 );
 
                                 let endingTime = result.x[result.x.length - 1];
@@ -962,7 +962,7 @@ export default class ODESystem extends InlineComponent {
                     return {
                         setValue: {
                             numericalSolutionFDefinitions: Array(
-                                globalDependencyValues.numDimensions
+                                globalDependencyValues.numDimensions,
                             ).fill({}),
                         },
                     };
@@ -972,7 +972,7 @@ export default class ODESystem extends InlineComponent {
                     setValue: {
                         numericalSolutionFDefinitions: [
                             ...Array(
-                                globalDependencyValues.numDimensions
+                                globalDependencyValues.numDimensions,
                             ).keys(),
                         ].map((ind) => ({
                             functionType: "ODESolution",

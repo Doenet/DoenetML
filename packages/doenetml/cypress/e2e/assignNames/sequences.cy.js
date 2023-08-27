@@ -46,7 +46,7 @@ describe("sequence and map assignName Tests", function () {
   <p name="pd3">d3: $d3{name="cpd3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -398,19 +398,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/s1")).should(
             "have.text",
-            "a, b, c, d, e, f, g, h, i, j"
+            "a, b, c, d, e, f, g, h, i, j",
         );
         cy.get(cesc("#\\/s2")).should(
             "have.text",
-            "a, b, c, d, e, f, g, h, i, j"
+            "a, b, c, d, e, f, g, h, i, j",
         );
         cy.get(cesc("#\\/s3")).should(
             "have.text",
-            "a, b, c, d, e, f, g, h, i, j"
+            "a, b, c, d, e, f, g, h, i, j",
         );
         cy.get(cesc("#\\/s4")).should(
             "have.text",
-            "a, b, c, d, e, f, g, h, i, j"
+            "a, b, c, d, e, f, g, h, i, j",
         );
 
         cy.get(cesc("#\\/a")).should("have.text", "a");
@@ -449,7 +449,7 @@ describe("sequence and map assignName Tests", function () {
         cy.log("change n back to 2 again");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{end}{backspace}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/s1")).should("have.text", "a, b");
@@ -652,7 +652,7 @@ describe("sequence and map assignName Tests", function () {
   <p name="pdv3">d3/v: $(d3/v{name="cpdv3"})</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -727,19 +727,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -873,19 +873,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -952,19 +952,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1098,19 +1098,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1177,19 +1177,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1256,19 +1256,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. Letter 6 is f. Letter 7 is g. Letter 8 is h. Letter 9 is i. Letter 10 is j. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1331,24 +1331,24 @@ describe("sequence and map assignName Tests", function () {
         cy.log("change n back to 2 again");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{end}{backspace}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1482,19 +1482,19 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m3")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
         cy.get(cesc("#\\/m4")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1594,7 +1594,7 @@ describe("sequence and map assignName Tests", function () {
   <p name="pcv11">c1/v1: $(c1/v1{name="cpcv11"})</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1634,11 +1634,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. "
+            "Letter 1 is a. Letter 2 is b. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1704,11 +1704,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1742,11 +1742,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. "
+            "Letter 1 is a. Letter 2 is b. Letter 3 is c. Letter 4 is d. Letter 5 is e. ",
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "a: Letter 1 is a. ");
@@ -1791,7 +1791,7 @@ describe("sequence and map assignName Tests", function () {
   <p name="m2">$_map1{name="cpall"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1799,11 +1799,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. "
+            "Letter 1 is a. Repeat: letter 1 is a. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. "
+            "Letter 1 is a. Repeat: letter 1 is a. ",
         );
 
         cy.log("change n to 2");
@@ -1813,11 +1813,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. ",
         );
 
         cy.log("change n to 0");
@@ -1835,11 +1835,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. ",
         );
     });
 
@@ -1860,7 +1860,7 @@ describe("sequence and map assignName Tests", function () {
   <p name="m2">$(m1/_map1{name="cpall"})</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1868,11 +1868,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. "
+            "Letter 1 is a. Repeat: letter 1 is a. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. "
+            "Letter 1 is a. Repeat: letter 1 is a. ",
         );
 
         cy.log("change n to 2");
@@ -1882,11 +1882,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. ",
         );
 
         cy.log("change n to 0");
@@ -1904,11 +1904,11 @@ describe("sequence and map assignName Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. ",
         );
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. "
+            "Letter 1 is a. Repeat: letter 1 is a. Letter 2 is b. Repeat: letter 2 is b. Letter 3 is c. Repeat: letter 3 is c. ",
         );
     });
 });

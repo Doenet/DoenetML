@@ -28,7 +28,7 @@ describe("TextList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -36,12 +36,12 @@ describe("TextList Tag Tests", function () {
         cy.get(cesc("#\\/_p2")).should("have.text", "a, b, c");
         cy.get(cesc("#\\/_p3")).should(
             "have.text",
-            "hello, a, b, c, bye, a, b, c"
+            "hello, a, b, c, bye, a, b, c",
         );
         cy.get(cesc("#\\/_p4")).should("have.text", "hello, a, b, c, bye, a");
         cy.get(cesc("#\\/_p5")).should(
             "have.text",
-            "hello, a, b, c, bye, a, b, c"
+            "hello, a, b, c, bye, a, b, c",
         );
     });
 
@@ -76,7 +76,7 @@ describe("TextList Tag Tests", function () {
   
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -85,7 +85,7 @@ describe("TextList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "a, q, r, h, b, u, v, i, j"
+            "a, q, r, h, b, u, v, i, j",
         );
 
         cy.get(cesc("#\\/_textinput1_input")).should("have.value", "a");
@@ -141,7 +141,7 @@ describe("TextList Tag Tests", function () {
         cy.log("Test value displayed in browser");
         cy.get(cesc("#\\/_p1")).should(
             "have.text",
-            "1, 2, 3, 4, 5, 6, 7, 8, 9"
+            "1, 2, 3, 4, 5, 6, 7, 8, 9",
         );
 
         cy.get(cesc("#\\/_textinput1_input")).should("have.value", "1");
@@ -194,7 +194,7 @@ describe("TextList Tag Tests", function () {
     </boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -220,7 +220,7 @@ describe("TextList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -292,7 +292,7 @@ describe("TextList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 

@@ -21,7 +21,7 @@ export class DependencyHandler {
 
         this.dependencyTypes = {};
         dependencyTypeArray.forEach(
-            (dt) => (this.dependencyTypes[dt.dependencyType] = dt)
+            (dt) => (this.dependencyTypes[dt.dependencyType] = dt),
         );
 
         this.core = core;
@@ -66,7 +66,7 @@ export class DependencyHandler {
                     component.state[stateVariable].isArrayEntry ||
                     component.state[stateVariable].isAlias ||
                     additionalStateVariablesThatWillBeProcessed.includes(
-                        stateVariable
+                        stateVariable,
                     )
                 )
             ) {
@@ -78,7 +78,7 @@ export class DependencyHandler {
                 ) {
                     additionalStateVariablesThatWillBeProcessed.push(
                         ...component.state[stateVariable]
-                            .additionalStateVariablesDefined
+                            .additionalStateVariablesDefined,
                     );
                 }
             }
@@ -91,7 +91,7 @@ export class DependencyHandler {
             ) {
                 allStateVariablesAffected.push(
                     ...component.state[stateVariable]
-                        .additionalStateVariablesDefined
+                        .additionalStateVariablesDefined,
                 );
             }
 
@@ -138,7 +138,7 @@ export class DependencyHandler {
                 !(dependencyDefinition.dependencyType in this.dependencyTypes)
             ) {
                 throw Error(
-                    `Unrecognized dependency type ${dependencyDefinition.dependencyType} for ${dependencyName} of ${stateVariable} of ${component.componentName}`
+                    `Unrecognized dependency type ${dependencyDefinition.dependencyType} for ${dependencyName} of ${stateVariable} of ${component.componentName}`,
                 );
             }
             let dep = new this.dependencyTypes[
@@ -170,7 +170,7 @@ export class DependencyHandler {
         let stateVariablesToAdddress;
         if (stateVariables === "__all__") {
             stateVariablesToAdddress = Object.keys(
-                this.downstreamDependencies[componentName]
+                this.downstreamDependencies[componentName],
             );
         } else {
             stateVariablesToAdddress = stateVariables;
@@ -213,7 +213,7 @@ export class DependencyHandler {
         let stateVariablesToAdddress;
         if (stateVariables === "__all__") {
             stateVariablesToAdddress = Object.keys(
-                this.upstreamDependencies[componentName]
+                this.upstreamDependencies[componentName],
             );
         } else {
             stateVariablesToAdddress = stateVariables;
@@ -240,7 +240,7 @@ export class DependencyHandler {
                                                 upDep.upstreamComponentName
                                             ],
                                         varName: upVarName,
-                                    }
+                                    },
                                 );
                             }
                         }
@@ -251,7 +251,7 @@ export class DependencyHandler {
                         await upDep.removeDownstreamComponent({
                             indexToRemove:
                                 upDep.downstreamComponentNames.indexOf(
-                                    componentName
+                                    componentName,
                                 ),
                         });
                     }
@@ -457,7 +457,7 @@ export class DependencyHandler {
             ]) {
                 await this.resolveDescendantBlockersToAncestor(
                     ancestorName,
-                    force
+                    force,
                 );
             }
 
@@ -574,12 +574,12 @@ export class DependencyHandler {
             console.log(
                 "found circular",
                 stateVariableIdentifier,
-                previouslyVisited
+                previouslyVisited,
             );
 
             let componentNameRe = /^(.*):/;
             let componentsInvolved = previouslyVisited.map(
-                (x) => this.components[x.match(componentNameRe)[1]]
+                (x) => this.components[x.match(componentNameRe)[1]],
             );
 
             let message = this.getCircularDependencyMessage(componentsInvolved);
@@ -641,7 +641,7 @@ export class DependencyHandler {
                         if (vName !== "__identity") {
                             this.resetCircularCheckPassed(
                                 upDep.upstreamComponentName,
-                                vName
+                                vName,
                             );
                         }
                     }
@@ -658,7 +658,7 @@ export class DependencyHandler {
         let allStateVariablesAffected = [stateVariable];
         if (stateVarObj.additionalStateVariablesDefined) {
             allStateVariablesAffected.push(
-                ...stateVarObj.additionalStateVariablesDefined
+                ...stateVarObj.additionalStateVariablesDefined,
             );
         }
 
@@ -742,9 +742,8 @@ export class DependencyHandler {
             sharedParameters: component.sharedParameters,
         };
 
-        let newDependencies = await stateVarObj.returnDependencies(
-            returnDepArgs
-        );
+        let newDependencies =
+            await stateVarObj.returnDependencies(returnDepArgs);
 
         if (stateVarObj.stateVariablesDeterminingDependencies) {
             // keep the determineDependencies dependency
@@ -1080,7 +1079,7 @@ export class DependencyHandler {
                     if (!upValuesChanged) {
                         if (!component.state[varName].isArrayEntry) {
                             throw Error(
-                                `Something is wrong, as a variable ${varName} of ${component.componentName} actually changed, but wasn't marked with a potential change`
+                                `Something is wrong, as a variable ${varName} of ${component.componentName} actually changed, but wasn't marked with a potential change`,
                             );
                         }
                         upValuesChanged = upValuesChangedSub[varName] = {
@@ -1110,7 +1109,7 @@ export class DependencyHandler {
                             }
                             Object.assign(
                                 upValuesChanged.changed.arrayKeysChanged,
-                                changes.arrayKeysChanged
+                                changes.arrayKeysChanged,
                             );
                         }
                     } else {
@@ -1196,7 +1195,7 @@ export class DependencyHandler {
                                 {
                                     component: comp,
                                     varName: dep.representativeStateVariable,
-                                }
+                                },
                             );
 
                             for (let varName of dep.upstreamVariableNames) {
@@ -1226,13 +1225,12 @@ export class DependencyHandler {
             return { foundChange: true, finishedPropagation: false };
         }
 
-        let parentResult = await this.collateCountersAndPropagateToAncestors(
-            parent
-        );
+        let parentResult =
+            await this.collateCountersAndPropagateToAncestors(parent);
 
         if (!parentResult.foundChange) {
             console.error(
-                `we found a change in propagating counters for ${component.componentName}, but no change for ancestors!`
+                `we found a change in propagating counters for ${component.componentName}, but no change for ancestors!`,
             );
         }
 
@@ -1396,7 +1394,7 @@ export class DependencyHandler {
                                 ];
                             if (neededToResolveForDependency) {
                                 deleteBlockerTypeAndCode(
-                                    neededToResolveForDependency
+                                    neededToResolveForDependency,
                                 );
                                 if (
                                     !blockerType ||
@@ -1418,7 +1416,7 @@ export class DependencyHandler {
                             }
                         } else {
                             deleteBlockerTypeAndCode(
-                                neededToResolveForStateVariable
+                                neededToResolveForStateVariable,
                             );
                             if (
                                 !blockerType ||
@@ -1648,7 +1646,7 @@ export class DependencyHandler {
                                 ];
                             if (resolveBlockedByForDependency) {
                                 deleteTypeAndCodeBlocked(
-                                    resolveBlockedByForDependency
+                                    resolveBlockedByForDependency,
                                 );
                                 if (
                                     !typeBlocked ||
@@ -1670,7 +1668,7 @@ export class DependencyHandler {
                             }
                         } else {
                             deleteTypeAndCodeBlocked(
-                                resolveBlockedByForStateVariable
+                                resolveBlockedByForStateVariable,
                             );
                             if (
                                 !typeBlocked ||
@@ -1765,7 +1763,7 @@ export class DependencyHandler {
                         {
                             component,
                             varName: stateVariableBlocked,
-                        }
+                        },
                     );
 
                     // record that stateVarObj is blocking its upstream dependencies
@@ -2016,7 +2014,7 @@ export class DependencyHandler {
                                     parent: component,
                                     expandComposites,
                                     forceExpandComposites: force,
-                                }
+                                },
                             );
 
                         if (
@@ -2036,19 +2034,19 @@ export class DependencyHandler {
                 if (!composite.isExpanded) {
                     if (
                         this.core.updateInfo.compositesBeingExpanded.includes(
-                            componentNameNewlyResolved
+                            componentNameNewlyResolved,
                         )
                     ) {
                         return { success: false };
                     }
 
                     await this.core.expandCompositeComponent(
-                        this._components[componentNameNewlyResolved]
+                        this._components[componentNameNewlyResolved],
                     );
                 }
             } else {
                 throw Error(
-                    `Unrecognized type newly resolved: ${typeNewlyResolved}`
+                    `Unrecognized type newly resolved: ${typeNewlyResolved}`,
                 );
             }
         }
@@ -2063,7 +2061,7 @@ export class DependencyHandler {
         // use shallow copies as we are deleting the blockers as we loop through
         resolveBlockedByNewlyResolved = Object.assign(
             {},
-            resolveBlockedByNewlyResolved
+            resolveBlockedByNewlyResolved,
         );
 
         for (let type in resolveBlockedByNewlyResolved) {
@@ -2294,7 +2292,7 @@ export class DependencyHandler {
             for (let blockerType in neededForItem) {
                 if (blockerType === "determineDependencies") {
                     throw Error(
-                        `Shouldn't have determine dependencies blocker after determining dependencies: ${componentName}, ${type}, ${stateVariable}, ${dependency}`
+                        `Shouldn't have determine dependencies blocker after determining dependencies: ${componentName}, ${type}, ${stateVariable}, ${dependency}`,
                     );
                 }
 
@@ -2344,7 +2342,7 @@ export class DependencyHandler {
                 for (let blockerType in neededForItem) {
                     if (blockerType === "determineDependencies") {
                         throw Error(
-                            `Shouldn't have determine dependencies blocker after determining dependencies: ${componentName}, ${type}, ${stateVariable}, ${dependency}`
+                            `Shouldn't have determine dependencies blocker after determining dependencies: ${componentName}, ${type}, ${stateVariable}, ${dependency}`,
                         );
                     }
 
@@ -2456,7 +2454,7 @@ export class DependencyHandler {
             let componentNameRe = /^([^|]*)\|/;
 
             let componentsInvolved = previouslyVisited.map(
-                (x) => this.components[x.match(componentNameRe)[1]]
+                (x) => this.components[x.match(componentNameRe)[1]],
             );
 
             let message = this.getCircularDependencyMessage(componentsInvolved);
@@ -2529,8 +2527,8 @@ export class DependencyHandler {
                                 doenetMLrange,
                                 getLineCharRange(
                                     doenetMLrange,
-                                    this.core.doenetMLNewlines
-                                )
+                                    this.core.doenetMLNewlines,
+                                ),
                             );
                         }
                         let lineBegin = doenetMLrange.lineBegin;
@@ -2541,7 +2539,7 @@ export class DependencyHandler {
                                 linesForUniqueNames.push(`line ${lineBegin}`);
                             } else {
                                 linesForUniqueNames.push(
-                                    `lines ${lineBegin}–${lineEnd}`
+                                    `lines ${lineBegin}–${lineEnd}`,
                                 );
                             }
                         }
@@ -2847,7 +2845,7 @@ class Dependency {
                     // check if vName begins when an arrayEntry
                     if (downComponent.arrayEntryPrefixes) {
                         let arrayEntryPrefixesLongestToShortest = Object.keys(
-                            downComponent.arrayEntryPrefixes
+                            downComponent.arrayEntryPrefixes,
                         ).sort((a, b) => b.length - a.length);
                         for (let arrayEntryPrefix of arrayEntryPrefixesLongestToShortest) {
                             if (
@@ -2864,7 +2862,7 @@ class Dependency {
                                     arrayStateVarObj.getArrayKeysFromVarName({
                                         arrayEntryPrefix,
                                         varEnding: vName.substring(
-                                            arrayEntryPrefix.length
+                                            arrayEntryPrefix.length,
                                         ),
                                         numDimensions:
                                             arrayStateVarObj.numDimensions,
@@ -2889,7 +2887,7 @@ class Dependency {
                             stateVariables: mappedVarNames,
                             component: downComponent,
                             propIndex: this.propIndex,
-                        }
+                        },
                     );
             }
 
@@ -2906,7 +2904,7 @@ class Dependency {
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     index,
                     0,
-                    mappedVarNames
+                    mappedVarNames,
                 );
 
                 let valsChanged = {};
@@ -2925,7 +2923,7 @@ class Dependency {
                             this.dependencyHandler.core.checkIfArrayEntry({
                                 stateVariable: downVar,
                                 component: downComponent,
-                            })
+                            }),
                     );
                 }
 
@@ -2995,7 +2993,7 @@ class Dependency {
                     for (let upstreamVarName of this.upstreamVariableNames) {
                         this.dependencyHandler.resetCircularCheckPassed(
                             this.upstreamComponentName,
-                            upstreamVarName
+                            upstreamVarName,
                         );
                     }
                 }
@@ -3014,7 +3012,7 @@ class Dependency {
                                 this.upstreamComponentName
                             ],
                         varName: upVarName,
-                    }
+                    },
                 );
             }
         }
@@ -3049,7 +3047,7 @@ class Dependency {
                     ];
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     indexToRemove,
-                    1
+                    1,
                 );
                 this.valuesChanged.splice(indexToRemove, 1);
 
@@ -3060,7 +3058,7 @@ class Dependency {
                     // as they will be skipped below.  And, since the component may have
                     // been deleted already, we don't want to check its state.)
                     affectedDownstreamVariableNames.push(
-                        this.downstreamVariableNameIfNoVariables
+                        this.downstreamVariableNameIfNoVariables,
                     );
                 }
             }
@@ -3090,7 +3088,7 @@ class Dependency {
                         // TODO: check why have to do this when remove a component from a dependency
                         this.dependencyHandler.resetCircularCheckPassed(
                             this.upstreamComponentName,
-                            upstreamVarName
+                            upstreamVarName,
                         );
                     }
                 }
@@ -3111,7 +3109,7 @@ class Dependency {
                                     this.upstreamComponentName
                                 ],
                             varName: upVarName,
-                        }
+                        },
                     );
                 }
             }
@@ -3167,7 +3165,7 @@ class Dependency {
                                 this.upstreamComponentName
                             ],
                         varName: upVarName,
-                    }
+                    },
                 );
             }
         }
@@ -3181,7 +3179,7 @@ class Dependency {
 
         if (!this.mappedDownstreamVariableNamesByComponent) {
             affectedDownstreamVariableNamesByUpstreamComponent = Array(
-                this.downstreamComponentNames.length
+                this.downstreamComponentNames.length,
             ).fill([this.downstreamVariableNameIfNoVariables]);
         } else {
             affectedDownstreamVariableNamesByUpstreamComponent =
@@ -3260,7 +3258,7 @@ class Dependency {
                         // TODO: check why have to do this when delete a dependency
                         this.dependencyHandler.resetCircularCheckPassed(
                             this.upstreamComponentName,
-                            upstreamVarName
+                            upstreamVarName,
                         );
                     }
                 }
@@ -3479,7 +3477,7 @@ class Dependency {
         for (let varName of this.upstreamVariableNames) {
             this.dependencyHandler.resetCircularCheckPassed(
                 this.upstreamComponentName,
-                varName
+                varName,
             );
         }
         for (let varName of this.upstreamVariableNames) {
@@ -3505,7 +3503,7 @@ class Dependency {
         let foundChange =
             newComponentNames.length !== this.downstreamComponentNames.length ||
             this.downstreamComponentNames.some(
-                (v, i) => v != newComponentNames[i]
+                (v, i) => v != newComponentNames[i],
             );
 
         if (foundChange) {
@@ -3557,7 +3555,7 @@ class Dependency {
                         (v, i) =>
                             this.originalDownstreamVariableNamesByComponent[
                                 ind
-                            ][i] !== v
+                            ][i] !== v,
                     )
                 ) {
                     // remove and add back downstream component
@@ -3594,7 +3592,7 @@ class StateVariableDependency extends Dependency {
 
         if (this.definition.variableName === undefined) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableName is not defined`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableName is not defined`,
             );
         }
         this.originalDownstreamVariableNames = [this.definition.variableName];
@@ -3701,7 +3699,7 @@ class MultipleStateVariablesDependency extends Dependency {
 
         if (!Array.isArray(this.definition.variableNames)) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
             );
         }
         this.originalDownstreamVariableNames = this.definition.variableNames;
@@ -3952,7 +3950,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
 
         if (this.definition.variableNames === undefined) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames is not defined`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames is not defined`,
             );
         }
 
@@ -4015,19 +4013,19 @@ class RecursiveDependencyValuesDependency extends Dependency {
                 if (essentialVarNames.length > 0) {
                     downstreamComponentNames.push(componentName);
                     downstreamComponentTypes.push(
-                        result.components[componentName].componentType
+                        result.components[componentName].componentType,
                     );
                     this.originalDownstreamVariableNamesByComponent.push(
-                        essentialVarNames
+                        essentialVarNames,
                     );
                 }
             } else {
                 downstreamComponentNames.push(componentName);
                 downstreamComponentTypes.push(
-                    result.components[componentName].componentType
+                    result.components[componentName].componentType,
                 );
                 this.originalDownstreamVariableNamesByComponent.push(
-                    result.components[componentName].variableNames
+                    result.components[componentName].variableNames,
                 );
             }
         }
@@ -4405,7 +4403,7 @@ class AttributeComponentDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -4556,7 +4554,7 @@ class AttributeComponentDependency extends Dependency {
                         comp.state[
                             propVariable
                         ]?.shadowingInstructions?.attributesToShadow?.includes(
-                            this.attributeName
+                            this.attributeName,
                         ) ||
                         comp.constructor.createAttributesObject()[
                             this.attributeName
@@ -4569,8 +4567,8 @@ class AttributeComponentDependency extends Dependency {
                 let composite =
                     this.dependencyHandler._components[shadows.compositeName];
                 if ("sourceAttributesToIgnore" in composite.state) {
-                    let sourceAttributesToIgnore = await composite.stateValues
-                        .sourceAttributesToIgnore;
+                    let sourceAttributesToIgnore =
+                        await composite.stateValues.sourceAttributesToIgnore;
                     if (sourceAttributesToIgnore.includes(this.attributeName)) {
                         break;
                     }
@@ -4642,7 +4640,7 @@ class ChildDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -4654,13 +4652,13 @@ class ChildDependency extends Dependency {
         this.childGroups = this.definition.childGroups;
         if (!Array.isArray(this.childGroups)) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: childGroups must be an array`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: childGroups must be an array`,
             );
         }
 
         if (this.definition.childIndices !== undefined) {
             this.childIndices = this.definition.childIndices.map((x) =>
-                Number(x)
+                Number(x),
             );
         }
 
@@ -4745,11 +4743,11 @@ class ChildDependency extends Dependency {
         }
 
         let activeChildrenIndices = parent.returnMatchedChildIndices(
-            this.childGroups
+            this.childGroups,
         );
         if (activeChildrenIndices === undefined) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: childGroups ${this.childGroups} does not exist.`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: childGroups ${this.childGroups} does not exist.`,
             );
         }
 
@@ -4759,7 +4757,7 @@ class ChildDependency extends Dependency {
         // so filter uses the i argument, not the x argument
         if (this.childIndices) {
             activeChildrenIndices = activeChildrenIndices.filter((x, i) =>
-                this.childIndices.includes(i)
+                this.childIndices.includes(i),
             );
         }
 
@@ -4770,7 +4768,9 @@ class ChildDependency extends Dependency {
                 if (this.skipPlaceholders) {
                     activeChildrenIndices = activeChildrenIndices.filter(
                         (x) =>
-                            !parent.placeholderActiveChildrenIndices.includes(x)
+                            !parent.placeholderActiveChildrenIndices.includes(
+                                x,
+                            ),
                     );
                 }
 
@@ -4788,7 +4788,9 @@ class ChildDependency extends Dependency {
 
                     canProceedWithPlaceholders = activeChildrenIndices.every(
                         (x) =>
-                            !parent.placeholderActiveChildrenIndices.includes(x)
+                            !parent.placeholderActiveChildrenIndices.includes(
+                                x,
+                            ),
                     );
                 }
             }
@@ -4880,7 +4882,7 @@ class ChildDependency extends Dependency {
                                 ];
                             if (
                                 inds.every(
-                                    (x) => !activeChildrenIndices.includes(x)
+                                    (x) => !activeChildrenIndices.includes(x),
                                 )
                             ) {
                                 continue;
@@ -4895,11 +4897,11 @@ class ChildDependency extends Dependency {
                                 ?.primitive
                         ) {
                             compositesBlockingWithComponentType.push(
-                                compositeNotReady
+                                compositeNotReady,
                             );
                         } else {
                             compositesBlockingWithoutComponentType.push(
-                                compositeNotReady
+                                compositeNotReady,
                             );
                         }
                     }
@@ -4936,7 +4938,7 @@ class ChildDependency extends Dependency {
         }
 
         let activeChildrenMatched = activeChildrenIndices.map(
-            (x) => parent.activeChildren[x]
+            (x) => parent.activeChildren[x],
         );
 
         this.compositeReplacementRange = [];
@@ -4998,7 +5000,7 @@ class ChildDependency extends Dependency {
                         translatedPotentialListComponents.push(
                             compositeInfo.potentialListComponents[
                                 activeInd - compositeInfo.firstInd
-                            ]
+                            ],
                         );
                     }
 
@@ -5053,7 +5055,7 @@ class ChildDependency extends Dependency {
             downstreamComponentNames.push(
                 child.componentName
                     ? child.componentName
-                    : `__placeholder_${ind}`
+                    : `__placeholder_${ind}`,
             );
             downstreamComponentTypes.push(child.componentType);
         }
@@ -5092,7 +5094,7 @@ class ChildDependency extends Dependency {
             this.downstreamPrimitives.length !==
                 this.previousDownstreamPrimitives.length ||
             this.downstreamPrimitives.some(
-                (v, i) => v !== this.previousDownstreamPrimitives[i]
+                (v, i) => v !== this.previousDownstreamPrimitives[i],
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
@@ -5150,7 +5152,7 @@ class DescendantDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -5368,7 +5370,7 @@ class DescendantDependency extends Dependency {
                     let unexpandedReady =
                         this.unexpandedCompositesAdjustedForPlacedholders(
                             component.unexpandedCompositesReady,
-                            placeholdersOKForMatchedDescendants
+                            placeholdersOKForMatchedDescendants,
                         );
                     if (unexpandedReady.length > 0) {
                         unexpandedCompositesReadyByParentName[
@@ -5381,7 +5383,7 @@ class DescendantDependency extends Dependency {
                     let unexpandedNotReady =
                         this.unexpandedCompositesAdjustedForPlacedholders(
                             component.unexpandedCompositesNotReady,
-                            placeholdersOKForMatchedDescendants
+                            placeholdersOKForMatchedDescendants,
                         );
                     if (unexpandedNotReady.length > 0) {
                         unexpandedCompositesNotReadyByParentName[
@@ -5413,14 +5415,14 @@ class DescendantDependency extends Dependency {
                 if (result.haveUnexpandedCompositeReady) {
                     Object.assign(
                         unexpandedCompositesReadyByParentName,
-                        result.unexpandedCompositesReadyByParentName
+                        result.unexpandedCompositesReadyByParentName,
                     );
                     haveUnexpandedCompositeReady = true;
                 }
                 if (result.haveCompositesNotReady) {
                     Object.assign(
                         unexpandedCompositesNotReadyByParentName,
-                        result.unexpandedCompositesNotReadyByParentName
+                        result.unexpandedCompositesNotReadyByParentName,
                     );
                     haveCompositesNotReady = true;
                 }
@@ -5437,7 +5439,7 @@ class DescendantDependency extends Dependency {
 
     unexpandedCompositesAdjustedForPlacedholders(
         unexpandedComposites,
-        placeholdersOKForMatchedDescendants
+        placeholdersOKForMatchedDescendants,
     ) {
         let adjustedUnexpanded = [];
         for (let compositeName of unexpandedComposites) {
@@ -5454,8 +5456,8 @@ class DescendantDependency extends Dependency {
                         {
                             inheritedComponentType: placeholderType,
                             baseComponentType: ct,
-                        }
-                    )
+                        },
+                    ),
                 );
 
                 if (matches) {
@@ -5519,7 +5521,7 @@ class ParentDependency extends Dependency {
 
         if (!this.definition.variableName) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`,
             );
         } else {
             this.originalDownstreamVariableNames = [
@@ -5650,7 +5652,7 @@ class ParentDependency extends Dependency {
                 {
                     inheritedComponentType: parent.componentType,
                     baseComponentType: this.parentComponentType,
-                }
+                },
             )
         ) {
             // parent didn't match specified componentType
@@ -5852,7 +5854,7 @@ class ParentIdentityDependency extends Dependency {
                 {
                     inheritedComponentType: parent.componentType,
                     baseComponentType: this.parentComponentType,
-                }
+                },
             )
         ) {
             // parent didn't match specified componentType
@@ -5939,7 +5941,7 @@ class AncestorDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -6141,7 +6143,7 @@ class AncestorDependency extends Dependency {
                             inheritedComponentType:
                                 ancestorComponent.componentType,
                             baseComponentType: this.componentType,
-                        }
+                        },
                     )
                 ) {
                     return {
@@ -6156,7 +6158,7 @@ class AncestorDependency extends Dependency {
 
         if (this.originalDownstreamVariableNames.length === 0) {
             console.warn(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must specify componentType or variableNames to find ancestor`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must specify componentType or variableNames to find ancestor`,
             );
             return { ancestorsExamined };
         }
@@ -6262,7 +6264,7 @@ class ReplacementDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -6295,7 +6297,7 @@ class ReplacementDependency extends Dependency {
         if (this.definition.targetSubnamesComponentIndex) {
             if (
                 this.definition.targetSubnamesComponentIndex.every(
-                    Number.isInteger
+                    Number.isInteger,
                 )
             ) {
                 this.targetSubnamesComponentIndex =
@@ -6415,7 +6417,7 @@ class ReplacementDependency extends Dependency {
         ) {
             replacements = replacements.slice(
                 0,
-                -composite.replacementsToWithhold
+                -composite.replacementsToWithhold,
             );
         }
 
@@ -6428,7 +6430,7 @@ class ReplacementDependency extends Dependency {
                             this.recurseNonStandardComposites,
                         includeWithheldReplacements:
                             this.includeWithheldReplacements,
-                    }
+                    },
                 );
 
             if (
@@ -6504,7 +6506,7 @@ class ReplacementDependency extends Dependency {
             // Rationale: we do not have a mechanism for linking a string to its replacement source,
             // so returning the string would it unlinked and inconsistent with other cases.
             let nonBlankStringReplacements = replacements.filter(
-                (x) => typeof x !== "string" || x.trim() !== ""
+                (x) => typeof x !== "string" || x.trim() !== "",
             );
             let theReplacement =
                 nonBlankStringReplacements[this.componentIndex - 1];
@@ -6618,7 +6620,7 @@ class ReplacementDependency extends Dependency {
             this.replacementPrimitives.length !==
                 this.previousReplacementPrimitives.length ||
             this.replacementPrimitives.some(
-                (v, i) => v !== this.previousReplacementPrimitives[i]
+                (v, i) => v !== this.previousReplacementPrimitives[i],
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
@@ -6680,7 +6682,7 @@ class SourceCompositeStateVariableDependency extends Dependency {
 
         if (!this.definition.variableName) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`,
             );
         } else {
             this.originalDownstreamVariableNames = [
@@ -6765,7 +6767,7 @@ class SourceCompositeStateVariableDependency extends Dependency {
                     {
                         inheritedComponentType: sourceComposite.componentType,
                         baseComponentType: this.compositeComponentType,
-                    }
+                    },
                 )
             ) {
                 if (sourceComposite.replacementOf) {
@@ -6918,7 +6920,7 @@ class ShadowSourceDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -7042,7 +7044,7 @@ class UnlinkedCopySourceDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -7166,7 +7168,7 @@ class PrimaryShadowDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -7303,7 +7305,7 @@ class AdapterSourceStateVariableDependency extends Dependency {
 
         if (!this.definition.variableName) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: must have a variableName`,
             );
         } else {
             this.originalDownstreamVariableNames = [
@@ -7416,7 +7418,7 @@ class AdapterSourceDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -7533,7 +7535,7 @@ class CountAmongSiblingsDependency extends Dependency {
         }
 
         this.includeInheritedComponentTypes = Boolean(
-            this.definition.includeInheritedComponentTypes
+            this.definition.includeInheritedComponentTypes,
         );
     }
 
@@ -7586,7 +7588,7 @@ class CountAmongSiblingsDependency extends Dependency {
 
         if (!component.parentName) {
             console.warn(
-                `component ${this.componentName} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}.`
+                `component ${this.componentName} does not have a parent for state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}.`,
             );
             return {
                 success: true,
@@ -7819,12 +7821,12 @@ class CountAmongSiblingsDependency extends Dependency {
                         {
                             inheritedComponentType: x.componentType,
                             baseComponentType: childComponentType,
-                        }
-                    )
+                        },
+                    ),
                 );
             } else {
                 children = children.filter(
-                    (x) => x.componentType === childComponentType
+                    (x) => x.componentType === childComponentType,
                 );
             }
         }
@@ -7846,7 +7848,7 @@ class CountAmongSiblingsDependency extends Dependency {
                             {
                                 inheritedComponentType: cType,
                                 baseComponentType: childComponentType,
-                            }
+                            },
                         )
                     ) {
                         value += previousCounts[cType];
@@ -7931,7 +7933,7 @@ class TargetComponentDependency extends Dependency {
         if (this.definition.variableNames) {
             if (!Array.isArray(this.definition.variableNames)) {
                 throw Error(
-                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`
+                    `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`,
                 );
             }
             this.originalDownstreamVariableNames =
@@ -8303,7 +8305,7 @@ class DoenetMLDependency extends Dependency {
     async getValue() {
         let doenetML = this.dependencyHandler.core.requestComponentDoenetML(
             this.componentName,
-            this.displayOnlyChildren
+            this.displayOnlyChildren,
         );
 
         return {
@@ -8406,7 +8408,7 @@ class DoenetMLRangeDependency extends Dependency {
                 let allNewlines = this.dependencyHandler.core.doenetMLNewlines;
                 Object.assign(
                     doenetMLrange,
-                    getLineCharRange(doenetMLrange, allNewlines)
+                    getLineCharRange(doenetMLrange, allNewlines),
                 );
             }
 
@@ -8561,7 +8563,7 @@ class CounterDependency extends Dependency {
         }
 
         await this.dependencyHandler.collateCountersAndPropagateToAncestors(
-            component
+            component,
         );
 
         return {
@@ -8599,7 +8601,7 @@ class DetermineDependenciesDependency extends Dependency {
 
         if (this.definition.variableNames === undefined) {
             throw Error(
-                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames is not defined`
+                `Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames is not defined`,
             );
         }
         this.originalDownstreamVariableNames = this.definition.variableNames;
@@ -8767,7 +8769,7 @@ class FileDependency extends Dependency {
 
             let fileContents = await retrieveTextFileForCid(
                 this.cid,
-                extension
+                extension,
             );
 
             return {

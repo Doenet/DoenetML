@@ -17,7 +17,7 @@ describe("Boolean Operator Tag Tests", function () {
     <not>false</not>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -30,7 +30,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv"].stateValues.value).eq(false);
             expect(stateVariables["/_not1"].stateValues.value).eq(true);
@@ -48,7 +48,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv"].stateValues.value).eq(true);
             expect(stateVariables["/_not1"].stateValues.value).eq(false);
@@ -64,7 +64,7 @@ describe("Boolean Operator Tag Tests", function () {
     <not><when>$_mathinput1.value{assignNames="mv"} > 1</when></not>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -75,7 +75,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathinput1"].stateValues.value).eq(
-                "\uff3f"
+                "\uff3f",
             );
             expect(stateVariables["/mv"].stateValues.value).eq("\uff3f");
             expect(stateVariables["/_not1"].stateValues.value).eq(true);
@@ -100,7 +100,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.log("enter 1");
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.log("Test values displayed in browser");
@@ -147,7 +147,7 @@ describe("Boolean Operator Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -158,13 +158,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -183,13 +183,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -208,13 +208,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -233,13 +233,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -282,7 +282,7 @@ describe("Boolean Operator Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -293,13 +293,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -318,13 +318,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -343,13 +343,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -368,13 +368,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -393,13 +393,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -418,13 +418,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -443,13 +443,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -492,7 +492,7 @@ describe("Boolean Operator Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -503,13 +503,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -528,13 +528,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -553,13 +553,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -578,13 +578,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(true);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -603,13 +603,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(true);
@@ -628,13 +628,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -653,13 +653,13 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput2"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_booleaninput3"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/bv1"].stateValues.value).eq(false);
             expect(stateVariables["/bv2"].stateValues.value).eq(false);
@@ -686,7 +686,7 @@ describe("Boolean Operator Tag Tests", function () {
     $_booleaninput1.value{assignNames="bv1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -695,7 +695,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                false
+                false,
             );
             expect(stateVariables["/_point1"].stateValues.hide).eq(true);
         });
@@ -706,7 +706,7 @@ describe("Boolean Operator Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_booleaninput1"].stateValues.value).eq(
-                true
+                true,
             );
             expect(stateVariables["/_point1"].stateValues.hide).eq(false);
         });

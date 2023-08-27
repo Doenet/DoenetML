@@ -130,7 +130,7 @@ export default class BooleanInput extends Input {
                         {
                             setEssentialValue: "valueChanged",
                             value: Boolean(
-                                desiredStateVariableValues.valueChanged
+                                desiredStateVariableValues.valueChanged,
                             ),
                         },
                     ],

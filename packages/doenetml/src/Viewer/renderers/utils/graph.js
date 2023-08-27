@@ -42,7 +42,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
         if (
             labelPosition.substring(
                 labelPosition.length - 4,
-                labelPosition.length
+                labelPosition.length,
             ) === "left"
         ) {
             labelPosition =
@@ -56,7 +56,7 @@ export function adjustPointLabelPosition(labelPosition, nearEdgeOfGraph) {
         if (
             labelPosition.substring(
                 labelPosition.length - 5,
-                labelPosition.length
+                labelPosition.length,
             ) === "right"
         ) {
             labelPosition =

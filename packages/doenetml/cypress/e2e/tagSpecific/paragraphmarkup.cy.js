@@ -14,7 +14,7 @@ describe("Paragraph Markup Tag Tests", function () {
   <em>This is italics</em>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -30,14 +30,14 @@ describe("Paragraph Markup Tag Tests", function () {
   <alert>This is bold</alert>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.log("find alert");
         cy.get("strong" + cesc("#\\/_alert1")).should(
             "have.text",
-            "This is bold"
+            "This is bold",
         );
     });
 
@@ -49,7 +49,7 @@ describe("Paragraph Markup Tag Tests", function () {
   <p><q>Double quoted</q></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -65,7 +65,7 @@ describe("Paragraph Markup Tag Tests", function () {
   <p><sq>Single quoted</sq></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -81,7 +81,7 @@ describe("Paragraph Markup Tag Tests", function () {
   <c>Code!</c>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -97,14 +97,14 @@ describe("Paragraph Markup Tag Tests", function () {
   <term>Homogeneous</term>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.log("find term");
         cy.get("strong" + cesc("#\\/_term1")).should(
             "have.text",
-            "Homogeneous"
+            "Homogeneous",
         );
     });
 });

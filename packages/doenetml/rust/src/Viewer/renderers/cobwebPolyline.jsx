@@ -57,7 +57,7 @@ export default React.memo(function CobwebPolyline(props) {
         curveJXG.current = board.create(
             "functiongraph",
             [f],
-            functionAttributes
+            functionAttributes,
         );
 
         let diagonalAttributes = {
@@ -76,7 +76,7 @@ export default React.memo(function CobwebPolyline(props) {
                 [0, 0],
                 [1, 1],
             ],
-            diagonalAttributes
+            diagonalAttributes,
         );
 
         let validCoords = true;
@@ -158,8 +158,8 @@ export default React.memo(function CobwebPolyline(props) {
                 board.create(
                     "point",
                     [...SVs.numericalVertices[i]],
-                    pointAttributes
-                )
+                    pointAttributes,
+                ),
             );
         }
 
@@ -173,7 +173,7 @@ export default React.memo(function CobwebPolyline(props) {
         let newPolylineJXG = board.create(
             "curve",
             [x, y],
-            jsxPolylineAttributes
+            jsxPolylineAttributes,
         );
 
         for (let i = 0; i < SVs.nPoints; i++) {
@@ -181,7 +181,7 @@ export default React.memo(function CobwebPolyline(props) {
             pointsJXG.current[i].on("up", (x) => upHandler(i));
             pointsJXG.current[i].on(
                 "down",
-                (x) => (draggedPoint.current = null)
+                (x) => (draggedPoint.current = null),
             );
         }
 
@@ -281,7 +281,7 @@ export default React.memo(function CobwebPolyline(props) {
                 for (let i = previousNPoints.current; i < SVs.nPoints; i++) {
                     let pointAttributes = Object.assign(
                         {},
-                        jsxPointAttributes.current
+                        jsxPointAttributes.current,
                     );
                     if (i === 0) {
                         pointAttributes.name = `(${varName}_0,0)`;
@@ -301,15 +301,15 @@ export default React.memo(function CobwebPolyline(props) {
                         board.create(
                             "point",
                             [...SVs.numericalVertices[i]],
-                            pointAttributes
-                        )
+                            pointAttributes,
+                        ),
                     );
 
                     pointsJXG.current[i].on("drag", (x) => dragHandler(i));
                     pointsJXG.current[i].on("up", (x) => upHandler(i));
                     pointsJXG.current[i].on(
                         "down",
-                        (x) => (draggedPoint.current = null)
+                        (x) => (draggedPoint.current = null),
                     );
                 }
             } else if (SVs.nPoints < previousNPoints.current) {

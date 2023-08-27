@@ -50,7 +50,7 @@ export default class FunctionIterates extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.numDimensions = {
@@ -184,7 +184,7 @@ export default class FunctionIterates extends InlineComponent {
                                 iterComps.push(symbolicfs[i](...value).tree);
                             }
                             allIterates.push(
-                                me.fromAst(["vector", ...iterComps])
+                                me.fromAst(["vector", ...iterComps]),
                             );
                             value = iterComps.map((v) => me.fromAst(v));
                         }
@@ -196,7 +196,7 @@ export default class FunctionIterates extends InlineComponent {
                         let value = initialValue.evaluate_to_constant();
                         if (Number.isNaN(value)) {
                             allIterates = Array(numIterates).fill(
-                                me.fromAst("\uff3f")
+                                me.fromAst("\uff3f"),
                             );
                         } else {
                             for (let ind = 0; ind < numIterates; ind++) {
@@ -219,7 +219,7 @@ export default class FunctionIterates extends InlineComponent {
                                 iterComps.push(numericalfs[i](...value));
                             }
                             allIterates.push(
-                                me.fromAst(["vector", ...iterComps])
+                                me.fromAst(["vector", ...iterComps]),
                             );
                             value = iterComps;
                         }

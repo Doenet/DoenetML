@@ -15,7 +15,7 @@ describe("MathList Tag Tests", function () {
     <mathlist>a 1+1 </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -53,19 +53,19 @@ describe("MathList Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["+", 1, 1]);
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eqls(
-                    ["+", 1, 1]
+                    ["+", 1, 1],
                 );
             });
         });
@@ -80,7 +80,7 @@ describe("MathList Tag Tests", function () {
     <mathlist>a @  1+1 </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -127,28 +127,28 @@ describe("MathList Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("＿");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[2]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["+", 1, 1]);
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    "＿"
+                    "＿",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eqls(
-                    ["+", 1, 1]
+                    ["+", 1, 1],
                 );
             });
         });
@@ -168,7 +168,7 @@ describe("MathList Tag Tests", function () {
     <p><aslist>$_point1.xs{assignNames="x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11"}</aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -312,7 +312,7 @@ describe("MathList Tag Tests", function () {
     </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -354,52 +354,52 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_mathlist1"].activeChildren.length).eq(
-                    2
+                    2,
                 );
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["+", 1, 1]);
                 expect(
-                    stateVariables["/_mathlist1"].stateValues.maths.length
+                    stateVariables["/_mathlist1"].stateValues.maths.length,
                 ).eq(2);
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eqls(
-                    ["+", 1, 1]
+                    ["+", 1, 1],
                 );
                 expect(stateVariables["/_mathlist2"].activeChildren.length).eq(
-                    2
+                    2,
                 );
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist2"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist2"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["+", 1, 1]);
                 expect(
-                    stateVariables["/_mathlist2"].stateValues.maths.length
+                    stateVariables["/_mathlist2"].stateValues.maths.length,
                 ).eq(2);
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eqls(
-                    ["+", 1, 1]
+                    ["+", 1, 1],
                 );
             });
         });
@@ -416,7 +416,7 @@ describe("MathList Tag Tests", function () {
     </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -464,37 +464,37 @@ describe("MathList Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("q");
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[2]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["+", 1, 1]);
                 expect(
                     stateVariables[
                         stateVariables["/_mathlist1"].activeChildren[3]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("h");
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eqls(
-                    ["+", 1, 1]
+                    ["+", 1, 1],
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    "h"
+                    "h",
                 );
             });
         });
@@ -515,7 +515,7 @@ describe("MathList Tag Tests", function () {
     </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -559,13 +559,13 @@ describe("MathList Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_mathlist1"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq("a");
             expect(
                 stateVariables[
                     stateVariables["/_mathlist1"].activeChildren[1]
                         .componentName
-                ].stateValues.number
+                ].stateValues.number,
             ).eq(2);
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(2);
@@ -574,13 +574,13 @@ describe("MathList Tag Tests", function () {
                 stateVariables[
                     stateVariables["/_mathlist2"].activeChildren[0]
                         .componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eq("a");
             expect(
                 stateVariables[
                     stateVariables["/_mathlist2"].activeChildren[1]
                         .componentName
-                ].stateValues.number
+                ].stateValues.number,
             ).eq(2);
             expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(2);
@@ -618,7 +618,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -714,73 +714,73 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq(
-                    "r"
+                    "r",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    "h"
+                    "h",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[4]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[5]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[6]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[7]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[8]).eq(
-                    "j"
+                    "j",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(
-                    "r"
+                    "r",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[2]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[3]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[4]).eq(
-                    "j"
+                    "j",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[2]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[0]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[1]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[0]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[1]).eq(
-                    "j"
+                    "j",
                 );
             });
 
@@ -788,39 +788,39 @@ describe("MathList Tag Tests", function () {
 
             cy.get(cesc("#\\/_mathinput1") + " textarea").type(
                 "{end}{backspace}1{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                 "{end}{backspace}2{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput3") + " textarea").type(
                 "{end}{backspace}3{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput4") + " textarea").type(
                 "{end}{backspace}4{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput5") + " textarea").type(
                 "{end}{backspace}5{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput6") + " textarea").type(
                 "{end}{backspace}6{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput7") + " textarea").type(
                 "{end}{backspace}7{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput8") + " textarea").type(
                 "{end}{backspace}8{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput9") + " textarea").type(
                 "{end}{backspace}9{enter}",
-                { force: true }
+                { force: true },
             );
 
             cy.get(child8Anchor).should("contain.text", "9");
@@ -894,73 +894,73 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    1
+                    1,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    2
+                    2,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq(
-                    3
+                    3,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    4
+                    4,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[4]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[5]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[6]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[7]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[8]).eq(
-                    9
+                    9,
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    2
+                    2,
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(
-                    3
+                    3,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[0]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[1]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[2]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[3]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[4]).eq(
-                    9
+                    9,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[0]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[1]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[2]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[0]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[1]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[0]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[1]).eq(
-                    9
+                    9,
                 );
             });
         });
@@ -997,7 +997,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1099,73 +1099,73 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq(
-                    "r"
+                    "r",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    "h"
+                    "h",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[4]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[5]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[6]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[7]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[8]).eq(
-                    "j"
+                    "j",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(
-                    "r"
+                    "r",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[2]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[3]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[4]).eq(
-                    "j"
+                    "j",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[2]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[0]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[1]).eq(
-                    "v"
+                    "v",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[0]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[1]).eq(
-                    "j"
+                    "j",
                 );
             });
 
@@ -1173,39 +1173,39 @@ describe("MathList Tag Tests", function () {
 
             cy.get(cesc("#\\/_mathinput1") + " textarea").type(
                 "{end}{backspace}1{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput2") + " textarea").type(
                 "{end}{backspace}2{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput3") + " textarea").type(
                 "{end}{backspace}3{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput4") + " textarea").type(
                 "{end}{backspace}4{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput5") + " textarea").type(
                 "{end}{backspace}5{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput6") + " textarea").type(
                 "{end}{backspace}6{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput7") + " textarea").type(
                 "{end}{backspace}7{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput8") + " textarea").type(
                 "{end}{backspace}8{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/_mathinput9") + " textarea").type(
                 "{end}{backspace}9{enter}",
-                { force: true }
+                { force: true },
             );
 
             cy.get(child8Anchor).should("contain.text", "9");
@@ -1279,73 +1279,73 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    1
+                    1,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    2
+                    2,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq(
-                    3
+                    3,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    4
+                    4,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[4]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[5]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[6]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[7]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[8]).eq(
-                    9
+                    9,
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    2
+                    2,
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(
-                    3
+                    3,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[0]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[1]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[2]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[3]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[4]).eq(
-                    9
+                    9,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[0]).eq(
-                    5
+                    5,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[1]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[2]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[0]).eq(
-                    6
+                    6,
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[1]).eq(
-                    7
+                    7,
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[0]).eq(
-                    8
+                    8,
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[1]).eq(
-                    9
+                    9,
                 );
             });
         });
@@ -1389,7 +1389,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1456,7 +1456,7 @@ describe("MathList Tag Tests", function () {
             let mathinputAnchors = [];
             for (let i in mapping) {
                 mathinputAnchors.push(
-                    cesc(`#\\/_mathinput${Number(i) + 1}`) + ` textarea`
+                    cesc(`#\\/_mathinput${Number(i) + 1}`) + ` textarea`,
                 );
             }
 
@@ -1486,11 +1486,11 @@ describe("MathList Tag Tests", function () {
                     vals[mapping[changeInd]] = Number(changeInd);
                     cy.get(mathinputAnchors[changeInd]).type(
                         "{end}{backspace}" + changeInd + "{enter}",
-                        { force: true }
+                        { force: true },
                     );
                     cy.get(childAnchors[changeInd]).should(
                         "contain.text",
-                        String(mv(changeInd))
+                        String(mv(changeInd)),
                     );
 
                     cy.log("Test value displayed in browser");
@@ -1506,7 +1506,7 @@ describe("MathList Tag Tests", function () {
                     }
 
                     cy.log(
-                        "Test internal values are set to the correct values"
+                        "Test internal values are set to the correct values",
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
@@ -1544,7 +1544,7 @@ describe("MathList Tag Tests", function () {
     </mathlist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1642,82 +1642,82 @@ describe("MathList Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_mathlist1"].stateValues.maths.length
+                    stateVariables["/_mathlist1"].stateValues.maths.length,
                 ).eq(7);
                 expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq(
-                    "a"
+                    "a",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq(
-                    "r"
+                    "r",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[3]).eq(
-                    "h"
+                    "h",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[4]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[5]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist1"].stateValues.maths[6]).eq(
-                    "i"
+                    "i",
                 );
                 expect(
-                    stateVariables["/_mathlist2"].stateValues.maths.length
+                    stateVariables["/_mathlist2"].stateValues.maths.length,
                 ).eq(2);
                 expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq(
-                    "q"
+                    "q",
                 );
                 expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq(
-                    "r"
+                    "r",
                 );
                 expect(
-                    stateVariables["/_mathlist3"].stateValues.maths.length
+                    stateVariables["/_mathlist3"].stateValues.maths.length,
                 ).eq(4);
                 expect(stateVariables["/_mathlist3"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[2]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist3"].stateValues.maths[3]).eq(
-                    "j"
+                    "j",
                 );
                 expect(
-                    stateVariables["/_mathlist4"].stateValues.maths.length
+                    stateVariables["/_mathlist4"].stateValues.maths.length,
                 ).eq(2);
                 expect(stateVariables["/_mathlist4"].stateValues.maths[0]).eq(
-                    "b"
+                    "b",
                 );
                 expect(stateVariables["/_mathlist4"].stateValues.maths[1]).eq(
-                    "u"
+                    "u",
                 );
                 expect(
-                    stateVariables["/_mathlist5"].stateValues.maths.length
+                    stateVariables["/_mathlist5"].stateValues.maths.length,
                 ).eq(2);
                 expect(stateVariables["/_mathlist5"].stateValues.maths[0]).eq(
-                    "u"
+                    "u",
                 );
                 expect(stateVariables["/_mathlist5"].stateValues.maths[1]).eq(
-                    "v"
+                    "v",
                 );
                 expect(
-                    stateVariables["/_mathlist6"].stateValues.maths.length
+                    stateVariables["/_mathlist6"].stateValues.maths.length,
                 ).eq(3);
                 expect(stateVariables["/_mathlist6"].stateValues.maths[0]).eq(
-                    "i"
+                    "i",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[1]).eq(
-                    "j"
+                    "j",
                 );
                 expect(stateVariables["/_mathlist6"].stateValues.maths[2]).eq(
-                    "k"
+                    "k",
                 );
             });
         });
@@ -1739,7 +1739,7 @@ describe("MathList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1990,7 +1990,7 @@ describe("MathList Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2480,7 +2480,7 @@ describe("MathList Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2528,7 +2528,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                4
+                4,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eqls([
@@ -2549,7 +2549,7 @@ describe("MathList Tag Tests", function () {
                 "f",
             ]);
             expect(stateVariables["/_mathlist1"].stateValues.math5).eq(
-                undefined
+                undefined,
             );
         });
 
@@ -2612,7 +2612,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                4
+                4,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("h");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eqls([
@@ -2633,7 +2633,7 @@ describe("MathList Tag Tests", function () {
                 "j",
             ]);
             expect(stateVariables["/_mathlist1"].stateValues.math5).eq(
-                undefined
+                undefined,
             );
         });
 
@@ -2690,7 +2690,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                7
+                7,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("h");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq("b");
@@ -2776,7 +2776,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                7
+                7,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("l");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq("m");
@@ -2835,7 +2835,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                4
+                4,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("l");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eqls([
@@ -2856,7 +2856,7 @@ describe("MathList Tag Tests", function () {
                 "q",
             ]);
             expect(stateVariables["/_mathlist1"].stateValues.math5).eq(
-                undefined
+                undefined,
             );
         });
     });
@@ -2883,7 +2883,7 @@ describe("MathList Tag Tests", function () {
   </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2916,7 +2916,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                5
+                5,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq("b");
@@ -2973,7 +2973,7 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                5
+                5,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("f");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq("g");
@@ -3002,7 +3002,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3067,7 +3067,7 @@ describe("MathList Tag Tests", function () {
     <p name="pcopy">Copied mathlist: $ml</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3104,7 +3104,7 @@ describe("MathList Tag Tests", function () {
             "{end}{backspace}6{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/ml") + " .mjx-mrow")
@@ -3158,7 +3158,7 @@ describe("MathList Tag Tests", function () {
             "{end}{backspace}7{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/ml") + " .mjx-mrow").should("contain.text", "7,8,9");
@@ -3280,7 +3280,7 @@ describe("MathList Tag Tests", function () {
             "{end}{backspace}13{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc2("#/ml") + " .mjx-mrow").should("contain.text", "13");
@@ -3492,7 +3492,7 @@ describe("MathList Tag Tests", function () {
   <p name="pcopymlnl">$mlnl</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3783,7 +3783,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3908,19 +3908,19 @@ describe("MathList Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_mathlist1"].stateValues.maths.length).eq(
-                3
+                3,
             );
             expect(stateVariables["/_mathlist1"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/_mathlist1"].stateValues.maths[1]).eq("b");
             expect(stateVariables["/_mathlist1"].stateValues.maths[2]).eq("c");
             expect(stateVariables["/mathlist1a"].stateValues.maths.length).eq(
-                3
+                3,
             );
             expect(stateVariables["/mathlist1a"].stateValues.maths[0]).eq("a");
             expect(stateVariables["/mathlist1a"].stateValues.maths[1]).eq("b");
             expect(stateVariables["/mathlist1a"].stateValues.maths[2]).eq("c");
             expect(stateVariables["/_mathlist2"].stateValues.maths.length).eq(
-                8
+                8,
             );
             expect(stateVariables["/_mathlist2"].stateValues.maths[0]).eq("x");
             expect(stateVariables["/_mathlist2"].stateValues.maths[1]).eq("a");
@@ -3951,7 +3951,7 @@ describe("MathList Tag Tests", function () {
     </boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3974,7 +3974,7 @@ describe("MathList Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4045,7 +4045,7 @@ describe("MathList Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4110,7 +4110,7 @@ describe("MathList Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4194,7 +4194,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4207,98 +4207,98 @@ describe("MathList Tag Tests", function () {
 
                 if (i === 0) {
                     maths1 = stateVariables["/_mathlist1"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths2 = stateVariables["/_mathlist2"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths3 = stateVariables["/_mathlist3"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths4 = stateVariables["/_mathlist4"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths5 = stateVariables["/_mathlist5"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths6 = stateVariables["/_mathlist6"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                 } else if (i === 1) {
                     maths1 = stateVariables["/ml1a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths2 = stateVariables["/ml2a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths3 = stateVariables["/ml3a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths4 = stateVariables["/ml4a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths5 = stateVariables["/ml5a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths6 = stateVariables["/ml6a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                 } else if (i === 2) {
                     maths1 = stateVariables["/pms1"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths2 = stateVariables["/pms2"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths3 = stateVariables["/pms3"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths4 = stateVariables["/pms4"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths5 = stateVariables["/pms5"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths6 = stateVariables["/pms6"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                 } else if (i === 3) {
                     maths1 = stateVariables["/ml1b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths2 = stateVariables["/ml2b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths3 = stateVariables["/ml3b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths4 = stateVariables["/ml4b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths5 = stateVariables["/ml5b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths6 = stateVariables["/ml6b"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                 } else {
                     maths1 = stateVariables["/pms1a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths2 = stateVariables["/pms2a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths3 = stateVariables["/pms3a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths4 = stateVariables["/pms4a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths5 = stateVariables["/pms5a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     maths6 = stateVariables["/pms6a"].activeChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                 }
 
@@ -4541,7 +4541,7 @@ describe("MathList Tag Tests", function () {
     </mathList></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4551,22 +4551,22 @@ describe("MathList Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let maths1 = stateVariables["/ml1"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let maths2 = stateVariables["/ml2"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let maths3 = stateVariables["/ml3"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let maths5 = stateVariables["/ml5"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let maths6 = stateVariables["/ml6"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             let maths9 = stateVariables["/ml9"].activeChildren.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
 
             cy.get(cesc2("#" + maths1[0]) + " .mjx-mrow")
@@ -4828,7 +4828,7 @@ describe("MathList Tag Tests", function () {
     </mathList></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5034,7 +5034,7 @@ describe("MathList Tag Tests", function () {
     <p><mathList name="ml1Dec6a" copySource="ml1Dig6" displayDecimals="6" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5087,7 +5087,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5147,7 +5147,7 @@ describe("MathList Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5180,7 +5180,7 @@ describe("MathList Tag Tests", function () {
 
         cy.get(cesc2("#/mi2") + " textarea").type(
             "{end}{leftarrow}{backspace}{backspace}{backspace}-1,2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/nl")).should("have.text", "-1, 83, 2");

@@ -53,7 +53,7 @@ export default class Shuffle extends CompositeComponent {
                 !matchedChildren.every(
                     (child) =>
                         typeof child === "string" ||
-                        child.doenetAttributes?.createdFromMacro
+                        child.doenetAttributes?.createdFromMacro,
                 )
             ) {
                 return { success: false };
@@ -135,7 +135,7 @@ export default class Shuffle extends CompositeComponent {
                 for (let child of dependencyValues.children) {
                     if (child.stateValues?.componentNamesInList) {
                         originalComponentNames.push(
-                            ...child.stateValues.componentNamesInList
+                            ...child.stateValues.componentNamesInList,
                         );
                     } else {
                         originalComponentNames.push(child.componentName);
@@ -193,12 +193,12 @@ export default class Shuffle extends CompositeComponent {
                             desiredComponentOrder.map(Number);
                         if (!desiredComponentOrder.every(Number.isInteger)) {
                             throw Error(
-                                "All indices specified for shuffle must be integers"
+                                "All indices specified for shuffle must be integers",
                             );
                         }
                         if (
                             !desiredComponentOrder.every(
-                                (x) => x >= 1 && x <= numComponents
+                                (x) => x >= 1 && x <= numComponents,
                             )
                         ) {
                             warnings.push({
@@ -217,12 +217,12 @@ export default class Shuffle extends CompositeComponent {
                 }
 
                 let variantRng = dependencyValues.rngClass(
-                    dependencyValues.variantSeed + "co"
+                    dependencyValues.variantSeed + "co",
                 );
 
                 // https://stackoverflow.com/a/12646864
                 let componentOrder = [...Array(numComponents).keys()].map(
-                    (x) => x + 1
+                    (x) => x + 1,
                 );
                 for (let i = numComponents - 1; i > 0; i--) {
                     const rand = variantRng();
@@ -272,7 +272,7 @@ export default class Shuffle extends CompositeComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -297,12 +297,12 @@ export default class Shuffle extends CompositeComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -343,8 +343,8 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsCopied = [];
 
-        let originalComponentNames = await component.stateValues
-            .originalComponentNames;
+        let originalComponentNames =
+            await component.stateValues.originalComponentNames;
 
         for (let ind of await component.stateValues.componentOrder) {
             let replacementSource = components[originalComponentNames[ind - 1]];
@@ -355,7 +355,7 @@ export default class Shuffle extends CompositeComponent {
                 replacements.push(
                     await replacementSource.serialize({
                         primitiveSourceAttributesToIgnore: ["isResponse"],
-                    })
+                    }),
                 );
             }
         }
@@ -400,8 +400,8 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsToCopy = [];
 
-        let originalComponentNames = await component.stateValues
-            .originalComponentNames;
+        let originalComponentNames =
+            await component.stateValues.originalComponentNames;
 
         for (let ind of await component.stateValues.componentOrder) {
             let replacementSource = components[originalComponentNames[ind - 1]];
@@ -414,7 +414,7 @@ export default class Shuffle extends CompositeComponent {
         if (
             componentsToCopy.length == workspace.componentsCopied.length &&
             workspace.componentsCopied.every(
-                (x, i) => x === componentsToCopy[i]
+                (x, i) => x === componentsToCopy[i],
             )
         ) {
             return [];
@@ -463,7 +463,7 @@ export default class Shuffle extends CompositeComponent {
                         child.attributes.numComponents?.primitive !== undefined
                     ) {
                         let newComponents = Number(
-                            child.attributes.numComponents?.primitive
+                            child.attributes.numComponents?.primitive,
                         );
                         if (
                             Number.isInteger(newComponents) &&
@@ -560,7 +560,7 @@ export default class Shuffle extends CompositeComponent {
 
         // choice a permutation based on permutations index
         let indicesToPermute = [...Array(numComponents).keys()].map(
-            (x) => x + 1
+            (x) => x + 1,
         );
 
         let permutedIndices = enumeratePermutations({

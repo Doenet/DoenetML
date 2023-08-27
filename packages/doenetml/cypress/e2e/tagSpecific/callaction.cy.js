@@ -24,7 +24,7 @@ describe("CallAction Tag Tests", function () {
     </sum></number></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -101,7 +101,7 @@ describe("CallAction Tag Tests", function () {
     <p><booleaninput name="bi" />$bi.value{assignNames="b"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -137,7 +137,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -169,7 +169,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                     -2, 5,
@@ -192,7 +192,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(3);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -227,7 +227,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[2]].stateValues.xs).eqls([
                     7, -9,
@@ -250,7 +250,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -282,7 +282,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                     1, 0,
@@ -305,7 +305,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(1);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -333,7 +333,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(1);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -357,7 +357,7 @@ describe("CallAction Tag Tests", function () {
 
             for (let g of gs) {
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -395,7 +395,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -433,7 +433,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -458,7 +458,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                     -2, 5,
@@ -505,7 +505,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -543,7 +543,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -568,7 +568,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                     -2, 5,
@@ -620,7 +620,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load\
@@ -653,7 +653,7 @@ describe("CallAction Tag Tests", function () {
 
                 cy.get(cesc(`#\\/set${ind}\\/p2`)).should(
                     "contain.text",
-                    "(3,4"
+                    "(3,4",
                 );
 
                 cy.window().then(async (win) => {
@@ -662,7 +662,7 @@ describe("CallAction Tag Tests", function () {
                     let g = stateVariables[`/set${ind}/g`];
 
                     let pointNames = g.stateValues.graphicalDescendants.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     expect(pointNames.length).eq(2);
                     expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -681,7 +681,7 @@ describe("CallAction Tag Tests", function () {
 
                 cy.get(cesc(`#\\/set${ind}\\/p2`)).should(
                     "contain.text",
-                    "(−2,5)"
+                    "(−2,5)",
                 );
 
                 cy.window().then(async (win) => {
@@ -690,7 +690,7 @@ describe("CallAction Tag Tests", function () {
                     let g = stateVariables[`/set${ind}/g`];
 
                     let pointNames = g.stateValues.graphicalDescendants.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
                     expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                         -2, 5,
@@ -743,7 +743,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -783,7 +783,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(pointNames.length).eq(2);
             expect(stateVariables[pointNames[0]].stateValues.xs).eqls([1, 2]);
@@ -804,7 +804,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(stateVariables[pointNames[1]].stateValues.xs).eqls([-2, 5]);
 
@@ -834,7 +834,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(pointNames.length).eq(3);
             expect(stateVariables[pointNames[0]].stateValues.xs).eqls([1, 2]);
@@ -856,7 +856,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(stateVariables[pointNames[2]].stateValues.xs).eqls([7, -9]);
 
@@ -881,7 +881,7 @@ describe("CallAction Tag Tests", function () {
     </callAction></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -969,7 +969,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1056,7 +1056,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1095,7 +1095,7 @@ describe("CallAction Tag Tests", function () {
     </callAction></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1165,7 +1165,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1216,7 +1216,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1259,7 +1259,7 @@ describe("CallAction Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1282,7 +1282,7 @@ describe("CallAction Tag Tests", function () {
                 let P2Anchor =
                     "#" +
                     cesc2(
-                        stateVariables[copyName].replacements[0].componentName
+                        stateVariables[copyName].replacements[0].componentName,
                     );
 
                 let numbers;
@@ -1351,7 +1351,7 @@ describe("CallAction Tag Tests", function () {
                                 }
                                 numbers = numbers2;
                                 return true;
-                            })
+                            }),
                     );
                 });
 
@@ -1406,7 +1406,7 @@ describe("CallAction Tag Tests", function () {
                                 }
                                 numbers = numbers2;
                                 return true;
-                            })
+                            }),
                     );
                 });
 
@@ -1447,7 +1447,7 @@ describe("CallAction Tag Tests", function () {
     </callAction></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1517,7 +1517,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1568,7 +1568,7 @@ describe("CallAction Tag Tests", function () {
                         }
                         numbers = numbers2;
                         return true;
-                    })
+                    }),
             );
         });
 
@@ -1613,7 +1613,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1864,7 +1864,7 @@ describe("CallAction Tag Tests", function () {
     </callAction>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2119,7 +2119,7 @@ describe("CallAction Tag Tests", function () {
     </triggerSet>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2157,7 +2157,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(pointNames.length).eq(2);
             expect(stateVariables[pointNames[0]].stateValues.xs).eqls([1, 2]);
@@ -2178,7 +2178,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(stateVariables[pointNames[1]].stateValues.xs).eqls([-2, 5]);
         });
@@ -2229,7 +2229,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2249,13 +2249,13 @@ describe("CallAction Tag Tests", function () {
             let mathinputAnchor = cesc2("#" + mathinputName) + " textarea";
             let mathinputSubmitAnchor = cesc2("#" + mathinputName + "_submit");
             let mathinputCorrectAnchor = cesc2(
-                "#" + mathinputName + "_correct"
+                "#" + mathinputName + "_correct",
             );
             let mathinputIncorrectAnchor = cesc2(
-                "#" + mathinputName + "_incorrect"
+                "#" + mathinputName + "_incorrect",
             );
             let mathinputPartialAnchor = cesc2(
-                "#" + mathinputName + "_partial"
+                "#" + mathinputName + "_partial",
             );
 
             cy.get(mathinputAnchor).type(`x`, { force: true });
@@ -2291,7 +2291,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(pointNames.length).eq(2);
                 expect(stateVariables[pointNames[0]].stateValues.xs).eqls([
@@ -2316,7 +2316,7 @@ describe("CallAction Tag Tests", function () {
                 let g = stateVariables["/g"];
 
                 let pointNames = g.stateValues.graphicalDescendants.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 expect(stateVariables[pointNames[1]].stateValues.xs).eqls([
                     -2, 5,
@@ -2372,7 +2372,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2410,7 +2410,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(pointNames.length).eq(2);
             expect(stateVariables[pointNames[0]].stateValues.xs).eqls([1, 2]);
@@ -2431,7 +2431,7 @@ describe("CallAction Tag Tests", function () {
             let g = stateVariables["/g"];
 
             let pointNames = g.stateValues.graphicalDescendants.map(
-                (x) => x.componentName
+                (x) => x.componentName,
             );
             expect(stateVariables[pointNames[1]].stateValues.xs).eqls([-2, 5]);
         });
@@ -2462,7 +2462,7 @@ describe("CallAction Tag Tests", function () {
     <p><callAction target="s" actionName="resample" name="rs" ><label>Hi <m>\\sum_{i=1}^5x_i</m></label></callAction></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2472,7 +2472,7 @@ describe("CallAction Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/rs"].stateValues.label).eq(
-                "Hi \\(\\sum_{i=1}^5x_i\\)"
+                "Hi \\(\\sum_{i=1}^5x_i\\)",
             );
         });
     });
@@ -2487,20 +2487,20 @@ describe("CallAction Tag Tests", function () {
     <p><callAction target="s" actionName="resample" name="resample_numbers" labelIsName /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
 
         cy.get(cesc("#\\/resample_numbers")).should(
             "contain.text",
-            "resample numbers"
+            "resample numbers",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/resample_numbers"].stateValues.label).eq(
-                "resample numbers"
+                "resample numbers",
             );
         });
     });
@@ -2521,7 +2521,7 @@ describe("CallAction Tag Tests", function () {
     </sum></number></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2638,7 +2638,7 @@ describe("CallAction Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2655,21 +2655,21 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.log("move callactions by dragging");
@@ -2689,7 +2689,7 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2703,16 +2703,16 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2728,11 +2728,11 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -2741,11 +2741,11 @@ describe("CallAction Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move callactions by dragging");
@@ -2779,11 +2779,11 @@ describe("CallAction Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -2801,7 +2801,7 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2817,27 +2817,27 @@ describe("CallAction Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for button 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2878,11 +2878,11 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute");
@@ -2901,16 +2901,16 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -2926,11 +2926,11 @@ describe("CallAction Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute only for button 1");

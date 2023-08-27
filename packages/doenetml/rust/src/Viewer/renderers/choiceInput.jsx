@@ -25,7 +25,7 @@ export default React.memo(function ChoiceInput(props) {
     ChoiceInput.baseStateVariable = "selectedIndices";
 
     const [rendererSelectedIndices, setRendererSelectedIndices] = useState(
-        SVs.selectedIndices
+        SVs.selectedIndices,
     );
 
     const setRendererState = useSetRecoilState(rendererState(rendererName));
@@ -61,7 +61,7 @@ export default React.memo(function ChoiceInput(props) {
             if (e.target.value) {
                 newSelectedIndices = Array.from(
                     e.target.selectedOptions,
-                    (option) => Number(option.value)
+                    (option) => Number(option.value),
                 );
             }
         } else {

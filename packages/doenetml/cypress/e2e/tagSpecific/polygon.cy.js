@@ -23,33 +23,33 @@ async function testPolygonCopiedTwice({
             cy.get(`#${cesc2(pointsInDomPrefix + ind)} .mjx-mrow`).should(
                 "contain.text",
                 `(${nInDOM(
-                    Math.round(vertices[i][0] * 100000000) / 100000000
-                ).substring(0, 6)}`
+                    Math.round(vertices[i][0] * 100000000) / 100000000,
+                ).substring(0, 6)}`,
             );
         }
         if (Number.isFinite(vertices[i][1])) {
             cy.get(`#${cesc2(pointsInDomPrefix + ind)} .mjx-mrow`).should(
                 "contain.text",
                 `,${nInDOM(
-                    Math.round(vertices[i][1] * 100000000) / 100000000
-                ).substring(0, 6)}`
+                    Math.round(vertices[i][1] * 100000000) / 100000000,
+                ).substring(0, 6)}`,
             );
         }
     }
     cy.get(`#${cesc2(pointsInDomPrefix + (vertices.length + 1))}`).should(
-        "not.exist"
+        "not.exist",
     );
 
     cy.window().then(async (win) => {
         let stateVariables = await win.returnAllStateVariables1();
         expect(
-            stateVariables[graph1Name + polygonName].stateValues.numVertices
+            stateVariables[graph1Name + polygonName].stateValues.numVertices,
         ).eqls(vertices.length);
         expect(
-            stateVariables[graph2Name + polygonName].stateValues.numVertices
+            stateVariables[graph2Name + polygonName].stateValues.numVertices,
         ).eqls(vertices.length);
         expect(
-            stateVariables[graph3Name + polygonName].stateValues.numVertices
+            stateVariables[graph3Name + polygonName].stateValues.numVertices,
         ).eqls(vertices.length);
 
         for (let i in vertices) {
@@ -58,38 +58,38 @@ async function testPolygonCopiedTwice({
                     me
                         .fromAst(
                             stateVariables[graph1Name + polygonName].stateValues
-                                .vertices[i][0]
+                                .vertices[i][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][0], 1e-12);
                 expect(
                     me
                         .fromAst(
                             stateVariables[graph2Name + polygonName].stateValues
-                                .vertices[i][0]
+                                .vertices[i][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][0], 1e-12);
                 expect(
                     me
                         .fromAst(
                             stateVariables[graph3Name + polygonName].stateValues
-                                .vertices[i][0]
+                                .vertices[i][0],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][0], 1e-12);
             } else {
                 expect(
                     stateVariables[graph1Name + polygonName].stateValues
-                        .vertices[i][0]
+                        .vertices[i][0],
                 ).eq(vertices[i][0]);
                 expect(
                     stateVariables[graph2Name + polygonName].stateValues
-                        .vertices[i][0]
+                        .vertices[i][0],
                 ).eq(vertices[i][0]);
                 expect(
                     stateVariables[graph3Name + polygonName].stateValues
-                        .vertices[i][0]
+                        .vertices[i][0],
                 ).eq(vertices[i][0]);
             }
             if (Number.isFinite(vertices[i][1])) {
@@ -97,38 +97,38 @@ async function testPolygonCopiedTwice({
                     me
                         .fromAst(
                             stateVariables[graph1Name + polygonName].stateValues
-                                .vertices[i][1]
+                                .vertices[i][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][1], 1e-12);
                 expect(
                     me
                         .fromAst(
                             stateVariables[graph2Name + polygonName].stateValues
-                                .vertices[i][1]
+                                .vertices[i][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][1], 1e-12);
                 expect(
                     me
                         .fromAst(
                             stateVariables[graph3Name + polygonName].stateValues
-                                .vertices[i][1]
+                                .vertices[i][1],
                         )
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).closeTo(vertices[i][1], 1e-12);
             } else {
                 expect(
                     stateVariables[graph1Name + polygonName].stateValues
-                        .vertices[i][1]
+                        .vertices[i][1],
                 ).eq(vertices[i][1]);
                 expect(
                     stateVariables[graph2Name + polygonName].stateValues
-                        .vertices[i][1]
+                        .vertices[i][1],
                 ).eq(vertices[i][1]);
                 expect(
                     stateVariables[graph3Name + polygonName].stateValues
-                        .vertices[i][1]
+                        .vertices[i][1],
                 ).eq(vertices[i][1]);
             }
         }
@@ -161,7 +161,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -244,7 +244,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -335,7 +335,7 @@ describe("Polygon Tag Tests", function () {
   </map>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -412,7 +412,7 @@ describe("Polygon Tag Tests", function () {
   </map>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "b"); //wait for page to load
@@ -460,7 +460,7 @@ describe("Polygon Tag Tests", function () {
   </map>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -508,7 +508,7 @@ describe("Polygon Tag Tests", function () {
   $ti.value{assignNames="t"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -638,7 +638,7 @@ describe("Polygon Tag Tests", function () {
   $ti.value{assignNames="t"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -754,7 +754,7 @@ describe("Polygon Tag Tests", function () {
   $_polygon1.vertex4{assignNames="v4b"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -770,22 +770,22 @@ describe("Polygon Tag Tests", function () {
 
             for (let i = 0; i < 4; i++) {
                 expect(stateVariables[`/v${i + 1}`].stateValues.xs[0]).eq(
-                    ps[i][0]
+                    ps[i][0],
                 );
                 expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0]).eq(
-                    ps[i][0]
+                    ps[i][0],
                 );
                 expect(stateVariables[`/v${i + 1}`].stateValues.xs[1]).eq(
-                    ps[i][1]
+                    ps[i][1],
                 );
                 expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1]).eq(
-                    ps[i][1]
+                    ps[i][1],
                 );
             }
 
             cy.get(cesc("#\\/v4b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`
+                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`,
             );
         });
 
@@ -808,23 +808,23 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v4b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`
+                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 for (let i = 0; i < 4; i++) {
                     expect(stateVariables[`/v${i + 1}`].stateValues.xs[0]).eq(
-                        ps[i][0]
+                        ps[i][0],
                     );
                     expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0]).eq(
-                        ps[i][0]
+                        ps[i][0],
                     );
                     expect(stateVariables[`/v${i + 1}`].stateValues.xs[1]).eq(
-                        ps[i][1]
+                        ps[i][1],
                     );
                     expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1]).eq(
-                        ps[i][1]
+                        ps[i][1],
                     );
                 }
             });
@@ -849,23 +849,23 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v4b") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`
+                `(${nInDOM(ps[3][0])},${nInDOM(ps[3][1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 for (let i = 0; i < 4; i++) {
                     expect(stateVariables[`/v${i + 1}`].stateValues.xs[0]).eq(
-                        ps[i][0]
+                        ps[i][0],
                     );
                     expect(stateVariables[`/v${i + 1}a`].stateValues.xs[0]).eq(
-                        ps[i][0]
+                        ps[i][0],
                     );
                     expect(stateVariables[`/v${i + 1}`].stateValues.xs[1]).eq(
-                        ps[i][1]
+                        ps[i][1],
                     );
                     expect(stateVariables[`/v${i + 1}a`].stateValues.xs[1]).eq(
-                        ps[i][1]
+                        ps[i][1],
                     );
                 }
             });
@@ -888,7 +888,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -994,7 +994,7 @@ describe("Polygon Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1008,27 +1008,27 @@ describe("Polygon Tag Tests", function () {
                 cy.get(`#${cesc2("/p" + ind)} .mjx-mrow`).should(
                     "contain.text",
                     `(${nInDOM(
-                        Math.round(vertices2[i][0] * 100000000) / 100000000
-                    ).substring(0, 6)}`
+                        Math.round(vertices2[i][0] * 100000000) / 100000000,
+                    ).substring(0, 6)}`,
                 );
                 cy.get(`#${cesc2("/p" + ind)} .mjx-mrow`).should(
                     "contain.text",
                     `,${nInDOM(
-                        Math.round(vertices2[i][1] * 100000000) / 100000000
-                    ).substring(0, 6)}`
+                        Math.round(vertices2[i][1] * 100000000) / 100000000,
+                    ).substring(0, 6)}`,
                 );
             }
             cy.get(`#${cesc2("/p" + (vertices.length + 1))}`).should(
-                "not.exist"
+                "not.exist",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.numVertices
+                    stateVariables["/_polygon1"].stateValues.numVertices,
                 ).eqls(vertices.length);
                 expect(
-                    stateVariables["/_polygon2"].stateValues.numVertices
+                    stateVariables["/_polygon2"].stateValues.numVertices,
                 ).eqls(vertices.length);
 
                 for (let i in vertices) {
@@ -1037,28 +1037,28 @@ describe("Polygon Tag Tests", function () {
                             me
                                 .fromAst(
                                     stateVariables["/_polygon1"].stateValues
-                                        .vertices[i][0]
+                                        .vertices[i][0],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices[i][0], 1e-12);
                         expect(
                             me
                                 .fromAst(
                                     stateVariables["/_polygon2"].stateValues
-                                        .vertices[i][0]
+                                        .vertices[i][0],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices2[i][0], 1e-12);
                     } else {
                         expect(
                             stateVariables["/_polygon1"].stateValues.vertices[
                                 i
-                            ][0]
+                            ][0],
                         ).eq(vertices[i][0]);
                         expect(
                             stateVariables["/_polygon2"].stateValues.vertices[
                                 i
-                            ][0]
+                            ][0],
                         ).eq(vertices2[i][0]);
                     }
                     if (Number.isFinite(vertices[i][1])) {
@@ -1066,28 +1066,28 @@ describe("Polygon Tag Tests", function () {
                             me
                                 .fromAst(
                                     stateVariables["/_polygon1"].stateValues
-                                        .vertices[i][1]
+                                        .vertices[i][1],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices[i][1], 1e-12);
                         expect(
                             me
                                 .fromAst(
                                     stateVariables["/_polygon2"].stateValues
-                                        .vertices[i][1]
+                                        .vertices[i][1],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices2[i][1], 1e-12);
                     } else {
                         expect(
                             stateVariables["/_polygon1"].stateValues.vertices[
                                 i
-                            ][1]
+                            ][1],
                         ).eq(vertices[i][1]);
                         expect(
                             stateVariables["/_polygon2"].stateValues.vertices[
                                 i
-                            ][1]
+                            ][1],
                         ).eq(vertices2[i][1]);
                     }
                 }
@@ -1152,13 +1152,13 @@ describe("Polygon Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/transy") + " textarea").type(
             "{end}{backspace}10{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.window().then(async (win) => {
             transX = 2;
@@ -1182,7 +1182,7 @@ describe("Polygon Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1194,22 +1194,22 @@ describe("Polygon Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/parallelogram"].stateValues.vertices[0]
+                stateVariables["/parallelogram"].stateValues.vertices[0],
             ).eqls(A);
             expect(
-                stateVariables["/parallelogram"].stateValues.vertices[1]
+                stateVariables["/parallelogram"].stateValues.vertices[1],
             ).eqls(B);
             expect(
-                stateVariables["/parallelogram"].stateValues.vertices[2]
+                stateVariables["/parallelogram"].stateValues.vertices[2],
             ).eqls(C);
             expect(
-                stateVariables["/parallelogram"].stateValues.vertices[3]
+                stateVariables["/parallelogram"].stateValues.vertices[3],
             ).eqls(D);
         });
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.log("move first vertex");
@@ -1227,22 +1227,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[0]
+                    stateVariables["/parallelogram"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[1]
+                    stateVariables["/parallelogram"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[2]
+                    stateVariables["/parallelogram"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[3]
+                    stateVariables["/parallelogram"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1262,22 +1262,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[0]
+                    stateVariables["/parallelogram"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[1]
+                    stateVariables["/parallelogram"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[2]
+                    stateVariables["/parallelogram"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[3]
+                    stateVariables["/parallelogram"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1297,22 +1297,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[0]
+                    stateVariables["/parallelogram"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[1]
+                    stateVariables["/parallelogram"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[2]
+                    stateVariables["/parallelogram"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[3]
+                    stateVariables["/parallelogram"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1332,22 +1332,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(D[0])},${nInDOM(D[1])})`
+                `(${nInDOM(D[0])},${nInDOM(D[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[0]
+                    stateVariables["/parallelogram"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[1]
+                    stateVariables["/parallelogram"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[2]
+                    stateVariables["/parallelogram"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/parallelogram"].stateValues.vertices[3]
+                    stateVariables["/parallelogram"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1368,7 +1368,7 @@ describe("Polygon Tag Tests", function () {
   $_polygon2.vertices{assignNames="p1 p2 p3 p4"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1383,27 +1383,27 @@ describe("Polygon Tag Tests", function () {
                 cy.get(`#${cesc2("/p" + ind)} .mjx-mrow`).should(
                     "contain.text",
                     `(${nInDOM(
-                        Math.round(vertices2[i][0] * 100000000) / 100000000
-                    ).substring(0, 6)}`
+                        Math.round(vertices2[i][0] * 100000000) / 100000000,
+                    ).substring(0, 6)}`,
                 );
                 cy.get(`#${cesc2("/p" + ind)} .mjx-mrow`).should(
                     "contain.text",
                     `,${nInDOM(
-                        Math.round(vertices2[i][1] * 100000000) / 100000000
-                    ).substring(0, 6)}`
+                        Math.round(vertices2[i][1] * 100000000) / 100000000,
+                    ).substring(0, 6)}`,
                 );
             }
             cy.get(`#${cesc2("/p" + (vertices.length + 1))}`).should(
-                "not.exist"
+                "not.exist",
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.numVertices
+                    stateVariables["/_polygon1"].stateValues.numVertices,
                 ).eqls(vertices.length);
                 expect(
-                    stateVariables["/_polygon2"].stateValues.numVertices
+                    stateVariables["/_polygon2"].stateValues.numVertices,
                 ).eqls(vertices.length);
 
                 for (let i in vertices) {
@@ -1412,28 +1412,28 @@ describe("Polygon Tag Tests", function () {
                             me
                                 .fromAst(
                                     stateVariables["/_polygon1"].stateValues
-                                        .vertices[i][0]
+                                        .vertices[i][0],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices[i][0], 1e-12);
                         expect(
                             me
                                 .fromAst(
                                     stateVariables["/_polygon2"].stateValues
-                                        .vertices[i][0]
+                                        .vertices[i][0],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices2[i][0], 1e-12);
                     } else {
                         expect(
                             stateVariables["/_polygon1"].stateValues.vertices[
                                 i
-                            ][0]
+                            ][0],
                         ).eq(vertices[i][0]);
                         expect(
                             stateVariables["/_polygon2"].stateValues.vertices[
                                 i
-                            ][0]
+                            ][0],
                         ).eq(vertices2[i][0]);
                     }
                     if (Number.isFinite(vertices[i][1])) {
@@ -1441,28 +1441,28 @@ describe("Polygon Tag Tests", function () {
                             me
                                 .fromAst(
                                     stateVariables["/_polygon1"].stateValues
-                                        .vertices[i][1]
+                                        .vertices[i][1],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices[i][1], 1e-12);
                         expect(
                             me
                                 .fromAst(
                                     stateVariables["/_polygon2"].stateValues
-                                        .vertices[i][1]
+                                        .vertices[i][1],
                                 )
-                                .evaluate_to_constant()
+                                .evaluate_to_constant(),
                         ).closeTo(vertices2[i][1], 1e-12);
                     } else {
                         expect(
                             stateVariables["/_polygon1"].stateValues.vertices[
                                 i
-                            ][1]
+                            ][1],
                         ).eq(vertices[i][1]);
                         expect(
                             stateVariables["/_polygon2"].stateValues.vertices[
                                 i
-                            ][1]
+                            ][1],
                         ).eq(vertices2[i][1]);
                     }
                 }
@@ -1536,7 +1536,7 @@ describe("Polygon Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1549,22 +1549,22 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_polygon1"].stateValues.vertices[0]).eqls(
-                A
+                A,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[1]).eqls(
-                B
+                B,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[2]).eqls(
-                C
+                C,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[3]).eqls(
-                D
+                D,
             );
         });
 
@@ -1583,22 +1583,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1618,22 +1618,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1653,22 +1653,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1688,22 +1688,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(D[0])},${nInDOM(D[1])})`
+                `(${nInDOM(D[0])},${nInDOM(D[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(D);
             });
         });
@@ -1721,7 +1721,7 @@ describe("Polygon Tag Tests", function () {
   $_polygon1.vertices{assignNames="p1 p2 p3 p4"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1732,23 +1732,23 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
             expect(stateVariables["/_polygon1"].stateValues.vertices[0]).eqls(
-                A
+                A,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[1]).eqls(
-                B
+                B,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[2]).eqls(
-                C
+                C,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[3]).eqls(
-                A
+                A,
             );
         });
 
@@ -1766,22 +1766,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -1800,22 +1800,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -1834,22 +1834,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -1867,22 +1867,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -1901,7 +1901,7 @@ describe("Polygon Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -1912,23 +1912,23 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_polygon1"].stateValues.numVertices).eq(4);
             expect(stateVariables["/_polygon1"].stateValues.vertices[0]).eqls(
-                A
+                A,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[1]).eqls(
-                B
+                B,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[2]).eqls(
-                C
+                C,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[3]).eqls(
-                A
+                A,
             );
         });
 
@@ -1946,22 +1946,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -1980,22 +1980,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -2014,22 +2014,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -2048,22 +2048,22 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
             });
         });
@@ -2082,7 +2082,7 @@ describe("Polygon Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2094,25 +2094,25 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_polygon1"].stateValues.vertices[0]).eqls(
-                A
+                A,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[1]).eqls(
-                B
+                B,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[2]).eqls(
-                C
+                C,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[3]).eqls(
-                A
+                A,
             );
             expect(stateVariables["/_polygon1"].stateValues.vertices[4]).eqls(
-                D
+                D,
             );
         });
 
@@ -2131,25 +2131,25 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[4]
+                    stateVariables["/_polygon1"].stateValues.vertices[4],
                 ).eqls(D);
             });
         });
@@ -2168,25 +2168,25 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[4]
+                    stateVariables["/_polygon1"].stateValues.vertices[4],
                 ).eqls(D);
             });
         });
@@ -2205,25 +2205,25 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[4]
+                    stateVariables["/_polygon1"].stateValues.vertices[4],
                 ).eqls(D);
             });
         });
@@ -2243,25 +2243,25 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[4]
+                    stateVariables["/_polygon1"].stateValues.vertices[4],
                 ).eqls(D);
             });
         });
@@ -2281,25 +2281,25 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p5") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(D[0])},${nInDOM(D[1])})`
+                `(${nInDOM(D[0])},${nInDOM(D[1])})`,
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[0]
+                    stateVariables["/_polygon1"].stateValues.vertices[0],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[1]
+                    stateVariables["/_polygon1"].stateValues.vertices[1],
                 ).eqls(B);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[2]
+                    stateVariables["/_polygon1"].stateValues.vertices[2],
                 ).eqls(C);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[3]
+                    stateVariables["/_polygon1"].stateValues.vertices[3],
                 ).eqls(A);
                 expect(
-                    stateVariables["/_polygon1"].stateValues.vertices[4]
+                    stateVariables["/_polygon1"].stateValues.vertices[4],
                 ).eqls(D);
             });
         });
@@ -2318,7 +2318,7 @@ describe("Polygon Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2333,7 +2333,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A[0])},${nInDOM(A[1])})`
+            `(${nInDOM(A[0])},${nInDOM(A[1])})`,
         );
 
         cy.window().then(async (win) => {
@@ -2364,7 +2364,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2396,7 +2396,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2428,7 +2428,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2460,7 +2460,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2492,7 +2492,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p5") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(D[0])},${nInDOM(D[1])})`
+                `(${nInDOM(D[0])},${nInDOM(D[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2524,7 +2524,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p6") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(E[0])},${nInDOM(E[1])})`
+                `(${nInDOM(E[0])},${nInDOM(E[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2556,7 +2556,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p7") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2588,7 +2588,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p8") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(F[0])},${nInDOM(F[1])})`
+                `(${nInDOM(F[0])},${nInDOM(F[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2620,7 +2620,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p9") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(G[0])},${nInDOM(G[1])})`
+                `(${nInDOM(G[0])},${nInDOM(G[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2652,7 +2652,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p10") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2684,7 +2684,7 @@ describe("Polygon Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -2702,7 +2702,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(A3[0])},${nInDOM(A3[1])})`
+            `(${nInDOM(A3[0])},${nInDOM(A3[1])})`,
         );
 
         cy.window().then(async (win) => {
@@ -2736,7 +2736,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A3[0])},${nInDOM(A3[1])})`
+                `(${nInDOM(A3[0])},${nInDOM(A3[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2768,7 +2768,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(B[0])},${nInDOM(B[1])})`
+                `(${nInDOM(B[0])},${nInDOM(B[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2800,7 +2800,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(C[0])},${nInDOM(C[1])})`
+                `(${nInDOM(C[0])},${nInDOM(C[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2835,7 +2835,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A2[0])},${nInDOM(A2[1])})`
+                `(${nInDOM(A2[0])},${nInDOM(A2[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2867,7 +2867,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p5") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(D[0])},${nInDOM(D[1])})`
+                `(${nInDOM(D[0])},${nInDOM(D[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2899,7 +2899,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p6") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(E[0])},${nInDOM(E[1])})`
+                `(${nInDOM(E[0])},${nInDOM(E[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2934,7 +2934,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p7") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A1[0])},${nInDOM(A1[1])})`
+                `(${nInDOM(A1[0])},${nInDOM(A1[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2966,7 +2966,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p8") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(F[0])},${nInDOM(F[1])})`
+                `(${nInDOM(F[0])},${nInDOM(F[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -2998,7 +2998,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p9") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(G[0])},${nInDOM(G[1])})`
+                `(${nInDOM(G[0])},${nInDOM(G[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -3033,7 +3033,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p10") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(A[0])},${nInDOM(A[1])})`
+                `(${nInDOM(A[0])},${nInDOM(A[1])})`,
             );
 
             cy.window().then(async (win) => {
@@ -3070,7 +3070,7 @@ describe("Polygon Tag Tests", function () {
   $_polygon1.vertices{assignNames="v1 v2 v3" displayDigits="8"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3109,7 +3109,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(1.14`
+                `(1.14`,
             );
 
             cy.window().then(async (win) => {
@@ -3136,7 +3136,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3.12`
+                `(3.12`,
             );
 
             cy.window().then(async (win) => {
@@ -3162,7 +3162,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3.90`
+                `(3.90`,
             );
 
             cy.window().then(async (win) => {
@@ -3187,7 +3187,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3,5)`
+                `(3,5)`,
             );
 
             cy.window().then(async (win) => {
@@ -3237,7 +3237,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-5)},`
+                `(${nInDOM(-5)},`,
             );
 
             cy.window().then(async (win) => {
@@ -3263,7 +3263,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4)},`
+                `(${nInDOM(-4)},`,
             );
 
             cy.window().then(async (win) => {
@@ -3313,7 +3313,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-5)},`
+                `(${nInDOM(-5)},`,
             );
 
             cy.window().then(async (win) => {
@@ -3352,7 +3352,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3384,7 +3384,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3418,7 +3418,7 @@ describe("Polygon Tag Tests", function () {
   $_polygon1.vertices{assignNames="v1 v2 v3" displayDigits="8"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3434,7 +3434,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
             "contain.text",
-            `(${x1},${y1})`
+            `(${x1},${y1})`,
         );
 
         cy.window().then(async (win) => {
@@ -3460,7 +3460,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(1.14`
+                `(1.14`,
             );
 
             cy.window().then(async (win) => {
@@ -3487,7 +3487,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3.12`
+                `(3.12`,
             );
 
             cy.window().then(async (win) => {
@@ -3513,7 +3513,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3.90`
+                `(3.90`,
             );
 
             cy.window().then(async (win) => {
@@ -3538,7 +3538,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(3,5)`
+                `(3,5)`,
             );
 
             cy.window().then(async (win) => {
@@ -3552,7 +3552,7 @@ describe("Polygon Tag Tests", function () {
         });
 
         cy.log(
-            "point along extension of first segment constrained to endpoint"
+            "point along extension of first segment constrained to endpoint",
         );
         cy.window().then(async (win) => {
             let x = 4;
@@ -3567,7 +3567,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3593,7 +3593,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3619,7 +3619,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3633,7 +3633,7 @@ describe("Polygon Tag Tests", function () {
         });
 
         cy.log(
-            "point along extension of second segment constrained to endpoint"
+            "point along extension of second segment constrained to endpoint",
         );
         cy.window().then(async (win) => {
             let x = 6;
@@ -3648,7 +3648,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x3)},${nInDOM(y3)})`
+                `(${nInDOM(x3)},${nInDOM(y3)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3674,7 +3674,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3713,7 +3713,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x1)},${nInDOM(y1)})`
+                `(${nInDOM(x1)},${nInDOM(y1)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3745,7 +3745,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/v2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(x2)},${nInDOM(y2)})`
+                `(${nInDOM(x2)},${nInDOM(y2)})`,
             );
 
             cy.window().then(async (win) => {
@@ -3778,7 +3778,7 @@ describe("Polygon Tag Tests", function () {
   $A{name="A2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3796,7 +3796,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(15)}`
+            `(${nInDOM(15)}`,
         );
 
         cy.window().then(async (win) => {
@@ -3822,7 +3822,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-45)}`
+                `(${nInDOM(-45)}`,
             );
 
             cy.window().then(async (win) => {
@@ -3846,7 +3846,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(2.3)}`
+                `(${nInDOM(2.3)}`,
             );
 
             cy.window().then(async (win) => {
@@ -3870,7 +3870,7 @@ describe("Polygon Tag Tests", function () {
 
             cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${nInDOM(-4.5)}`
+                `(${nInDOM(-4.5)}`,
             );
 
             cy.window().then(async (win) => {
@@ -3896,7 +3896,7 @@ describe("Polygon Tag Tests", function () {
   $ti.value{assignNames="t"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3960,7 +3960,7 @@ describe("Polygon Tag Tests", function () {
     <p><copy prop="vertex2" target="_polygon1" propIndex="$n" assignNames="x" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3981,13 +3981,13 @@ describe("Polygon Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -3995,13 +3995,13 @@ describe("Polygon Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -4009,7 +4009,7 @@ describe("Polygon Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t3x)},${nInDOM(t3y)})`
+            `(${nInDOM(t3x)},${nInDOM(t3y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -4043,7 +4043,7 @@ describe("Polygon Tag Tests", function () {
     <p><copy source="_polygon1.vertices[2][$n]" assignNames="xa" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4065,17 +4065,17 @@ describe("Polygon Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -4083,17 +4083,17 @@ describe("Polygon Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -4101,7 +4101,7 @@ describe("Polygon Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t3x)},${nInDOM(t3y)})`
+            `(${nInDOM(t3x)},${nInDOM(t3y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -4134,7 +4134,7 @@ describe("Polygon Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4232,7 +4232,7 @@ describe("Polygon Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4368,7 +4368,7 @@ describe("Polygon Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4391,11 +4391,11 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/st4")).should(
             "have.text",
-            "filled green with red border"
+            "filled green with red border",
         );
         cy.get(cesc("#\\/stn4")).should(
             "have.text",
-            "filled green polygon with a red border"
+            "filled green polygon with a red border",
         );
         cy.get(cesc("#\\/bst4")).should("have.text", "red");
         cy.get(cesc("#\\/fst4")).should("have.text", "green");
@@ -4407,11 +4407,11 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/st6")).should(
             "have.text",
-            "filled blue with thick border"
+            "filled blue with thick border",
         );
         cy.get(cesc("#\\/stn6")).should(
             "have.text",
-            "filled blue polygon with a thick border"
+            "filled blue polygon with a thick border",
         );
         cy.get(cesc("#\\/bst6")).should("have.text", "thick blue");
         cy.get(cesc("#\\/fst6")).should("have.text", "blue");
@@ -4423,11 +4423,11 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/st8")).should(
             "have.text",
-            "filled green with thin dotted red border"
+            "filled green with thin dotted red border",
         );
         cy.get(cesc("#\\/stn8")).should(
             "have.text",
-            "filled green polygon with a thin dotted red border"
+            "filled green polygon with a thin dotted red border",
         );
         cy.get(cesc("#\\/bst8")).should("have.text", "thin dotted red");
         cy.get(cesc("#\\/fst8")).should("have.text", "green");
@@ -4447,7 +4447,7 @@ describe("Polygon Tag Tests", function () {
   <p name="pvert">all vertices: $p.vertices</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4470,7 +4470,7 @@ describe("Polygon Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([-2, 6]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -4509,7 +4509,7 @@ describe("Polygon Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([-2, 6]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -4552,7 +4552,7 @@ describe("Polygon Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([-2, 6]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -4574,7 +4574,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(4,7)"
+            "(4,7)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "false");
@@ -4658,7 +4658,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,2)"
+            "(−3,2)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -4700,7 +4700,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(3,8)"
+            "(3,8)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -4765,7 +4765,7 @@ describe("Polygon Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([1, 9]);
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -4786,7 +4786,7 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,1)"
+            "(−4,1)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -4809,7 +4809,7 @@ describe("Polygon Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([0, 7]);
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
     });
@@ -4841,45 +4841,45 @@ describe("Polygon Tag Tests", function () {
     <p name="Cfilldescrip">C has a $C.fillStyleDescription fill.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Polygon A is filled brown with thick border."
+            "Polygon A is filled brown with thick border.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a filled dark red polygon."
+            "B is a filled dark red polygon.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a filled black polygon with a thin border."
+            "C is a filled black polygon with a thin border.",
         );
         cy.get(cesc("#\\/Aborderdescrip")).should(
             "have.text",
-            "A has a thick brown border."
+            "A has a thick brown border.",
         );
         cy.get(cesc("#\\/Bborderdescrip")).should(
             "have.text",
-            "B has a dark red border."
+            "B has a dark red border.",
         );
         cy.get(cesc("#\\/Cborderdescrip")).should(
             "have.text",
-            "C has a thin black border."
+            "C has a thin black border.",
         );
         cy.get(cesc("#\\/Afilldescrip")).should(
             "have.text",
-            "A has a brown fill."
+            "A has a brown fill.",
         );
         cy.get(cesc("#\\/Bfilldescrip")).should(
             "have.text",
-            "B has a dark red fill."
+            "B has a dark red fill.",
         );
         cy.get(cesc("#\\/Cfilldescrip")).should(
             "have.text",
-            "C has a black fill."
+            "C has a black fill.",
         );
 
         cy.log("set dark mode");
@@ -4890,39 +4890,39 @@ describe("Polygon Tag Tests", function () {
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Polygon A is filled yellow with thick border."
+            "Polygon A is filled yellow with thick border.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a filled light red polygon."
+            "B is a filled light red polygon.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a filled white polygon with a thin border."
+            "C is a filled white polygon with a thin border.",
         );
         cy.get(cesc("#\\/Aborderdescrip")).should(
             "have.text",
-            "A has a thick yellow border."
+            "A has a thick yellow border.",
         );
         cy.get(cesc("#\\/Bborderdescrip")).should(
             "have.text",
-            "B has a light red border."
+            "B has a light red border.",
         );
         cy.get(cesc("#\\/Cborderdescrip")).should(
             "have.text",
-            "C has a thin white border."
+            "C has a thin white border.",
         );
         cy.get(cesc("#\\/Afilldescrip")).should(
             "have.text",
-            "A has a yellow fill."
+            "A has a yellow fill.",
         );
         cy.get(cesc("#\\/Bfilldescrip")).should(
             "have.text",
-            "B has a light red fill."
+            "B has a light red fill.",
         );
         cy.get(cesc("#\\/Cfilldescrip")).should(
             "have.text",
-            "C has a white fill."
+            "C has a white fill.",
         );
     });
 
@@ -4950,7 +4950,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -5066,7 +5066,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -5186,7 +5186,7 @@ describe("Polygon Tag Tests", function () {
   $(g1/pg.vertices{assignNames="p1 p2 p3 p4"})
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -5298,7 +5298,7 @@ describe("Polygon Tag Tests", function () {
   <booleaninput name="bi"/> <boolean name="bi2" copySource="bi" />
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -5312,7 +5312,7 @@ describe("Polygon Tag Tests", function () {
         testPolygonCopiedTwice({ vertices });
 
         cy.log(
-            "try to move polygon where calculated vertex can't be represented exactly"
+            "try to move polygon where calculated vertex can't be represented exactly",
         );
         cy.window().then(async (win) => {
             // key point: (desiredVertex2X/3)*3 !== desiredVertex2X due to round off error
@@ -5362,7 +5362,7 @@ describe("Polygon Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5382,7 +5382,7 @@ describe("Polygon Tag Tests", function () {
     <p>Perimeter: <number copySource="p.perimeter" name="perimeter" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5392,7 +5392,7 @@ describe("Polygon Tag Tests", function () {
         cy.get(cesc2("#/area")).should("have.text", `${area}`);
         cy.get(cesc2("#/perimeter")).should(
             "have.text",
-            `${Math.round(perimeter * 100) / 100}`
+            `${Math.round(perimeter * 100) / 100}`,
         );
 
         cy.window().then(async (win) => {
@@ -5417,7 +5417,7 @@ describe("Polygon Tag Tests", function () {
             cy.get(cesc2("#/area")).should("have.text", `${area}`);
             cy.get(cesc2("#/perimeter")).should(
                 "have.text",
-                `${Math.round(perimeter * 100) / 100}`
+                `${Math.round(perimeter * 100) / 100}`,
             );
         });
 
@@ -5435,7 +5435,7 @@ describe("Polygon Tag Tests", function () {
             cy.get(cesc2("#/area")).should("have.text", `0`);
             cy.get(cesc2("#/perimeter")).should(
                 "have.text",
-                `${Math.round(perimeter * 100) / 100}`
+                `${Math.round(perimeter * 100) / 100}`,
             );
         });
 
@@ -5455,7 +5455,7 @@ describe("Polygon Tag Tests", function () {
             cy.get(cesc2("#/area")).should("have.text", `${area}`);
             cy.get(cesc2("#/perimeter")).should(
                 "have.text",
-                `${Math.round(perimeter * 100) / 100}`
+                `${Math.round(perimeter * 100) / 100}`,
             );
         });
     });

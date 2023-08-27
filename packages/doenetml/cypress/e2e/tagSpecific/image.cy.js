@@ -16,7 +16,7 @@ describe("Image Tag Tests", function () {
   <image source="http://mathinsight.org/media/image/image/giant_anteater.jpg" width="300px" description="A giant anteater" />
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -76,7 +76,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -122,7 +122,7 @@ describe("Image Tag Tests", function () {
                 console.log(stateVariables);
                 console.log("/" + name);
                 expect(stateVariables["/" + name].stateValues.size).eq(
-                    expectedSizes[name]
+                    expectedSizes[name],
                 );
             }
         });
@@ -151,7 +151,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -160,19 +160,19 @@ describe("Image Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/i"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/ileft"].stateValues.horizontalAlign).eq(
-                "left"
+                "left",
             );
             expect(stateVariables["/iright"].stateValues.horizontalAlign).eq(
-                "right"
+                "right",
             );
             expect(stateVariables["/icenter"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/iinvalid"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
         });
 
@@ -193,7 +193,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -203,13 +203,13 @@ describe("Image Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/i"].stateValues.displayMode).eq("block");
             expect(stateVariables["/iinline"].stateValues.displayMode).eq(
-                "inline"
+                "inline",
             );
             expect(stateVariables["/iblock"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
             expect(stateVariables["/iinvalid"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
         });
 
@@ -283,7 +283,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -298,11 +298,11 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
@@ -310,19 +310,19 @@ describe("Image Tag Tests", function () {
         cy.get(cesc("#\\/pWidth2")).should("have.text", "Width 2: 50%");
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: 1"
+            "Aspect Ratio 1: 1",
         );
         cy.get(cesc("#\\/pAspectRatio2")).should(
             "have.text",
-            "Aspect Ratio 2: NaN"
+            "Aspect Ratio 2: NaN",
         );
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.get(cesc("#\\/image1a"))
@@ -370,7 +370,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -384,16 +384,16 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -405,11 +405,11 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1a") + " textarea").type(
             "{home}{shift+end}{backspace}(7,6){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(7,6)"
+            "(7,6)",
         );
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
             .eq(0)
@@ -421,11 +421,11 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -434,11 +434,11 @@ describe("Image Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move images by dragging");
@@ -470,11 +470,11 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/width1") + " textarea").type(
             "{end}{backspace}{backspace}100{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/width2") + " textarea").type(
             "{end}{backspace}{backspace}80{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pWidth1")).should("have.text", "Width 1: 100%");
@@ -505,7 +505,7 @@ describe("Image Tag Tests", function () {
             "{end}{backspace}{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/pWidth1")).should("have.text", "Width 1: 10%");
         cy.get(cesc("#\\/image1a"))
@@ -525,7 +525,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/aspectRatio1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/aspectRatio2") + " textarea").type("1/2{enter}", {
             force: true,
@@ -533,11 +533,11 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: 2"
+            "Aspect Ratio 1: 2",
         );
         cy.get(cesc("#\\/pAspectRatio2")).should(
             "have.text",
-            "Aspect Ratio 2: 0.5"
+            "Aspect Ratio 2: 0.5",
         );
         cy.get(cesc("#\\/image1a"))
             .invoke("css", "aspectRatio")
@@ -550,20 +550,20 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/aspectRatio1a") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/aspectRatio2") + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: NaN"
+            "Aspect Ratio 1: NaN",
         );
         cy.get(cesc("#\\/pAspectRatio2")).should(
             "have.text",
-            "Aspect Ratio 2: NaN"
+            "Aspect Ratio 2: NaN",
         );
         cy.get(cesc("#\\/image1a"))
             .invoke("css", "aspectRatio")
@@ -595,7 +595,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -604,7 +604,7 @@ describe("Image Tag Tests", function () {
         cy.get(cesc("#\\/pWidth1")).should("have.text", "Width 1: 5px");
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: 1"
+            "Aspect Ratio 1: 1",
         );
 
         cy.get(cesc("#\\/image1a"))
@@ -628,7 +628,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/width1") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pWidth1")).should("have.text", "Width 1: 10px");
@@ -648,7 +648,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/width1a") + " textarea").type(
             "{end}{backspace}{backspace}15{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pWidth1")).should("have.text", "Width 1: 15px");
@@ -669,12 +669,12 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/aspectRatio1") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: 2"
+            "Aspect Ratio 1: 2",
         );
         cy.get(cesc("#\\/image1a"))
             .invoke("css", "aspectRatio")
@@ -683,12 +683,12 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/aspectRatio1a") + " textarea").type(
             "{end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAspectRatio1")).should(
             "have.text",
-            "Aspect Ratio 1: NaN"
+            "Aspect Ratio 1: NaN",
         );
         cy.get(cesc("#\\/image1a"))
             .invoke("css", "aspectRatio")
@@ -714,7 +714,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -727,7 +727,7 @@ describe("Image Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/image1"].stateValues.rotate).eq(
-                Math.PI / 4
+                Math.PI / 4,
             );
         });
 
@@ -735,7 +735,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/rotate1") + " textarea").type(
             "{end}{shift+home}{backspace}3pi/4{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pRotate1")).should("contain.text", "Rotate 1: 2.356");
@@ -743,18 +743,18 @@ describe("Image Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/image1"].stateValues.rotate).eq(
-                (3 * Math.PI) / 4
+                (3 * Math.PI) / 4,
             );
         });
 
         cy.get(cesc("#\\/rotate1a") + " textarea").type(
             "{end}{shift+home}{backspace}-pi{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pRotate1")).should(
             "contain.text",
-            "Rotate 1: -3.14159"
+            "Rotate 1: -3.14159",
         );
 
         cy.window().then(async (win) => {
@@ -781,7 +781,7 @@ describe("Image Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -795,12 +795,12 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,7)"
+            "(6,7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -811,7 +811,7 @@ describe("Image Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should("contain.text", "q");

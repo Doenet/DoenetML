@@ -72,7 +72,7 @@ export default class CobwebPolyline extends Polyline {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.numDimensions.returnDependencies = () => ({});
@@ -303,7 +303,7 @@ export default class CobwebPolyline extends Polyline {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -447,7 +447,7 @@ export default class CobwebPolyline extends Polyline {
                         if (
                             indices.length === 2 &&
                             indices.every(
-                                (x, i) => Number.isInteger(x) && x >= 0
+                                (x, i) => Number.isInteger(x) && x >= 0,
                             )
                         ) {
                             if (arraySize) {
@@ -482,7 +482,7 @@ export default class CobwebPolyline extends Polyline {
                             // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                             return Array.from(
                                 Array(arraySize[1]),
-                                (_, i) => pointInd + "," + i
+                                (_, i) => pointInd + "," + i,
                             );
                         } else {
                             return [];
@@ -769,7 +769,7 @@ export default class CobwebPolyline extends Polyline {
                     numCorrectVertices =
                         dependencyValues.correctVertices.reduce(
                             (a, c) => a + c,
-                            0
+                            0,
                         );
                     fractionCorrectVertices =
                         numCorrectVertices / numGradedVertices;
@@ -824,7 +824,7 @@ export default class CobwebPolyline extends Polyline {
 
                 let numGradedVerticesAdjusted = Math.max(
                     dependencyValues.numGradedVertices,
-                    numVerticesRequired
+                    numVerticesRequired,
                 );
 
                 let fractionCorrectVerticesAdjusted;
@@ -860,7 +860,7 @@ export default class CobwebPolyline extends Polyline {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     numIterateValues: Math.ceil(
-                        (dependencyValues.numVertices + 1) / 2
+                        (dependencyValues.numVertices + 1) / 2,
                     ),
                 },
             }),

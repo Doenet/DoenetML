@@ -114,7 +114,7 @@ export default class Document extends BaseComponent {
             returnFeedbackDefinitionStateVariables();
         Object.assign(
             stateVariableDefinitions,
-            feedbackDefinitionStateVariables
+            feedbackDefinitionStateVariables,
         );
 
         stateVariableDefinitions.titleChildName = {
@@ -300,7 +300,7 @@ export default class Document extends BaseComponent {
                         scoredDescendants.push(descendant);
                     } else {
                         scoredDescendants.push(
-                            ...descendant.stateValues.scoredDescendants
+                            ...descendant.stateValues.scoredDescendants,
                         );
                     }
                 }
@@ -489,7 +489,7 @@ export default class Document extends BaseComponent {
                 return {
                     setValue: {
                         justSubmitted: dependencyValues.answerDescendants.every(
-                            (x) => x.stateValues.justSubmitted
+                            (x) => x.stateValues.justSubmitted,
                         ),
                     },
                 };
@@ -651,7 +651,7 @@ export default class Document extends BaseComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -677,12 +677,12 @@ export default class Document extends BaseComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -698,7 +698,7 @@ export default class Document extends BaseComponent {
                         if (previousSubvariants[ind]?.subvariants) {
                             subvariants[ind] = Object.assign(
                                 {},
-                                subvariants[ind]
+                                subvariants[ind],
                             );
                             subvariants[ind].subvariants =
                                 previousSubvariants[ind].subvariants;
@@ -831,7 +831,7 @@ export default class Document extends BaseComponent {
                     console.warn(
                         "Variant index " +
                             desiredVariant.index +
-                            " must be a number"
+                            " must be a number",
                     );
                     variantIndex = 1;
                 } else {
@@ -839,7 +839,7 @@ export default class Document extends BaseComponent {
                         console.warn(
                             "Variant index " +
                                 desiredVariant.index +
-                                " must be an integer"
+                                " must be an integer",
                         );
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
@@ -875,10 +875,10 @@ export default class Document extends BaseComponent {
             ];
 
         sharedParameters.variantRng = new sharedParameters.rngClass(
-            sharedParameters.variantSeed
+            sharedParameters.variantSeed,
         );
         sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
-            sharedParameters.variantSeed + "s"
+            sharedParameters.variantSeed + "s",
         );
 
         // console.log("Document variant name: " + sharedParameters.variantName);

@@ -112,7 +112,7 @@ export function getFromText({
                 appliedFunctionSymbols,
                 functionSymbols,
                 splitSymbols,
-            }).convert(x)
+            }).convert(x),
         );
 }
 
@@ -133,7 +133,7 @@ export function getFromLatex({
                     appliedFunctionSymbols,
                     functionSymbols,
                     allowedLatexSymbols,
-                }).convert(wrapWordIncludingNumberWithVar(x))
+                }).convert(wrapWordIncludingNumberWithVar(x)),
             );
     } else {
         return (x) =>
@@ -142,7 +142,7 @@ export function getFromLatex({
                     appliedFunctionSymbols,
                     functionSymbols,
                     allowedLatexSymbols,
-                }).convert(wrapWordWithVar(x))
+                }).convert(wrapWordWithVar(x)),
             );
     }
 }
@@ -452,7 +452,7 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
     }
 
     let startLdotsMatch = latexString.match(
-        /^(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*(.*)$/
+        /^(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*(.*)$/,
     );
 
     if (startLdotsMatch) {
@@ -465,7 +465,7 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
     }
 
     let endLdotsMatch = latexString.match(
-        /^(.*?)(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*$/
+        /^(.*?)(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*$/,
     );
 
     if (endLdotsMatch) {
@@ -573,13 +573,13 @@ export function roundForDisplay({ value, dependencyValues, usedDefault }) {
     ) {
         rounded = me.round_numbers_to_decimals(
             value,
-            dependencyValues.displayDecimals
+            dependencyValues.displayDecimals,
         );
     } else {
         if (dependencyValues.displayDigits >= 1) {
             rounded = me.round_numbers_to_precision(
                 value,
-                dependencyValues.displayDigits
+                dependencyValues.displayDigits,
             );
         } else {
             // default behavior is round to 10 digits
@@ -610,7 +610,7 @@ export function mergeListsWithOtherContainers(tree) {
                 Array.isArray(c) && c[0] === "list"
                     ? [...a, ...c.slice(1)]
                     : [...a, c],
-            []
+            [],
         );
     }
 
@@ -675,7 +675,7 @@ export function wrapWordIncludingNumberWithVar(string) {
         let beginMatch = match.index;
         let endMatch = beginMatch + match[0].length;
         newString += wrapWordIncludingNumberWithVarSub(
-            string.substring(0, beginMatch)
+            string.substring(0, beginMatch),
         );
         newString += string.substring(beginMatch, endMatch);
         string = string.substring(endMatch);

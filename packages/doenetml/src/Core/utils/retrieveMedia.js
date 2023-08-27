@@ -45,7 +45,7 @@ async function retrieveMediaFromIPFS(cid) {
             let mediaBlob = await response.blob();
 
             let CidRetrieved = await cidFromArrayBuffer(
-                await mediaBlob.arrayBuffer()
+                await mediaBlob.arrayBuffer(),
             );
 
             if (CidRetrieved === cid) {
@@ -72,7 +72,7 @@ async function retrieveMediaFromServer(cid, mimeType) {
             let mediaBlob = await response.blob();
 
             let CidRetrieved = await cidFromArrayBuffer(
-                await mediaBlob.arrayBuffer()
+                await mediaBlob.arrayBuffer(),
             );
 
             if (CidRetrieved === cid) {

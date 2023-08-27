@@ -55,7 +55,7 @@ describe("EigenDecomposition Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -63,14 +63,14 @@ describe("EigenDecomposition Tag Tests", function () {
 
         cy.get(cesc("#\\/pAevs")).should(
             "have.text",
-            "Eigenvalues of A: -1, 3"
+            "Eigenvalues of A: -1, 3",
         );
         cy.get(cesc("#\\/Aev1")).should("have.text", "-1");
         cy.get(cesc("#\\/Aev2")).should("have.text", "3");
 
         cy.get(cesc("#\\/pBevs")).should(
             "have.text",
-            "Eigenvalues of B: 1 + 2 i, 1 - 2 i"
+            "Eigenvalues of B: 1 + 2 i, 1 - 2 i",
         );
         cy.get(cesc("#\\/Bev1")).should("have.text", "1 + 2 i");
         cy.get(cesc("#\\/Bev2")).should("have.text", "1 - 2 i");
@@ -85,100 +85,100 @@ describe("EigenDecomposition Tag Tests", function () {
 
             expect(
                 stateVariables["/Ad"].stateValues.eigenvectors[0][1] /
-                    stateVariables["/Ad"].stateValues.eigenvectors[0][0]
+                    stateVariables["/Ad"].stateValues.eigenvectors[0][0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Ad"].stateValues.eigenvectors[1][1] /
-                    stateVariables["/Ad"].stateValues.eigenvectors[1][0]
+                    stateVariables["/Ad"].stateValues.eigenvectors[1][0],
             ).closeTo(1, 1e-14);
 
             expect(
                 stateVariables["/Aevec1"].stateValues.displacement[1] /
-                    stateVariables["/Aevec1"].stateValues.displacement[0]
+                    stateVariables["/Aevec1"].stateValues.displacement[0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Aevec1a"].stateValues.displacement[1] /
-                    stateVariables["/Aevec1a"].stateValues.displacement[0]
+                    stateVariables["/Aevec1a"].stateValues.displacement[0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Aevec2"].stateValues.displacement[1] /
-                    stateVariables["/Aevec2"].stateValues.displacement[0]
+                    stateVariables["/Aevec2"].stateValues.displacement[0],
             ).closeTo(1, 1e-14);
             expect(
                 stateVariables["/Aevec2a"].stateValues.displacement[1] /
-                    stateVariables["/Aevec2a"].stateValues.displacement[0]
+                    stateVariables["/Aevec2a"].stateValues.displacement[0],
             ).closeTo(1, 1e-14);
             expect(
                 stateVariables["/Aevec1y"].stateValues.value /
-                    stateVariables["/Aevec1x"].stateValues.value
+                    stateVariables["/Aevec1x"].stateValues.value,
             ).closeTo(-1, 1e-14);
 
             expect(stateVariables["/Bd"].stateValues.eigenvalues[0].re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[0].im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[1].re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[1].im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1"].stateValues.value.im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1a"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1a"].stateValues.value.im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2"].stateValues.value.im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2a"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2a"].stateValues.value.im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
 
             let ratio = me.math.divide(
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[0][1]
+                    stateVariables["/Bd"].stateValues.eigenvectors[0][1],
                 ),
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[0][0]
-                )
+                    stateVariables["/Bd"].stateValues.eigenvectors[0][0],
+                ),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
             ratio = me.math.divide(
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[1][1]
+                    stateVariables["/Bd"].stateValues.eigenvectors[1][1],
                 ),
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[1][0]
-                )
+                    stateVariables["/Bd"].stateValues.eigenvectors[1][0],
+                ),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
@@ -186,14 +186,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec1"].stateValues.displacement[1]
+                        stateVariables["/Bevec1"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec1"].stateValues.displacement[0]
+                        stateVariables["/Bevec1"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
@@ -201,14 +201,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec1a"].stateValues.displacement[1]
+                        stateVariables["/Bevec1a"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec1a"].stateValues.displacement[0]
+                        stateVariables["/Bevec1a"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
@@ -216,14 +216,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec2"].stateValues.displacement[1]
+                        stateVariables["/Bevec2"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec2"].stateValues.displacement[0]
+                        stateVariables["/Bevec2"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
@@ -231,21 +231,21 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec2a"].stateValues.displacement[1]
+                        stateVariables["/Bevec2a"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec2a"].stateValues.displacement[0]
+                        stateVariables["/Bevec2a"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
 
             ratio = me.math.divide(
                 reviveComplex(stateVariables["/Bevec1y"].stateValues.value),
-                reviveComplex(stateVariables["/Bevec1x"].stateValues.value)
+                reviveComplex(stateVariables["/Bevec1x"].stateValues.value),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
@@ -300,7 +300,7 @@ describe("EigenDecomposition Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -308,14 +308,14 @@ describe("EigenDecomposition Tag Tests", function () {
 
         cy.get(cesc("#\\/pAevs")).should(
             "have.text",
-            "Eigenvalues of A: -1, 3"
+            "Eigenvalues of A: -1, 3",
         );
         cy.get(cesc("#\\/Aev1")).should("have.text", "-1");
         cy.get(cesc("#\\/Aev2")).should("have.text", "3");
 
         cy.get(cesc("#\\/pBevs")).should(
             "have.text",
-            "Eigenvalues of B: 1 + 2 i, 1 - 2 i"
+            "Eigenvalues of B: 1 + 2 i, 1 - 2 i",
         );
         cy.get(cesc("#\\/Bev1")).should("have.text", "1 + 2 i");
         cy.get(cesc("#\\/Bev2")).should("have.text", "1 - 2 i");
@@ -330,100 +330,100 @@ describe("EigenDecomposition Tag Tests", function () {
 
             expect(
                 stateVariables["/Ad"].stateValues.eigenvectors[0][1] /
-                    stateVariables["/Ad"].stateValues.eigenvectors[0][0]
+                    stateVariables["/Ad"].stateValues.eigenvectors[0][0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Ad"].stateValues.eigenvectors[1][1] /
-                    stateVariables["/Ad"].stateValues.eigenvectors[1][0]
+                    stateVariables["/Ad"].stateValues.eigenvectors[1][0],
             ).closeTo(1, 1e-14);
 
             expect(
                 stateVariables["/Aevec1"].stateValues.displacement[1] /
-                    stateVariables["/Aevec1"].stateValues.displacement[0]
+                    stateVariables["/Aevec1"].stateValues.displacement[0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Aevec1a"].stateValues.displacement[1] /
-                    stateVariables["/Aevec1a"].stateValues.displacement[0]
+                    stateVariables["/Aevec1a"].stateValues.displacement[0],
             ).closeTo(-1, 1e-14);
             expect(
                 stateVariables["/Aevec2"].stateValues.displacement[1] /
-                    stateVariables["/Aevec2"].stateValues.displacement[0]
+                    stateVariables["/Aevec2"].stateValues.displacement[0],
             ).closeTo(1, 1e-14);
             expect(
                 stateVariables["/Aevec2a"].stateValues.displacement[1] /
-                    stateVariables["/Aevec2a"].stateValues.displacement[0]
+                    stateVariables["/Aevec2a"].stateValues.displacement[0],
             ).closeTo(1, 1e-14);
             expect(
                 stateVariables["/Aevec1y"].stateValues.value /
-                    stateVariables["/Aevec1x"].stateValues.value
+                    stateVariables["/Aevec1x"].stateValues.value,
             ).closeTo(-1, 1e-14);
 
             expect(stateVariables["/Bd"].stateValues.eigenvalues[0].re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[0].im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[1].re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bd"].stateValues.eigenvalues[1].im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1"].stateValues.value.im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1a"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev1a"].stateValues.value.im).closeTo(
                 2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2"].stateValues.value.im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2a"].stateValues.value.re).closeTo(
                 1,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/Bev2a"].stateValues.value.im).closeTo(
                 -2,
-                1e-14
+                1e-14,
             );
 
             let ratio = me.math.divide(
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[0][1]
+                    stateVariables["/Bd"].stateValues.eigenvectors[0][1],
                 ),
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[0][0]
-                )
+                    stateVariables["/Bd"].stateValues.eigenvectors[0][0],
+                ),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
             ratio = me.math.divide(
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[1][1]
+                    stateVariables["/Bd"].stateValues.eigenvectors[1][1],
                 ),
                 reviveComplex(
-                    stateVariables["/Bd"].stateValues.eigenvectors[1][0]
-                )
+                    stateVariables["/Bd"].stateValues.eigenvectors[1][0],
+                ),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
@@ -431,14 +431,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec1"].stateValues.displacement[1]
+                        stateVariables["/Bevec1"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec1"].stateValues.displacement[0]
+                        stateVariables["/Bevec1"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
@@ -446,14 +446,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec1a"].stateValues.displacement[1]
+                        stateVariables["/Bevec1a"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec1a"].stateValues.displacement[0]
+                        stateVariables["/Bevec1a"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);
@@ -461,14 +461,14 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec2"].stateValues.displacement[1]
+                        stateVariables["/Bevec2"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec2"].stateValues.displacement[0]
+                        stateVariables["/Bevec2"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
@@ -476,21 +476,21 @@ describe("EigenDecomposition Tag Tests", function () {
             ratio = me.math.divide(
                 me
                     .fromAst(
-                        stateVariables["/Bevec2a"].stateValues.displacement[1]
+                        stateVariables["/Bevec2a"].stateValues.displacement[1],
                     )
                     .evaluate_to_constant(),
                 me
                     .fromAst(
-                        stateVariables["/Bevec2a"].stateValues.displacement[0]
+                        stateVariables["/Bevec2a"].stateValues.displacement[0],
                     )
-                    .evaluate_to_constant()
+                    .evaluate_to_constant(),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(-1, 1e-14);
 
             ratio = me.math.divide(
                 reviveComplex(stateVariables["/Bevec1y"].stateValues.value),
-                reviveComplex(stateVariables["/Bevec1x"].stateValues.value)
+                reviveComplex(stateVariables["/Bevec1x"].stateValues.value),
             );
             expect(ratio.re).closeTo(0, 1e-14);
             expect(ratio.im).closeTo(1, 1e-14);

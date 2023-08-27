@@ -53,7 +53,7 @@ export default class BaseComponent {
             // as state variable definitions of multiple variables could be same object
             this.state[stateVariable] = Object.assign(
                 {},
-                stateVariableDefinitions[stateVariable]
+                stateVariableDefinitions[stateVariable],
             );
         }
         this.stateValues = new Proxy(this.state, createStateProxyHandler());
@@ -68,7 +68,7 @@ export default class BaseComponent {
         if (serializedComponent.doenetAttributes !== undefined) {
             Object.assign(
                 this.doenetAttributes,
-                serializedComponent.doenetAttributes
+                serializedComponent.doenetAttributes,
             );
         }
 
@@ -125,8 +125,9 @@ export default class BaseComponent {
                 if (stateVarObj.wrappingComponents) {
                     componentTypes.push(
                         ...flattenDeep(stateVarObj.wrappingComponents).map(
-                            (x) => (typeof x === "object" ? x.componentType : x)
-                        )
+                            (x) =>
+                                typeof x === "object" ? x.componentType : x,
+                        ),
                     );
                 }
                 for (let componentType of componentTypes) {
@@ -231,8 +232,8 @@ export default class BaseComponent {
                         componentTypes.push(
                             ...flattenDeep(stateDescrip.wrappingComponents).map(
                                 (x) =>
-                                    typeof x === "object" ? x.componentType : x
-                            )
+                                    typeof x === "object" ? x.componentType : x,
+                            ),
                         );
                     }
                     for (let componentType of componentTypes) {
@@ -281,7 +282,7 @@ export default class BaseComponent {
             if (comp.children) {
                 let childRenderTypes =
                     this.potentialRendererTypesFromSerializedComponents(
-                        comp.children
+                        comp.children,
                     );
                 for (let rendererType of childRenderTypes) {
                     if (!potentialRendererTypes.includes(rendererType)) {
@@ -412,7 +413,7 @@ export default class BaseComponent {
         for (let [ind, group] of this.childGroups.entries()) {
             if (group.group in this.childGroupIndsByNameData) {
                 throw Error(
-                    `Invalid childGroups for componentClass ${this.componentType}: ${group} is repeated`
+                    `Invalid childGroups for componentClass ${this.componentType}: ${group} is repeated`,
                 );
             }
             this.childGroupIndsByNameData[group.group] = ind;
@@ -467,7 +468,7 @@ export default class BaseComponent {
                         dependencyValues.parentHidden ||
                             dependencyValues.sourceCompositeHidden ||
                             dependencyValues.adapterSourceHidden ||
-                            dependencyValues.hide
+                            dependencyValues.hide,
                     ),
                 },
             }),
@@ -887,12 +888,12 @@ export default class BaseComponent {
 
         if (!newDefinitions) {
             throw Error(
-                `Error in state variable definitions of ${this.componentType}: returnStateVariableDefinitions did not return anything`
+                `Error in state variable definitions of ${this.componentType}: returnStateVariableDefinitions did not return anything`,
             );
         }
 
         let cleanAdditionalStateVariableDefined = function (
-            additionalStateVariablesDefined
+            additionalStateVariablesDefined,
         ) {
             for (let [
                 ind,
@@ -954,7 +955,7 @@ export default class BaseComponent {
                     ];
                     defCopy.additionalStateVariablesDefined[ind] = varName;
                     cleanAdditionalStateVariableDefined(
-                        defCopy.additionalStateVariablesDefined
+                        defCopy.additionalStateVariablesDefined,
                     );
 
                     let otherVarName = otherVarObj;
@@ -973,7 +974,7 @@ export default class BaseComponent {
                 }
 
                 cleanAdditionalStateVariableDefined(
-                    thisDef.additionalStateVariablesDefined
+                    thisDef.additionalStateVariablesDefined,
                 );
             }
         }
@@ -1074,7 +1075,7 @@ export default class BaseComponent {
                             wrappingComponents: theStateDef
                                 .shadowingInstructions?.returnWrappingComponents
                                 ? theStateDef.shadowingInstructions.returnWrappingComponents(
-                                      prefix
+                                      prefix,
                                   )
                                 : [],
                         };
@@ -1087,9 +1088,11 @@ export default class BaseComponent {
                     } else {
                         stateVariableDescriptions[
                             varName
-                        ].getArrayKeysFromVarName = returnDefaultGetArrayKeysFromVarName(
-                            stateVariableDescriptions[varName].numDimensions
-                        );
+                        ].getArrayKeysFromVarName =
+                            returnDefaultGetArrayKeysFromVarName(
+                                stateVariableDescriptions[varName]
+                                    .numDimensions,
+                            );
                     }
                 }
             }
@@ -1125,7 +1128,7 @@ export default class BaseComponent {
         let downstreamNames = Object.keys(this.downstreamDependencies);
         if (includeInactive !== true) {
             downstreamNames = downstreamNames.filter(
-                (x) => this.downstreamDependencies[x].inactive !== true
+                (x) => this.downstreamDependencies[x].inactive !== true,
             );
         }
         return [...childrenNames, ...downstreamNames];
@@ -1181,7 +1184,7 @@ export default class BaseComponent {
                     serializedChildren.push(child);
                 } else {
                     serializedChildren.push(
-                        await child.serialize(parametersForChildren)
+                        await child.serialize(parametersForChildren),
                     );
                 }
             }
@@ -1189,7 +1192,7 @@ export default class BaseComponent {
             if (this.serializedChildren !== undefined) {
                 for (let child of this.serializedChildren) {
                     serializedChildren.push(
-                        this.copySerializedComponent(child)
+                        this.copySerializedComponent(child),
                     );
                 }
             }
@@ -1208,7 +1211,7 @@ export default class BaseComponent {
                 if (parameters.copyAll) {
                     serializedComponent.attributes[attrName] = {
                         component: await attribute.component.serialize(
-                            parametersForChildren
+                            parametersForChildren,
                         ),
                     };
                 }
@@ -1219,7 +1222,7 @@ export default class BaseComponent {
                     parameters.copyAll
                 ) {
                     serializedComponent.attributes[attrName] = JSON.parse(
-                        JSON.stringify(attribute)
+                        JSON.stringify(attribute),
                     );
                 }
             }
@@ -1272,7 +1275,7 @@ export default class BaseComponent {
 
         if (this.doenetMLrange) {
             serializedComponent.doenetMLrange = JSON.parse(
-                JSON.stringify(this.doenetMLrange)
+                JSON.stringify(this.doenetMLrange),
             );
         }
 
@@ -1286,11 +1289,11 @@ export default class BaseComponent {
 
         serializedComponent.originalName = this.componentName;
         serializedComponent.originalDoenetAttributes = deepClone(
-            this.doenetAttributes
+            this.doenetAttributes,
         );
         serializedComponent.doenetAttributes = deepClone(this.doenetAttributes);
         serializedComponent.originalAttributes = deepClone(
-            serializedComponent.attributes
+            serializedComponent.attributes,
         );
 
         delete serializedComponent.doenetAttributes.prescribedName;
@@ -1324,16 +1327,16 @@ export default class BaseComponent {
 
         if (serializedComponent.doenetAttributes !== undefined) {
             serializedCopy.originalDoenetAttributes = deepClone(
-                serializedComponent.doenetAttributes
+                serializedComponent.doenetAttributes,
             );
             serializedCopy.doenetAttributes = deepClone(
-                serializedComponent.doenetAttributes
+                serializedComponent.doenetAttributes,
             );
             serializedCopy.originalAttributes = deepClone(
-                serializedComponent.attributes
+                serializedComponent.attributes,
             );
             serializedCopy.attributes = deepClone(
-                serializedComponent.attributes
+                serializedComponent.attributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
             delete serializedCopy.doenetAttributes.assignNames;
@@ -1341,7 +1344,7 @@ export default class BaseComponent {
 
         if (serializedComponent.doenetMLrange !== undefined) {
             serializedCopy.doenetMLrange = deepClone(
-                serializedComponent.doenetMLrange
+                serializedComponent.doenetMLrange,
             );
         }
 
@@ -1395,7 +1398,7 @@ export default class BaseComponent {
                 "Invalid adapter " +
                     adapterStateVariable +
                     " in " +
-                    this.componentType
+                    this.componentType,
             );
         }
 
@@ -1457,7 +1460,7 @@ export default class BaseComponent {
                     "Invalid adapter " +
                         adapterStateVariable +
                         " in " +
-                        this.componentType
+                        this.componentType,
                 );
             }
 
@@ -1465,7 +1468,7 @@ export default class BaseComponent {
 
             if (!adapterComponentType) {
                 throw Error(
-                    `Couldn't get adapter component type for ${adapterStateVariable} of componentType ${this.componentType}`
+                    `Couldn't get adapter component type for ${adapterStateVariable} of componentType ${this.componentType}`,
                 );
             }
         }

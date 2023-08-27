@@ -18,7 +18,7 @@ export function returnWrapNonLabelsSugarFunction({
                 (child) =>
                     typeof child === "string" ||
                     child.doenetAttributes?.createdFromMacro ||
-                    componentIsLabel(child)
+                    componentIsLabel(child),
             )
         ) {
             return { success: false };
@@ -41,7 +41,7 @@ export function returnWrapNonLabelsSugarFunction({
                 if (firstNonLabelInd !== -1) {
                     childrenToNotWrapBegin = matchedChildren.slice(
                         0,
-                        firstNonLabelInd
+                        firstNonLabelInd,
                     );
                     matchedChildren = matchedChildren.slice(firstNonLabelInd);
                     childIsLabel = childIsLabel.slice(firstNonLabelInd);
@@ -135,7 +135,7 @@ export function returnLabelStateVariableDefinitions() {
             ) {
                 componentNameAndShadowSourceNames.push(
                     ...dependencyValues.shadowSource.stateValues
-                        .componentNameAndShadowSourceNames
+                        .componentNameAndShadowSourceNames,
                 );
             } else if (
                 dependencyValues.unlinkedCopySource?.stateValues
@@ -143,7 +143,7 @@ export function returnLabelStateVariableDefinitions() {
             ) {
                 componentNameAndShadowSourceNames.push(
                     ...dependencyValues.unlinkedCopySource.stateValues
-                        .componentNameAndShadowSourceNames
+                        .componentNameAndShadowSourceNames,
                 );
             }
             return { setValue: { componentNameAndShadowSourceNames } };
@@ -294,7 +294,7 @@ export function returnLabelStateVariableDefinitions() {
                         label: dependencyValues.shadowSource.stateValues.label,
                         labelHasLatex: Boolean(
                             dependencyValues.shadowSource.stateValues
-                                .labelHasLatex
+                                .labelHasLatex,
                         ),
                     },
                 };

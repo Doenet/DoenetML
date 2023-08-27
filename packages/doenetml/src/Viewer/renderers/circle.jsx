@@ -143,7 +143,7 @@ export default React.memo(function Circle(props) {
         circleJXG.current = board.create(
             "circle",
             [[...SVs.numericalCenter], SVs.numericalRadius],
-            jsxCircleAttributes
+            jsxCircleAttributes,
         );
 
         circleJXG.current.isDraggable = !fixLocation.current;
@@ -162,11 +162,11 @@ export default React.memo(function Circle(props) {
             highlightStrokeColor: "var(--lightBlue)",
             size: normalizePointSize(
                 SVs.selectedStyle.markerSize,
-                SVs.selectedStyle.markerStyle
+                SVs.selectedStyle.markerStyle,
             ),
             face: normalizePointStyle(
                 SVs.selectedStyle.markerStyle,
-                offGraphIndicatorOrientation.current
+                offGraphIndicatorOrientation.current,
             ),
             highlight: !fixLocation.current,
             showinfobox: false,
@@ -175,7 +175,7 @@ export default React.memo(function Circle(props) {
         if (withlabel) {
             let labelPosition = adjustPointLabelPosition(
                 "upperright",
-                offGraphIndicatorOrientation.current
+                offGraphIndicatorOrientation.current,
             );
             previousPointLabelPosition.current = labelPosition;
 
@@ -209,7 +209,7 @@ export default React.memo(function Circle(props) {
         indicatorJXG.current = board.create(
             "point",
             [...offGraphIndicatorCoords.current],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
 
         indicatorJXG.isDraggable = !fixLocation.current;
@@ -552,7 +552,7 @@ export default React.memo(function Circle(props) {
         if (!SVs.hideOffGraphIndicator) {
             let centerOffResults = characterizeOffGraphPoint(
                 lastCenterFromCore.current,
-                board
+                board,
             );
 
             if (centerOffResults.needIndicator) {
@@ -573,7 +573,7 @@ export default React.memo(function Circle(props) {
                         lowerLeftPoint[1] -= SVs.numericalRadius * ySign;
                         let lowerLeftOffResults = characterizeOffGraphPoint(
                             lowerLeftPoint,
-                            board
+                            board,
                         );
 
                         if (lowerLeftOffResults.needIndicator) {
@@ -608,7 +608,7 @@ export default React.memo(function Circle(props) {
                         upperLeftPoint[1] += SVs.numericalRadius * ySign;
                         let upperLeftOffResults = characterizeOffGraphPoint(
                             upperLeftPoint,
-                            board
+                            board,
                         );
 
                         if (upperLeftOffResults.needIndicator) {
@@ -641,7 +641,7 @@ export default React.memo(function Circle(props) {
                         leftPoint[0] -= SVs.numericalRadius * xSign;
                         let leftOffResults = characterizeOffGraphPoint(
                             leftPoint,
-                            board
+                            board,
                         );
 
                         if (leftOffResults.needIndicator) {
@@ -662,7 +662,7 @@ export default React.memo(function Circle(props) {
                         lowerRightPoint[1] -= SVs.numericalRadius * ySign;
                         let lowerRightOffResults = characterizeOffGraphPoint(
                             lowerRightPoint,
-                            board
+                            board,
                         );
 
                         if (lowerRightOffResults.needIndicator) {
@@ -697,7 +697,7 @@ export default React.memo(function Circle(props) {
                         upperRightPoint[1] += SVs.numericalRadius * ySign;
                         let upperRightOffResults = characterizeOffGraphPoint(
                             upperRightPoint,
-                            board
+                            board,
                         );
 
                         if (upperRightOffResults.needIndicator) {
@@ -730,7 +730,7 @@ export default React.memo(function Circle(props) {
                         rightPoint[0] += SVs.numericalRadius * xSign;
                         let rightOffResults = characterizeOffGraphPoint(
                             rightPoint,
-                            board
+                            board,
                         );
 
                         if (rightOffResults.needIndicator) {
@@ -748,7 +748,7 @@ export default React.memo(function Circle(props) {
                     bottomPoint[1] -= SVs.numericalRadius * xSign;
                     let bottomOffResults = characterizeOffGraphPoint(
                         bottomPoint,
-                        board
+                        board,
                     );
 
                     if (bottomOffResults.needIndicator) {
@@ -765,7 +765,7 @@ export default React.memo(function Circle(props) {
                     topPoint[1] += SVs.numericalRadius * xSign;
                     let topOffResults = characterizeOffGraphPoint(
                         topPoint,
-                        board
+                        board,
                     );
 
                     if (topOffResults.needIndicator) {
@@ -799,7 +799,7 @@ export default React.memo(function Circle(props) {
             }
 
             let validCoords = SVs.numericalCenter.every((x) =>
-                Number.isFinite(x)
+                Number.isFinite(x),
             );
 
             circleJXG.current.center.coords.setCoordinates(JXG.COORDS_BY_USER, [
@@ -915,7 +915,7 @@ export default React.memo(function Circle(props) {
             if (showIndicator) {
                 indicatorJXG.current.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    offGraphIndicatorCoords.current
+                    offGraphIndicatorCoords.current,
                 );
 
                 let layer = 10 * SVs.layer + POINT_LAYER_OFFSET;
@@ -948,14 +948,14 @@ export default React.memo(function Circle(props) {
 
                 let newFace = normalizePointStyle(
                     SVs.selectedStyle.markerStyle,
-                    offGraphIndicatorOrientation.current
+                    offGraphIndicatorOrientation.current,
                 );
                 if (indicatorJXG.current.visProp.face !== newFace) {
                     indicatorJXG.current.setAttribute({ face: newFace });
                 }
                 let newSize = normalizePointSize(
                     SVs.selectedStyle.markerSize,
-                    SVs.selectedStyle.markerStyle
+                    SVs.selectedStyle.markerStyle,
                 );
                 if (indicatorJXG.current.visProp.size !== newSize) {
                     indicatorJXG.current.setAttribute({ size: newSize });
@@ -979,7 +979,7 @@ export default React.memo(function Circle(props) {
 
                     let labelPosition = adjustPointLabelPosition(
                         "upperright",
-                        offGraphIndicatorOrientation.current
+                        offGraphIndicatorOrientation.current,
                     );
 
                     if (labelPosition !== previousPointLabelPosition.current) {

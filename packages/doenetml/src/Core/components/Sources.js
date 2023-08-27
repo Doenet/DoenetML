@@ -14,12 +14,12 @@ export default class Sources extends BaseComponent {
             validationFunction: function (value) {
                 if (!/[a-zA-Z_]/.test(value.substring(0, 1))) {
                     throw Error(
-                        "All aliases must begin with a letter or an underscore"
+                        "All aliases must begin with a letter or an underscore",
                     );
                 }
                 if (!/^[a-zA-Z0-9_\-]+$/.test(value)) {
                     throw Error(
-                        "Aliases can contain only letters, numbers, hyphens, and underscores"
+                        "Aliases can contain only letters, numbers, hyphens, and underscores",
                     );
                 }
                 return value;
@@ -31,12 +31,12 @@ export default class Sources extends BaseComponent {
             validationFunction: function (value) {
                 if (!/[a-zA-Z_]/.test(value.substring(0, 1))) {
                     throw Error(
-                        "All index aliases must begin with a letter or an underscore"
+                        "All index aliases must begin with a letter or an underscore",
                     );
                 }
                 if (!/^[a-zA-Z0-9_\-]+$/.test(value)) {
                     throw Error(
-                        "Index aliases can contain only letters, numbers, hyphens, and underscores"
+                        "Index aliases can contain only letters, numbers, hyphens, and underscores",
                     );
                 }
                 return value;
@@ -97,7 +97,7 @@ export default class Sources extends BaseComponent {
             definition: function ({ dependencyValues }) {
                 let numChildren = dependencyValues.children.length;
                 let childComponentNames = dependencyValues.children.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
                 return {
                     setValue: {

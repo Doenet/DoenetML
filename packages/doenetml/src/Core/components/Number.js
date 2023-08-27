@@ -480,8 +480,8 @@ export default class NumberComponent extends InlineComponent {
                                 number = me
                                     .fromAst(
                                         textToAst.convert(
-                                            dependencyValues.stringChild[0]
-                                        )
+                                            dependencyValues.stringChild[0],
+                                        ),
                                     )
                                     .evaluate_to_constant();
 
@@ -535,7 +535,7 @@ export default class NumberComponent extends InlineComponent {
                                     // and value match, pass through evaluate_to_constant a second time in this case
                                     number =
                                         numberToMathExpression(
-                                            number
+                                            number,
                                         ).evaluate_to_constant();
                                 } else if (number?.im === 0) {
                                     number = number.re;
@@ -586,7 +586,7 @@ export default class NumberComponent extends InlineComponent {
                                     dependencyValues.numberChildrenByCode[tree];
                                 if (child !== undefined) {
                                     return numberToMathExpression(
-                                        child.stateValues.value
+                                        child.stateValues.value,
                                     ).tree;
                                 }
                                 return tree;
@@ -603,8 +603,8 @@ export default class NumberComponent extends InlineComponent {
                             number = me
                                 .fromAst(
                                     replaceMath(
-                                        dependencyValues.parsedExpression.tree
-                                    )
+                                        dependencyValues.parsedExpression.tree,
+                                    ),
                                 )
                                 .evaluate_to_constant();
                         } catch (e) {
@@ -747,7 +747,7 @@ export default class NumberComponent extends InlineComponent {
                             {
                                 setEssentialValue: "value",
                                 value: numberToMathExpression(
-                                    desiredValue
+                                    desiredValue,
                                 ).evaluate_to_constant(), // to normalize form
                             },
                         ];
@@ -758,7 +758,7 @@ export default class NumberComponent extends InlineComponent {
                                 setDependency: "stringChild",
                                 desiredValue:
                                     numberToMathExpression(
-                                        desiredValue
+                                        desiredValue,
                                     ).toString(),
                                 childIndex: 0,
                                 variableIndex: 0,
@@ -860,7 +860,7 @@ export default class NumberComponent extends InlineComponent {
                 return {
                     setValue: {
                         text: numberToMathExpression(
-                            dependencyValues.valueForDisplay
+                            dependencyValues.valueForDisplay,
                         ).toString(params),
                     },
                 };
@@ -957,7 +957,7 @@ export default class NumberComponent extends InlineComponent {
                 return {
                     setValue: {
                         latex: numberToMathExpression(
-                            dependencyValues.valueForDisplay
+                            dependencyValues.valueForDisplay,
                         ).toLatex(params),
                     },
                 };
@@ -1029,7 +1029,7 @@ export default class NumberComponent extends InlineComponent {
         {
             stateVariable: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         "text",

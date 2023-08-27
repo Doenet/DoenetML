@@ -209,7 +209,7 @@ describe("Rectangle Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -239,7 +239,7 @@ describe("Rectangle Tag Tests", function () {
                     v2x: v2x1,
                     v2y: v2y1,
                 },
-                stateVariables
+                stateVariables,
             );
 
             checkRectangleValues(
@@ -252,7 +252,7 @@ describe("Rectangle Tag Tests", function () {
                     v2x: v2x2,
                     v2y: v2y2,
                 },
-                stateVariables
+                stateVariables,
             );
 
             checkRectangleValues(
@@ -265,7 +265,7 @@ describe("Rectangle Tag Tests", function () {
                     v2x: v2x3,
                     v2y: v2y2,
                 },
-                stateVariables
+                stateVariables,
             );
 
             checkRectangleValues(
@@ -278,7 +278,7 @@ describe("Rectangle Tag Tests", function () {
                     v2x: v2x4,
                     v2y: v2y4,
                 },
-                stateVariables
+                stateVariables,
             );
         }
 
@@ -692,7 +692,7 @@ describe("Rectangle Tag Tests", function () {
     <p><copy prop="vertex2" target="_rectangle1" propIndex="$n" assignNames="x" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -716,14 +716,14 @@ describe("Rectangle Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -731,14 +731,14 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -746,7 +746,7 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t3x)},${nInDOM(t3y)})`
+            `(${nInDOM(t3x)},${nInDOM(t3y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -758,7 +758,7 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t4x)},${nInDOM(t4y)})`
+            `(${nInDOM(t4x)},${nInDOM(t4y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -794,7 +794,7 @@ describe("Rectangle Tag Tests", function () {
     <p><copy source="_rectangle1.vertices[2][$n]" assignNames="xa" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -819,18 +819,18 @@ describe("Rectangle Tag Tests", function () {
         cy.get(cesc("#\\/n") + " textarea").type("1{enter}", { force: true });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t1x)},${nInDOM(t1y)})`
+            `(${nInDOM(t1x)},${nInDOM(t1y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2x)}`
+            `${nInDOM(t2x)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}2{enter}", {
@@ -838,18 +838,18 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t2x)},${nInDOM(t2y)})`
+            `(${nInDOM(t2x)},${nInDOM(t2y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P4") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/x") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
         cy.get(cesc("#\\/xa") + " .mjx-mrow").should(
             "contain.text",
-            `${nInDOM(t2y)}`
+            `${nInDOM(t2y)}`,
         );
 
         cy.get(cesc("#\\/n") + " textarea").type("{end}{backspace}3{enter}", {
@@ -857,7 +857,7 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t3x)},${nInDOM(t3y)})`
+            `(${nInDOM(t3x)},${nInDOM(t3y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -870,7 +870,7 @@ describe("Rectangle Tag Tests", function () {
         });
         cy.get(cesc("#\\/P1") + " .mjx-mrow").should(
             "contain.text",
-            `(${nInDOM(t4x)},${nInDOM(t4y)})`
+            `(${nInDOM(t4x)},${nInDOM(t4y)})`,
         );
         cy.get(cesc("#\\/P2") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/P3") + " .mjx-mrow").should("not.exist");
@@ -903,7 +903,7 @@ describe("Rectangle Tag Tests", function () {
   <p name="pvert">corner vertices: $p.vertex1 $p.vertex3</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -922,7 +922,7 @@ describe("Rectangle Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([5, 7]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -957,7 +957,7 @@ describe("Rectangle Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([5, 7]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -997,7 +997,7 @@ describe("Rectangle Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([5, 7]);
             expect(stateVariables["/p"].stateValues.draggable).eq(false);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -1019,7 +1019,7 @@ describe("Rectangle Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(4,7)"
+            "(4,7)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "false");
@@ -1096,7 +1096,7 @@ describe("Rectangle Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,2)"
+            "(−3,2)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -1135,7 +1135,7 @@ describe("Rectangle Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(3,8)"
+            "(3,8)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -1192,7 +1192,7 @@ describe("Rectangle Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([5, 1]);
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
 
@@ -1214,7 +1214,7 @@ describe("Rectangle Tag Tests", function () {
 
         cy.get(cesc("#\\/pvert") + " .mjx-mrow").should(
             "contain.text",
-            "(−4,1)"
+            "(−4,1)",
         );
 
         cy.get(cesc("#\\/d2")).should("have.text", "true");
@@ -1233,7 +1233,7 @@ describe("Rectangle Tag Tests", function () {
             expect(stateVariables["/p"].stateValues.vertices[2]).eqls([3, 7]);
             expect(stateVariables["/p"].stateValues.draggable).eq(true);
             expect(stateVariables["/p"].stateValues.verticesDraggable).eq(
-                false
+                false,
             );
         });
     });
@@ -1254,7 +1254,7 @@ describe("Rectangle Tag Tests", function () {
   <p name="pvert">corner vertices: $p.vertex1{assignNames="v1"} $p.vertex3{assignNames="v3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1308,7 +1308,7 @@ describe("Rectangle Tag Tests", function () {
   <p name="pvert">corner vertices: $p.vertex1{assignNames="v1"} $p.vertex3{assignNames="v3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1362,7 +1362,7 @@ describe("Rectangle Tag Tests", function () {
   <p name="pvert">corner vertices: $p.vertex1{assignNames="v1"} $p.vertex3{assignNames="v3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1416,7 +1416,7 @@ describe("Rectangle Tag Tests", function () {
   <p name="pvert">corner vertices: $p.vertex1{assignNames="v1"} $p.vertex3{assignNames="v3"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1464,7 +1464,7 @@ describe("Rectangle Tag Tests", function () {
   <p>Perimeter: <number copySource="r.perimeter" name="perimeter" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1474,7 +1474,7 @@ describe("Rectangle Tag Tests", function () {
         cy.get(cesc2("#/area")).should("have.text", `${area}`);
         cy.get(cesc2("#/perimeter")).should(
             "have.text",
-            `${Math.round(perimeter * 100) / 100}`
+            `${Math.round(perimeter * 100) / 100}`,
         );
 
         cy.window().then(async (win) => {
@@ -1490,7 +1490,7 @@ describe("Rectangle Tag Tests", function () {
             cy.get(cesc2("#/area")).should("have.text", `${area}`);
             cy.get(cesc2("#/perimeter")).should(
                 "have.text",
-                `${Math.round(perimeter * 100) / 100}`
+                `${Math.round(perimeter * 100) / 100}`,
             );
         });
     });
@@ -1532,7 +1532,7 @@ function setupScene({ rectangleProperties, rectangleChildren }) {
   $graph3{name="graph4" newNamespace}
   `,
             },
-            "*"
+            "*",
         );
     });
 }
@@ -1575,7 +1575,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x,
                     v2y,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -1598,7 +1598,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x,
                     v2y,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -1617,7 +1617,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 0,
                     v2y,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -1636,7 +1636,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: -5,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -1655,7 +1655,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: 4,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -1682,7 +1682,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -3,
                     v2y: 5,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -1702,7 +1702,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -3.5,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -1725,7 +1725,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: -3.5,
                         v2y: 1,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1742,7 +1742,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 1,
                         v2y: 1,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1759,7 +1759,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 2.25,
                         v2y: 2.25,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1776,7 +1776,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 2.25,
                         v2y: -5,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             } else if (cornerDependencyState === 1) {
                 // corner, width and height
@@ -1795,7 +1795,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: -7,
                         v2y: 2,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1812,7 +1812,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 1,
                         v2y: 1,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1829,7 +1829,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 2.25,
                         v2y: 2.25,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1846,7 +1846,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 1.25,
                         v2y: -5,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             } else if (cornerDependencyState === 2) {
                 //TODO: corner and center
@@ -1865,7 +1865,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 0,
                         v2y: 0,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1882,7 +1882,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 1,
                         v2y: 1,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1899,7 +1899,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 2.25,
                         v2y: 2.25,
                     },
-                    stateVariables
+                    stateVariables,
                 );
 
                 await win.callAction1({
@@ -1916,7 +1916,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                         v2x: 3.25,
                         v2y: -5,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             }
         });
@@ -1944,7 +1944,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 1,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -1966,7 +1966,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 1,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -1985,7 +1985,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 0,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -2004,7 +2004,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: -5,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -2023,7 +2023,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: 4,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -2050,7 +2050,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 1,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -2072,7 +2072,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 1,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -2091,7 +2091,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: 0,
                     v2y: 1,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -2110,7 +2110,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: -5,
                 },
-                stateVariables
+                stateVariables,
             );
 
             await win.callAction1({
@@ -2129,7 +2129,7 @@ function runTests({ v0x, v0y, v2x, v2y, cornerDependencyState }) {
                     v2x: -4,
                     v2y: 4,
                 },
-                stateVariables
+                stateVariables,
             );
 
             // reset polygon
@@ -2158,7 +2158,7 @@ function checkRectangleValues(
         centerPointName,
     },
     { v0x, v0y, v2x, v2y },
-    stateVariables
+    stateVariables,
 ) {
     let vertexCoords = [
         [v0x, v0y],
@@ -2174,13 +2174,13 @@ function checkRectangleValues(
         let rectangle = stateVariables[rectangleName];
         expect(
             rectangle.stateValues.vertices.map((x) =>
-                x.map((y) => me.fromAst(y).evaluate_to_constant())
-            )
+                x.map((y) => me.fromAst(y).evaluate_to_constant()),
+            ),
         ).eqls(vertexCoords);
         expect(
             rectangle.stateValues.center.map((x) =>
-                me.fromAst(x).evaluate_to_constant()
-            )
+                me.fromAst(x).evaluate_to_constant(),
+            ),
         ).eqls(centerCoords);
         expect(rectangle.stateValues.width).eq(widthValue);
         expect(rectangle.stateValues.height).eq(heightValue);
@@ -2191,8 +2191,8 @@ function checkRectangleValues(
             let vertex = stateVariables[vertexName];
             expect(
                 vertex.stateValues.xs.map((x) =>
-                    me.fromAst(x).evaluate_to_constant()
-                )
+                    me.fromAst(x).evaluate_to_constant(),
+                ),
             ).eqls(vertexCoords[index]);
         }
     }
@@ -2201,8 +2201,8 @@ function checkRectangleValues(
         let centerPoint = stateVariables[centerPointName];
         expect(
             centerPoint.stateValues.xs.map((x) =>
-                me.fromAst(x).evaluate_to_constant()
-            )
+                me.fromAst(x).evaluate_to_constant(),
+            ),
         ).eqls(centerCoords);
     }
     // expect(widthInput.stateValues.value.tree).eq(widthValue);

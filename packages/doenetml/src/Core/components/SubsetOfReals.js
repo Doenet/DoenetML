@@ -61,7 +61,7 @@ export default class SubsetOfReals extends MathComponent {
                         componentInfoObjects.isInheritedComponentType({
                             inheritedComponentType: child.componentType,
                             baseComponentType: "subsetOfReals",
-                        })
+                        }),
                     ).length === 1;
 
                 return { setValue: { haveSingleSubsetChild } };
@@ -105,7 +105,7 @@ export default class SubsetOfReals extends MathComponent {
                 } else {
                     subsetValue = buildSubsetFromMathExpression(
                         dependencyValues.unnormalizedValuePreliminary,
-                        dependencyValues.variable
+                        dependencyValues.variable,
                     );
                 }
 
@@ -176,7 +176,7 @@ export default class SubsetOfReals extends MathComponent {
             }) {
                 let subsetValue = buildSubsetFromMathExpression(
                     desiredStateVariableValues.unnormalizedValue,
-                    dependencyValues.variable
+                    dependencyValues.variable,
                 );
 
                 return {

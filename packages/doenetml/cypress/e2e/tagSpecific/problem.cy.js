@@ -65,7 +65,7 @@ describe("Problem Tag Tests", function () {
     </problem>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -76,100 +76,100 @@ describe("Problem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let docCaAnchor = cesc2(
-                "#" + stateVariables["/docCa"].replacements[0].componentName
+                "#" + stateVariables["/docCa"].replacements[0].componentName,
             );
             let docPcaAnchor = cesc2(
-                "#" + stateVariables["/docPca"].replacements[0].componentName
+                "#" + stateVariables["/docPca"].replacements[0].componentName,
             );
             let p1CaAnchor = cesc2(
-                "#" + stateVariables["/p1Ca"].replacements[0].componentName
+                "#" + stateVariables["/p1Ca"].replacements[0].componentName,
             );
             let p1PcaAnchor = cesc2(
-                "#" + stateVariables["/p1Pca"].replacements[0].componentName
+                "#" + stateVariables["/p1Pca"].replacements[0].componentName,
             );
             let p2CaAnchor = cesc2(
-                "#" + stateVariables["/p2Ca"].replacements[0].componentName
+                "#" + stateVariables["/p2Ca"].replacements[0].componentName,
             );
             let p2PcaAnchor = cesc2(
-                "#" + stateVariables["/p2Pca"].replacements[0].componentName
+                "#" + stateVariables["/p2Pca"].replacements[0].componentName,
             );
             let p21CaAnchor = cesc2(
-                "#" + stateVariables["/p21Ca"].replacements[0].componentName
+                "#" + stateVariables["/p21Ca"].replacements[0].componentName,
             );
             let p21PcaAnchor = cesc2(
-                "#" + stateVariables["/p21Pca"].replacements[0].componentName
+                "#" + stateVariables["/p21Pca"].replacements[0].componentName,
             );
             let p22CaAnchor = cesc2(
-                "#" + stateVariables["/p22Ca"].replacements[0].componentName
+                "#" + stateVariables["/p22Ca"].replacements[0].componentName,
             );
             let p22PcaAnchor = cesc2(
-                "#" + stateVariables["/p22Pca"].replacements[0].componentName
+                "#" + stateVariables["/p22Pca"].replacements[0].componentName,
             );
             let p221CaAnchor = cesc2(
-                "#" + stateVariables["/p221Ca"].replacements[0].componentName
+                "#" + stateVariables["/p221Ca"].replacements[0].componentName,
             );
             let p221PcaAnchor = cesc2(
-                "#" + stateVariables["/p221Pca"].replacements[0].componentName
+                "#" + stateVariables["/p221Pca"].replacements[0].componentName,
             );
             let p222CaAnchor = cesc2(
-                "#" + stateVariables["/p222Ca"].replacements[0].componentName
+                "#" + stateVariables["/p222Ca"].replacements[0].componentName,
             );
             let p222PcaAnchor = cesc2(
-                "#" + stateVariables["/p222Pca"].replacements[0].componentName
+                "#" + stateVariables["/p222Pca"].replacements[0].componentName,
             );
             let mathinput1Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer2"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput3Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput4Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer4"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput5Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer5"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput6Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer6"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput7Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer7"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput8Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer8"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput9Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer9"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
 
             cy.get(docCaAnchor).should("have.text", "0");
@@ -190,80 +190,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -278,7 +278,7 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit1Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit1Round.toString()
+                percentCredit1Round.toString(),
             );
             cy.get(p1CaAnchor).should("have.text", "0");
             cy.get(p1PcaAnchor).should("have.text", "0");
@@ -296,80 +296,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit1, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit1, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -414,39 +414,39 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit2Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit2Round.toString()
+                percentCredit2Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit2Round.toString()
+                problem1credit2Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit2Round.toString()
+                problem1percentCredit2Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit2Round.toString()
+                problem2credit2Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit2Round.toString()
+                problem2percentCredit2Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit2Round.toString()
+                problem21credit2Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit2Round.toString()
+                problem21percentCredit2Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit2Round.toString()
+                problem22credit2Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit2Round.toString()
+                problem22percentCredit2Round.toString(),
             );
             cy.get(p221CaAnchor).should("have.text", "0");
             cy.get(p221PcaAnchor).should("have.text", "0");
@@ -456,80 +456,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit2, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit2, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit2, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit2, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit2, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -582,47 +582,47 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit3Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit3Round.toString()
+                percentCredit3Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit3Round.toString()
+                problem1credit3Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit3Round.toString()
+                problem1percentCredit3Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit3Round.toString()
+                problem2credit3Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit3Round.toString()
+                problem2percentCredit3Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit3Round.toString()
+                problem21credit3Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit3Round.toString()
+                problem21percentCredit3Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit3Round.toString()
+                problem22credit3Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit3Round.toString()
+                problem22percentCredit3Round.toString(),
             );
             cy.get(p221CaAnchor).should(
                 "have.text",
-                problem221credit3Round.toString()
+                problem221credit3Round.toString(),
             );
             cy.get(p221PcaAnchor).should(
                 "have.text",
-                problem221percentCredit3Round.toString()
+                problem221percentCredit3Round.toString(),
             );
             cy.get(p222CaAnchor).should("have.text", "0");
             cy.get(p222PcaAnchor).should("have.text", "0");
@@ -630,80 +630,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit3, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit3, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit3, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit3, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit3, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).closeTo(problem221credit3, 1e-12);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem221percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -760,134 +760,134 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit4Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit4Round.toString()
+                percentCredit4Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit4Round.toString()
+                problem1credit4Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit4Round.toString()
+                problem1percentCredit4Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit4Round.toString()
+                problem2credit4Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit4Round.toString()
+                problem2percentCredit4Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit4Round.toString()
+                problem21credit4Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit4Round.toString()
+                problem21percentCredit4Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit4Round.toString()
+                problem22credit4Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit4Round.toString()
+                problem22percentCredit4Round.toString(),
             );
             cy.get(p221CaAnchor).should(
                 "have.text",
-                problem221credit4Round.toString()
+                problem221credit4Round.toString(),
             );
             cy.get(p221PcaAnchor).should(
                 "have.text",
-                problem221percentCredit4Round.toString()
+                problem221percentCredit4Round.toString(),
             );
             cy.get(p222CaAnchor).should(
                 "have.text",
-                problem222credit4Round.toString()
+                problem222credit4Round.toString(),
             );
             cy.get(p222PcaAnchor).should(
                 "have.text",
-                problem222percentCredit4Round.toString()
+                problem222percentCredit4Round.toString(),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit4, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit4, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit4, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit4, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit4, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).closeTo(problem221credit4, 1e-12);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem221percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).closeTo(problem222credit4, 1e-12);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem222percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -953,7 +953,7 @@ describe("Problem Tag Tests", function () {
     </problem>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -964,100 +964,100 @@ describe("Problem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let docCaAnchor = cesc2(
-                "#" + stateVariables["/docCa"].replacements[0].componentName
+                "#" + stateVariables["/docCa"].replacements[0].componentName,
             );
             let docPcaAnchor = cesc2(
-                "#" + stateVariables["/docPca"].replacements[0].componentName
+                "#" + stateVariables["/docPca"].replacements[0].componentName,
             );
             let p1CaAnchor = cesc2(
-                "#" + stateVariables["/p1Ca"].replacements[0].componentName
+                "#" + stateVariables["/p1Ca"].replacements[0].componentName,
             );
             let p1PcaAnchor = cesc2(
-                "#" + stateVariables["/p1Pca"].replacements[0].componentName
+                "#" + stateVariables["/p1Pca"].replacements[0].componentName,
             );
             let p2CaAnchor = cesc2(
-                "#" + stateVariables["/p2Ca"].replacements[0].componentName
+                "#" + stateVariables["/p2Ca"].replacements[0].componentName,
             );
             let p2PcaAnchor = cesc2(
-                "#" + stateVariables["/p2Pca"].replacements[0].componentName
+                "#" + stateVariables["/p2Pca"].replacements[0].componentName,
             );
             let p21CaAnchor = cesc2(
-                "#" + stateVariables["/p21Ca"].replacements[0].componentName
+                "#" + stateVariables["/p21Ca"].replacements[0].componentName,
             );
             let p21PcaAnchor = cesc2(
-                "#" + stateVariables["/p21Pca"].replacements[0].componentName
+                "#" + stateVariables["/p21Pca"].replacements[0].componentName,
             );
             let p22CaAnchor = cesc2(
-                "#" + stateVariables["/p22Ca"].replacements[0].componentName
+                "#" + stateVariables["/p22Ca"].replacements[0].componentName,
             );
             let p22PcaAnchor = cesc2(
-                "#" + stateVariables["/p22Pca"].replacements[0].componentName
+                "#" + stateVariables["/p22Pca"].replacements[0].componentName,
             );
             let p221CaAnchor = cesc2(
-                "#" + stateVariables["/p221Ca"].replacements[0].componentName
+                "#" + stateVariables["/p221Ca"].replacements[0].componentName,
             );
             let p221PcaAnchor = cesc2(
-                "#" + stateVariables["/p221Pca"].replacements[0].componentName
+                "#" + stateVariables["/p221Pca"].replacements[0].componentName,
             );
             let p222CaAnchor = cesc2(
-                "#" + stateVariables["/p222Ca"].replacements[0].componentName
+                "#" + stateVariables["/p222Ca"].replacements[0].componentName,
             );
             let p222PcaAnchor = cesc2(
-                "#" + stateVariables["/p222Pca"].replacements[0].componentName
+                "#" + stateVariables["/p222Pca"].replacements[0].componentName,
             );
             let mathinput1Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer1"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput2Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer2"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput3Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer3"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput4Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer4"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput5Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer5"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput6Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer6"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput7Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer7"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput8Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer8"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
             let mathinput9Anchor =
                 cesc2(
                     "#" +
                         stateVariables["/_answer9"].stateValues.inputChildren[0]
-                            .componentName
+                            .componentName,
                 ) + " textarea";
 
             cy.get(docCaAnchor).should("have.text", "0");
@@ -1078,80 +1078,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1166,7 +1166,7 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit1Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit1Round.toString()
+                percentCredit1Round.toString(),
             );
             cy.get(p1CaAnchor).should("have.text", "0");
             cy.get(p1PcaAnchor).should("have.text", "0");
@@ -1184,80 +1184,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit1, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit1, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1304,39 +1304,39 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit2Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit2Round.toString()
+                percentCredit2Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit2Round.toString()
+                problem1credit2Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit2Round.toString()
+                problem1percentCredit2Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit2Round.toString()
+                problem2credit2Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit2Round.toString()
+                problem2percentCredit2Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit2Round.toString()
+                problem21credit2Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit2Round.toString()
+                problem21percentCredit2Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit2Round.toString()
+                problem22credit2Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit2Round.toString()
+                problem22percentCredit2Round.toString(),
             );
             cy.get(p221CaAnchor).should("have.text", "0");
             cy.get(p221PcaAnchor).should("have.text", "0");
@@ -1346,80 +1346,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit2, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit2, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit2, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit2, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit2, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit2, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1474,47 +1474,47 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit3Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit3Round.toString()
+                percentCredit3Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit3Round.toString()
+                problem1credit3Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit3Round.toString()
+                problem1percentCredit3Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit3Round.toString()
+                problem2credit3Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit3Round.toString()
+                problem2percentCredit3Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit3Round.toString()
+                problem21credit3Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit3Round.toString()
+                problem21percentCredit3Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit3Round.toString()
+                problem22credit3Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit3Round.toString()
+                problem22percentCredit3Round.toString(),
             );
             cy.get(p221CaAnchor).should(
                 "have.text",
-                problem221credit3Round.toString()
+                problem221credit3Round.toString(),
             );
             cy.get(p221PcaAnchor).should(
                 "have.text",
-                problem221percentCredit3Round.toString()
+                problem221percentCredit3Round.toString(),
             );
             cy.get(p222CaAnchor).should("have.text", "0");
             cy.get(p222PcaAnchor).should("have.text", "0");
@@ -1522,80 +1522,80 @@ describe("Problem Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit3, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit3, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit3, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit3, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit3, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).closeTo(problem221credit3, 1e-12);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem221percentCredit3, 1e-12);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -1652,134 +1652,134 @@ describe("Problem Tag Tests", function () {
             cy.get(docCaAnchor).should("have.text", credit4Round.toString());
             cy.get(docPcaAnchor).should(
                 "have.text",
-                percentCredit4Round.toString()
+                percentCredit4Round.toString(),
             );
             cy.get(p1CaAnchor).should(
                 "have.text",
-                problem1credit4Round.toString()
+                problem1credit4Round.toString(),
             );
             cy.get(p1PcaAnchor).should(
                 "have.text",
-                problem1percentCredit4Round.toString()
+                problem1percentCredit4Round.toString(),
             );
             cy.get(p2CaAnchor).should(
                 "have.text",
-                problem2credit4Round.toString()
+                problem2credit4Round.toString(),
             );
             cy.get(p2PcaAnchor).should(
                 "have.text",
-                problem2percentCredit4Round.toString()
+                problem2percentCredit4Round.toString(),
             );
             cy.get(p21CaAnchor).should(
                 "have.text",
-                problem21credit4Round.toString()
+                problem21credit4Round.toString(),
             );
             cy.get(p21PcaAnchor).should(
                 "have.text",
-                problem21percentCredit4Round.toString()
+                problem21percentCredit4Round.toString(),
             );
             cy.get(p22CaAnchor).should(
                 "have.text",
-                problem22credit4Round.toString()
+                problem22credit4Round.toString(),
             );
             cy.get(p22PcaAnchor).should(
                 "have.text",
-                problem22percentCredit4Round.toString()
+                problem22percentCredit4Round.toString(),
             );
             cy.get(p221CaAnchor).should(
                 "have.text",
-                problem221credit4Round.toString()
+                problem221credit4Round.toString(),
             );
             cy.get(p221PcaAnchor).should(
                 "have.text",
-                problem221percentCredit4Round.toString()
+                problem221percentCredit4Round.toString(),
             );
             cy.get(p222CaAnchor).should(
                 "have.text",
-                problem222credit4Round.toString()
+                problem222credit4Round.toString(),
             );
             cy.get(p222PcaAnchor).should(
                 "have.text",
-                problem222percentCredit4Round.toString()
+                problem222percentCredit4Round.toString(),
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.creditAchieved
+                    stateVariables["/_document1"].stateValues.creditAchieved,
                 ).closeTo(credit4, 1e-12);
                 expect(
                     stateVariables["/_document1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem1"].stateValues.creditAchieved
+                    stateVariables["/problem1"].stateValues.creditAchieved,
                 ).closeTo(problem1credit4, 1e-12);
                 expect(
                     stateVariables["/problem1"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem1percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem2"].stateValues.creditAchieved
+                    stateVariables["/problem2"].stateValues.creditAchieved,
                 ).closeTo(problem2credit4, 1e-12);
                 expect(
                     stateVariables["/problem2"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem2percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem21"].stateValues.creditAchieved
+                    stateVariables["/problem21"].stateValues.creditAchieved,
                 ).closeTo(problem21credit4, 1e-12);
                 expect(
                     stateVariables["/problem21"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem21percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem22"].stateValues.creditAchieved
+                    stateVariables["/problem22"].stateValues.creditAchieved,
                 ).closeTo(problem22credit4, 1e-12);
                 expect(
                     stateVariables["/problem22"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem22percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem221"].stateValues.creditAchieved
+                    stateVariables["/problem221"].stateValues.creditAchieved,
                 ).closeTo(problem221credit4, 1e-12);
                 expect(
                     stateVariables["/problem221"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem221percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/problem222"].stateValues.creditAchieved
+                    stateVariables["/problem222"].stateValues.creditAchieved,
                 ).closeTo(problem222credit4, 1e-12);
                 expect(
                     stateVariables["/problem222"].stateValues
-                        .percentCreditAchieved
+                        .percentCreditAchieved,
                 ).closeTo(problem222percentCredit4, 1e-12);
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer3"].stateValues.creditAchieved
+                    stateVariables["/_answer3"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer4"].stateValues.creditAchieved
+                    stateVariables["/_answer4"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer5"].stateValues.creditAchieved
+                    stateVariables["/_answer5"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer6"].stateValues.creditAchieved
+                    stateVariables["/_answer6"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer7"].stateValues.creditAchieved
+                    stateVariables["/_answer7"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer8"].stateValues.creditAchieved
+                    stateVariables["/_answer8"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer9"].stateValues.creditAchieved
+                    stateVariables["/_answer9"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1819,7 +1819,7 @@ describe("Problem Tag Tests", function () {
       </problem>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1842,10 +1842,10 @@ describe("Problem Tag Tests", function () {
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
-                "#" + twoxInputName + "_correct"
+                "#" + twoxInputName + "_correct",
             );
             let twoxInputIncorrectAnchor = cesc2(
-                "#" + twoxInputName + "_incorrect"
+                "#" + twoxInputName + "_incorrect",
             );
 
             cy.get(twoxInputSubmitAnchor).should("be.visible");
@@ -1862,13 +1862,13 @@ describe("Problem Tag Tests", function () {
                     .componentName;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
-                "#" + helloInputName + "_submit"
+                "#" + helloInputName + "_submit",
             );
             let helloInputCorrectAnchor = cesc2(
-                "#" + helloInputName + "_correct"
+                "#" + helloInputName + "_correct",
             );
             let helloInputIncorrectAnchor = cesc2(
-                "#" + helloInputName + "_incorrect"
+                "#" + helloInputName + "_incorrect",
             );
 
             cy.get(helloInputSubmitAnchor).should("be.visible");
@@ -2043,7 +2043,7 @@ describe("Problem Tag Tests", function () {
       </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2066,10 +2066,10 @@ describe("Problem Tag Tests", function () {
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
-                "#" + twoxInputName + "_correct"
+                "#" + twoxInputName + "_correct",
             );
             let twoxInputIncorrectAnchor = cesc2(
-                "#" + twoxInputName + "_incorrect"
+                "#" + twoxInputName + "_incorrect",
             );
 
             cy.get(twoxInputSubmitAnchor).should("be.visible");
@@ -2086,13 +2086,13 @@ describe("Problem Tag Tests", function () {
                     .componentName;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
-                "#" + helloInputName + "_submit"
+                "#" + helloInputName + "_submit",
             );
             let helloInputCorrectAnchor = cesc2(
-                "#" + helloInputName + "_correct"
+                "#" + helloInputName + "_correct",
             );
             let helloInputIncorrectAnchor = cesc2(
-                "#" + helloInputName + "_incorrect"
+                "#" + helloInputName + "_incorrect",
             );
 
             cy.get(helloInputSubmitAnchor).should("be.visible");
@@ -2267,7 +2267,7 @@ describe("Problem Tag Tests", function () {
         </document>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2290,10 +2290,10 @@ describe("Problem Tag Tests", function () {
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
-                "#" + twoxInputName + "_correct"
+                "#" + twoxInputName + "_correct",
             );
             let twoxInputIncorrectAnchor = cesc2(
-                "#" + twoxInputName + "_incorrect"
+                "#" + twoxInputName + "_incorrect",
             );
 
             cy.get(twoxInputSubmitAnchor).should("be.visible");
@@ -2310,13 +2310,13 @@ describe("Problem Tag Tests", function () {
                     .componentName;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
-                "#" + helloInputName + "_submit"
+                "#" + helloInputName + "_submit",
             );
             let helloInputCorrectAnchor = cesc2(
-                "#" + helloInputName + "_correct"
+                "#" + helloInputName + "_correct",
             );
             let helloInputIncorrectAnchor = cesc2(
-                "#" + helloInputName + "_incorrect"
+                "#" + helloInputName + "_incorrect",
             );
 
             cy.get(helloInputSubmitAnchor).should("be.visible");
@@ -2494,7 +2494,7 @@ describe("Problem Tag Tests", function () {
       </section>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2517,10 +2517,10 @@ describe("Problem Tag Tests", function () {
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
-                "#" + twoxInputName + "_correct"
+                "#" + twoxInputName + "_correct",
             );
             let twoxInputIncorrectAnchor = cesc2(
-                "#" + twoxInputName + "_incorrect"
+                "#" + twoxInputName + "_incorrect",
             );
 
             cy.get(twoxInputSubmitAnchor).should("be.visible");
@@ -2537,13 +2537,13 @@ describe("Problem Tag Tests", function () {
                     .componentName;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
-                "#" + helloInputName + "_submit"
+                "#" + helloInputName + "_submit",
             );
             let helloInputCorrectAnchor = cesc2(
-                "#" + helloInputName + "_correct"
+                "#" + helloInputName + "_correct",
             );
             let helloInputIncorrectAnchor = cesc2(
-                "#" + helloInputName + "_incorrect"
+                "#" + helloInputName + "_incorrect",
             );
 
             cy.get(helloInputSubmitAnchor).should("be.visible");
@@ -2743,7 +2743,7 @@ describe("Problem Tag Tests", function () {
       </document>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2766,10 +2766,10 @@ describe("Problem Tag Tests", function () {
             let twoxInputAnchor = cesc2("#" + twoxInputName) + " textarea";
             let twoxInputSubmitAnchor = cesc2("#" + twoxInputName + "_submit");
             let twoxInputCorrectAnchor = cesc2(
-                "#" + twoxInputName + "_correct"
+                "#" + twoxInputName + "_correct",
             );
             let twoxInputIncorrectAnchor = cesc2(
-                "#" + twoxInputName + "_incorrect"
+                "#" + twoxInputName + "_incorrect",
             );
 
             cy.get(twoxInputSubmitAnchor).should("be.visible");
@@ -2786,13 +2786,13 @@ describe("Problem Tag Tests", function () {
                     .componentName;
             let helloInputAnchor = cesc2("#" + helloInputName + "_input");
             let helloInputSubmitAnchor = cesc2(
-                "#" + helloInputName + "_submit"
+                "#" + helloInputName + "_submit",
             );
             let helloInputCorrectAnchor = cesc2(
-                "#" + helloInputName + "_correct"
+                "#" + helloInputName + "_correct",
             );
             let helloInputIncorrectAnchor = cesc2(
-                "#" + helloInputName + "_incorrect"
+                "#" + helloInputName + "_incorrect",
             );
 
             cy.get(helloInputSubmitAnchor).should("be.visible");
@@ -2975,7 +2975,7 @@ describe("Problem Tag Tests", function () {
       </problem>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3048,11 +3048,11 @@ describe("Problem Tag Tests", function () {
 
             cy.get(cesc("#\\/prob1_submit")).should(
                 "contain.text",
-                "Submit Response"
+                "Submit Response",
             );
             cy.get(cesc("#\\/prob2_submit")).should(
                 "contain.text",
-                "Submit Response"
+                "Submit Response",
             );
             cy.get(cesc("#\\/prob3_submit")).should("contain.text", "Guess");
             cy.get(cesc("#\\/prob4_submit")).should("contain.text", "Guess");
@@ -3090,19 +3090,19 @@ describe("Problem Tag Tests", function () {
 
             cy.get(cesc("#\\/prob1_saved")).should(
                 "contain.text",
-                "Response Saved"
+                "Response Saved",
             );
             cy.get(cesc("#\\/prob2_saved")).should(
                 "contain.text",
-                "Response Saved"
+                "Response Saved",
             );
             cy.get(cesc("#\\/prob3_saved")).should(
                 "contain.text",
-                "Response Saved"
+                "Response Saved",
             );
             cy.get(cesc("#\\/prob4_saved")).should(
                 "contain.text",
-                "Response Saved"
+                "Response Saved",
             );
         });
     });
@@ -3118,7 +3118,7 @@ describe("Problem Tag Tests", function () {
       </document>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3164,7 +3164,7 @@ describe("Problem Tag Tests", function () {
 
             cy.get(cesc("#\\/doc_saved")).should(
                 "contain.text",
-                "Response Saved"
+                "Response Saved",
             );
         });
     });
@@ -3212,7 +3212,7 @@ describe("Problem Tag Tests", function () {
                     doenetML,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3235,7 +3235,7 @@ describe("Problem Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3262,7 +3262,7 @@ describe("Problem Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -3285,7 +3285,7 @@ describe("Problem Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load

@@ -90,7 +90,7 @@ describe("Boolean Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -129,7 +129,7 @@ describe("Boolean Tag Tests", function () {
     </text>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -137,13 +137,13 @@ describe("Boolean Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_text1")).should("not.exist");
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}2x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_text1")).should("contain.text", "Hello there!");
 
@@ -181,7 +181,7 @@ describe("Boolean Tag Tests", function () {
         
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -220,7 +220,7 @@ describe("Boolean Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -247,7 +247,7 @@ describe("Boolean Tag Tests", function () {
 
         cy.get(cesc("#\\/i") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_boolean1")).should("have.text", "false");
         cy.get(cesc("#\\/_boolean2")).should("have.text", "false");
@@ -304,7 +304,7 @@ describe("Boolean Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -378,7 +378,7 @@ describe("Boolean Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -420,7 +420,7 @@ describe("Boolean Tag Tests", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -454,7 +454,7 @@ describe("Boolean Tag Tests", function () {
     <boolean name="four">$c = <text>four</text></boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -501,7 +501,7 @@ describe("Boolean Tag Tests", function () {
     <p>Are you sure? <textinput bindvalueto="$bi" name="ti" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -565,7 +565,7 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b2"><number>3</number> != 1 and <boolean>true</boolean> and <number>4</number> = <math>4</math></boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -592,7 +592,7 @@ describe("Boolean Tag Tests", function () {
     $b5{simplifyOnCompare="true" name="b6"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -621,7 +621,7 @@ describe("Boolean Tag Tests", function () {
     </boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -645,7 +645,7 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b6" caseInsensitiveMatch><text>one Word</text> = <text>One word</text></boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -675,7 +675,7 @@ describe("Boolean Tag Tests", function () {
     <boolean name="b8" matchBlanks><math>_6^14C</math> = <math>_6^14C</math></boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -723,7 +723,7 @@ describe("Boolean Tag Tests", function () {
     </boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

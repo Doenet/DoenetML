@@ -47,13 +47,13 @@ export function postProcessCopy({
                         let lastSlash = component.originalName.lastIndexOf("/");
                         originalNamespace = component.originalName.substring(
                             0,
-                            lastSlash
+                            lastSlash,
                         );
                     }
                     for (let cName of component.originalDoenetAttributes
                         .assignNames) {
                         componentNamesFound.push(
-                            originalNamespace + "/" + cName
+                            originalNamespace + "/" + cName,
                         );
                         assignNamesFound.push(originalNamespace + "/" + cName);
                     }
@@ -61,12 +61,12 @@ export function postProcessCopy({
                 if (component.attributes) {
                     if (component.attributes.alias) {
                         activeAliases.push(
-                            component.attributes.alias.primitive
+                            component.attributes.alias.primitive,
                         );
                     }
                     if (component.attributes.indexAlias) {
                         activeAliases.push(
-                            component.attributes.indexAlias.primitive
+                            component.attributes.indexAlias.primitive,
                         );
                     }
                 }
@@ -124,7 +124,7 @@ export function postProcessCopy({
             if (!targetComponentName) {
                 if (!component.attributes.uri) {
                     throw Error(
-                        "we need to create a targetComponentName here, then."
+                        "we need to create a targetComponentName here, then.",
                     );
                 }
             } else {
@@ -144,7 +144,7 @@ export function postProcessCopy({
                         copiesByTargetComponentName[targetComponentName] = [];
                     }
                     copiesByTargetComponentName[targetComponentName].push(
-                        component
+                        component,
                     );
                 }
             }
@@ -152,7 +152,7 @@ export function postProcessCopy({
 
         component.uniqueIdentifier = getUniqueIdentifierFromBase(
             uniqueIdentifierBase,
-            uniqueIdentifiersUsed
+            uniqueIdentifiersUsed,
         );
     }
 
@@ -307,7 +307,7 @@ export function convertAttributesForComponentType({
 
                 removeBlankStringChildren(
                     serializedComponents,
-                    componentInfoObjects
+                    componentInfoObjects,
                 );
 
                 applySugar({
@@ -331,7 +331,7 @@ export function convertAttributesForComponentType({
             }
         } else if (newClass.acceptAnyAttribute) {
             newAttributes[attrName] = JSON.parse(
-                JSON.stringify(attributes[attrName])
+                JSON.stringify(attributes[attrName]),
             );
         }
     }
@@ -372,7 +372,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             })
         ) {
             replacements = replacements.filter(
-                (x) => x.componentType || x.trim().length > 0
+                (x) => x.componentType || x.trim().length > 0,
             );
         }
 
@@ -410,13 +410,13 @@ export async function verifyReplacementsMatchSpecifiedType({
                     let firstIndex = change.firstReplacementInd;
 
                     let newTypes = change.serializedReplacements.map(
-                        (x) => x.componentType
+                        (x) => x.componentType,
                     );
 
                     replacementTypes.splice(
                         firstIndex,
                         numberToDelete,
-                        ...newTypes
+                        ...newTypes,
                     );
                 }
             } else if (change.changeType === "delete") {
@@ -440,7 +440,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     if (replacementsToWithhold > 0) {
         replacementTypes = replacementTypes.slice(
             0,
-            replacementTypes.length - replacementsToWithhold
+            replacementTypes.length - replacementsToWithhold,
         );
     }
 
@@ -466,7 +466,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             component.sharedParameters.compositesDefaultReplacementType;
         if (!requiredComponentType) {
             throw Error(
-                `A component class specified descendantCompositesMustHaveAReplacement but didn't specify descendantCompositesDefaultReplacementType`
+                `A component class specified descendantCompositesMustHaveAReplacement but didn't specify descendantCompositesDefaultReplacementType`,
             );
         }
         requiredLength = 1;
@@ -563,7 +563,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             let uniqueIdentifierBase = requiredComponentType + "|empty" + i;
             let uniqueIdentifier = getUniqueIdentifierFromBase(
                 uniqueIdentifierBase,
-                workspace.uniqueIdentifiersUsedBySource[0]
+                workspace.uniqueIdentifiersUsedBySource[0],
             );
             replacements.push({
                 componentType: requiredComponentType,
@@ -590,13 +590,13 @@ export async function verifyReplacementsMatchSpecifiedType({
             )?.[0];
 
             if (propName && !targetInactive) {
-                let replacementSources = await component.stateValues
-                    .replacementSourceIdentities;
+                let replacementSources =
+                    await component.stateValues.replacementSourceIdentities;
 
                 if (replacementSources === undefined) {
                     // check if based on extract
-                    replacementSources = await component.stateValues
-                        .sourceComponents;
+                    replacementSources =
+                        await component.stateValues.sourceComponents;
                 }
 
                 let replacementSource = replacementSources[0];
@@ -634,7 +634,7 @@ export async function verifyReplacementsMatchSpecifiedType({
                         arrayKeys[0] ||
                             Array(arrayStateVarObj.numDimensions)
                                 .fill("0")
-                                .join(",")
+                                .join(","),
                     );
                 } else {
                     // Since we don't currently see a use case for non-arrays,
@@ -681,7 +681,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         if (!wrapExistingReplacements) {
             workspace.numReplacementsBySource.push(replacements.length);
             workspace.numNonStringReplacementsBySource.push(
-                replacements.filter((x) => typeof x !== "string").length
+                replacements.filter((x) => typeof x !== "string").length,
             );
         }
 

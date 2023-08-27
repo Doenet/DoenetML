@@ -33,7 +33,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -170,7 +170,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("42/3");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}42/3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "true");
         cy.get(cesc("#\\/int2")).should("have.text", "true");
@@ -203,7 +203,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("-39.6/3.3");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-39.6/3.3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "true");
         cy.get(cesc("#\\/int2")).should("have.text", "true");
@@ -236,7 +236,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("x");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "false");
         cy.get(cesc("#\\/int2")).should("have.text", "false");
@@ -269,7 +269,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("sqrt(4)");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{end}{backspace}{backspace}sqrt4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "true");
         cy.get(cesc("#\\/int2")).should("have.text", "true");
@@ -302,7 +302,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("2sin(pi/4)^2");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2sin(pi/4){rightarrow}{rightarrow}^2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "true");
         cy.get(cesc("#\\/int2")).should("have.text", "true");
@@ -335,7 +335,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("1E-300");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1E-300{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "false");
         cy.get(cesc("#\\/int2")).should("have.text", "false");
@@ -368,7 +368,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("-0");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "true");
         cy.get(cesc("#\\/int2")).should("have.text", "true");
@@ -401,7 +401,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("0/0");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0/0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "false");
         cy.get(cesc("#\\/int2")).should("have.text", "false");
@@ -434,7 +434,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("10/0");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10/0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "false");
         cy.get(cesc("#\\/int2")).should("have.text", "false");
@@ -467,7 +467,7 @@ describe("Boolean Operator on Math Tag Tests", function () {
         cy.log("10/-0");
         cy.get(cesc("#\\/n") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10/-0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/int1")).should("have.text", "false");
         cy.get(cesc("#\\/int2")).should("have.text", "false");

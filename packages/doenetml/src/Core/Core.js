@@ -137,9 +137,9 @@ export default class Core {
             stateVariableUpdatesForMissingComponents: JSON.parse(
                 JSON.stringify(
                     stateVariableChanges,
-                    serializeFunctions.serializedComponentsReplacer
+                    serializeFunctions.serializedComponentsReplacer,
                 ),
-                serializeFunctions.serializedComponentsReviver
+                serializeFunctions.serializedComponentsReviver,
             ),
             stateVariablesToEvaluate: [],
         };
@@ -153,9 +153,9 @@ export default class Core {
         this.cumulativeStateVariableChanges = JSON.parse(
             JSON.stringify(
                 stateVariableChanges,
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
-            serializeFunctions.serializedComponentsReviver
+            serializeFunctions.serializedComponentsReviver,
         );
 
         this.requestedVariantIndex = requestedVariantIndex;
@@ -249,7 +249,7 @@ export default class Core {
 
         this.componentIndexArray =
             serializeFunctions.extractComponentNamesAndIndices(
-                serializedComponents
+                serializedComponents,
             );
 
         let { rangePieces } = serializeFunctions.extractRangeIndexPieces({
@@ -317,7 +317,7 @@ export default class Core {
                         ] = varDescriptions);
                     }.bind(this),
                     configurable: true,
-                }
+                },
             );
         }
 
@@ -409,12 +409,12 @@ export default class Core {
 
         this.canonicalGeneratedVariantString = JSON.stringify(
             await this.document.stateValues.generatedVariantInfo,
-            serializeFunctions.serializedComponentsReplacer
+            serializeFunctions.serializedComponentsReplacer,
         );
         this.canonicalItemVariantStrings = (
             await this.document.stateValues.itemVariantInfo
         ).map((x) =>
-            JSON.stringify(x, serializeFunctions.serializedComponentsReplacer)
+            JSON.stringify(x, serializeFunctions.serializedComponentsReplacer),
         );
 
         // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
@@ -423,7 +423,7 @@ export default class Core {
         this.coreInfo = {
             generatedVariantString: this.canonicalGeneratedVariantString,
             allPossibleVariants: deepClone(
-                await this.document.sharedParameters.allPossibleVariants
+                await this.document.sharedParameters.allPossibleVariants,
             ),
             rendererTypesInDocument: deepClone(this.rendererTypesInDocument),
             documentToRender: this.documentRendererInstructions,
@@ -431,7 +431,7 @@ export default class Core {
 
         this.coreInfoString = JSON.stringify(
             this.coreInfo,
-            serializeFunctions.serializedComponentsReplacer
+            serializeFunctions.serializedComponentsReplacer,
         );
 
         this.messageViewerReady();
@@ -472,15 +472,15 @@ export default class Core {
             // then treat the first view of the document as a submission
             // so that will get credit for viewing the page
             this.saveSubmissions({
-                pageCreditAchieved: await this.document.stateValues
-                    .creditAchieved,
+                pageCreditAchieved:
+                    await this.document.stateValues.creditAchieved,
                 suppressToast: true,
             });
         }
 
         setTimeout(
             this.sendVisibilityChangedEvents.bind(this),
-            this.visibilityInfo.saveDelay
+            this.visibilityInfo.saveDelay,
         );
     }
 
@@ -533,7 +533,7 @@ export default class Core {
         // keep only the last warnings
         let warningLimit = 1000;
         this.errorWarnings.warnings = this.errorWarnings.warnings.slice(
-            -warningLimit
+            -warningLimit,
         );
 
         for (let errorWarning of [
@@ -547,7 +547,7 @@ export default class Core {
             ) {
                 Object.assign(
                     doenetMLrange,
-                    getLineCharRange(doenetMLrange, this.doenetMLNewlines)
+                    getLineCharRange(doenetMLrange, this.doenetMLNewlines),
                 );
             }
         }
@@ -626,7 +626,7 @@ export default class Core {
         if (initialAdd) {
             if (newComponents.length !== 1) {
                 throw Error(
-                    "Initial components need to be an array of just one component."
+                    "Initial components need to be an array of just one component.",
                 );
             }
             // this.setAncestors(newComponents[0]);
@@ -658,7 +658,7 @@ export default class Core {
             await this.replacementChangesFromCompositesToUpdate();
 
             let results = await this.initializeRenderedComponentInstruction(
-                this.document
+                this.document,
             );
 
             // initializing renderer instructions could trigger more composite updates
@@ -720,7 +720,7 @@ export default class Core {
             });
             if (!addResults.success) {
                 throw Error(
-                    "Couldn't satisfy child logic result.  Need informative error message"
+                    "Couldn't satisfy child logic result.  Need informative error message",
                 );
             }
             Object.assign(addedComponents, addResults.addedComponents);
@@ -819,7 +819,7 @@ export default class Core {
 
                     indicesToRender =
                         await this.returnActiveChildrenIndicesToRender(
-                            unproxiedComponent
+                            unproxiedComponent,
                         );
 
                     let renderedInd = 0;
@@ -830,17 +830,17 @@ export default class Core {
                         if (indicesToRender.includes(ind)) {
                             if (child.rendererType) {
                                 currentChildIdentifiers.push(
-                                    `nameType:${child.componentName};${child.componentType}`
+                                    `nameType:${child.componentName};${child.componentType}`,
                                 );
                                 renderedInd++;
                             } else if (typeof child === "string") {
                                 currentChildIdentifiers.push(
-                                    `string${renderedInd}:${child}`
+                                    `string${renderedInd}:${child}`,
                                 );
                                 renderedInd++;
                             } else if (typeof child === "number") {
                                 currentChildIdentifiers.push(
-                                    `number${renderedInd}:${child.toString()}`
+                                    `number${renderedInd}:${child.toString()}`,
                                 );
                                 renderedInd++;
                             }
@@ -855,13 +855,13 @@ export default class Core {
                 for (let [ind, child] of previousChildRenderers.entries()) {
                     if (child.componentName) {
                         previousChildIdentifiers.push(
-                            `nameType:${child.componentName};${child.componentType}`
+                            `nameType:${child.componentName};${child.componentType}`,
                         );
                     } else if (typeof child === "string") {
                         previousChildIdentifiers.push(`string${ind}:${child}`);
                     } else if (typeof child === "number") {
                         previousChildIdentifiers.push(
-                            `number${ind}:${child.toString()}`
+                            `number${ind}:${child.toString()}`,
                         );
                     }
                 }
@@ -870,7 +870,7 @@ export default class Core {
                     currentChildIdentifiers.length !==
                         previousChildIdentifiers.length ||
                     currentChildIdentifiers.some(
-                        (v, i) => v !== previousChildIdentifiers[i]
+                        (v, i) => v !== previousChildIdentifiers[i],
                     )
                 ) {
                     // delete old renderers
@@ -898,13 +898,13 @@ export default class Core {
                                     let results =
                                         await this.initializeRenderedComponentInstruction(
                                             child,
-                                            componentsWithChangedChildrenToRenderInProgress
+                                            componentsWithChangedChildrenToRenderInProgress,
                                         );
                                     childrenToRender.push(
-                                        results.componentToRender
+                                        results.componentToRender,
                                     );
                                     rendererStatesToUpdate.push(
-                                        ...results.rendererStatesToUpdate
+                                        ...results.rendererStatesToUpdate,
                                     );
                                 } else if (typeof child === "string") {
                                     childrenToRender.push(child);
@@ -921,7 +921,7 @@ export default class Core {
                     newChildrenInstructions[componentName] = childrenToRender;
 
                     componentsWithChangedChildrenToRenderInProgress.delete(
-                        componentName
+                        componentName,
                     );
 
                     if (!componentNamesToUpdate.includes(componentName)) {
@@ -942,7 +942,7 @@ export default class Core {
                     for (let stateVariable in component.state) {
                         if (component.state[stateVariable].forRenderer) {
                             let value = removeFunctionsMathExpressionClass(
-                                await component.state[stateVariable].value
+                                await component.state[stateVariable].value,
                             );
                             // if (value !== null && typeof value === 'object') {
                             //   value = new Proxy(value, readOnlyProxyHandler)
@@ -998,7 +998,7 @@ export default class Core {
 
     async initializeRenderedComponentInstruction(
         component,
-        componentsWithChangedChildrenToRenderInProgress = new Set([])
+        componentsWithChangedChildrenToRenderInProgress = new Set([]),
     ) {
         if (component.rendererType === undefined) {
             return;
@@ -1021,7 +1021,7 @@ export default class Core {
             if (component.state[stateVariable].forRenderer) {
                 stateValuesForRenderer[stateVariable] =
                     removeFunctionsMathExpressionClass(
-                        await component.state[stateVariable].value
+                        await component.state[stateVariable].value,
                     );
                 if (component.state[stateVariable].alwaysUpdateRenderer) {
                     alwaysUpdate = true;
@@ -1050,14 +1050,14 @@ export default class Core {
                         let results =
                             await this.initializeRenderedComponentInstruction(
                                 child,
-                                componentsWithChangedChildrenToRenderInProgress
+                                componentsWithChangedChildrenToRenderInProgress,
                             );
                         childrenToRender.push(results.componentToRender);
                         rendererStatesToUpdate.push(
-                            ...results.rendererStatesToUpdate
+                            ...results.rendererStatesToUpdate,
                         );
                         rendererStatesToForceUpdate.push(
-                            ...results.rendererStatesToForceUpdate
+                            ...results.rendererStatesToForceUpdate,
                         );
                     } else if (typeof child === "string") {
                         childrenToRender.push(child);
@@ -1223,7 +1223,7 @@ export default class Core {
                                 stateVariable: "readyToExpandWhenResolved",
                                 force,
                                 recurseUpstream: true,
-                            }
+                            },
                         );
 
                         if (resolveResult.success) {
@@ -1250,7 +1250,7 @@ export default class Core {
 
     async expandCompositesOfDescendants(
         component,
-        forceExpandComposites = false
+        forceExpandComposites = false,
     ) {
         // console.log(`expand composites of descendants of ${component.componentName}, forceExpandComposites = ${forceExpandComposites}`)
 
@@ -1271,7 +1271,7 @@ export default class Core {
                 // console.log(`resolving blockers from changed active children of ${component.componentName}`)
                 await this.dependencies.resolveBlockersFromChangedActiveChildren(
                     component,
-                    forceExpandComposites
+                    forceExpandComposites,
                 );
                 // console.log(`done resolving blockers from changed active children of ${component.componentName}`)
             }
@@ -1283,10 +1283,10 @@ export default class Core {
                 let additionalParentsWithNotReady =
                     await this.expandCompositesOfDescendants(
                         attrComp,
-                        forceExpandComposites
+                        forceExpandComposites,
                     );
                 parentsWithCompositesNotReady.push(
-                    ...additionalParentsWithNotReady
+                    ...additionalParentsWithNotReady,
                 );
             }
         }
@@ -1300,10 +1300,10 @@ export default class Core {
             let additionalParentsWithNotReady =
                 await this.expandCompositesOfDescendants(
                     child,
-                    forceExpandComposites
+                    forceExpandComposites,
                 );
             parentsWithCompositesNotReady.push(
-                ...additionalParentsWithNotReady
+                ...additionalParentsWithNotReady,
             );
         }
         // console.log(`done expanding composites of descendants of ${component.componentName}`)
@@ -1326,7 +1326,7 @@ export default class Core {
             }
             for (let child of component.activeChildren) {
                 componentNames.push(
-                    ...(await this.componentAndRenderedDescendants(child))
+                    ...(await this.componentAndRenderedDescendants(child)),
                 );
             }
         }
@@ -1421,7 +1421,7 @@ export default class Core {
                 });
                 serializeFunctions.convertToErrorComponent(
                     serializedComponent,
-                    message
+                    message,
                 );
 
                 lastErrorMessage = message;
@@ -1453,7 +1453,7 @@ export default class Core {
 
                 componentName = createUniqueName(
                     serializedComponent.componentType.toLowerCase(),
-                    longNameId
+                    longNameId,
                 );
 
                 // add namespace
@@ -1521,7 +1521,7 @@ export default class Core {
 
             componentName = createUniqueName(
                 serializedComponent.componentType.toLowerCase(),
-                longNameId
+                longNameId,
             );
 
             // add namespace
@@ -1548,7 +1548,7 @@ export default class Core {
                 let message = `Duplicate component name: ${originalName}.`;
                 serializeFunctions.convertToErrorComponent(
                     serializedComponent,
-                    message
+                    message,
                 );
                 componentClass =
                     this.componentInfoObjects.allComponentClasses[
@@ -1622,7 +1622,7 @@ export default class Core {
                 if (pName in sharedParameters) {
                     sharedParameters[pName] = Object.assign(
                         {},
-                        sharedParameters[pName]
+                        sharedParameters[pName],
                     );
                 } else {
                     sharedParameters[pName] = {};
@@ -1667,7 +1667,7 @@ export default class Core {
                         throw Error(
                             "Invalid instructions to keep children serialized from " +
                                 componentClass.componentType +
-                                ": child repeated"
+                                ": child repeated",
                         );
                     }
                     childrenAddressed.add(Number(ind));
@@ -1690,7 +1690,7 @@ export default class Core {
                             shadow,
                             namespaceForUnamed,
                             componentsReplacementOf,
-                        }
+                        },
                     );
 
                     definingChildren = childrenResult.components;
@@ -1735,7 +1735,7 @@ export default class Core {
                                 namespaceForUnamed,
                                 componentsReplacementOf,
                                 createNameContext: `attribute|${attrName}`,
-                            }
+                            },
                         );
 
                         if (attrResult.lastErrorMessage) {
@@ -1752,7 +1752,7 @@ export default class Core {
                             throw Error(
                                 this.dependencies.getCircularDependencyMessage([
                                     serializedComponent,
-                                ])
+                                ]),
                             );
                         } else {
                             throw e;
@@ -1778,7 +1778,7 @@ export default class Core {
             // to ensure the error message is displayed.
             serializeFunctions.convertToErrorComponent(
                 serializedComponent,
-                lastErrorMessage
+                lastErrorMessage,
             );
             attributes = {};
             componentClass =
@@ -1795,7 +1795,7 @@ export default class Core {
                     throw Error(
                         this.dependencies.getCircularDependencyMessage([
                             serializedComponent,
-                        ])
+                        ]),
                     );
                 }
                 if (this.components[name]) {
@@ -1805,7 +1805,7 @@ export default class Core {
                     throw Error(
                         this.dependencies.getCircularDependencyMessage([
                             serializedComponent,
-                        ])
+                        ]),
                     );
                 }
             }
@@ -1921,7 +1921,7 @@ export default class Core {
 
         let variablesChanged =
             await this.dependencies.checkForDependenciesOnNewComponent(
-                componentName
+                componentName,
             );
 
         for (let varDescription of variablesChanged) {
@@ -2049,7 +2049,7 @@ export default class Core {
             parent,
             parent.definingChildren,
             expandComposites,
-            forceExpandComposites
+            forceExpandComposites,
         );
         parent.unexpandedCompositesReady = result.unexpandedCompositesReady;
         parent.unexpandedCompositesNotReady =
@@ -2059,7 +2059,7 @@ export default class Core {
 
         if (parent.activeChildren) {
             previousActiveChildren = parent.activeChildren.map((child) =>
-                child.componentName ? child.componentName : child
+                child.componentName ? child.componentName : child,
             );
         }
 
@@ -2122,7 +2122,7 @@ export default class Core {
                         unmatchedChildrenTypes.push("string");
                     } else {
                         unmatchedChildrenTypes.push(
-                            "<" + child.componentType + ">"
+                            "<" + child.componentType + ">",
                         );
                         if (
                             this.componentInfoObjects.isInheritedComponentType({
@@ -2139,7 +2139,7 @@ export default class Core {
                     message: `Invalid children for <${
                         parent.componentType
                     }>: Found invalid children: ${unmatchedChildrenTypes.join(
-                        ", "
+                        ", ",
                     )}`,
                 };
             }
@@ -2160,11 +2160,11 @@ export default class Core {
                 parent.activeChildren.every((child, ind) =>
                     child.componentName
                         ? child.componentName === previousActiveChildren[ind]
-                        : child === previousActiveChildren[ind]
+                        : child === previousActiveChildren[ind],
                 );
             if (!childrenUnchanged) {
                 this.componentsWithChangedChildrenToRender.add(
-                    parent.componentName
+                    parent.componentName,
                 );
             }
         }
@@ -2176,7 +2176,7 @@ export default class Core {
         parent,
         children,
         expandComposites,
-        forceExpandComposites
+        forceExpandComposites,
     ) {
         // if composite is not directly matched by any childGroup
         // then replace the composite with its replacements,
@@ -2222,26 +2222,26 @@ export default class Core {
 
                             if (!resolveResult.success) {
                                 unexpandedCompositesNotReady.push(
-                                    child.componentName
+                                    child.componentName,
                                 );
                                 this.updateInfo.compositesToExpand.add(
-                                    child.componentName
+                                    child.componentName,
                                 );
                                 continue;
                             }
                         } else {
                             unexpandedCompositesNotReady.push(
-                                child.componentName
+                                child.componentName,
                             );
                             this.updateInfo.compositesToExpand.add(
-                                child.componentName
+                                child.componentName,
                             );
                             continue;
                         }
                     } else if (!expandComposites) {
                         unexpandedCompositesReady.push(child.componentName);
                         this.updateInfo.compositesToExpand.add(
-                            child.componentName
+                            child.componentName,
                         );
                         continue;
                     }
@@ -2255,14 +2255,14 @@ export default class Core {
                     parent,
                     child.replacements,
                     expandComposites,
-                    forceExpandComposites
+                    forceExpandComposites,
                 );
 
                 unexpandedCompositesReady.push(
-                    ...result.unexpandedCompositesReady
+                    ...result.unexpandedCompositesReady,
                 );
                 unexpandedCompositesNotReady.push(
-                    ...result.unexpandedCompositesNotReady
+                    ...result.unexpandedCompositesNotReady,
                 );
             }
         }
@@ -2327,12 +2327,12 @@ export default class Core {
         for (let n = 0; n < numAdapters; n++) {
             let adapterComponentType = childClass.getAdapterComponentType(
                 n,
-                this.componentInfoObjects.publicStateVariableInfo
+                this.componentInfoObjects.publicStateVariableInfo,
             );
 
             result = this.findChildGroupNoAdapters(
                 adapterComponentType,
-                parentClass
+                parentClass,
             );
 
             if (result.success) {
@@ -2348,7 +2348,7 @@ export default class Core {
     findChildGroupNoAdapters(
         componentType,
         parentClass,
-        afterAdapters = false
+        afterAdapters = false,
     ) {
         if (parentClass.childGroupOfComponentType[componentType]) {
             return {
@@ -2398,13 +2398,13 @@ export default class Core {
         let indicesToRender = [];
         let numChildrenToRender = Infinity;
         if ("numChildrenToRender" in component.state) {
-            numChildrenToRender = await component.stateValues
-                .numChildrenToRender;
+            numChildrenToRender =
+                await component.stateValues.numChildrenToRender;
         }
         let childIndicesToRender = null;
         if ("childIndicesToRender" in component.state) {
-            childIndicesToRender = await component.stateValues
-                .childIndicesToRender;
+            childIndicesToRender =
+                await component.stateValues.childIndicesToRender;
         }
 
         for (let [ind, child] of component.activeChildren.entries()) {
@@ -2467,7 +2467,7 @@ export default class Core {
                     originalChild.componentType
                 ].getAdapterComponentType(
                     adapterIndUsed,
-                    this.componentInfoObjects.publicStateVariableInfo
+                    this.componentInfoObjects.publicStateVariableInfo,
                 ),
                 placeholderInd: originalChild.placeholderInd + "adapt",
             };
@@ -2485,14 +2485,14 @@ export default class Core {
                     namespaceForUnamed = parent.componentName + "/";
                 } else {
                     namespaceForUnamed = getNamespaceFromName(
-                        parent.componentName
+                        parent.componentName,
                     );
                 }
 
                 newSerializedChild.adaptedFrom = originalChild.componentName;
                 assignDoenetMLRange(
                     [newSerializedChild],
-                    originalChild.doenetMLrange
+                    originalChild.doenetMLrange,
                 );
                 let newChildrenResult = await this.createIsolatedComponentsSub({
                     serializedComponents: [newSerializedChild],
@@ -2534,22 +2534,22 @@ export default class Core {
         // and place adapter immediately afterward
         if (originalChild.componentName) {
             let originalInd = parent.allChildrenOrdered.indexOf(
-                originalChild.componentName
+                originalChild.componentName,
             );
             parent.allChildrenOrdered.splice(
                 originalInd + 1,
                 0,
-                adapter.componentName
+                adapter.componentName,
             );
         } else {
             // adapter of placeholder
             let originalInd = parent.allChildrenOrdered.indexOf(
-                originalChild.placeholderInd
+                originalChild.placeholderInd,
             );
             parent.allChildrenOrdered.splice(
                 originalInd + 1,
                 0,
-                adapter.placeholderInd
+                adapter.placeholderInd,
             );
         }
     }
@@ -2557,7 +2557,7 @@ export default class Core {
     async expandCompositeComponent(component) {
         if (!("readyToExpandWhenResolved" in component.state)) {
             throw Error(
-                `Could not find state variable readyToExpandWhenResolved of composite ${component.componentName}`
+                `Could not find state variable readyToExpandWhenResolved of composite ${component.componentName}`,
             );
         }
 
@@ -2575,7 +2575,7 @@ export default class Core {
         if (component.parent) {
             if (component.parent.unexpandedCompositesReady) {
                 let ind = component.parent.unexpandedCompositesReady.indexOf(
-                    component.componentName
+                    component.componentName,
                 );
                 if (ind !== -1) {
                     component.parent.unexpandedCompositesReady.splice(ind, 1);
@@ -2583,12 +2583,12 @@ export default class Core {
             }
             if (component.parent.unexpandedCompositesNotReady) {
                 let ind = component.parent.unexpandedCompositesNotReady.indexOf(
-                    component.componentName
+                    component.componentName,
                 );
                 if (ind !== -1) {
                     component.parent.unexpandedCompositesNotReady.splice(
                         ind,
-                        1
+                        1,
                     );
                 }
             }
@@ -2671,17 +2671,17 @@ export default class Core {
             });
         } else {
             throw Error(
-                `Invalid createSerializedReplacements of ${component.componentName}`
+                `Invalid createSerializedReplacements of ${component.componentName}`,
             );
         }
 
         // record that are finished expanding the composite
         let targetInd = this.updateInfo.compositesBeingExpanded.indexOf(
-            component.componentName
+            component.componentName,
         );
         if (targetInd === -1) {
             throw Error(
-                `Something is wrong as we lost track that we were expanding ${component.componentName}`
+                `Something is wrong as we lost track that we were expanding ${component.componentName}`,
             );
         }
         this.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
@@ -2715,7 +2715,7 @@ export default class Core {
 
         if (
             this.updateInfo.compositesBeingExpanded.includes(
-                component.shadows.componentName
+                component.shadows.componentName,
             )
         ) {
             // found a circular dependency,
@@ -2729,7 +2729,7 @@ export default class Core {
                     this._components[compositeInvolved.shadows.componentName];
             }
             throw Error(
-                `Circular dependency involving ${compositeInvolved.componentName}.`
+                `Circular dependency involving ${compositeInvolved.componentName}.`,
             );
         }
 
@@ -2744,7 +2744,7 @@ export default class Core {
 
             if (!result.success) {
                 throw Error(
-                    `expand result of ${component.componentName} was not a success even though ready to expand.`
+                    `expand result of ${component.componentName} was not a success even though ready to expand.`,
                 );
             }
             compositesExpanded.push(...result.compositesExpanded);
@@ -2753,8 +2753,8 @@ export default class Core {
         // we'll copy the replacements of the shadowed composite
         // and make those be the replacements of the shadowing composite
         let serializedReplacements = [];
-        let sourceAttributesToIgnore = await component.stateValues
-            .sourceAttributesToIgnore;
+        let sourceAttributesToIgnore =
+            await component.stateValues.sourceAttributesToIgnore;
 
         for (let repl of shadowedComposite.replacements) {
             if (typeof repl === "object") {
@@ -2762,7 +2762,7 @@ export default class Core {
                     await repl.serialize({
                         primitiveSourceAttributesToIgnore:
                             sourceAttributesToIgnore,
-                    })
+                    }),
                 );
             } else {
                 serializedReplacements.push(repl);
@@ -2867,7 +2867,7 @@ export default class Core {
 
         let foundCircular = false;
         let shadowedByShadowed = shadowedComposite.mediatesShadows?.map(
-            (v) => v.shadowed
+            (v) => v.shadowed,
         );
 
         while (shadowedByShadowed?.length > 0) {
@@ -2914,7 +2914,7 @@ export default class Core {
         if (component.constructor.assignNamesToReplacements) {
             let originalNamesAreConsistent =
                 this.determineOriginalNamesConsistentForShadowingComposite(
-                    component
+                    component,
                 );
 
             let target =
@@ -2983,7 +2983,7 @@ export default class Core {
                 compositeMediatingTheShadow.doenetAttributes.fromCopyTarget
             ) {
                 let newReplacements = deepClone(
-                    compositeMediatingTheShadow.serializedChildren
+                    compositeMediatingTheShadow.serializedChildren,
                 );
                 let componentClass =
                     this.componentInfoObjects.allComponentClasses[
@@ -2992,7 +2992,7 @@ export default class Core {
 
                 if (!componentClass.includeBlankStringChildren) {
                     newReplacements = newReplacements.filter(
-                        (x) => typeof x !== "string" || x.trim() !== ""
+                        (x) => typeof x !== "string" || x.trim() !== "",
                     );
                 }
 
@@ -3019,7 +3019,7 @@ export default class Core {
                 });
 
                 serializedReplacements.push(
-                    ...processResult.serializedComponents
+                    ...processResult.serializedComponents,
                 );
             }
         } else {
@@ -3060,7 +3060,7 @@ export default class Core {
                     components: this._components,
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
-                }
+                },
             );
 
             if (verificationResult.errors.length > 0) {
@@ -3069,7 +3069,7 @@ export default class Core {
             }
             if (verificationResult.warnings.length > 0) {
                 this.errorWarnings.warnings.push(
-                    ...verificationResult.warnings
+                    ...verificationResult.warnings,
                 );
                 this.newErrorWarning = true;
             }
@@ -3094,11 +3094,11 @@ export default class Core {
 
         // record that are finished expanding the composite
         let targetInd = this.updateInfo.compositesBeingExpanded.indexOf(
-            component.componentName
+            component.componentName,
         );
         if (targetInd === -1) {
             throw Error(
-                `Something is wrong as we lost track that we were expanding ${component.componentName}`
+                `Something is wrong as we lost track that we were expanding ${component.componentName}`,
             );
         }
         this.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
@@ -3171,7 +3171,7 @@ export default class Core {
         };
 
         let namespaceFromReplacementOfMediating = checkIfReplacementOfMediating(
-            componentCreatingNamespace
+            componentCreatingNamespace,
         );
 
         let originalNamesAreConsistent =
@@ -3303,14 +3303,14 @@ export default class Core {
 
                     parent.hasPlaceholderActiveChildren = true;
                     let placeholdInds = [...Array(numComponents).keys()].map(
-                        (x) => x + childInd
+                        (x) => x + childInd,
                     );
 
                     if (!parent.placeholderActiveChildrenIndices) {
                         parent.placeholderActiveChildrenIndices = [];
                     }
                     parent.placeholderActiveChildrenIndices.push(
-                        ...placeholdInds
+                        ...placeholdInds,
                     );
 
                     if (!parent.placeholderActiveChildrenIndicesByComposite) {
@@ -3327,7 +3327,7 @@ export default class Core {
                     if (child.replacementsToWithhold > 0) {
                         replacements = replacements.slice(
                             0,
-                            -child.replacementsToWithhold
+                            -child.replacementsToWithhold,
                         );
                     }
 
@@ -3337,7 +3337,7 @@ export default class Core {
                         parent.constructor.removeBlankStringChildrenPostSugar
                     ) {
                         replacements = replacements.filter(
-                            (x) => typeof x !== "string" || /\S/.test(x)
+                            (x) => typeof x !== "string" || /\S/.test(x),
                         );
                     }
                 }
@@ -3359,7 +3359,7 @@ export default class Core {
                             inheritedComponentType: repl.componentType,
                             baseComponentType: "_inline",
                         }) ||
-                        repl.constructor.canBeInList
+                        repl.constructor.canBeInList,
                 );
 
                 for (let otherCompositeObject of parent.compositeReplacementActiveRange) {
@@ -3368,14 +3368,14 @@ export default class Core {
                         otherCompositeObject.potentialListComponents.splice(
                             childInd,
                             1,
-                            ...replacementsCanBeInList
+                            ...replacementsCanBeInList,
                         );
                     }
                 }
 
                 if (
                     replacements.some(
-                        (repl) => repl.componentType === "_error"
+                        (repl) => repl.componentType === "_error",
                     ) &&
                     !parent.constructor.canDisplayChildErrors
                 ) {
@@ -3389,10 +3389,10 @@ export default class Core {
                         undisplayableErrorChildren = [];
                     }
                     let errorReplacements = replacements.filter(
-                        (repl) => repl.componentType === "_error"
+                        (repl) => repl.componentType === "_error",
                     );
                     replacements = replacements.filter(
-                        (repl) => repl.componentType !== "_error"
+                        (repl) => repl.componentType !== "_error",
                     );
                     undisplayableErrorChildren.push(...errorReplacements);
                 }
@@ -3429,7 +3429,7 @@ export default class Core {
                 // find index of child in allChildrenOrdered
                 // and place replacements immediately afterward
                 let ind2 = parent.allChildrenOrdered.indexOf(
-                    child.componentName
+                    child.componentName,
                 );
                 parent.allChildrenOrdered.splice(
                     ind2 + 1,
@@ -3437,8 +3437,10 @@ export default class Core {
                     ...replacements
                         .filter((x) => typeof x === "object")
                         .map((x) =>
-                            x.componentName ? x.componentName : x.placeholderInd
-                        )
+                            x.componentName
+                                ? x.componentName
+                                : x.placeholderInd,
+                        ),
                 );
 
                 if (replacements.length !== 1) {
@@ -3467,14 +3469,14 @@ export default class Core {
         if (undisplayableErrorChildren) {
             await this.addUndisplayableErrorChildrenToAncestor(
                 parent,
-                undisplayableErrorChildren
+                undisplayableErrorChildren,
             );
         }
     }
 
     async addUndisplayableErrorChildrenToAncestor(
         parent,
-        undisplayableErrorChildren
+        undisplayableErrorChildren,
     ) {
         // If parent had an error added by a composite, but it can't display errors,
         // then look for an ancestor that can display errors
@@ -3492,7 +3494,7 @@ export default class Core {
                 this._components[ancestorToDisplayErrors.parentName];
 
             definingChildIndToAddError = nextAncestor.definingChildren.indexOf(
-                ancestorToDisplayErrors
+                ancestorToDisplayErrors,
             );
 
             ancestorToDisplayErrors = nextAncestor;
@@ -3506,7 +3508,7 @@ export default class Core {
         ancestorToDisplayErrors.definingChildren.splice(
             definingChildIndToAddError,
             0,
-            ...undisplayableErrorChildren
+            ...undisplayableErrorChildren,
         );
 
         await this.processNewDefiningChildren({
@@ -3539,11 +3541,11 @@ export default class Core {
             let cName = composite.componentName;
             if (
                 this.updateInfo.inactiveCompositesToUpdateReplacements.has(
-                    cName
+                    cName,
                 )
             ) {
                 this.updateInfo.inactiveCompositesToUpdateReplacements.delete(
-                    cName
+                    cName,
                 );
                 this.updateInfo.compositesToUpdateReplacements.add(cName);
             }
@@ -3571,7 +3573,7 @@ export default class Core {
             for (let childName in component.allChildren) {
                 await this.changeInactiveComponentAndDescendants(
                     this._components[childName],
-                    inactive
+                    inactive,
                 );
             }
 
@@ -3580,7 +3582,7 @@ export default class Core {
                 if (attrComp) {
                     await this.changeInactiveComponentAndDescendants(
                         this._components[attrComp.componentName],
-                        inactive
+                        inactive,
                     );
                 }
             }
@@ -3627,7 +3629,7 @@ export default class Core {
                     if (dep.dependencyType === "referenceShadow") {
                         if (name === componentName) {
                             throw Error(
-                                `Circular dependency involving ${componentName}.`
+                                `Circular dependency involving ${componentName}.`,
                             );
                         }
                         redefineDependencies = {
@@ -3743,7 +3745,7 @@ export default class Core {
                     }
                 } else if (attributeSpecification.createTargetComponentNames) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames"
+                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -3760,7 +3762,7 @@ export default class Core {
                     ];
                 if (!attributeClass) {
                     throw Error(
-                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`
+                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`,
                     );
                 }
 
@@ -4012,7 +4014,7 @@ export default class Core {
                     }
                 } else if (attributeSpecification.createTargetComponentNames) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames"
+                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -4130,7 +4132,7 @@ export default class Core {
                 return {
                     setValue: {
                         [primaryStateVariableForDefinition]: stateDef.set(
-                            dependencyValues.adapterTargetVariable
+                            dependencyValues.adapterTargetVariable,
                         ),
                     },
                 };
@@ -4243,7 +4245,7 @@ export default class Core {
                     }
                 } else if (attributeSpecification.createTargetComponentNames) {
                     throw Error(
-                        "Cannot make a public state variable from an attribute with createTargetComponentNames"
+                        "Cannot make a public state variable from an attribute with createTargetComponentNames",
                     );
                 } else {
                     stateVarDef.shadowingInstructions.createComponentOfType =
@@ -4260,7 +4262,7 @@ export default class Core {
                     ];
                 if (!attributeClass) {
                     throw Error(
-                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`
+                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`,
                     );
                 }
 
@@ -4477,11 +4479,11 @@ export default class Core {
                         redefineDependencies.substituteForPrimaryStateVariable
                     ) {
                         throw Error(
-                            `Invalid public state variable of componentType ${componentClass.componentType}: substituteForPrimaryStateVariable ${redefineDependencies.substituteForPrimaryStateVariable} does not exist`
+                            `Invalid public state variable of componentType ${componentClass.componentType}: substituteForPrimaryStateVariable ${redefineDependencies.substituteForPrimaryStateVariable} does not exist`,
                         );
                     } else {
                         throw Error(
-                            `Cannot have a public state variable with componentType ${componentClass.componentType} as the class doesn't have a primary state variable for definition`
+                            `Cannot have a public state variable with componentType ${componentClass.componentType} as the class doesn't have a primary state variable for definition`,
                         );
                     }
                 }
@@ -4505,7 +4507,7 @@ export default class Core {
                         ].defaultValue;
                     if (stateDef.set) {
                         stateDef.defaultValue = stateDef.set(
-                            stateDef.defaultValue
+                            stateDef.defaultValue,
                         );
                     }
                     stateDef.hasEssential = true;
@@ -4623,7 +4625,7 @@ export default class Core {
             if (redefineDependencies.additionalStateVariableShadowing) {
                 // since using parallel arrays, start with empty array to match next indices
                 let differentStateVariablesInTarget = Array(
-                    stateVariablesToShadow.length
+                    stateVariablesToShadow.length,
                 );
                 for (let varName in redefineDependencies.additionalStateVariableShadowing) {
                     if (!stateVariablesToShadow.includes(varName)) {
@@ -4631,7 +4633,7 @@ export default class Core {
                         differentStateVariablesInTarget.push(
                             redefineDependencies
                                 .additionalStateVariableShadowing[varName]
-                                .stateVariableToShadow
+                                .stateVariableToShadow,
                         );
                     }
                 }
@@ -4752,7 +4754,7 @@ export default class Core {
                             deleteStateVariablesFromDefinition[varName2] = [];
                         }
                         deleteStateVariablesFromDefinition[varName2].push(
-                            varName
+                            varName,
                         );
                     }
                 }
@@ -4914,7 +4916,7 @@ export default class Core {
                 stateDef.returnDependencies = function (args) {
                     let dependencies = Object.assign(
                         {},
-                        returnStartingDependencies(args)
+                        returnStartingDependencies(args),
                     );
 
                     dependencies.targetVariable = {
@@ -5274,7 +5276,7 @@ export default class Core {
                         newArrayEntryPrefix + stateVarObj.varEnding;
 
                     stateVarObj.additionalStateVariablesDefined.push(
-                        arrayEntryVarName
+                        arrayEntryVarName,
                     );
                 } else {
                     stateVarObj.additionalStateVariablesDefined.push(varName);
@@ -5287,7 +5289,7 @@ export default class Core {
 
             stateVarObj.wrappingComponents =
                 arrayStateVarObj.shadowingInstructions.returnWrappingComponents(
-                    arrayEntryPrefix
+                    arrayEntryPrefix,
                 );
 
             if (arrayStateVarObj.shadowingInstructions.attributesToShadow) {
@@ -5431,11 +5433,11 @@ export default class Core {
             for (let varName of arrayStateVarObj.stateVariablesDeterminingDependencies) {
                 if (
                     !stateVarObj.stateVariablesDeterminingDependencies.includes(
-                        varName
+                        varName,
                     )
                 ) {
                     stateVarObj.stateVariablesDeterminingDependencies.push(
-                        varName
+                        varName,
                     );
                 }
             }
@@ -5460,7 +5462,7 @@ export default class Core {
             // We could change returnDependencies to output an object.
             // That would probably be cleaner.
             let numNames = Object.keys(
-                arrayStateVarObj.dependencyNames.namesByKey
+                arrayStateVarObj.dependencyNames.namesByKey,
             ).length;
             if (stateVarObj.numberNamesInPreviousReturnDep !== numNames) {
                 args.changedDependency = true;
@@ -5587,7 +5589,7 @@ export default class Core {
                     let setArrayValuesPiece = function (
                         desiredValue,
                         arrayValuesPiece,
-                        arraySizePiece
+                        arraySizePiece,
                     ) {
                         // try to set value of entries of arrayValuePiece to entries of desiredValue
                         // given that size of arrayValuesPieces is arraySizePiece
@@ -5630,7 +5632,7 @@ export default class Core {
                                 let result = setArrayValuesPiece(
                                     val,
                                     arrayValuesPiece[ind],
-                                    arraySizePiece[ind]
+                                    arraySizePiece[ind],
                                 );
                                 nFailuresSub += result.nFailures;
                             }
@@ -5642,7 +5644,7 @@ export default class Core {
                     let result = setArrayValuesPiece(
                         value,
                         arrayValuesDrillDown,
-                        arraySizeDrillDown
+                        arraySizeDrillDown,
                     );
                     nFailures += result.nFailures;
                 } else {
@@ -5670,7 +5672,7 @@ export default class Core {
                 stateVarObj.getAllArrayKeys = function (
                     arraySize,
                     flatten = true,
-                    desiredSize
+                    desiredSize,
                 ) {
                     function prependToAllKeys(keys, newStuff) {
                         for (let [ind, key] of keys.entries()) {
@@ -5686,18 +5688,18 @@ export default class Core {
                         if (subArraySize.length === 1) {
                             // array of numbers from 0 to subArraySize[0], cast to strings
                             return Array.from(Array(subArraySize[0]), (_, i) =>
-                                String(i)
+                                String(i),
                             );
                         } else {
                             let currentSize = subArraySize[0];
                             let subSubKeys = getAllArrayKeysSub(
-                                subArraySize.slice(1)
+                                subArraySize.slice(1),
                             );
                             let subKeys = [];
                             for (let ind = 0; ind < currentSize; ind++) {
                                 if (flatten) {
                                     subKeys.push(
-                                        ...subSubKeys.map((x) => ind + "," + x)
+                                        ...subSubKeys.map((x) => ind + "," + x),
                                     );
                                 } else {
                                     let newSubSubKeys = deepClone(subSubKeys);
@@ -5738,14 +5740,14 @@ export default class Core {
             if (!stateVarObj.arrayVarNameFromPropIndex) {
                 stateVarObj.arrayVarNameFromPropIndex = function (
                     propIndex,
-                    varName
+                    varName,
                 ) {
                     return (
                         entryPrefixes[0] +
                         [
                             ...propIndex.map((x) => Math.round(Number(x))),
                             ...Array(
-                                stateVarObj.numDimensions - propIndex.length
+                                stateVarObj.numDimensions - propIndex.length,
                             ).fill(1),
                         ].join("_")
                     );
@@ -5805,7 +5807,7 @@ export default class Core {
                 stateVarObj.getAllArrayKeys = function (
                     arraySize,
                     flatten,
-                    desiredSize
+                    desiredSize,
                 ) {
                     if (desiredSize) {
                         if (desiredSize.length === 0) {
@@ -5813,7 +5815,7 @@ export default class Core {
                         } else {
                             // array of numbers from 0 to desiredSize[0], cast to strings
                             return Array.from(Array(desiredSize[0]), (_, i) =>
-                                String(i)
+                                String(i),
                             );
                         }
                     } else if (!arraySize || arraySize.length === 0) {
@@ -5821,7 +5823,7 @@ export default class Core {
                     } else {
                         // array of numbers from 0 to arraySize[0], cast to strings
                         return Array.from(Array(arraySize[0]), (_, i) =>
-                            String(i)
+                            String(i),
                         );
                     }
                 };
@@ -5836,7 +5838,7 @@ export default class Core {
             if (!stateVarObj.arrayVarNameFromPropIndex) {
                 stateVarObj.arrayVarNameFromPropIndex = function (
                     propIndex,
-                    varName
+                    varName,
                 ) {
                     return entryPrefixes[0] + propIndex[0];
                 };
@@ -5879,7 +5881,7 @@ export default class Core {
             // function that returns wrapping components for whole array or entries (if given prefix)
             if (!stateVarObj.shadowingInstructions.returnWrappingComponents) {
                 stateVarObj.shadowingInstructions.returnWrappingComponents = (
-                    prefix
+                    prefix,
                 ) => [];
             }
             stateVarObj.wrappingComponents =
@@ -5894,7 +5896,7 @@ export default class Core {
         let allStateVariablesAffected = [stateVariable];
         if (stateVarObj.additionalStateVariablesDefined) {
             allStateVariablesAffected.push(
-                ...stateVarObj.additionalStateVariablesDefined
+                ...stateVarObj.additionalStateVariablesDefined,
             );
         }
 
@@ -5957,11 +5959,11 @@ export default class Core {
 
                 if (arrayDependencies.globalDependencies) {
                     stateVarObj.dependencyNames.global = Object.keys(
-                        arrayDependencies.globalDependencies
+                        arrayDependencies.globalDependencies,
                     );
                     Object.assign(
                         dependencies,
-                        arrayDependencies.globalDependencies
+                        arrayDependencies.globalDependencies,
                     );
                 }
 
@@ -6181,7 +6183,7 @@ export default class Core {
         function extractArrayDependencies(
             dependencyValues,
             arrayKeys,
-            usedDefault
+            usedDefault,
         ) {
             // console.log(`extract array dependencies`, dependencyValues, arrayKeys, usedDefault)
             // console.log(JSON.parse(JSON.stringify(arrayKeys)))
@@ -6254,7 +6256,7 @@ export default class Core {
                 let extractedDeps = extractArrayDependencies(
                     args.dependencyValues,
                     args.arrayKeys,
-                    args.usedDefault
+                    args.usedDefault,
                 );
                 let globalDependencyValues =
                     extractedDeps.globalDependencyValues;
@@ -6297,7 +6299,7 @@ export default class Core {
 
                     if (!stateVarObj.arrayDefinitionByKey) {
                         throw Error(
-                            `For ${stateVariable} of ${component.componentType}, arrayDefinitionByKey must be a function`
+                            `For ${stateVariable} of ${component.componentType}, arrayDefinitionByKey must be a function`,
                         );
                     }
 
@@ -6384,7 +6386,7 @@ export default class Core {
                 let extractedDeps = extractArrayDependencies(
                     args.dependencyValues,
                     args.arrayKeys,
-                    args.usedDefault
+                    args.usedDefault,
                 );
                 let globalDependencyValues =
                     extractedDeps.globalDependencyValues;
@@ -6462,14 +6464,15 @@ export default class Core {
 
         stateVarObj.recalculateArraySizeDependentQuantities =
             async function () {
-                let newArraySize = await component.stateValues[
-                    stateVarObj.arraySizeStateVariable
-                ];
+                let newArraySize =
+                    await component.stateValues[
+                        stateVarObj.arraySizeStateVariable
+                    ];
                 if (
                     stateVarObj.previousArraySize.length !==
                         newArraySize.length ||
                     stateVarObj.previousArraySize.some(
-                        (v, i) => v != newArraySize[i]
+                        (v, i) => v != newArraySize[i],
                     )
                 ) {
                     stateVarObj.previousArraySize = [...newArraySize];
@@ -6523,7 +6526,7 @@ export default class Core {
         let allStateVariablesAffected = [stateVariable];
         if (stateVarObj.additionalStateVariablesDefined) {
             allStateVariablesAffected.push(
-                ...stateVarObj.additionalStateVariablesDefined
+                ...stateVarObj.additionalStateVariablesDefined,
             );
         }
         allStateVariablesAffected.sort();
@@ -6541,7 +6544,7 @@ export default class Core {
                 ...stateVarObj.stateVariablesDeterminingDependencies,
             ];
             stateVarObj.stateVariablesDeterminingDependencies.push(
-                arraySizeStateVar
+                arraySizeStateVar,
             );
         } else {
             stateVarObj.stateVariablesDeterminingDependencies = [
@@ -6631,14 +6634,14 @@ export default class Core {
             if (stateVarObj.isArray) {
                 newName = stateVarObj.arrayVarNameFromPropIndex(
                     propIndex,
-                    varName
+                    varName,
                 );
             } else if (stateVarObj.isArrayEntry) {
                 let arrayStateVarObj =
                     component.state[stateVarObj.arrayStateVariable];
                 newName = arrayStateVarObj.arrayVarNameFromPropIndex(
                     propIndex,
-                    varName
+                    varName,
                 );
             } else {
                 this.errorWarnings.warnings.push({
@@ -6690,11 +6693,11 @@ export default class Core {
                         replacement.state.readyToExpandWhenResolved.isResolved
                     ) {
                         unexpandedCompositesReady.push(
-                            replacement.componentName
+                            replacement.componentName,
                         );
                     } else {
                         unexpandedCompositesNotReady.push(
-                            replacement.componentName
+                            replacement.componentName,
                         );
                     }
                 }
@@ -6707,7 +6710,7 @@ export default class Core {
                     ) {
                         replacementReplacements = replacementReplacements.slice(
                             0,
-                            -replacement.replacementsToWithhold
+                            -replacement.replacementsToWithhold,
                         );
                     }
                     let recursionResult =
@@ -6720,10 +6723,10 @@ export default class Core {
                     compositesFound.push(...recursionResult.compositesFound);
                     newReplacements.push(...recursionResult.newReplacements);
                     unexpandedCompositesReady.push(
-                        ...recursionResult.unexpandedCompositesReady
+                        ...recursionResult.unexpandedCompositesReady,
                     );
                     unexpandedCompositesNotReady.push(
-                        ...recursionResult.unexpandedCompositesNotReady
+                        ...recursionResult.unexpandedCompositesNotReady,
                     );
                 } else {
                     newReplacements.push(replacement);
@@ -6747,7 +6750,7 @@ export default class Core {
         let stateVarObj = component.state[stateVariable];
         if (!stateVarObj) {
             throw Error(
-                `Can't get value of ${stateVariable} of ${component.componentName} as it doesn't exist.`
+                `Can't get value of ${stateVariable} of ${component.componentName} as it doesn't exist.`,
             );
         }
 
@@ -6798,7 +6801,7 @@ export default class Core {
 
                 if (!result.success) {
                     throw Error(
-                        `Can't get value of ${stateVariable} of ${component.componentName} as ${varName} couldn't be resolved.`
+                        `Can't get value of ${stateVariable} of ${component.componentName} as ${varName} couldn't be resolved.`,
                     );
                 }
             }
@@ -6868,7 +6871,7 @@ export default class Core {
         for (let varName in result.setValue) {
             if (!(varName in component.state)) {
                 throw Error(
-                    `Definition of state variable ${stateVariable} of ${component.componentName} returned value of ${varName}, which isn't a state variable.`
+                    `Definition of state variable ${stateVariable} of ${component.componentName} returned value of ${varName}, which isn't a state variable.`,
                 );
             }
 
@@ -6891,7 +6894,7 @@ export default class Core {
                 }
                 if (!matchingArrayEntry) {
                     throw Error(
-                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`
+                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`,
                     );
                 }
             } else {
@@ -6912,7 +6915,7 @@ export default class Core {
                     !component.state[matchingArrayEntry].isResolved
                 ) {
                     throw Error(
-                        `Attempting to set value of stateVariable ${varName} of ${component.componentName} while it is still unresolved!`
+                        `Attempting to set value of stateVariable ${varName} of ${component.componentName} while it is still unresolved!`,
                     );
                 }
             }
@@ -7002,13 +7005,13 @@ export default class Core {
         for (let varName in result.useEssentialOrDefaultValue) {
             if (!(varName in component.state)) {
                 throw Error(
-                    `Definition of state variable ${stateVariable} of ${component.componentName} requested essential or default value of ${varName}, which isn't a state variable.`
+                    `Definition of state variable ${stateVariable} of ${component.componentName} requested essential or default value of ${varName}, which isn't a state variable.`,
                 );
             }
 
             if (!component.state[varName].hasEssential) {
                 throw Error(
-                    `Definition of state variable ${stateVariable} of ${component.componentName} requested essential or default value of ${varName}, but hasEssential is not set.`
+                    `Definition of state variable ${stateVariable} of ${component.componentName} requested essential or default value of ${varName}, but hasEssential is not set.`,
                 );
             }
 
@@ -7031,7 +7034,7 @@ export default class Core {
                 }
                 if (!matchingArrayEntry) {
                     throw Error(
-                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`
+                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`,
                     );
                 }
             } else {
@@ -7051,7 +7054,7 @@ export default class Core {
                     !component.state[matchingArrayEntry].isResolved
                 ) {
                     throw Error(
-                        `Attempting to set value of stateVariable ${varName} of ${component.componentName} while it is still unresolved!`
+                        `Attempting to set value of stateVariable ${varName} of ${component.componentName} while it is still unresolved!`,
                     );
                 }
             }
@@ -7126,7 +7129,7 @@ export default class Core {
                             ] = true;
                         } else if (
                             component.state[varName].defaultValueByArrayKey?.(
-                                arrayKey
+                                arrayKey,
                             ) !== undefined
                         ) {
                             component.state[varName].setArrayValue({
@@ -7141,7 +7144,7 @@ export default class Core {
                             ] = true;
                         } else {
                             throw Error(
-                                `Neither value nor default value specified; state variable: ${varName}, component: ${component.componentName}, arrayKey: ${arrayKey}.`
+                                `Neither value nor default value specified; state variable: ${varName}, component: ${component.componentName}, arrayKey: ${arrayKey}.`,
                             );
                         }
                     }
@@ -7188,7 +7191,7 @@ export default class Core {
                         component.state[varName].usedDefault = true;
                     } else {
                         throw Error(
-                            `Neither value nor default value specified; state variable: ${varName}, component: ${component.componentName}.`
+                            `Neither value nor default value specified; state variable: ${varName}, component: ${component.componentName}.`,
                         );
                     }
                 }
@@ -7220,7 +7223,7 @@ export default class Core {
         for (let varName in result.markAsUsedDefault) {
             if (!component.state[varName].isResolved) {
                 throw Error(
-                    `Marking state variable as used default when it isn't yet resolved: ${varName} of ${component.componentName}`
+                    `Marking state variable as used default when it isn't yet resolved: ${varName} of ${component.componentName}`,
                 );
             }
 
@@ -7240,7 +7243,7 @@ export default class Core {
                 }
                 if (!matchingArrayEntry) {
                     throw Error(
-                        `Marking state variable  ${varName} as used default in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`
+                        `Marking state variable  ${varName} as used default in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`,
                     );
                 }
             }
@@ -7252,7 +7255,7 @@ export default class Core {
                 }
             } else {
                 component.state[varName].usedDefault = Boolean(
-                    result.markAsUsedDefault[varName]
+                    result.markAsUsedDefault[varName],
                 );
             }
         }
@@ -7282,7 +7285,7 @@ export default class Core {
                     }
                     if (!matchingArrayEntry) {
                         throw Error(
-                            `Claiming stateVariable ${varName} is unchanged in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`
+                            `Claiming stateVariable ${varName} is unchanged in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`,
                         );
                     }
                 }
@@ -7292,7 +7295,7 @@ export default class Core {
                 if (
                     Object.getOwnPropertyDescriptor(
                         component.state[varName],
-                        "value"
+                        "value",
                     ).get ||
                     component.state[varName].immutable
                 ) {
@@ -7308,7 +7311,7 @@ export default class Core {
         for (let varName in result.setEssentialValue) {
             if (!(varName in component.state)) {
                 throw Error(
-                    `Definition of state variable ${stateVariable} of ${component.componentName} tried to make ${varName} essential, which isn't a state variable.`
+                    `Definition of state variable ${stateVariable} of ${component.componentName} tried to make ${varName} essential, which isn't a state variable.`,
                 );
             }
 
@@ -7328,14 +7331,14 @@ export default class Core {
                 }
                 if (!matchingArrayEntry) {
                     throw Error(
-                        `Attempting to set essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`
+                        `Attempting to set essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it's not listed as an additional state variable defined.`,
                     );
                 }
             }
 
             if (!component.state[varName].hasEssential) {
                 throw Error(
-                    `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it does not have an essential value`
+                    `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it does not have an essential value`,
                 );
             }
 
@@ -7354,7 +7357,7 @@ export default class Core {
                 )
             ) {
                 throw Error(
-                    `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it is not allowed unless the state variable is shadowed or the essential state is not shadowed.`
+                    `Attempting to set the essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentName}, but it is not allowed unless the state variable is shadowed or the essential state is not shadowed.`,
                 );
             }
 
@@ -7430,7 +7433,7 @@ export default class Core {
                         ?.hasVariableComponentType
                 ) {
                     throw Error(
-                        `Cannot set type of ${varName} of ${component.componentName} as it it does not have the hasVariableComponentType attribute.`
+                        `Cannot set type of ${varName} of ${component.componentName} as it it does not have the hasVariableComponentType attribute.`,
                     );
                 }
                 let changedComponentType = false;
@@ -7454,7 +7457,7 @@ export default class Core {
                             changedComponentType = true;
                         } else if (
                             originalCreateComponentOfType.some(
-                                (v, i) => v != newCreateComponentOfType[i]
+                                (v, i) => v != newCreateComponentOfType[i],
                             )
                         ) {
                             changedComponentType = true;
@@ -7486,24 +7489,25 @@ export default class Core {
                         .arrayEntryNames) {
                         // TODO: address multidimensional arrays
                         if (arrayComponentTypeIsArray) {
-                            let arrayKeys = await component.state[
-                                arrayEntryName
-                            ].arrayKeys;
+                            let arrayKeys =
+                                await component.state[arrayEntryName].arrayKeys;
                             let componentType = [];
                             for (let arrayKey of arrayKeys) {
                                 let ind =
                                     component.state[varName].keyToIndex(
-                                        arrayKey
+                                        arrayKey,
                                     );
                                 componentType.push(arrayComponentType[ind]);
                             }
                             component.state[
                                 arrayEntryName
-                            ].shadowingInstructions.createComponentOfType = componentType;
+                            ].shadowingInstructions.createComponentOfType =
+                                componentType;
                         } else {
                             component.state[
                                 arrayEntryName
-                            ].shadowingInstructions.createComponentOfType = arrayComponentType;
+                            ].shadowingInstructions.createComponentOfType =
+                                arrayComponentType;
                         }
                     }
                 }
@@ -7544,7 +7548,7 @@ export default class Core {
                 )
             ) {
                 throw Error(
-                    `definition of ${stateVariable} of ${component.componentName} didn't return value of ${varName}`
+                    `definition of ${stateVariable} of ${component.componentName} didn't return value of ${varName}`,
                 );
             }
 
@@ -7555,9 +7559,8 @@ export default class Core {
                     component.state[varName].arrayValues;
             } else if (component.state[varName].isArrayEntry) {
                 delete component.state[varName].value;
-                component.state[varName].value = await component.state[
-                    varName
-                ].getValueFromArrayValues();
+                component.state[varName].value =
+                    await component.state[varName].getValueFromArrayValues();
             }
         }
 
@@ -7588,7 +7591,7 @@ export default class Core {
                             varNamesByArrayKey[arrayKeyChanged];
                         if (additionalVarNamesChanged) {
                             arrayVarNamesChanged.push(
-                                ...additionalVarNamesChanged
+                                ...additionalVarNamesChanged,
                             );
                         }
                     }
@@ -7647,7 +7650,7 @@ export default class Core {
             let allStateVariablesDefined = [stateVariable];
             if (stateVarObj.additionalStateVariablesDefined) {
                 allStateVariablesDefined.push(
-                    ...stateVarObj.additionalStateVariablesDefined
+                    ...stateVarObj.additionalStateVariablesDefined,
                 );
             }
             if (stateVarObj.providePreviousValuesInDefinition) {
@@ -7697,7 +7700,7 @@ export default class Core {
         let allStateVariables = [varName];
         if (component.state[varName].additionalStateVariablesDefined) {
             allStateVariables.push(
-                ...component.state[varName].additionalStateVariablesDefined
+                ...component.state[varName].additionalStateVariablesDefined,
             );
         }
 
@@ -7758,7 +7761,7 @@ export default class Core {
             }
 
             let arrayEntryPrefixesLongestToShortest = Object.keys(
-                stateVarInfo.arrayEntryPrefixes
+                stateVarInfo.arrayEntryPrefixes,
             ).sort((a, b) => b.length - a.length);
             for (let prefix of arrayEntryPrefixesLongestToShortest) {
                 if (
@@ -7834,7 +7837,7 @@ export default class Core {
             let foundMatch = false;
 
             let arrayEntryPrefixesLongestToShortest = Object.keys(
-                stateVarInfo.arrayEntryPrefixes
+                stateVarInfo.arrayEntryPrefixes,
             ).sort((a, b) => b.length - a.length);
             for (let prefix of arrayEntryPrefixesLongestToShortest) {
                 if (varName.substring(0, prefix.length) === prefix) {
@@ -7950,12 +7953,12 @@ export default class Core {
     }) {
         if (!component.arrayEntryPrefixes) {
             throw Error(
-                `Unknown state variable ${stateVariable} of ${component.componentName}`
+                `Unknown state variable ${stateVariable} of ${component.componentName}`,
             );
         }
 
         let arrayEntryPrefixesLongestToShortest = Object.keys(
-            component.arrayEntryPrefixes
+            component.arrayEntryPrefixes,
         ).sort((a, b) => b.length - a.length);
 
         // check if stateVariable begins when an arrayEntry
@@ -8001,7 +8004,7 @@ export default class Core {
                     ) {
                         allStateVariablesAffected.push(
                             ...component.state[stateVariable]
-                                .additionalStateVariablesDefined
+                                .additionalStateVariablesDefined,
                         );
                         for (let additionalVar of component.state[stateVariable]
                             .additionalStateVariablesDefined) {
@@ -8038,7 +8041,7 @@ export default class Core {
                         ) {
                             newStateVariablesToResolve.push(
                                 component.state[varName]
-                                    .determineDependenciesStateVariable
+                                    .determineDependenciesStateVariable,
                             );
                         }
                     }
@@ -8054,7 +8057,7 @@ export default class Core {
         }
 
         throw Error(
-            `Unknown state variable ${stateVariable} of ${component.componentName}`
+            `Unknown state variable ${stateVariable} of ${component.componentName}`,
         );
     }
 
@@ -8065,7 +8068,7 @@ export default class Core {
             for (let ind of indicesToRender) {
                 let child = component.activeChildren[ind];
                 this.updateInfo.componentsToUpdateRenderers.add(
-                    child.componentName
+                    child.componentName,
                 );
                 await this.markDescendantsToUpdateRenderers(child);
             }
@@ -8080,7 +8083,7 @@ export default class Core {
             this.rendererVariablesByComponentType[component.componentType]
         ) {
             this.updateInfo.componentsToUpdateRenderers.add(
-                component.componentName
+                component.componentName,
             );
         }
 
@@ -8089,7 +8092,7 @@ export default class Core {
         };
         if (component.state[varName].additionalStateVariablesDefined) {
             component.state[varName].additionalStateVariablesDefined.forEach(
-                (x) => (allStateVariablesAffectedObj[x] = component.state[x])
+                (x) => (allStateVariablesAffectedObj[x] = component.state[x]),
             );
         }
 
@@ -8177,7 +8180,7 @@ export default class Core {
 
             if (result.updateReplacements) {
                 this.updateInfo.compositesToUpdateReplacements.add(
-                    component.componentName
+                    component.componentName,
                 );
             }
 
@@ -8186,13 +8189,13 @@ export default class Core {
                 for (let ancestorObj of component.ancestors) {
                     if (
                         !this.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                            ancestorObj.componentCase
+                            ancestorObj.componentCase,
                         )
                     ) {
                         // found non-composite ancestor
                         if (ancestorObj.componentClass.renderChildren) {
                             this.componentsWithChangedChildrenToRender.add(
-                                ancestorObj.componentName
+                                ancestorObj.componentName,
                             );
                         }
                         break;
@@ -8202,7 +8205,7 @@ export default class Core {
 
             if (result.updateRenderedChildren) {
                 this.componentsWithChangedChildrenToRender.add(
-                    component.componentName
+                    component.componentName,
                 );
             }
 
@@ -8386,7 +8389,7 @@ export default class Core {
         if (!stateVarObj.markStale || !stateVarObj.initiallyResolved) {
             let fresh = {};
             Object.keys(allStateVariablesAffectedObj).forEach(
-                (x) => (fresh[x] = false)
+                (x) => (fresh[x] = false),
             );
             return { fresh };
         }
@@ -8553,7 +8556,7 @@ export default class Core {
                             ].indexOf(varName);
                         if (varInd === -1) {
                             throw Error(
-                                `something went wrong as ${varName} not a downstreamVariable of ${upDep.dependencyName}`
+                                `something went wrong as ${varName} not a downstreamVariable of ${upDep.dependencyName}`,
                             );
                         }
 
@@ -8617,7 +8620,7 @@ export default class Core {
                             ]
                         ) {
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                upDep.upstreamComponentName
+                                upDep.upstreamComponentName,
                             );
                             break;
                         }
@@ -8632,7 +8635,7 @@ export default class Core {
                     upDep.upstreamVariableNames.forEach(
                         (x) =>
                             (allStateVariablesAffectedObj[x] =
-                                upDepComponent.state[x])
+                                upDepComponent.state[x]),
                     );
 
                     let currentFreshnessInfo =
@@ -8653,7 +8656,7 @@ export default class Core {
                             !(
                                 Object.getOwnPropertyDescriptor(
                                     stateVarObj,
-                                    "value"
+                                    "value",
                                 ).get || stateVarObj.immutable
                             )
                         ) {
@@ -8728,7 +8731,7 @@ export default class Core {
 
                         if (result.updateReplacements) {
                             this.updateInfo.compositesToUpdateReplacements.add(
-                                upDep.upstreamComponentName
+                                upDep.upstreamComponentName,
                             );
                         }
 
@@ -8737,7 +8740,7 @@ export default class Core {
                             for (let ancestorObj of upDepComponent.ancestors) {
                                 if (
                                     !this.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                                        ancestorObj.componentCase
+                                        ancestorObj.componentCase,
                                     )
                                 ) {
                                     // found non-composite ancestor
@@ -8746,7 +8749,7 @@ export default class Core {
                                             .renderChildren
                                     ) {
                                         this.componentsWithChangedChildrenToRender.add(
-                                            ancestorObj.componentName
+                                            ancestorObj.componentName,
                                         );
                                     }
                                     break;
@@ -8756,13 +8759,13 @@ export default class Core {
 
                         if (result.updateRenderedChildren) {
                             this.componentsWithChangedChildrenToRender.add(
-                                upDepComponent.componentName
+                                upDepComponent.componentName,
                             );
                         }
 
                         if (result.updateDescendantRenderers) {
                             await this.markDescendantsToUpdateRenderers(
-                                upDepComponent
+                                upDepComponent,
                             );
                         }
 
@@ -8798,7 +8801,7 @@ export default class Core {
                             result.answerCreditPotentiallyChanged
                         ) {
                             this.recordAnswerToAutoSubmit(
-                                upDepComponent.componentName
+                                upDepComponent.componentName,
                             );
                         }
                     }
@@ -8868,7 +8871,7 @@ export default class Core {
         if (recursive === true) {
             for (let childName in component.allChildren) {
                 this.deregisterComponent(
-                    component.allChildren[childName].component
+                    component.allChildren[childName].component,
                 );
             }
         }
@@ -8949,8 +8952,8 @@ export default class Core {
 
                 let composite =
                     this._components[shadowingParent.shadows.compositeName];
-                let sourceAttributesToIgnore = await composite.stateValues
-                    .sourceAttributesToIgnore;
+                let sourceAttributesToIgnore =
+                    await composite.stateValues.sourceAttributesToIgnore;
 
                 let shadowingSerializeChildren = [];
                 for (let child of newChildren) {
@@ -8959,7 +8962,7 @@ export default class Core {
                             await child.serialize({
                                 primitiveSourceAttributesToIgnore:
                                     sourceAttributesToIgnore,
-                            })
+                            }),
                         );
                     } else {
                         shadowingSerializeChildren.push(child);
@@ -8998,7 +9001,7 @@ export default class Core {
                     this._components[shadowingParent.componentName];
                 this.parameterStack.push(
                     unproxiedShadowingParent.sharedParameters,
-                    false
+                    false,
                 );
 
                 let namespaceForUnamed;
@@ -9006,7 +9009,7 @@ export default class Core {
                     namespaceForUnamed = shadowingParent.componentName + "/";
                 } else {
                     namespaceForUnamed = getNamespaceFromName(
-                        shadowingParent.componentName
+                        shadowingParent.componentName,
                     );
                 }
 
@@ -9031,7 +9034,7 @@ export default class Core {
 
                 if (!shadowResult.success) {
                     throw Error(
-                        `was able to add components to parent but not shadows!`
+                        `was able to add components to parent but not shadows!`,
                     );
                 }
 
@@ -9087,7 +9090,7 @@ export default class Core {
             throw Error(
                 "Can't add children at index " +
                     indexOfDefiningChildren +
-                    ". Invalid index."
+                    ". Invalid index.",
             );
         }
 
@@ -9095,7 +9098,7 @@ export default class Core {
         parent.definingChildren.splice(
             indexOfDefiningChildren,
             0,
-            ...newChildren
+            ...newChildren,
         );
     }
 
@@ -9162,7 +9165,7 @@ export default class Core {
                 let composite = component.replacementOf;
 
                 let replacementNames = composite.replacements.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
 
                 let replacementInd = replacementNames.indexOf(componentName);
@@ -9170,11 +9173,11 @@ export default class Core {
                     composite.replacements.splice(replacementInd, 1);
                     if (
                         !replacementsDeletedFromComposites.includes(
-                            composite.componentName
+                            composite.componentName,
                         )
                     ) {
                         replacementsDeletedFromComposites.push(
-                            composite.componentName
+                            composite.componentName,
                         );
                     }
                 }
@@ -9184,7 +9187,7 @@ export default class Core {
         for (let compositeName of replacementsDeletedFromComposites) {
             if (!(compositeName in componentsToDelete)) {
                 await this.dependencies.addBlockersFromChangedReplacements(
-                    this._components[compositeName]
+                    this._components[compositeName],
                 );
             }
         }
@@ -9233,7 +9236,7 @@ export default class Core {
                 } else {
                     shadowedComponent.shadowedBy.splice(
                         shadowedComponent.shadowedBy.indexOf(component),
-                        1
+                        1,
                     );
                 }
             }
@@ -9284,7 +9287,7 @@ export default class Core {
                     [];
             }
             this.updateInfo.deletedStateVariables[component.componentName].push(
-                ...Object.keys(component.state)
+                ...Object.keys(component.state),
             );
 
             this.updateInfo.deletedComponents[component.componentName] = true;
@@ -9304,10 +9307,10 @@ export default class Core {
             // remove deleted components from this.updateInfo sets
             this.updateInfo.componentsToUpdateRenderers.delete(componentName);
             this.updateInfo.compositesToUpdateReplacements.delete(
-                componentName
+                componentName,
             );
             this.updateInfo.inactiveCompositesToUpdateReplacements.delete(
-                componentName
+                componentName,
             );
         }
 
@@ -9338,7 +9341,7 @@ export default class Core {
 
             // recurse on allChildren and attributes
             let componentsToRecurse = Object.values(component.allChildren).map(
-                (x) => x.component
+                (x) => x.component,
             );
 
             for (let attrName in component.attributes) {
@@ -9441,7 +9444,7 @@ export default class Core {
                 componentInfoObjects: this.componentInfoObjects,
                 flags: this.flags,
                 resolveItem: this.dependencies.resolveItem.bind(
-                    this.dependencies
+                    this.dependencies,
                 ),
                 publicCaseInsensitiveAliasSubstitutions:
                     this.publicCaseInsensitiveAliasSubstitutions.bind(this),
@@ -9477,7 +9480,7 @@ export default class Core {
                     this._components[component.componentName];
                 this.parameterStack.push(
                     unproxiedComponent.sharedParameters,
-                    false
+                    false,
                 );
 
                 let newComponents;
@@ -9512,7 +9515,7 @@ export default class Core {
                         namespaceForUnamed = component.componentName + "/";
                     } else {
                         namespaceForUnamed = getNamespaceFromName(
-                            component.componentName
+                            component.componentName,
                         );
                     }
 
@@ -9582,7 +9585,7 @@ export default class Core {
 
                     Object.assign(
                         newReplacementsByComposite,
-                        newReplacementsForShadows
+                        newReplacementsForShadows,
                     );
                 }
 
@@ -9630,10 +9633,10 @@ export default class Core {
                         composite.replacements.splice(
                             firstIndex,
                             0,
-                            ...newReplacements
+                            ...newReplacements,
                         );
                         await this.dependencies.addBlockersFromChangedReplacements(
-                            composite
+                            composite,
                         );
 
                         let newChange = {
@@ -9656,8 +9659,8 @@ export default class Core {
                             await this.componentAndRenderedDescendants(parent);
                         componentsAffected.forEach((cName) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName
-                            )
+                                cName,
+                            ),
                         );
                     } else {
                         // if not top level replacements
@@ -9673,7 +9676,7 @@ export default class Core {
                         this.spliceChildren(
                             parent,
                             change.indexOfDefiningChildren,
-                            newReplacements
+                            newReplacements,
                         );
 
                         await this.processNewDefiningChildren({ parent });
@@ -9688,8 +9691,8 @@ export default class Core {
                             await this.componentAndRenderedDescendants(parent);
                         componentsAffected.forEach((cName) =>
                             this.updateInfo.componentsToUpdateRenderers.add(
-                                cName
-                            )
+                                cName,
+                            ),
                         );
 
                         let newChange = {
@@ -9742,7 +9745,7 @@ export default class Core {
                 }
 
                 await this.processNewStateVariableValues(
-                    newStateVariableValues
+                    newStateVariableValues,
                 );
             } else if (change.changeType === "changeReplacementsToWithhold") {
                 // don't change actual array of replacements
@@ -9846,11 +9849,11 @@ export default class Core {
                         }
                         if (!shadowingCompToDelete) {
                             console.error(
-                                `could not find shadowing component of ${compToDelete.componentName}`
+                                `could not find shadowing component of ${compToDelete.componentName}`,
                             );
                         } else {
                             shadowingComponentsToDelete.push(
-                                shadowingCompToDelete
+                                shadowingCompToDelete,
                             );
                         }
                     }
@@ -9883,10 +9886,10 @@ export default class Core {
             // delete from replacements
             let replacementsToDelete = composite.replacements.splice(
                 firstIndex,
-                numberToDelete
+                numberToDelete,
             );
             await this.dependencies.addBlockersFromChangedReplacements(
-                composite
+                composite,
             );
 
             // TODO: why does this delete delete upstream components
@@ -9914,7 +9917,7 @@ export default class Core {
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
                 componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName)
+                    this.updateInfo.componentsToUpdateRenderers.add(cName),
                 );
             }
             let deletedNamesByParent = {};
@@ -9938,11 +9941,10 @@ export default class Core {
             componentChanges.push(newChange);
             Object.assign(deletedComponents, deleteResults.deletedComponents);
             let parent = this._components[composite.parentName];
-            let componentsAffected = await this.componentAndRenderedDescendants(
-                parent
-            );
+            let componentsAffected =
+                await this.componentAndRenderedDescendants(parent);
             componentsAffected.forEach((cName) =>
-                this.updateInfo.componentsToUpdateRenderers.add(cName)
+                this.updateInfo.componentsToUpdateRenderers.add(cName),
             );
         } else {
             // if not change top level replacements
@@ -9956,7 +9958,7 @@ export default class Core {
             });
             if (deleteResults.success === false) {
                 throw Error(
-                    "Couldn't delete components prescribed by composite"
+                    "Couldn't delete components prescribed by composite",
                 );
             }
             for (let parent of deleteResults.parentsOfDeleted) {
@@ -9964,7 +9966,7 @@ export default class Core {
                 let componentsAffected =
                     await this.componentAndRenderedDescendants(parent);
                 componentsAffected.forEach((cName) =>
-                    this.updateInfo.componentsToUpdateRenderers.add(cName)
+                    this.updateInfo.componentsToUpdateRenderers.add(cName),
                 );
             }
             let deletedNamesByParent = {};
@@ -9997,11 +9999,10 @@ export default class Core {
             parent,
             expandComposites: false,
         });
-        let componentsAffected = await this.componentAndRenderedDescendants(
-            parent
-        );
+        let componentsAffected =
+            await this.componentAndRenderedDescendants(parent);
         componentsAffected.forEach((cName) =>
-            this.updateInfo.componentsToUpdateRenderers.add(cName)
+            this.updateInfo.componentsToUpdateRenderers.add(cName),
         );
 
         if (component.shadowedBy) {
@@ -10010,7 +10011,7 @@ export default class Core {
                     continue;
                 }
                 await this.processChildChangesAndRecurseToShadows(
-                    shadowingComponent
+                    shadowingComponent,
                 );
             }
         }
@@ -10033,20 +10034,20 @@ export default class Core {
         if (
             !currentShadowedBy[componentToShadow.componentName] ||
             !newShadowedBy.every((x) =>
-                currentShadowedBy[componentToShadow.componentName].includes(x)
+                currentShadowedBy[componentToShadow.componentName].includes(x),
             )
         ) {
             // If components shadowing componentToShadow increased
             // that means it is shadowed by one of its newly created replacements
             // so we have a circular dependency
             throw Error(
-                `Circular dependency involving ${componentToShadow.componentName}.`
+                `Circular dependency involving ${componentToShadow.componentName}.`,
             );
         }
 
         // use compositesBeingExpanded to look for circular dependency
         this.updateInfo.compositesBeingExpanded.push(
-            componentToShadow.componentName
+            componentToShadow.componentName,
         );
 
         let newComponentsForShadows = {};
@@ -10058,11 +10059,11 @@ export default class Core {
 
             if (
                 this.updateInfo.compositesBeingExpanded.includes(
-                    shadowingComponent.componentName
+                    shadowingComponent.componentName,
                 )
             ) {
                 throw Error(
-                    `Circular dependency involving ${shadowingComponent.componentName}.`
+                    `Circular dependency involving ${shadowingComponent.componentName}.`,
                 );
             }
 
@@ -10078,8 +10079,9 @@ export default class Core {
 
                 let compositeCreatingShadow =
                     this._components[shadowingComponent.shadows.compositeName];
-                let sourceAttributesToIgnore = await compositeCreatingShadow
-                    .stateValues.sourceAttributesToIgnore;
+                let sourceAttributesToIgnore =
+                    await compositeCreatingShadow.stateValues
+                        .sourceAttributesToIgnore;
 
                 for (let repl of replacementsToShadow) {
                     if (typeof repl === "object") {
@@ -10087,7 +10089,7 @@ export default class Core {
                             await repl.serialize({
                                 primitiveSourceAttributesToIgnore:
                                     sourceAttributesToIgnore,
-                            })
+                            }),
                         );
                     } else {
                         newSerializedReplacements.push(repl);
@@ -10139,7 +10141,7 @@ export default class Core {
                 if (shadowingComponent.constructor.assignNamesToReplacements) {
                     let originalNamesAreConsistent =
                         this.determineOriginalNamesConsistentForShadowingComposite(
-                            shadowingComponent
+                            shadowingComponent,
                         );
 
                     let assignNames =
@@ -10242,7 +10244,7 @@ export default class Core {
                     this._components[shadowingComponent.componentName];
                 this.parameterStack.push(
                     unproxiedShadowingComponent.sharedParameters,
-                    false
+                    false,
                 );
 
                 let namespaceForUnamed;
@@ -10250,7 +10252,7 @@ export default class Core {
                     namespaceForUnamed = shadowingComponent.componentName + "/";
                 } else {
                     namespaceForUnamed = getNamespaceFromName(
-                        shadowingComponent.componentName
+                        shadowingComponent.componentName,
                     );
                 }
 
@@ -10292,7 +10294,7 @@ export default class Core {
                     }
                     if (!shadowingParent) {
                         console.error(
-                            `could not find shadowing parent of ${parentToShadow.componentName}`
+                            `could not find shadowing parent of ${parentToShadow.componentName}`,
                         );
                     }
                 }
@@ -10327,11 +10329,11 @@ export default class Core {
 
         // record that are finished expanding the composite
         let targetInd = this.updateInfo.compositesBeingExpanded.indexOf(
-            componentToShadow.componentName
+            componentToShadow.componentName,
         );
         if (targetInd === -1) {
             throw Error(
-                `Something is wrong as we lost track that we were expanding ${componentToShadow.componentName}`
+                `Something is wrong as we lost track that we were expanding ${componentToShadow.componentName}`,
             );
         }
         this.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
@@ -10366,7 +10368,7 @@ export default class Core {
                 changeInReplacementsToWithhold;
             let newReplacements = component.replacements.slice(
                 firstIndToStopWithholding,
-                lastIndToStopWithholding
+                lastIndToStopWithholding,
             );
             let newChange = {
                 changeType: "addedReplacements",
@@ -10385,7 +10387,7 @@ export default class Core {
                 firstIndToStartWithholding + changeInReplacementsToWithhold;
             let withheldReplacements = component.replacements.slice(
                 firstIndToStartWithholding,
-                lastIndToStartWithholding
+                lastIndToStartWithholding,
             );
             let withheldNamesByParent = {};
             for (let comp of withheldReplacements) {
@@ -10421,7 +10423,7 @@ export default class Core {
                         componentChanges,
                     });
                 compositesWithAdjustedReplacements.push(
-                    ...additionalcompositesWithAdjustedReplacements
+                    ...additionalcompositesWithAdjustedReplacements,
                 );
             }
         }
@@ -10469,7 +10471,7 @@ export default class Core {
                 result = await this.performRecordEvent(nextUpdateInfo);
             } else {
                 throw Error(
-                    `Unrecognized process type: ${nextUpdateInfo.type}`
+                    `Unrecognized process type: ${nextUpdateInfo.type}`,
                 );
             }
 
@@ -10757,14 +10759,14 @@ export default class Core {
                 if (instruction.sourceDetails) {
                     Object.assign(
                         componentSourceInformation,
-                        instruction.sourceDetails
+                        instruction.sourceDetails,
                     );
                 }
             }
 
             await this.updateRendererInstructions({
                 componentNamesToUpdate: updateInstructions.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 ),
                 sourceOfUpdate: { sourceInformation },
             });
@@ -10845,14 +10847,14 @@ export default class Core {
                     if (instruction.sourceDetails) {
                         Object.assign(
                             componentSourceInformation,
-                            instruction.sourceDetails
+                            instruction.sourceDetails,
                         );
                     }
                 }
 
                 await this.updateRendererInstructions({
                     componentNamesToUpdate: updateInstructions.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                     sourceOfUpdate: { sourceInformation },
                     actionId,
@@ -10880,7 +10882,7 @@ export default class Core {
                 if (instruction.sourceDetails) {
                     Object.assign(
                         componentSourceInformation,
-                        instruction.sourceDetails
+                        instruction.sourceDetails,
                     );
                 }
             }
@@ -10953,7 +10955,7 @@ export default class Core {
             updateInstructions.forEach((comp) => {
                 if (comp.componentName) {
                     this.updateInfo.componentsToUpdateRenderers.add(
-                        comp.componentName
+                        comp.componentName,
                     );
                 }
             });
@@ -10969,10 +10971,10 @@ export default class Core {
             let itemsSubmitted = [
                 ...new Set(recordItemSubmissions.map((x) => x.itemNumber)),
             ];
-            let pageCreditAchieved = await this.document.stateValues
-                .creditAchieved;
-            let itemCreditAchieved = await this.document.stateValues
-                .itemCreditAchieved;
+            let pageCreditAchieved =
+                await this.document.stateValues.creditAchieved;
+            let itemCreditAchieved =
+                await this.document.stateValues.itemCreditAchieved;
 
             if (event) {
                 if (!event.context) {
@@ -10991,8 +10993,8 @@ export default class Core {
                             itemCreditAchieved[itemNumber - 1];
                     }
                 }
-                event.context.pageCreditAchieved = await this.document
-                    .stateValues.creditAchieved;
+                event.context.pageCreditAchieved =
+                    await this.document.stateValues.creditAchieved;
             }
 
             // if itemNumber is zero, it means this document wasn't given any weight,
@@ -11030,14 +11032,14 @@ export default class Core {
                                 Object.assign(
                                     cumValues,
                                     removeFunctionsMathExpressionClass(
-                                        essentialState[varName]
-                                    )
+                                        essentialState[varName],
+                                    ),
                                 );
                             } else {
                                 this.cumulativeStateVariableChanges[
                                     componentName
                                 ][varName] = removeFunctionsMathExpressionClass(
-                                    essentialState[varName]
+                                    essentialState[varName],
                                 );
                             }
                         }
@@ -11068,14 +11070,14 @@ export default class Core {
                         Object.assign(
                             cumValues,
                             removeFunctionsMathExpressionClass(
-                                newValuesProcessed[componentName][varName]
-                            )
+                                newValuesProcessed[componentName][varName],
+                            ),
                         );
                     } else {
                         this.cumulativeStateVariableChanges[componentName][
                             varName
                         ] = removeFunctionsMathExpressionClass(
-                            newValuesProcessed[componentName][varName]
+                            newValuesProcessed[componentName][varName],
                         );
                     }
                 }
@@ -11178,15 +11180,15 @@ export default class Core {
             verb: event.verb,
             object: JSON.stringify(
                 event.object,
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
             result: JSON.stringify(
                 removeFunctionsMathExpressionClass(event.result),
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
             context: JSON.stringify(
                 event.context,
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
             timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
             version: "0.1.1",
@@ -11309,7 +11311,7 @@ export default class Core {
             clearTimeout(this.visibilityInfo.saveTimerId);
             this.visibilityInfo.saveTimerId = setTimeout(
                 this.sendVisibilityChangedEvents.bind(this),
-                this.visibilityInfo.saveDelay
+                this.visibilityInfo.saveDelay,
             );
         }
 
@@ -11333,14 +11335,14 @@ export default class Core {
             clearTimeout(this.visibilityInfo.saveTimerId);
             this.visibilityInfo.saveTimerId = setTimeout(
                 this.sendVisibilityChangedEvents.bind(this),
-                this.visibilityInfo.saveDelay
+                this.visibilityInfo.saveDelay,
             );
         }
 
         clearTimeout(this.visibilityInfo.suspendTimerId);
         this.visibilityInfo.suspendTimerId = setTimeout(
             this.suspendVisibilityMeasuring.bind(this),
-            this.visibilityInfo.suspendDelay
+            this.visibilityInfo.suspendDelay,
         );
     }
 
@@ -11446,14 +11448,14 @@ export default class Core {
                                 .isInactiveCompositeReplacement
                         ) {
                             this.updateInfo.inactiveCompositesToUpdateReplacements.add(
-                                cName
+                                cName,
                             );
                         } else {
                             let result = await this.updateCompositeReplacements(
                                 {
                                     component: composite,
                                     componentChanges,
-                                }
+                                },
                             );
 
                             // for (let componentName in result.addedComponents) {
@@ -11502,7 +11504,7 @@ export default class Core {
             nPasses++;
             if (nPasses > 100) {
                 throw Error(
-                    `Seem to have an infinite loop while calculating replacement changes`
+                    `Seem to have an infinite loop while calculating replacement changes`,
                 );
             }
         }
@@ -11609,7 +11611,7 @@ export default class Core {
                     this.rendererVariablesByComponentType[comp.componentType]
                 ) {
                     this.updateInfo.componentsToUpdateRenderers.add(
-                        comp.componentName
+                        comp.componentName,
                     );
                 }
 
@@ -11653,7 +11655,7 @@ export default class Core {
 
                         let setResult = compStateObj.setArrayValue({
                             value: set(
-                                newComponentStateVariables[vName][arrayKey]
+                                newComponentStateVariables[vName][arrayKey],
                             ),
                             arrayKey,
                             arraySize,
@@ -11671,7 +11673,7 @@ export default class Core {
                             compStateObj.varNamesIncludingArrayKeys[arrayKey];
                         if (varNamesContainingArrayKey) {
                             arrayEntryNamesAffected.push(
-                                ...varNamesContainingArrayKey
+                                ...varNamesContainingArrayKey,
                             );
                         }
                     }
@@ -11761,7 +11763,7 @@ export default class Core {
 
                 if (!result.success) {
                     throw Error(
-                        `Can't get value of ${stateVariable} of ${component.componentName} as ${varName} couldn't be resolved.`
+                        `Can't get value of ${stateVariable} of ${component.componentName} as ${varName} couldn't be resolved.`,
                     );
                 }
             }
@@ -11804,7 +11806,7 @@ export default class Core {
                         ] = await sObj.value;
                     } else {
                         throw Error(
-                            `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentName}, value of state variable ${instruction.valueOfStateVariable} not found.`
+                            `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentName}, value of state variable ${instruction.valueOfStateVariable} not found.`,
                         );
                     }
                 }
@@ -11844,7 +11846,7 @@ export default class Core {
                     };
                 } else {
                     throw Error(
-                        `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentName}, value of state variable ${instruction.valueOfStateVariable} not found.`
+                        `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentName}, value of state variable ${instruction.valueOfStateVariable} not found.`,
                     );
                 }
             }
@@ -11871,7 +11873,7 @@ export default class Core {
                 if (stateVariableWorkspace2) {
                     Object.assign(
                         stateVariableWorkspace,
-                        stateVariableWorkspace2
+                        stateVariableWorkspace2,
                     );
                     componentWorkspace[stateVariableForWorkspace2] =
                         stateVariableWorkspace;
@@ -11885,7 +11887,7 @@ export default class Core {
             for (let varName2 in instruction.additionalStateVariableValues) {
                 if (
                     !stateVarObj.additionalStateVariablesDefined.includes(
-                        varName2
+                        varName2,
                     )
                 ) {
                     this.errorWarnings.warnings.push({
@@ -11957,7 +11959,7 @@ export default class Core {
         }
 
         let inverseResult = await stateVarObj.inverseDefinition(
-            inverseDefinitionArgs
+            inverseDefinitionArgs,
         );
 
         if (
@@ -11996,7 +11998,7 @@ export default class Core {
                     ][stateVariable][dependencyName];
                 if (
                     ["stateVariable", "parentStateVariable"].includes(
-                        dep.dependencyType
+                        dep.dependencyType,
                     ) &&
                     dep.downstreamComponentNames.length === 1
                 ) {
@@ -12032,7 +12034,7 @@ export default class Core {
                             // arrayInstructionInProgress didn't match,
                             // so add it to combined instructions
                             combinedInstructions.push(
-                                arrayInstructionInProgress
+                                arrayInstructionInProgress,
                             );
                             arrayInstructionInProgress = undefined;
                         }
@@ -12084,7 +12086,7 @@ export default class Core {
                                                         depStateVarObj.varEnding,
                                                     numDimensions:
                                                         depArrayStateVarObj.numDimensions,
-                                                }
+                                                },
                                             );
                                     }
                                 }
@@ -12118,14 +12120,14 @@ export default class Core {
                                     ) {
                                         Object.assign(
                                             arrayInstructionInProgress.desiredValue,
-                                            newInstruction.desiredValue
+                                            newInstruction.desiredValue,
                                         );
                                     } else {
                                         // If the desired value isn't a non math-expression object,
                                         // then it is clearly not in the form {arrayKey:value}.
                                         // Since we don't have an arrayKey, just set the first array key in the array.
                                         let firstArrayKey = Array(
-                                            depStateVarObj.numDimensions
+                                            depStateVarObj.numDimensions,
                                         )
                                             .fill("0")
                                             .join(",");
@@ -12146,7 +12148,7 @@ export default class Core {
                                             for (let ind in array) {
                                                 let sub_obj = convert_md_array(
                                                     array[ind],
-                                                    n_dim - 1
+                                                    n_dim - 1,
                                                 );
                                                 for (let key in sub_obj) {
                                                     new_obj[`${ind},${key}`] =
@@ -12160,8 +12162,8 @@ export default class Core {
                                         arrayInstructionInProgress.desiredValue,
                                         convert_md_array(
                                             newInstruction.desiredValue,
-                                            depStateVarObj.numDimensions
-                                        )
+                                            depStateVarObj.numDimensions,
+                                        ),
                                     );
                                 }
                             }
@@ -12188,7 +12190,7 @@ export default class Core {
             if (newInstruction.setEssentialValue) {
                 if (
                     !allStateVariablesAffected.includes(
-                        newInstruction.setEssentialValue
+                        newInstruction.setEssentialValue,
                     )
                 ) {
                     let foundArrayMatch = false;
@@ -12201,18 +12203,18 @@ export default class Core {
                                 let sObj = component.state[vName];
                                 if (sObj.isArrayEntry) {
                                     arrayStateVariables.push(
-                                        sObj.arrayStateVariable
+                                        sObj.arrayStateVariable,
                                     );
                                 }
                             }
                         }
                         foundArrayMatch = arrayStateVariables.includes(
-                            newInstruction.setEssentialValue
+                            newInstruction.setEssentialValue,
                         );
                     }
                     if (!foundArrayMatch) {
                         throw Error(
-                            `Invalid inverse definition of ${stateVariable} of ${component.componentName}: specified changing value of ${newInstruction.setEssentialValue}, which is not a state variable defined with ${stateVariable}.`
+                            `Invalid inverse definition of ${stateVariable} of ${component.componentName}: specified changing value of ${newInstruction.setEssentialValue}, which is not a state variable defined with ${stateVariable}.`,
                         );
                     }
                 }
@@ -12222,13 +12224,13 @@ export default class Core {
                         .hasEssential
                 ) {
                     throw Error(
-                        `Invalid inverse definition of ${stateVariable} of ${component.componentName}: can't set essential value of ${newInstruction.setEssentialValue} if it is does not have an essential value.`
+                        `Invalid inverse definition of ${stateVariable} of ${component.componentName}: can't set essential value of ${newInstruction.setEssentialValue} if it is does not have an essential value.`,
                     );
                 }
 
                 if (!("value" in newInstruction)) {
                     throw Error(
-                        `Invalid inverse definition of ${stateVariable} of ${component.componentName}: setEssentialValue must specify a value`
+                        `Invalid inverse definition of ${stateVariable} of ${component.componentName}: setEssentialValue must specify a value`,
                     );
                 }
 
@@ -12354,14 +12356,14 @@ export default class Core {
                                         compositeObj.lastInd >= activeChildInd
                                     ) {
                                         console.log(
-                                            `parent: ${parent.componentName}, activeChildInd: ${activeChildInd}`
+                                            `parent: ${parent.componentName}, activeChildInd: ${activeChildInd}`,
                                         );
                                         console.log(
-                                            parent.compositeReplacementActiveRange
+                                            parent.compositeReplacementActiveRange,
                                         );
                                         console.log(newInstruction);
                                         throw Error(
-                                            "Need to implement changing primitive replacements from composite"
+                                            "Need to implement changing primitive replacements from composite",
                                         );
                                     }
                                 }
@@ -12418,7 +12420,7 @@ export default class Core {
                         let cName = dep.downstreamComponentNames[downstreamInd];
                         if (!cName) {
                             throw Error(
-                                `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`
+                                `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
                         }
                         let varName =
@@ -12427,7 +12429,7 @@ export default class Core {
                             ][newInstruction.variableIndex];
                         if (!varName) {
                             throw Error(
-                                `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`
+                                `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                             );
                         }
                         let inst = {
@@ -12460,7 +12462,7 @@ export default class Core {
                         ];
                     if (!varName) {
                         throw Error(
-                            `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`
+                            `Invalid inverse definition of ${stateVariable} of ${component.componentName}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                         );
                     }
                     let inst = {
@@ -12536,7 +12538,7 @@ export default class Core {
                                 dep2.downstreamComponentNames[0] !==
                                     dComponentName ||
                                 !stateVarObj.additionalStateVariablesDefined.includes(
-                                    varName2
+                                    varName2,
                                 )
                             ) {
                                 this.errorWarnings.warnings.push({
@@ -12567,7 +12569,7 @@ export default class Core {
                     });
                 } else {
                     throw Error(
-                        `unimplemented dependency type ${dep.dependencyType} in requestComponentChanges`
+                        `unimplemented dependency type ${dep.dependencyType} in requestComponentChanges`,
                     );
                 }
             } else if (newInstruction.combinedArray) {
@@ -12632,7 +12634,7 @@ export default class Core {
             } else {
                 console.log(newInstruction);
                 throw Error(
-                    `Unrecognized instruction in inverse definition of ${stateVariable} of ${component.componentName}`
+                    `Unrecognized instruction in inverse definition of ${stateVariable} of ${component.componentName}`,
                 );
             }
         }
@@ -12663,7 +12665,7 @@ export default class Core {
 
             Object.assign(
                 newStateVariableValues[component.componentName][varName],
-                value
+                value,
             );
         } else {
             newStateVariableValues[component.componentName][varName] = value;
@@ -12741,7 +12743,7 @@ export default class Core {
                     rendererState: this.rendererState,
                     coreInfo: this.coreInfo,
                     saveId,
-                }
+                },
             );
         }
 
@@ -12759,11 +12761,11 @@ export default class Core {
             coreInfo: this.coreInfoString,
             coreState: JSON.stringify(
                 this.cumulativeStateVariableChanges,
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
             rendererState: JSON.stringify(
                 this.rendererState,
-                serializeFunctions.serializedComponentsReplacer
+                serializeFunctions.serializedComponentsReplacer,
             ),
             pageNumber: this.pageNumber,
             attemptNumber: this.attemptNumber,
@@ -12821,7 +12823,7 @@ export default class Core {
         try {
             resp = await axios.post(
                 this.apiURLs.savePageState,
-                this.pageStateToBeSavedToDatabase
+                this.pageStateToBeSavedToDatabase,
             );
         } catch (e) {
             postMessage({
@@ -12869,7 +12871,7 @@ export default class Core {
         if (this.flags.allowLocalState) {
             await idb_set(
                 `${this.activityId}|${this.pageNumber}|${this.attemptNumber}|${this.cid}|ServerSaveId`,
-                data.saveId
+                data.saveId,
             );
         }
 
@@ -12886,18 +12888,18 @@ export default class Core {
                         {
                             coreState: JSON.parse(
                                 data.coreState,
-                                serializeFunctions.serializedComponentsReviver
+                                serializeFunctions.serializedComponentsReviver,
                             ),
                             rendererState: JSON.parse(
                                 data.rendererState,
-                                serializeFunctions.serializedComponentsReviver
+                                serializeFunctions.serializedComponentsReviver,
                             ),
                             coreInfo: JSON.parse(
                                 data.coreInfo,
-                                serializeFunctions.serializedComponentsReviver
+                                serializeFunctions.serializedComponentsReviver,
                             ),
                             saveId: data.saveId,
-                        }
+                        },
                     );
                 }
 
@@ -12973,12 +12975,12 @@ export default class Core {
                         args: {
                             creditByItem: data.creditByItem.map(Number),
                             creditForAssignment: Number(
-                                data.creditForAssignment
+                                data.creditForAssignment,
                             ),
                             creditForAttempt: Number(data.creditForAttempt),
                             showCorrectness: data.showCorrectness === "1",
                             totalPointsOrPercent: Number(
-                                data.totalPointsOrPercent
+                                data.totalPointsOrPercent,
                             ),
                         },
                     });
@@ -13242,7 +13244,7 @@ export default class Core {
     get scoredItemWeights() {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
-                (x) => x.stateValues.weight
+                (x) => x.stateValues.weight,
             ))();
     }
 
@@ -13416,7 +13418,7 @@ export default class Core {
         let doenetMLId = doenetMLrange.doenetMLId || 0;
         let componentDoenetML = this.allDoenetMLs[doenetMLId].slice(
             startInd - 1,
-            endInd
+            endInd,
         );
 
         if (displayOnlyChildren) {
@@ -13428,7 +13430,7 @@ export default class Core {
             }
             componentDoenetML = componentDoenetML.replace(
                 /\n[ \t]*$(?!\n)/,
-                ""
+                "",
             );
         }
 
@@ -13441,9 +13443,9 @@ export default class Core {
                 (a, c) =>
                     Math.min(
                         a,
-                        c.trim().length > 1 ? c.search(/\S|$/) : Infinity
+                        c.trim().length > 1 ? c.search(/\S|$/) : Infinity,
                     ),
-                Infinity
+                Infinity,
             );
 
         // check first line if didn't get a number of spaces from remaining lines
@@ -13517,7 +13519,7 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
                 }
                 if (defaultValue === undefined) {
                     throw Error(
-                        "Invalid attribute specification: no default value specified"
+                        "Invalid attribute specification: no default value specified",
                     );
                 }
             }
@@ -13559,7 +13561,7 @@ function calculateAllComponentsShadowing(component) {
     // TODO 2: Does this properly deal with the no-link case?
     if (component.replacementOf) {
         let additionalShadowing = calculateAllComponentsShadowing(
-            component.replacementOf
+            component.replacementOf,
         );
         allShadowing.push(...additionalShadowing);
     }

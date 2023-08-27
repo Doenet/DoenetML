@@ -18,7 +18,7 @@ export default class Triangle extends Polygon {
                 }).setValue.styleDescriptionWithNoun;
                 styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
                     "polygon",
-                    "triangle"
+                    "triangle",
                 );
 
                 return { setValue: { styleDescriptionWithNoun } };
@@ -27,7 +27,7 @@ export default class Triangle extends Polygon {
         stateVariableDefinitions.vertices.hasEssential = true;
 
         stateVariableDefinitions.vertices.defaultValueByArrayKey = function (
-            arrayKey
+            arrayKey,
         ) {
             if (["0,1", "1,0"].includes(arrayKey)) {
                 return me.fromAst(1);

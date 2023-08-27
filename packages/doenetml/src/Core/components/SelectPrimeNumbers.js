@@ -96,16 +96,17 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     let excludedCombinations =
                         dependencyValues.excludeCombinations.stateValues.lists
                             .map((x) =>
-                                x.slice(0, dependencyValues.numToSelect)
+                                x.slice(0, dependencyValues.numToSelect),
                             )
                             .filter(
-                                (x) => x.length === dependencyValues.numToSelect
+                                (x) =>
+                                    x.length === dependencyValues.numToSelect,
                             );
 
                     while (true) {
                         let result =
                             mergeContainingNumberCombinations(
-                                excludedCombinations
+                                excludedCombinations,
                             );
                         if (result.merged) {
                             excludedCombinations = result.combinations;
@@ -291,13 +292,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
                 if (!(Number.isInteger(numToSelect) && numToSelect >= 0)) {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't a non-negative integer.`
+                        `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't a non-negative integer.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't constant number.`
+                    `cannot determine unique variants of selectPrimeNumbers as numToSelect isn't constant number.`,
                 );
                 return { success: false };
             }
@@ -323,13 +324,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     withReplacement = withReplacementComponent.state.value;
                 } else {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`
+                        `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                     );
                     return { success: false };
                 }
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`
+                    `cannot determine unique variants of selectPrimeNumbers as withReplacement isn't constant boolean.`,
                 );
                 return { success: false };
             }
@@ -348,14 +349,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 let minValue = Number(minValueComponent.children[0]);
                 if (!Number.isFinite(minValue)) {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as minValue isn't a number.`
+                        `cannot determine unique variants of selectPrimeNumbers as minValue isn't a number.`,
                     );
                     return { success: false };
                 }
                 primePars.minValue = minValue;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as minValue isn't a constant.`
+                    `cannot determine unique variants of selectPrimeNumbers as minValue isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -372,14 +373,14 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 let maxValue = Number(maxValueComponent.children[0]);
                 if (!Number.isFinite(maxValue)) {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a number.`
+                        `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a number.`,
                     );
                     return { success: false };
                 }
                 primePars.maxValue = maxValue;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a constant.`
+                    `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -387,7 +388,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         if (serializedComponent.attributes.excludeCombinations) {
             console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with excludeCombinations"
+                "have not implemented unique variants of a selectPrimeNumbers with excludeCombinations",
             );
             return { success: false };
         }
@@ -399,21 +400,21 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 !excludeComponent.children.every(
                     (x) =>
                         x.children?.length === 1 &&
-                        typeof x.children[0] === "string"
+                        typeof x.children[0] === "string",
                 )
             ) {
                 console.log(
-                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude"
+                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
             }
             let exclude = excludeComponent.children.map((x) =>
-                Number(x.children[0])
+                Number(x.children[0]),
             );
 
             if (!exclude.every(Number.isFinite)) {
                 console.log(
-                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude"
+                    "have not implemented unique variants of a selectPrimeNumbers with non-constant exclude",
                 );
                 return { success: false };
             }
@@ -441,7 +442,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                 sortResults = sortResultsComponent.state.value;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as sortResults isn't a constant.`
+                    `cannot determine unique variants of selectPrimeNumbers as sortResults isn't a constant.`,
                 );
                 return { success: false };
             }
@@ -449,7 +450,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         if (sortResults && numToSelect > 1) {
             console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with sortResults"
+                "have not implemented unique variants of a selectPrimeNumbers with sortResults",
             );
             return { success: false };
         }
@@ -562,7 +563,7 @@ function makeSelection({ dependencyValues }) {
             "Cannot select " +
                 numUniqueRequired +
                 " values from a list of primes of length " +
-                numValues
+                numValues,
         );
     }
 
@@ -575,7 +576,7 @@ function makeSelection({ dependencyValues }) {
         if (desiredValues !== undefined) {
             if (desiredValues.length !== dependencyValues.numToSelect) {
                 throw Error(
-                    "Number of values specified for select must match number to select"
+                    "Number of values specified for select must match number to select",
                 );
             }
 
@@ -583,7 +584,7 @@ function makeSelection({ dependencyValues }) {
 
             if (!desiredValues.every((x) => possibleValues.includes(x))) {
                 throw Error(
-                    "All values specified for select prime number must be in the list of primes"
+                    "All values specified for select prime number must be in the list of primes",
                 );
             }
 
@@ -595,7 +596,7 @@ function makeSelection({ dependencyValues }) {
                 })
             ) {
                 throw Error(
-                    "Specified values of selectPrimeNumbers was an excluded combination"
+                    "Specified values of selectPrimeNumbers was an excluded combination",
                 );
             }
 
@@ -628,7 +629,7 @@ function makeSelection({ dependencyValues }) {
         if (dependencyValues.withReplacement) {
             numPossibilities = Math.pow(
                 numPossibilities,
-                dependencyValues.numToSelect
+                dependencyValues.numToSelect,
             );
         } else {
             let n = numPossibilities;
@@ -640,25 +641,25 @@ function makeSelection({ dependencyValues }) {
         if (numCombinationsExcluded > 0.7 * numPossibilities) {
             if (
                 dependencyValues.excludedCombinations.some((x) =>
-                    x.some(Number.isNaN)
+                    x.some(Number.isNaN),
                 )
             ) {
                 let numberDuplicated = estimateNumberOfDuplicateCombinations(
                     dependencyValues.excludedCombinations,
                     numValues,
-                    dependencyValues.withReplacement
+                    dependencyValues.withReplacement,
                 );
 
                 numCombinationsExcluded -= numberDuplicated;
 
                 if (numCombinationsExcluded > 0.7 * numPossibilities) {
                     throw Error(
-                        "Excluded over 70% of combinations in selectPrimeNumbers"
+                        "Excluded over 70% of combinations in selectPrimeNumbers",
                     );
                 }
             } else {
                 throw Error(
-                    "Excluded over 70% of combinations in selectPrimeNumbers"
+                    "Excluded over 70% of combinations in selectPrimeNumbers",
                 );
             }
         }
@@ -692,7 +693,7 @@ function makeSelection({ dependencyValues }) {
         if (!foundValidCombination) {
             // this won't happen, as occurs with prob < 10^(-30)
             throw Error(
-                "By extremely unlikely fluke, couldn't select combination of random values"
+                "By extremely unlikely fluke, couldn't select combination of random values",
             );
         }
     }

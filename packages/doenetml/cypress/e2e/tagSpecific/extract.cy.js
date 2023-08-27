@@ -24,7 +24,7 @@ describe("Extract Tag Tests", function () {
     <extract prop="latex" assignNames="e2"><math modifyIndirectly="true">x</math></extract>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -34,13 +34,13 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_math1"].stateValues.modifyIndirectly).eq(
-                false
+                false,
             );
             expect(stateVariables["/_math2"].stateValues.modifyIndirectly).eq(
-                true
+                true,
             );
             expect(stateVariables["/e1"].stateValues.modifyIndirectly).eq(
-                false
+                false,
             );
             expect(stateVariables["/e2"].stateValues.modifyIndirectly).eq(true);
         });
@@ -56,7 +56,7 @@ describe("Extract Tag Tests", function () {
     <extract modifyIndirectly="false" prop="latex" assignNames="e2"><math modifyIndirectly="true">x</math></extract>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -66,14 +66,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_math1"].stateValues.modifyIndirectly).eq(
-                false
+                false,
             );
             expect(stateVariables["/_math2"].stateValues.modifyIndirectly).eq(
-                true
+                true,
             );
             expect(stateVariables["/e1"].stateValues.modifyIndirectly).eq(true);
             expect(stateVariables["/e2"].stateValues.modifyIndirectly).eq(
-                false
+                false,
             );
         });
     });
@@ -91,7 +91,7 @@ describe("Extract Tag Tests", function () {
     </extract>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -147,7 +147,7 @@ describe("Extract Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -236,7 +236,7 @@ describe("Extract Tag Tests", function () {
     $copiedextract.y{assignNames="y2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -264,19 +264,19 @@ describe("Extract Tag Tests", function () {
             expect(stateVariables["/y2"].stateValues.value).closeTo(-5, 1e-12);
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 -4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 -7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 0,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 -3,
-                1e-12
+                1e-12,
             );
         });
 
@@ -319,7 +319,7 @@ describe("Extract Tag Tests", function () {
     <p>$_aslist2</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -333,35 +333,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls([]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
         });
 
@@ -375,35 +375,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls(["text", "text", "text"]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3"]);
         });
 
@@ -419,35 +419,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text", "text"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text", "text"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls(["text", "text", "text", "text"]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4"]);
         });
 
@@ -463,35 +463,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls(["text", "text"]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2"]);
         });
 
@@ -507,35 +507,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text", "text", "text"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls(["text", "text", "text", "text", "text"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls(["text", "text", "text", "text", "text"]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4", "5"]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4", "5"]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls(["1", "2", "3", "4", "5"]);
         });
     });
@@ -568,7 +568,7 @@ describe("Extract Tag Tests", function () {
     $m.value{assignNames="m2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -582,35 +582,35 @@ describe("Extract Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => x.componentType
-                )
+                    (x) => x.componentType,
+                ),
             ).eqls([]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
-                ].activeChildren.map((x) => x.componentType)
+                ].activeChildren.map((x) => x.componentType),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist1"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
             expect(
                 stateVariables["/_aslist2"].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
             expect(
                 stateVariables[
                     stateVariables["/_p3"].activeChildren[0].componentName
                 ].activeChildren.map(
-                    (x) => stateVariables[x.componentName].stateValues.value
-                )
+                    (x) => stateVariables[x.componentName].stateValues.value,
+                ),
             ).eqls([]);
         });
 
@@ -628,8 +628,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -642,8 +642,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -656,8 +656,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -673,23 +673,24 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", 1, "＿"],
                     ["+", 2, "＿"],
@@ -697,8 +698,9 @@ describe("Extract Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", 1, "＿"],
                     ["+", 2, "＿"],
@@ -708,8 +710,9 @@ describe("Extract Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", 1, "＿"],
                     ["+", 2, "＿"],
@@ -732,8 +735,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -746,8 +749,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -760,8 +763,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -777,35 +780,38 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10]);
             });
         });
@@ -826,8 +832,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -840,8 +846,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -854,8 +860,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -871,35 +877,38 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10, 11]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10, 11]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([8, 9, 10, 11]);
             });
         });
@@ -920,8 +929,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -934,8 +943,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -948,8 +957,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -965,23 +974,24 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
@@ -990,8 +1000,9 @@ describe("Extract Tag Tests", function () {
                 ]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
@@ -1002,8 +1013,9 @@ describe("Extract Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
@@ -1029,8 +1041,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1043,8 +1055,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1057,8 +1069,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1074,31 +1086,33 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
                 ]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
@@ -1107,8 +1121,9 @@ describe("Extract Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([
                     ["+", "q", 1],
                     ["+", "q", 2],
@@ -1132,8 +1147,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1146,8 +1161,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1160,8 +1175,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1177,35 +1192,38 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1]);
             });
         });
@@ -1226,8 +1244,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist1.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1240,8 +1258,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist2.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1254,8 +1272,8 @@ describe("Extract Tag Tests", function () {
                         `#${
                             stateVariables[aslist3.componentName]
                                 .activeChildren[i].componentName
-                        }`
-                    )
+                        }`,
+                    ),
                 )
                     .find(".mjx-mrow")
                     .eq(0)
@@ -1271,35 +1289,38 @@ describe("Extract Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => x.componentType
-                    )
+                        (x) => x.componentType,
+                    ),
                 ).eqls(["math", "math", "math", "math", "math"]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
-                    ].activeChildren.map((x) => x.componentType)
+                    ].activeChildren.map((x) => x.componentType),
                 ).eqls(["math", "math", "math", "math", "math"]);
                 expect(
                     stateVariables["/_aslist1"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1, 2, 3, 4]);
                 expect(
                     stateVariables["/_aslist2"].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1, 2, 3, 4]);
                 expect(
                     stateVariables[
                         stateVariables["/_p3"].activeChildren[0].componentName
                     ].activeChildren.map(
-                        (x) => stateVariables[x.componentName].stateValues.value
-                    )
+                        (x) =>
+                            stateVariables[x.componentName].stateValues.value,
+                    ),
                 ).eqls([0, 1, 2, 3, 4]);
             });
         });
@@ -1316,7 +1337,7 @@ describe("Extract Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1344,7 +1365,7 @@ describe("Extract Tag Tests", function () {
     <p name="e2">extract 2: <extract hide="$h2" prop="value" ><text>hello</text></extract></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1388,7 +1409,7 @@ describe("Extract Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1421,11 +1442,11 @@ describe("Extract Tag Tests", function () {
         cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
         cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
             "contain.text",
-            nInDOM(x1)
+            nInDOM(x1),
         );
         cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
             "contain.text",
-            nInDOM(x1)
+            nInDOM(x1),
         );
 
         cy.window().then(async (win) => {
@@ -1451,11 +1472,11 @@ describe("Extract Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
 
             cy.window().then(async (win) => {
@@ -1480,11 +1501,11 @@ describe("Extract Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
 
             cy.window().then(async (win) => {
@@ -1511,11 +1532,11 @@ describe("Extract Tag Tests", function () {
             cy.get(cesc("#\\/al2\\/Bx") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/Ax") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
 
             cy.window().then(async (win) => {
@@ -1554,7 +1575,7 @@ describe("Extract Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1655,14 +1676,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1694,14 +1715,14 @@ describe("Extract Tag Tests", function () {
 
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1730,14 +1751,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1766,14 +1787,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1832,14 +1853,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1898,14 +1919,14 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n3") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/n4") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/al2\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/al2\\/n3") + " .mjx-mrow").should("not.exist");
@@ -1978,7 +1999,7 @@ describe("Extract Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2068,12 +2089,12 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2104,12 +2125,12 @@ describe("Extract Tag Tests", function () {
 
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x2)
+                nInDOM(x2),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2135,12 +2156,12 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y2)
+                nInDOM(y2),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2166,12 +2187,12 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(y1)
+                nInDOM(y1),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2222,12 +2243,12 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x1)
+                nInDOM(x1),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2278,12 +2299,12 @@ describe("Extract Tag Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x3)
+                nInDOM(x3),
             );
             cy.get(cesc("#\\/n2") + " .mjx-mrow").should("not.exist");
             cy.get(cesc("#\\/p2\\/n1") + " .mjx-mrow").should(
                 "contain.text",
-                nInDOM(x3)
+                nInDOM(x3),
             );
             cy.get(cesc("#\\/p2\\/n2") + " .mjx-mrow").should("not.exist");
 
@@ -2335,7 +2356,7 @@ describe("Extract Tag Tests", function () {
     <extract prop="LATEX" assignNames="e2"><math>y</math></extract>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2359,7 +2380,7 @@ describe("Extract Tag Tests", function () {
     <extract prop="x" assignNames="e2" createComponentOfType="number"><vector>(3/4,4/5)</vector></extract>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2384,7 +2405,7 @@ describe("Extract Tag Tests", function () {
     <p>Nothing here: <extract><math>x</math></extract></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2397,7 +2418,7 @@ describe("Extract Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Invalid extract.  Must have a prop"
+                "Invalid extract.  Must have a prop",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);

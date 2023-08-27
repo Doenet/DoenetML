@@ -26,7 +26,7 @@ describe("Tabular Tag Tests", function () {
     <p>Bottom: <c>inHeader</c> = $_cell3.inHeader</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

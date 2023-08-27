@@ -103,7 +103,7 @@ export const startTag = new ExternalTokenizer(
             return input.acceptToken(StartTag);
         }
     },
-    { contextual: true }
+    { contextual: true },
 );
 
 function scanTo(type, end) {

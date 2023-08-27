@@ -20,7 +20,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -30,14 +30,14 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
 
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -57,7 +57,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -66,13 +66,13 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "x"
+                "x",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -93,7 +93,7 @@ describe("Function curve Tag Tests", function () {
     <number name="a">3</number>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -102,13 +102,13 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "x"
+                "x",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -128,7 +128,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -164,7 +164,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -200,7 +200,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for window to load
@@ -235,7 +235,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -271,7 +271,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -280,16 +280,16 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "r"
+                "r",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -310,7 +310,7 @@ describe("Function curve Tag Tests", function () {
     <math name="b">3</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -319,16 +319,16 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.variableForChild).eq(
-                "r"
+                "r",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -348,7 +348,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -357,13 +357,13 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -383,7 +383,7 @@ describe("Function curve Tag Tests", function () {
     <p>$a.value{assignNames="a2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -394,13 +394,13 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -414,13 +414,13 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2 * -2);
             expect(f(3)).eq(27 - 3 * -2);
@@ -440,7 +440,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -449,10 +449,10 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                true
+                true,
             );
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);
@@ -481,7 +481,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -490,7 +490,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -558,7 +558,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -634,7 +634,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -643,7 +643,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -738,7 +738,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -841,7 +841,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -850,7 +850,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -943,7 +943,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -992,7 +992,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1083,7 +1083,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1092,7 +1092,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                true
+                true,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -1162,7 +1162,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1171,7 +1171,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                true
+                true,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -1268,7 +1268,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1277,7 +1277,7 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                true
+                true,
             );
             let x = stateVariables["/_point1"].stateValues.xs[0];
             let y = stateVariables["/_point1"].stateValues.xs[1];
@@ -1370,7 +1370,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1419,7 +1419,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1504,7 +1504,7 @@ describe("Function curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1514,17 +1514,17 @@ describe("Function curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "function"
+                "function",
             );
             expect(stateVariables["/_curve1"].stateValues.flipFunction).eq(
-                false
+                false,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "hello \\(x^3-x\\)"
+                "hello \\(x^3-x\\)",
             );
 
             let f = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             expect(f(-2)).eq(-8 + 2);
             expect(f(3)).eq(27 - 3);

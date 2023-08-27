@@ -68,7 +68,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -102,7 +102,7 @@ describe("Matrix Tag Tests", function () {
             .eq(0)
             .should("have.text", "[]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
-            "not.exist"
+            "not.exist",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "0, 0");
@@ -234,7 +234,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -906,7 +906,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1578,7 +1578,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1896,7 +1896,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1963,14 +1963,14 @@ describe("Matrix Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/Adef"].stateValues.value).eqls(
-                matrixdefAst
+                matrixdefAst,
             );
             expect(stateVariables["/Ah"].stateValues.value).eqls(matrixhAst);
             expect(stateVariables["/Amixedbyrow"].stateValues.value).eqls(
-                matrixmixedbyrowAst
+                matrixmixedbyrowAst,
             );
             expect(stateVariables["/Amixedbycolumn"].stateValues.value).eqls(
-                matrixmixedbycolumnAst
+                matrixmixedbycolumnAst,
             );
         });
     });
@@ -2009,7 +2009,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2076,14 +2076,14 @@ describe("Matrix Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/Adef"].stateValues.value).eqls(
-                matrixdefAst
+                matrixdefAst,
             );
             expect(stateVariables["/Ah"].stateValues.value).eqls(matrixhAst);
             expect(stateVariables["/Amixedbyrow"].stateValues.value).eqls(
-                matrixmixedbyrowAst
+                matrixmixedbyrowAst,
             );
             expect(stateVariables["/Amixedbycolumn"].stateValues.value).eqls(
-                matrixmixedbycolumnAst
+                matrixmixedbycolumnAst,
             );
         });
     });
@@ -2115,7 +2115,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2168,14 +2168,14 @@ describe("Matrix Tag Tests", function () {
                 ],
             ];
             expect(stateVariables["/Adef"].stateValues.value).eqls(
-                matrixdefAst
+                matrixdefAst,
             );
             expect(stateVariables["/Ah"].stateValues.value).eqls(matrixnAst);
             expect(stateVariables["/Amixedbyrow"].stateValues.value).eqls(
-                matrixmixedbyrowAst
+                matrixmixedbyrowAst,
             );
             expect(stateVariables["/Amixedbycolumn"].stateValues.value).eqls(
-                matrixmixedbycolumnAst
+                matrixmixedbycolumnAst,
             );
         });
     });
@@ -2197,7 +2197,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2275,7 +2275,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2310,227 +2310,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[abcdef]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "2, 3");
@@ -2658,227 +2658,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[xyzuvw]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.window().then(async (win) => {
@@ -2965,227 +2965,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[1yzuvw]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "2, 3");
@@ -3313,227 +3313,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[mnopqr]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.window().then(async (win) => {
@@ -3631,227 +3631,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[stuvwx]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.window().then(async (win) => {
@@ -3965,7 +3965,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4000,227 +4000,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[abcdef]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "c"
+            "c",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "f"
+            "f",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "2, 3");
@@ -4348,227 +4348,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[xyzuvw]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.window().then(async (win) => {
@@ -4655,227 +4655,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[1yzuvw]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "2, 3");
@@ -5003,227 +5003,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[mnopqr]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "m"
+            "m",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "n"
+            "n",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "o"
+            "o",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "p"
+            "p",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "q"
+            "q",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "r"
+            "r",
         );
 
         cy.window().then(async (win) => {
@@ -5321,227 +5321,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "[stuvwx]");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi1_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi1_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi2_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi2_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi3_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi3_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi4_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi4_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi5_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi5_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi6_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi6_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi7_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi7_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "s"
+            "s",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "t"
+            "t",
         );
         cy.get(cesc(`#\\/mi8_component_0_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
         cy.get(cesc(`#\\/mi8_component_1_2`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
 
         cy.window().then(async (win) => {
@@ -5656,7 +5656,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5691,227 +5691,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣abde00⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi1_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi1_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi2_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi2_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi3_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi3_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi4_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi4_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi5_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi5_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi6_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi6_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi7_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi7_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi8_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi8_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "3, 2");
@@ -6007,7 +6007,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣xyzuvw⎤⎥⎦"
+            "⎡⎢⎣xyzuvw⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -6039,227 +6039,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣xyzuvw⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.window().then(async (win) => {
@@ -6314,7 +6314,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yzuvw⎤⎥⎦"
+            "⎡⎢⎣1yzuvw⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -6346,27 +6346,27 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣1yzuvw⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "3, 2");
@@ -6447,7 +6447,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yc0zuf0vw00⎤⎥⎦"
+            "⎡⎢⎣1yc0zuf0vw00⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -6589,7 +6589,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣ghijklmnopqr⎤⎥⎦"
+            "⎡⎢⎣ghijklmnopqr⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -6841,7 +6841,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "[stuvklmn]"
+            "[stuvklmn]",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -7010,7 +7010,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7045,227 +7045,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣abde00⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi1_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi1_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi2_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi2_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi3_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi3_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi4_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi4_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi5_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi5_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi6_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi6_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi7_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi7_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "a"
+            "a",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "b"
+            "b",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "d"
+            "d",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "e"
+            "e",
         );
         cy.get(cesc(`#\\/mi8_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
         cy.get(cesc(`#\\/mi8_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "0"
+            "0",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "3, 2");
@@ -7361,7 +7361,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣xyzuvw⎤⎥⎦"
+            "⎡⎢⎣xyzuvw⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -7393,227 +7393,227 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣xyzuvw⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi1_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi1_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi1_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi1_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi1_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi1_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi2_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi2_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi2_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi2_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi2_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi2_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi3_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi3_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi3_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi3_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi3_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi3_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi4_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi4_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi4_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi4_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi4_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi4_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi5_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi5_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi5_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi5_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi5_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi5_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi6_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi6_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi6_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi6_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi6_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi6_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi7_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi7_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi7_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi7_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi7_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi7_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc(`#\\/mi8_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "x"
+            "x",
         );
         cy.get(cesc(`#\\/mi8_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi8_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi8_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi8_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi8_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.window().then(async (win) => {
@@ -7668,7 +7668,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yzuvw⎤⎥⎦"
+            "⎡⎢⎣1yzuvw⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -7700,27 +7700,27 @@ describe("Matrix Tag Tests", function () {
             .should("have.text", "⎡⎢⎣1yzuvw⎤⎥⎦");
         cy.get(cesc(`#\\/mi_component_0_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "1"
+            "1",
         );
         cy.get(cesc(`#\\/mi_component_0_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "y"
+            "y",
         );
         cy.get(cesc(`#\\/mi_component_1_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "z"
+            "z",
         );
         cy.get(cesc(`#\\/mi_component_1_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "u"
+            "u",
         );
         cy.get(cesc(`#\\/mi_component_2_0`) + ` .mq-editable-field`).should(
             "have.text",
-            "v"
+            "v",
         );
         cy.get(cesc(`#\\/mi_component_2_1`) + ` .mq-editable-field`).should(
             "have.text",
-            "w"
+            "w",
         );
 
         cy.get(cesc("#\\/matrixSize")).should("have.text", "3, 2");
@@ -7801,7 +7801,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yc0zuf0vw00⎤⎥⎦"
+            "⎡⎢⎣1yc0zuf0vw00⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -7943,7 +7943,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣ghijklmnopqr⎤⎥⎦"
+            "⎡⎢⎣ghijklmnopqr⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8195,7 +8195,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "[stuvklmn]"
+            "[stuvklmn]",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8364,7 +8364,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8476,7 +8476,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣abdekk⎤⎥⎦"
+            "⎡⎢⎣abdekk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8567,7 +8567,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣xyzuvk⎤⎥⎦"
+            "⎡⎢⎣xyzuvk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8639,7 +8639,7 @@ describe("Matrix Tag Tests", function () {
         });
 
         cy.log(
-            "change default entry again does not work as all modified by matrixinput"
+            "change default entry again does not work as all modified by matrixinput",
         );
 
         cy.get(cesc("#\\/de") + " textarea").type("{end}{backspace}j{enter}", {
@@ -8652,7 +8652,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yzuvk⎤⎥⎦"
+            "⎡⎢⎣1yzuvk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8733,7 +8733,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢\n⎢\n⎢\n⎢⎣1yczufvkjjjj⎤⎥\n⎥\n⎥\n⎥⎦"
+            "⎡⎢\n⎢\n⎢\n⎢⎣1yczufvkjjjj⎤⎥\n⎥\n⎥\n⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -8877,7 +8877,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢\n⎢\n⎢⎣lmnopqrstwab⎤⎥\n⎥\n⎥⎦"
+            "⎡⎢\n⎢\n⎢⎣lmnopqrstwab⎤⎥\n⎥\n⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -9021,7 +9021,7 @@ describe("Matrix Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9133,7 +9133,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣abdekk⎤⎥⎦"
+            "⎡⎢⎣abdekk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -9224,7 +9224,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣xyzuvk⎤⎥⎦"
+            "⎡⎢⎣xyzuvk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -9296,7 +9296,7 @@ describe("Matrix Tag Tests", function () {
         });
 
         cy.log(
-            "change default entry again does not work as all modified by matrixinput"
+            "change default entry again does not work as all modified by matrixinput",
         );
 
         cy.get(cesc("#\\/de") + " textarea").type("{end}{backspace}j{enter}", {
@@ -9309,7 +9309,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣1yzuvk⎤⎥⎦"
+            "⎡⎢⎣1yzuvk⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -9390,7 +9390,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢\n⎢\n⎢\n⎢⎣1yczufvkjjjj⎤⎥\n⎥\n⎥\n⎥⎦"
+            "⎡⎢\n⎢\n⎢\n⎢⎣1yczufvkjjjj⎤⎥\n⎥\n⎥\n⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")
@@ -9534,7 +9534,7 @@ describe("Matrix Tag Tests", function () {
 
         cy.get(cesc("#\\/A") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢\n⎢\n⎢⎣lmnopqrstwab⎤⎥\n⎥\n⎥⎦"
+            "⎡⎢\n⎢\n⎢⎣lmnopqrstwab⎤⎥\n⎥\n⎥⎦",
         );
 
         cy.get(cesc("#\\/A") + " .mjx-mrow")

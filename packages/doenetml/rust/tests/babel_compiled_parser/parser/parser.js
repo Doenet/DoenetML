@@ -45,8 +45,8 @@ export function parseAndCompile(inText) {
                     throw Error(
                         `Invalid DoenetML at positions ${errorBegin} to ${errorEnd}. Error in opening <${tagName}> tag.  Found ${inText.slice(
                             tagOpenBegin - 1,
-                            errorEnd
-                        )}`
+                            errorEnd,
+                        )}`,
                     );
                 } //Attributes always have exactly two children, an AttributeName and an Attribute Value
                 //We scrape the content of both from the in string and add them to the attribute array here
@@ -57,7 +57,7 @@ export function parseAndCompile(inText) {
                 if (cursor.nextSibling() === false) {
                     if (attrName in attrs) {
                         throw Error(
-                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`
+                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`,
                         );
                     }
 
@@ -67,12 +67,12 @@ export function parseAndCompile(inText) {
 
                     let attrValue = inText.substring(
                         cursor.from + 1,
-                        cursor.to - 1
+                        cursor.to - 1,
                     );
 
                     if (attrName in attrs) {
                         throw Error(
-                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`
+                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`,
                         );
                     }
 
@@ -115,8 +115,8 @@ export function parseAndCompile(inText) {
                             cursor.from
                         }. Mismatched closing tag.  Expected </${tagName}>.  Found ${inText.slice(
                             cursor.from,
-                            cursor.to
-                        )}.`
+                            cursor.to,
+                        )}.`,
                     );
                 } else {
                     // console.log(`error is at position ${cursor.from}, ${cursor.to}`)
@@ -128,8 +128,8 @@ export function parseAndCompile(inText) {
                             cursor.from
                         }. Expected a closing </${tagName}> tag.  Instead found ${inText.slice(
                             cursor.from,
-                            cursor.to
-                        )}.`
+                            cursor.to,
+                        )}.`,
                     );
                 }
             }
@@ -151,7 +151,7 @@ export function parseAndCompile(inText) {
                 //All of the siblings must be Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
                     throw Error(
-                        `Invalid DoenetML at positions ${cursor.from} to ${cursor.to}. Error in self-closing <${tagName}/> tag.`
+                        `Invalid DoenetML at positions ${cursor.from} to ${cursor.to}. Error in self-closing <${tagName}/> tag.`,
                     );
                 } //Attributes always have exactly two children, an AttributeName and an Attribute Value
                 //We scrape the content of both from the in string and add them to the attribute array here
@@ -162,7 +162,7 @@ export function parseAndCompile(inText) {
                 if (cursor.nextSibling() === false) {
                     if (attrName in attrs) {
                         throw Error(
-                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`
+                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`,
                         );
                     }
 
@@ -172,13 +172,13 @@ export function parseAndCompile(inText) {
 
                     if (attrName in attrs) {
                         throw Error(
-                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`
+                            `Duplicate attribute ${attrName}.  Found in component of type ${tagName} at indices ${cursor.from}-${cursor.to}`,
                         );
                     } //fuddling to ignore the quotes
 
                     let attrValue = inText.substring(
                         cursor.from + 1,
-                        cursor.to - 1
+                        cursor.to - 1,
                     );
                     attrs[attrName] = attrValue;
                 } //move out of Attribute to maintain loop invariant
@@ -202,7 +202,7 @@ export function parseAndCompile(inText) {
         } else {
             //Unreachable case, see the grammar for why
             throw Error(
-                "Non SelfClosingTag/OpenTag in Element. How did you do that?"
+                "Non SelfClosingTag/OpenTag in Element. How did you do that?",
             );
         }
     }
@@ -224,7 +224,7 @@ export function parseAndCompile(inText) {
             throw Error(
                 `Invalid DoenetML at positions ${tc.node.from} to ${
                     tc.node.to
-                }.  Found ${inText.substring(tc.node.from, tc.node.to)}`
+                }.  Found ${inText.substring(tc.node.from, tc.node.to)}`,
             );
         }
     }

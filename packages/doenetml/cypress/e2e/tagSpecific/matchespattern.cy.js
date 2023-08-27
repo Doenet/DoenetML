@@ -49,7 +49,7 @@ describe("MatchesPattern Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -185,7 +185,7 @@ describe("MatchesPattern Tag Tests", function () {
             cy.log(`trying: ${expr}`);
             cy.get(cesc("#\\/expr") + " textarea").type(
                 `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/bi")).click();
             b = !b;
@@ -206,10 +206,10 @@ describe("MatchesPattern Tag Tests", function () {
                 } else {
                     cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
                     cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                 }
             }
@@ -259,7 +259,7 @@ describe("MatchesPattern Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -347,7 +347,7 @@ describe("MatchesPattern Tag Tests", function () {
             cy.log(`trying: ${expr}`);
             cy.get(cesc("#\\/expr") + " textarea").type(
                 `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/bi")).click();
             b = !b;
@@ -368,10 +368,10 @@ describe("MatchesPattern Tag Tests", function () {
                 } else {
                     cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
                     cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                 }
             }
@@ -423,7 +423,7 @@ describe("MatchesPattern Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -499,7 +499,7 @@ describe("MatchesPattern Tag Tests", function () {
             cy.log(`trying: ${expr}`);
             cy.get(cesc("#\\/expr") + " textarea").type(
                 `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/bi")).click();
             b = !b;
@@ -520,10 +520,10 @@ describe("MatchesPattern Tag Tests", function () {
                 } else {
                     cy.get(cesc(`#\\/${name}`)).should("have.text", "false");
                     cy.get(cesc(`#\\/${matchNames[name][0]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.get(cesc(`#\\/${matchNames[name][1]}`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                 }
             }
@@ -541,7 +541,7 @@ describe("MatchesPattern Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -564,7 +564,7 @@ describe("MatchesPattern Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -604,7 +604,7 @@ describe("MatchesPattern Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -661,7 +661,7 @@ describe("MatchesPattern Tag Tests", function () {
             cy.log(`trying: ${expr}`);
             cy.get(cesc("#\\/expr") + " textarea").type(
                 `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/matchBlanks")).click();
             cy.get(cesc("#\\/matchBlanks2")).should("have.text", "true"); // to make sure change occured

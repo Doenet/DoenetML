@@ -49,13 +49,13 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#page1\\/_problem1_title")).should(
             "have.text",
-            "Problem 1"
+            "Problem 1",
         );
         cy.get(cesc("#page1\\/_p1")).should("have.text", "The first problem");
 
@@ -77,7 +77,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page2\\/_problem1_title")).should(
             "have.text",
-            "Problem 2"
+            "Problem 2",
         );
         cy.get(cesc("#page2\\/_p1")).should("have.text", "The second problem");
 
@@ -99,12 +99,12 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page3\\/_problem1_title")).should(
             "have.text",
-            "Problem 3"
+            "Problem 3",
         );
         cy.get(cesc("#page3\\/_p1")).should("have.text", "The third problem");
         cy.get(cesc("#page3\\/_problem2_title")).should(
             "have.text",
-            "Problem 4"
+            "Problem 4",
         );
         cy.get(cesc("#page3\\/_p2")).should("have.text", "The fourth problem");
 
@@ -124,12 +124,12 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page4\\/_problem1_title")).should(
             "have.text",
-            "Problem 5"
+            "Problem 5",
         );
         cy.get(cesc("#page4\\/_p1")).should("have.text", "The fifth problem");
         cy.get(cesc("#page4\\/_problem2_title")).should(
             "have.text",
-            "Problem 6: Named problem"
+            "Problem 6: Named problem",
         );
         cy.get(cesc("#page4\\/_title1")).should("have.text", "Named problem");
         cy.get(cesc("#page4\\/_p2")).should("have.text", "The sixth problem");
@@ -149,7 +149,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page5\\/_problem1_title")).should(
             "have.text",
-            "Problem 7"
+            "Problem 7",
         );
         cy.get(cesc("#page5\\/_p1")).should("have.text", "The seventh problem");
 
@@ -178,7 +178,7 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -187,42 +187,42 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page1\\/_problem1_title")).should(
             "have.text",
-            "Problem 1"
+            "Problem 1",
         );
         cy.get(cesc("#page1\\/_p1")).should("have.text", "The first problem");
 
         cy.get(cesc("#page2\\/_problem1_title")).should(
             "have.text",
-            "Problem 2"
+            "Problem 2",
         );
         cy.get(cesc("#page2\\/_p1")).should("have.text", "The second problem");
 
         cy.get(cesc("#page3\\/_problem1_title")).should(
             "have.text",
-            "Problem 3"
+            "Problem 3",
         );
         cy.get(cesc("#page3\\/_p1")).should("have.text", "The third problem");
         cy.get(cesc("#page3\\/_problem2_title")).should(
             "have.text",
-            "Problem 4"
+            "Problem 4",
         );
         cy.get(cesc("#page3\\/_p2")).should("have.text", "The fourth problem");
 
         cy.get(cesc("#page4\\/_problem1_title")).should(
             "have.text",
-            "Problem 5"
+            "Problem 5",
         );
         cy.get(cesc("#page4\\/_p1")).should("have.text", "The fifth problem");
         cy.get(cesc("#page4\\/_problem2_title")).should(
             "have.text",
-            "Problem 6: Named problem"
+            "Problem 6: Named problem",
         );
         cy.get(cesc("#page4\\/_title1")).should("have.text", "Named problem");
         cy.get(cesc("#page4\\/_p2")).should("have.text", "The sixth problem");
 
         cy.get(cesc("#page5\\/_problem1_title")).should(
             "have.text",
-            "Problem 7"
+            "Problem 7",
         );
         cy.get(cesc("#page5\\/_p1")).should("have.text", "The seventh problem");
     });
@@ -288,13 +288,13 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#page1\\/_section1_title")).should(
             "have.text",
-            "Section 1"
+            "Section 1",
         );
         cy.get(cesc("#page1\\/_p1")).should("have.text", "The first section");
 
@@ -316,7 +316,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page2\\/_section1_title")).should(
             "have.text",
-            "Section 2"
+            "Section 2",
         );
         cy.get(cesc("#page2\\/_p1")).should("have.text", "The second section");
 
@@ -338,12 +338,12 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page3\\/_section1_title")).should(
             "have.text",
-            "Section 3"
+            "Section 3",
         );
         cy.get(cesc("#page3\\/_p1")).should("have.text", "The third section");
         cy.get(cesc("#page3\\/_section2_title")).should(
             "have.text",
-            "Section 4"
+            "Section 4",
         );
         cy.get(cesc("#page3\\/_p2")).should("have.text", "The fourth section");
 
@@ -363,12 +363,12 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page4\\/_section1_title")).should(
             "have.text",
-            "Section 5"
+            "Section 5",
         );
         cy.get(cesc("#page4\\/_p1")).should("have.text", "The fifth section");
         cy.get(cesc("#page4\\/_section2_title")).should(
             "have.text",
-            "Section 6: Named section"
+            "Section 6: Named section",
         );
         cy.get(cesc("#page4\\/_title1")).should("have.text", "Named section");
         cy.get(cesc("#page4\\/_p2")).should("have.text", "The sixth section");
@@ -388,7 +388,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page5\\/_section1_title")).should(
             "have.text",
-            "Section 7"
+            "Section 7",
         );
         cy.get(cesc("#page5\\/_p1")).should("have.text", "The seventh section");
 
@@ -417,44 +417,44 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#page1\\/_section1_title")).should(
             "have.text",
-            "Section 1"
+            "Section 1",
         );
         cy.get(cesc("#page1\\/_p1")).should("have.text", "The first section");
 
         cy.get("#page2").scrollIntoView();
         cy.get(cesc("#page2\\/_section1_title")).should(
             "have.text",
-            "Section 2"
+            "Section 2",
         );
         cy.get(cesc("#page2\\/_p1")).should("have.text", "The second section");
 
         cy.get("#page3").scrollIntoView();
         cy.get(cesc("#page3\\/_section1_title")).should(
             "have.text",
-            "Section 3"
+            "Section 3",
         );
         cy.get(cesc("#page3\\/_p1")).should("have.text", "The third section");
         cy.get(cesc("#page3\\/_section2_title")).should(
             "have.text",
-            "Section 4"
+            "Section 4",
         );
         cy.get(cesc("#page3\\/_p2")).should("have.text", "The fourth section");
 
         cy.get("#page4").scrollIntoView();
         cy.get(cesc("#page4\\/_section1_title")).should(
             "have.text",
-            "Section 5"
+            "Section 5",
         );
         cy.get(cesc("#page4\\/_p1")).should("have.text", "The fifth section");
         cy.get(cesc("#page4\\/_section2_title")).should(
             "have.text",
-            "Section 6: Named section"
+            "Section 6: Named section",
         );
         cy.get(cesc("#page4\\/_title1")).should("have.text", "Named section");
         cy.get(cesc("#page4\\/_p2")).should("have.text", "The sixth section");
@@ -462,7 +462,7 @@ describe("Relationships among pages tests", function () {
         cy.get("#page5").scrollIntoView();
         cy.get(cesc("#page5\\/_section1_title")).should(
             "have.text",
-            "Section 7"
+            "Section 7",
         );
         cy.get(cesc("#page5\\/_p1")).should("have.text", "The seventh section");
     });
@@ -524,13 +524,13 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#page1\\/_section1_title")).should(
             "have.text",
-            "Section 1"
+            "Section 1",
         );
         cy.get(cesc("#page2\\/_section1_title")).should("not.exist");
         cy.url().should("match", /#page1$/);
@@ -557,7 +557,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page2\\/_section1_title")).should(
             "have.text",
-            "Section 2"
+            "Section 2",
         );
         cy.get(cesc("#page1\\/_section1_title")).should("not.exist");
         cy.get(cesc("#page2\\/asideTitle")).should("have.text", "The aside");
@@ -574,7 +574,7 @@ describe("Relationships among pages tests", function () {
 
         cy.get(cesc("#page1\\/_section1_title")).should(
             "have.text",
-            "Section 1"
+            "Section 1",
         );
         cy.get(cesc("#page2\\/_section1_title")).should("not.exist");
 
@@ -588,14 +588,14 @@ describe("Relationships among pages tests", function () {
         cy.get(cesc("#page1\\/asideTitle")).should("have.text", "The aside");
         cy.get(cesc("#page1\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.get(cesc("#page1\\/toAbove2")).click();
 
         cy.get(cesc("#page2\\/_section1_title")).should(
             "have.text",
-            "Section 2"
+            "Section 2",
         );
         cy.get(cesc("#page1\\/_section1_title")).should("not.exist");
         cy.get(cesc("#page2\\/asideTitle")).should("have.text", "The aside");
@@ -623,7 +623,7 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -632,7 +632,7 @@ describe("Relationships among pages tests", function () {
         cy.get(cesc("#page1\\/asideTitle")).should("have.text", "The aside");
         cy.get(cesc("#page1\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.url().should("match", /#page1$/);
@@ -658,7 +658,7 @@ describe("Relationships among pages tests", function () {
         cy.get(cesc("#page2\\/asideTitle")).should("have.text", "The aside");
         cy.get(cesc("#page2\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.url().should("match", /#page2\\\/aside$/);
@@ -676,7 +676,7 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -684,7 +684,7 @@ describe("Relationships among pages tests", function () {
         cy.get(cesc("#page2\\/asideTitle")).should("have.text", "The aside");
         cy.get(cesc("#page2\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.url().should("match", /#page2\\\/aside$/);
@@ -717,7 +717,7 @@ describe("Relationships among pages tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -736,7 +736,7 @@ describe("Relationships among pages tests", function () {
         cy.get(cesc("#page2\\/asideTitle")).should("have.text", "The aside");
         cy.get(cesc("#page2\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.get(cesc("#page1\\/toAbove2")).click();
@@ -747,7 +747,7 @@ describe("Relationships among pages tests", function () {
             cy.get(cesc("#page2\\/pAbove")).then((el) => {
                 let rect = el[0].getBoundingClientRect();
                 return rect.top > -1 && rect.top < 1;
-            })
+            }),
         );
 
         cy.get(cesc("#page2\\/toAside1")).click();
@@ -758,12 +758,12 @@ describe("Relationships among pages tests", function () {
             cy.get(cesc("#page1\\/aside")).then((el) => {
                 let rect = el[0].getBoundingClientRect();
                 return rect.top > -1 && rect.top < 1;
-            })
+            }),
         );
 
         cy.get(cesc("#page1\\/insideAside")).should(
             "have.text",
-            "Content in aside"
+            "Content in aside",
         );
 
         cy.get(cesc("#page2\\/aside")).scrollIntoView();

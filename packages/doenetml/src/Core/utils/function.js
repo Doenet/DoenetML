@@ -23,19 +23,19 @@ export function createFunctionFromDefinition(fDefinition) {
             evaluateChildrenToReevaluate[code] = {
                 fReevaluate: createFunctionFromDefinition(
                     fDefinition.evaluateChildrenToReevaluate[code]
-                        .fReevaluateDefinition
+                        .fReevaluateDefinition,
                 ),
                 inputMathFs: fDefinition.evaluateChildrenToReevaluate[
                     code
                 ].inputMaths.map((x) =>
-                    me.fromAst(x).subscripts_to_strings().f()
+                    me.fromAst(x).subscripts_to_strings().f(),
                 ),
             };
         }
 
         return returnNumericalFunctionFromReevaluatedFormula({
             formulaExpressionWithCodes: me.fromAst(
-                fDefinition.formulaExpressionWithCodes
+                fDefinition.formulaExpressionWithCodes,
             ),
             evaluateChildrenToReevaluate,
             numInputs: fDefinition.numInputs,
@@ -49,7 +49,7 @@ export function createFunctionFromDefinition(fDefinition) {
         return returnNumericFunctionForEvaluate({
             numInputs: fDefinition.numInputs,
             numericalfs: fDefinition.fDefinitions.map((fdef) =>
-                createFunctionFromDefinition(fdef)
+                createFunctionFromDefinition(fdef),
             ),
         });
     } else if (fDefinition.functionType === "bezier") {
@@ -96,7 +96,7 @@ export function createFunctionFromDefinition(fDefinition) {
     } else if (fDefinition.functionType === "piecewise") {
         return returnPiecewiseNumericalFunctionFromChildren({
             numericalFsOfChildren: fDefinition.fDefinitionsOfChildren.map(
-                (fDef) => createFunctionFromDefinition(fDef)
+                (fDef) => createFunctionFromDefinition(fDef),
             ),
             numericalDomainsOfChildren: fDefinition.numericalDomainsOfChildren,
             domain: fDefinition.domain
@@ -363,7 +363,7 @@ export function returnNumericalFunctionFromReevaluatedFormula({
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
                     let input = inputFs.map((f) =>
-                        me.fromAst(f(argsForInputs))
+                        me.fromAst(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input).evaluate_to_constant();
                 } catch (e) {
@@ -655,7 +655,7 @@ export function returnSymbolicFunctionFromFormula({
         if (
             haveDomain &&
             domainIntervals.every(
-                (v) => v[0] === -Infinity && v[1] === Infinity
+                (v) => v[0] === -Infinity && v[1] === Infinity,
             )
         ) {
             haveDomain = false;
@@ -792,7 +792,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
                     let input = inputFs.map((f) =>
-                        me.fromAst(f(argsForInputs))
+                        me.fromAst(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input);
                 } catch (e) {
@@ -1195,7 +1195,7 @@ export function returnReturnDerivativesOfInterpolatedFunction({
 
     return function (derivVariables) {
         let derivVariablesTrans = derivVariables.map(
-            (x) => x.subscripts_to_strings().tree
+            (x) => x.subscripts_to_strings().tree,
         );
 
         let order = derivVariablesTrans.length;
@@ -1297,18 +1297,18 @@ function returnFunctionOperatorFunction({
         let childFs = [];
         for (let ind = 0; ind < numOutputs; ind++) {
             childFs.push(
-                createFunctionFromDefinition(originalFDefinition, ind)
+                createFunctionFromDefinition(originalFDefinition, ind),
             );
         }
 
         let functionOperator = functionOperatorDefinitions[componentType](
-            ...functionOperatorArguments
+            ...functionOperatorArguments,
         );
 
         return (...xs) => functionOperator(...childFs.map((cf) => cf(...xs)));
     } else {
         return functionOperatorDefinitions[componentType](
-            ...functionOperatorArguments
+            ...functionOperatorArguments,
         );
     }
 }
@@ -1354,7 +1354,7 @@ export var functionOperatorDefinitions = {
                 xs: derivDefinition.xs,
                 coeffs: derivDefinition.coeffs,
                 variables: derivDefinition.variables.map(
-                    convertValueToMathExpression
+                    convertValueToMathExpression,
                 ),
             });
 
@@ -1362,7 +1362,7 @@ export var functionOperatorDefinitions = {
             if (derivDefinition.additionalDerivVariables) {
                 let additionalVars =
                     derivDefinition.additionalDerivVariables.map(
-                        convertValueToMathExpression
+                        convertValueToMathExpression,
                     );
                 vars = [...additionalVars, ...vars];
             }
@@ -1375,7 +1375,7 @@ export var functionOperatorDefinitions = {
                             variableMapping[dVar.subscripts_to_strings().tree];
                         if (mapped) {
                             mappedDerivVariables.push(
-                                convertValueToMathExpression(mapped)
+                                convertValueToMathExpression(mapped),
                             );
                         } else {
                             // have a mapping, but
@@ -1412,7 +1412,7 @@ function returnODESolutionFunction({
     workspace.maxPossibleTime = undefined;
 
     let numericalRHSfcomponents = numericalRHSfDefinitions.map((x) =>
-        createFunctionFromDefinition(x)
+        createFunctionFromDefinition(x),
     );
 
     let numericalRHSf = function (t, x) {
@@ -1459,14 +1459,14 @@ function returnODESolutionFunction({
                     x0,
                     numericalRHSf,
                     tolerance,
-                    maxIterations
+                    maxIterations,
                 );
 
                 workspace.endingNumericalValues.push(
-                    result.y[result.y.length - 1]
+                    result.y[result.y.length - 1],
                 );
                 workspace.calculatedNumericSolutions.push(
-                    result.at.bind(result)
+                    result.at.bind(result),
                 );
 
                 let endingTime = result.x[result.x.length - 1];

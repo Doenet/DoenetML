@@ -71,13 +71,13 @@ for (let example of examples) {
     components.push(
         <div key={"viewer" + example[0]} className="example-demo">
             <PageViewer doenetML={example[1]} flags={{}} pageIsActive={true} />
-        </div>
+        </div>,
     );
 
     components.push(
         <pre key={"markup code" + example[0]} className="example-markup">
             <code className="language-xml">{example[1]}</code>
-        </pre>
+        </pre>,
 
         // <script type='text/plain' className='language-markup'>HI</script>
     );
@@ -124,5 +124,5 @@ root.render(
 
             {/* <CodeSnippet></CodeSnippet> */}
         </MathJaxContext>
-    </RecoilRoot>
+    </RecoilRoot>,
 );

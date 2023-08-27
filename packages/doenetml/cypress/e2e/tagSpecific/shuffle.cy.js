@@ -21,7 +21,7 @@ describe("Shuffle Tag Tests", function () {
   `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -39,7 +39,7 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = componentOrder;
@@ -69,7 +69,7 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = componentOrder;
@@ -155,7 +155,7 @@ describe("Shuffle Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -173,7 +173,7 @@ describe("Shuffle Tag Tests", function () {
             expect(componentOrder).not.eqls(orders[[m, n]]);
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = componentOrder;
@@ -205,7 +205,7 @@ describe("Shuffle Tag Tests", function () {
             expect(componentOrder).not.eqls(orders[[m, n]]);
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(n - m + 1).keys()].map((x) => x + m)
+                [...Array(n - m + 1).keys()].map((x) => x + m),
             );
 
             orders[[m, n]] = componentOrder;
@@ -292,7 +292,7 @@ describe("Shuffle Tag Tests", function () {
   </shuffle></aslist></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -319,7 +319,7 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(12).keys()].map((x) => x + 1)
+                [...Array(12).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map((x) => options[x - 1]);
@@ -371,7 +371,7 @@ describe("Shuffle Tag Tests", function () {
     </shuffle></aslist></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -400,7 +400,7 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(14).keys()].map((x) => x + 1)
+                [...Array(14).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map((x) => options[x - 1]);
@@ -431,7 +431,7 @@ describe("Shuffle Tag Tests", function () {
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                orderedOptions.join(", ")
+                orderedOptions.join(", "),
             );
         });
     });
@@ -453,7 +453,7 @@ describe("Shuffle Tag Tests", function () {
     </shuffle></aslist></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -482,7 +482,7 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(14).keys()].map((x) => x + 1)
+                [...Array(14).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map((x) => options[x - 1]);
@@ -513,7 +513,7 @@ describe("Shuffle Tag Tests", function () {
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                orderedOptions.join(", ")
+                orderedOptions.join(", "),
             );
         });
     });
@@ -530,7 +530,7 @@ describe("Shuffle Tag Tests", function () {
   <p name="pNoList"><shuffle copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -544,20 +544,20 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(6).keys()].map((x) => x + 1)
+                [...Array(6).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map(
-                (x) => options[x - 1] + options[x - 1] + options[x - 1]
+                (x) => options[x - 1] + options[x - 1] + options[x - 1],
             );
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                orderedOptions.join(", ")
+                orderedOptions.join(", "),
             );
             cy.get(cesc("#\\/pNoList")).should(
                 "have.text",
-                orderedOptions.join("")
+                orderedOptions.join(""),
             );
         });
     });
@@ -574,7 +574,7 @@ describe("Shuffle Tag Tests", function () {
   <p name="pNoList"><shuffle copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -588,18 +588,18 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(7).keys()].map((x) => x + 1)
+                [...Array(7).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map((x) => options[x - 1]);
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                orderedOptions.join(", ")
+                orderedOptions.join(", "),
             );
             cy.get(cesc("#\\/pNoList")).should(
                 "have.text",
-                orderedOptions.join("")
+                orderedOptions.join(""),
             );
         });
     });
@@ -620,7 +620,7 @@ describe("Shuffle Tag Tests", function () {
   <p name="pNoList"><shuffle copySource="sh" asList="false" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -634,18 +634,18 @@ describe("Shuffle Tag Tests", function () {
                 stateVariables["/sh"].stateValues.componentOrder;
 
             expect([...componentOrder].sort((a, b) => a - b)).eqls(
-                [...Array(5).keys()].map((x) => x + 1)
+                [...Array(5).keys()].map((x) => x + 1),
             );
 
             let orderedOptions = componentOrder.map((x) => options[x - 1]);
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                orderedOptions.join(", ")
+                orderedOptions.join(", "),
             );
             cy.get(cesc("#\\/pNoList")).should(
                 "have.text",
-                orderedOptions.join("")
+                orderedOptions.join(""),
             );
         });
     });

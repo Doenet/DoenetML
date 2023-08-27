@@ -46,7 +46,7 @@ export default React.memo(function Angle(props) {
         }
 
         let angleColor = getComputedStyle(
-            document.documentElement
+            document.documentElement,
         ).getPropertyValue("--solidLightBlue");
 
         var jsxAngleAttributes = {
@@ -94,23 +94,23 @@ export default React.memo(function Angle(props) {
         point1JXG.current = board.create(
             "point",
             through[0],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
         point2JXG.current = board.create(
             "point",
             through[1],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
         point3JXG.current = board.create(
             "point",
             through[2],
-            jsxPointAttributes
+            jsxPointAttributes,
         );
 
         return board.create(
             "angle",
             [point1JXG.current, point2JXG.current, point3JXG.current],
-            jsxAngleAttributes
+            jsxAngleAttributes,
         );
     }
 
@@ -148,15 +148,15 @@ export default React.memo(function Angle(props) {
             // in JSXgraph, point 1 and point 2 are switched
             angleJXG.current.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                through[0]
+                through[0],
             );
             angleJXG.current.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                through[1]
+                through[1],
             );
             angleJXG.current.point3.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                through[2]
+                through[2],
             );
 
             angleJXG.current.setAttribute({
