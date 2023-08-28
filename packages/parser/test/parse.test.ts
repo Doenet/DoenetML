@@ -10,15 +10,15 @@ describe("Lezer Parsing Tests", () => {
             },
             {
                 inStr: "hi there <doenet/>",
-                outStr: "Document(Text,Element(SelfClosingTag(StartTag,TagName)))",
+                outStr: "Document(Text,Element(SelfClosingTag(StartTag,TagName,SelfCloseEndTag)))",
             },
             {
                 inStr: `<doenet attr1 attr2="foo"/>`,
-                outStr: "Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName),Attribute(AttributeName,Is,AttributeValue))))",
+                outStr: "Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName),Attribute(AttributeName,Is,AttributeValue),SelfCloseEndTag)))",
             },
             {
                 inStr: "<doenet>child</doenet>",
-                outStr: "Document(Element(OpenTag(StartTag,TagName),Text,CloseTag(StartCloseTag,TagName)))",
+                outStr: "Document(Element(OpenTag(StartTag,TagName,EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))",
             },
         ];
         for (const { inStr, outStr } of inputOutput) {
@@ -100,6 +100,7 @@ describe("Lezer Parsing Tests", () => {
         ];
         for (const { inStr, outStr } of inputOutput) {
             const parsed = parseAndCompile(inStr);
+            console.log(inStr, parsed)
             expect(parsed).toEqual(outStr);
         }
     });

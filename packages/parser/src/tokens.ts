@@ -10,6 +10,8 @@ import {
     Element,
     OpenTag,
     commentContent as _commentContent,
+    piContent as _piContent,
+    cdataContent as _cdataContent,
 } from "./generated-assets/lezer-doenet.terms";
 
 function nameChar(ch: number) {
@@ -88,27 +90,34 @@ export const elementContext = new ContextTracker<ElementContext | null>({
 
 export const startTag = new ExternalTokenizer(
     (input, stack) => {
-        if (input.next != 60 /* '<' */) return;
+        if (input.next !== 60 /* '<' */) {
+            return;
+        }
         input.advance();
         // @ts-ignore
-        if (input.next == 47 /* '/' */) {
+        if (input.next === 47 /* '/' */) {
             input.advance();
             let name = tagNameAfter(input, 0);
-            if (!name) return input.acceptToken(incompleteStartCloseTag);
+            if (!name) {
+                return input.acceptToken(incompleteStartCloseTag);
+            }
             if (
                 stack.context &&
                 name.toLowerCase() == stack.context.name.toLowerCase()
-            )
+            ) {
                 return input.acceptToken(StartCloseTag);
-            for (let cx = stack.context; cx; cx = cx.parent)
-                if (cx.name == name)
+            }
+            for (let cx = stack.context; cx; cx = cx.parent) {
+                if (cx.name === name) {
                     return input.acceptToken(MissingCloseTag, -2);
+                }
+            }
             input.acceptToken(mismatchedStartCloseTag);
         } else if (
             // @ts-ignore
-            input.next != 33 /* '!' */ &&
+            input.next !== 33 /* '!' */ &&
             // @ts-ignore
-            input.next != 63 /* '?' */ &&
+            input.next !== 63 /* '?' */ &&
             !isSpace(input.next)
         ) {
             return input.acceptToken(StartTag);
@@ -121,14 +130,17 @@ function scanTo(type: number, end: string) {
     return new ExternalTokenizer((input) => {
         for (let endPos = 0, len = 0; ; len++) {
             if (input.next < 0) {
-                if (len) input.acceptToken(type);
+                if (len) {
+                    input.acceptToken(type);
+                }
                 break;
             }
             if (input.next == end.charCodeAt(endPos)) {
                 endPos++;
                 if (endPos == end.length) {
-                    if (len > end.length)
+                    if (len > end.length) {
                         input.acceptToken(type, 1 - end.length);
+                    }
                     break;
                 }
             } else {
@@ -140,3 +152,5 @@ function scanTo(type: number, end: string) {
 }
 
 export const commentContent = scanTo(_commentContent, "-->");
+export const piContent = scanTo(_piContent, "?>");
+export const cdataContent = scanTo(_cdataContent, "]]>");

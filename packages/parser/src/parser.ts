@@ -88,6 +88,9 @@ export function parseAndCompile(inText: string) {
             let attrs: Element["props"] = {};
             let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
+                if (cursor.name === "EndTag") {
+                    continue;
+                }
                 //All of the siblings must b.name Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
                     // let errorBegin = cursor.from;
@@ -352,6 +355,9 @@ export function parseAndCompile(inText: string) {
             let attrs: Element["props"] = {};
             let attrRanges: AttrRange = {};
             while (cursor.nextSibling()) {
+                if (cursor.name === "SelfCloseEndTag") {
+                    continue
+                }
                 //All of the siblings must be Attributes, but we're checking just in case the grammar changes
                 if (cursor.name !== "Attribute") {
                     // Note: not sure if can get to this condition.  Errors in self-closing tag
