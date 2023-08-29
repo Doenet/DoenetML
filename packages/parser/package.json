@@ -18,6 +18,7 @@
     "scripts": {
         "watch": "vite build --watch",
         "build": "vite build",
+        "test": "vitest",
         "compile_grammar": "npx lezer-generator --output src/generated-assets/lezer-doenet.ts src/doenet.grammar"
     },
     "dependencies": {
