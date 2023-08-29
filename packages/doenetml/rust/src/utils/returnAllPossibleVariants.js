@@ -60,7 +60,7 @@ export async function returnAllPossibleVariants({ cid, doenetML }) {
         allPossibleVariants = variantNames;
     } else {
         allPossibleVariants = [...Array(nVariants).keys()].map((x) =>
-            indexToLowercaseLetters(x + 1)
+            indexToLowercaseLetters(x + 1),
         );
     }
 

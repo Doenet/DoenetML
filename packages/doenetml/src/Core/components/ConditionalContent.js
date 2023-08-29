@@ -227,7 +227,7 @@ export default class ConditionalContent extends CompositeComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -252,12 +252,12 @@ export default class ConditionalContent extends CompositeComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -282,13 +282,13 @@ export default class ConditionalContent extends CompositeComponent {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            componentInfoObjects
+            componentInfoObjects,
         );
 
-        workspace.previousSelectedIndex = await component.stateValues
-            .selectedIndex;
-        workspace.previousBaseConditionSatisfied = await component.stateValues
-            .baseConditionSatisfied;
+        workspace.previousSelectedIndex =
+            await component.stateValues.selectedIndex;
+        workspace.previousBaseConditionSatisfied =
+            await component.stateValues.baseConditionSatisfied;
 
         // console.log(`replacements for ${component.componentName}`)
         // console.log(JSON.parse(JSON.stringify(replacements)));
@@ -323,7 +323,7 @@ export default class ConditionalContent extends CompositeComponent {
                         caseChildren[selectedIndex].componentName;
                     newNameForSelectedChild = createUniqueName(
                         "case",
-                        `${component.componentName}|replacement|${selectedIndex}`
+                        `${component.componentName}|replacement|${selectedIndex}`,
                     );
                     childComponentType = "case";
                 } else {
@@ -331,7 +331,7 @@ export default class ConditionalContent extends CompositeComponent {
                         .componentName;
                     newNameForSelectedChild = createUniqueName(
                         "else",
-                        `${component.componentName}|replacement|${selectedIndex}`
+                        `${component.componentName}|replacement|${selectedIndex}`,
                     );
                     childComponentType = "else";
                 }
@@ -339,7 +339,7 @@ export default class ConditionalContent extends CompositeComponent {
                 let lastSlash = selectedChildName.lastIndexOf("/");
                 let originalNamespace = selectedChildName.substring(
                     0,
-                    lastSlash
+                    lastSlash,
                 );
                 newNameForSelectedChild =
                     originalNamespace + "/" + newNameForSelectedChild;
@@ -349,14 +349,14 @@ export default class ConditionalContent extends CompositeComponent {
 
                 let serializedGrandchildren = deepClone(
                     await components[selectedChildName].state.serializedChildren
-                        .value
+                        .value,
                 );
                 let serializedChild = {
                     componentType: childComponentType,
                     state: { rendered: true },
                     doenetAttributes: Object.assign(
                         {},
-                        components[selectedChildName].doenetAttributes
+                        components[selectedChildName].doenetAttributes,
                     ),
                     children: serializedGrandchildren,
                     originalName: newNameForSelectedChild,
@@ -415,8 +415,8 @@ export default class ConditionalContent extends CompositeComponent {
         let warnings = [];
 
         let selectedIndex = await component.stateValues.selectedIndex;
-        let baseConditionSatisfied = await component.stateValues
-            .baseConditionSatisfied;
+        let baseConditionSatisfied =
+            await component.stateValues.baseConditionSatisfied;
 
         if (workspace.previousSelectedIndex === selectedIndex) {
             if (
@@ -465,7 +465,7 @@ export default class ConditionalContent extends CompositeComponent {
         let replacementResults = await this.getReplacements(
             component,
             components,
-            componentInfoObjects
+            componentInfoObjects,
         );
         errors.push(...replacementResults.errors);
         warnings.push(...replacementResults.warnings);
@@ -506,7 +506,7 @@ export default class ConditionalContent extends CompositeComponent {
         if (this.serializedChildren) {
             let additionalRendererTypes =
                 this.potentialRendererTypesFromSerializedComponents(
-                    this.serializedChildren
+                    this.serializedChildren,
                 );
             for (let rendererType of additionalRendererTypes) {
                 if (!allPotentialRendererTypes.includes(rendererType)) {

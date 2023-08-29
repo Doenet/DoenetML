@@ -672,7 +672,7 @@ export function find_local_global_minima({
                         Math.max(
                             Math.abs(fx),
                             Math.abs(fleft),
-                            Math.abs(fright)
+                            Math.abs(fright),
                         ) * 1e-12;
 
                     if (
@@ -980,7 +980,7 @@ export function finalizeGlobalMinimum({
             let buffer =
                 Math.max(
                     Math.abs(globalInfimum[1]),
-                    Math.abs(globalMinimum[1])
+                    Math.abs(globalMinimum[1]),
                 ) * 1e-12;
             if (globalInfimum[1] < globalMinimum[1] - buffer) {
                 globalMinimum = null;
@@ -1064,7 +1064,7 @@ export function find_minima_of_piecewise({
                 if (Number.isFinite(minx)) {
                     endpointsToManuallyCheck.push(minx);
                     childMinima = childMinima.filter(
-                        (minpair) => minpair[0] > minx + eps
+                        (minpair) => minpair[0] > minx + eps,
                     );
                 }
 
@@ -1072,7 +1072,7 @@ export function find_minima_of_piecewise({
                 if (Number.isFinite(maxx)) {
                     endpointsToManuallyCheck.push(maxx);
                     childMinima = childMinima.filter(
-                        (minpair) => minpair[0] < maxx - eps
+                        (minpair) => minpair[0] < maxx - eps,
                     );
                 }
             }
@@ -1102,7 +1102,7 @@ export function find_minima_of_piecewise({
                 if (
                     minimaList.every(
                         (minpair) =>
-                            minpair[0] < x - eps || minpair[0] > x + eps
+                            minpair[0] < x - eps || minpair[0] > x + eps,
                     )
                 ) {
                     minimaList.push([x, fx]);
@@ -1135,7 +1135,7 @@ export function find_maxima_of_piecewise({
     numerics,
 }) {
     let flippedFunctionChildren = flip_function_children(
-        functionChildrenInfoToCalculateExtrema
+        functionChildrenInfoToCalculateExtrema,
     );
 
     let numericalfFlip = (...args) => -1 * numericalf(...args);
@@ -1176,7 +1176,7 @@ function flip_function_children(functionChildren) {
 
         if (stateValues.isInterpolatedFunction) {
             flippedStateValues.coeffsFlip = stateValues.coeffs.map((cs) =>
-                cs.map((v) => -v)
+                cs.map((v) => -v),
             );
         } else if (
             stateValues.isInterpolatedFunction ||
@@ -1184,7 +1184,7 @@ function flip_function_children(functionChildren) {
         ) {
             flippedStateValues.functionChildrenInfoToCalculateExtrema =
                 flip_function_children(
-                    stateValues.functionChildrenInfoToCalculateExtrema
+                    stateValues.functionChildrenInfoToCalculateExtrema,
                 );
         } else {
             flippedStateValues.formula = stateValues.formula.context.fromAst([

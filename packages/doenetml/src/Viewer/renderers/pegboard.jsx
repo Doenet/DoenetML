@@ -80,8 +80,8 @@ export default React.memo(function Pegboard(props) {
                         board.create(
                             "point",
                             [xind * SVs.dx + SVs.xoffset, y],
-                            jsxPointAttributes.current
-                        )
+                            jsxPointAttributes.current,
+                        ),
                     );
                 }
                 pegs.push(row);
@@ -175,8 +175,8 @@ export default React.memo(function Pegboard(props) {
                         board.create(
                             "point",
                             [x, y],
-                            jsxPointAttributes.current
-                        )
+                            jsxPointAttributes.current,
+                        ),
                     );
                 }
             }
@@ -200,8 +200,8 @@ export default React.memo(function Pegboard(props) {
                         board.create(
                             "point",
                             [x, y],
-                            jsxPointAttributes.current
-                        )
+                            jsxPointAttributes.current,
+                        ),
                     );
                 }
                 pegboardJXG.current.push(row);

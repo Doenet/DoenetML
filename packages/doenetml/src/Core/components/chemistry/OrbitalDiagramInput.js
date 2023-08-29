@@ -63,7 +63,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
                 function processedPrefill() {
                     if (dependencyValues.prefill?.length > 0) {
                         let value = JSON.parse(
-                            JSON.stringify(dependencyValues.prefill)
+                            JSON.stringify(dependencyValues.prefill),
                         );
                         for (let [rowInd, row] of value.entries()) {
                             if (dependencyValues.prefillLabel[rowInd]) {
@@ -174,7 +174,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
                 if (Number.isFinite(desiredRowIndex)) {
                     desiredRowIndex = Math.min(
                         numRows,
-                        Math.max(0, Math.round(desiredRowIndex))
+                        Math.max(0, Math.round(desiredRowIndex)),
                     );
                 } else {
                     desiredRowIndex = 0;

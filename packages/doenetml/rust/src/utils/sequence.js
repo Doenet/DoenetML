@@ -287,7 +287,7 @@ export function returnStandardSequenceStateVariableDefinitions() {
                     dependencyValues.specifiedLength < 0
                 ) {
                     console.warn(
-                        "Invalid length of sequence.  Must be a non-negative integer."
+                        "Invalid length of sequence.  Must be a non-negative integer.",
                     );
                     validSequence = false;
                 }
@@ -297,13 +297,13 @@ export function returnStandardSequenceStateVariableDefinitions() {
                 // step must be number if not math
                 if (dependencyValues.type !== "math") {
                     let numericalStep = findFiniteNumericalValue(
-                        dependencyValues.specifiedStep
+                        dependencyValues.specifiedStep,
                     );
                     if (!Number.isFinite(numericalStep)) {
                         console.warn(
                             "Invalid step of sequence.  Must be a number for sequence of type " +
                                 dependencyValues.type +
-                                "."
+                                ".",
                         );
                         validSequence = false;
                     }
@@ -313,11 +313,11 @@ export function returnStandardSequenceStateVariableDefinitions() {
             if (dependencyValues.specifiedFrom !== null) {
                 if (dependencyValues.type === "number") {
                     let numericalFrom = findFiniteNumericalValue(
-                        dependencyValues.specifiedFrom
+                        dependencyValues.specifiedFrom,
                     );
                     if (!Number.isFinite(numericalFrom)) {
                         console.warn(
-                            "Invalid from of number sequence.  Must be a number"
+                            "Invalid from of number sequence.  Must be a number",
                         );
                         validSequence = false;
                     }
@@ -330,11 +330,11 @@ export function returnStandardSequenceStateVariableDefinitions() {
             if (dependencyValues.specifiedTo !== null) {
                 if (dependencyValues.type === "number") {
                     let numericalTo = findFiniteNumericalValue(
-                        dependencyValues.specifiedTo
+                        dependencyValues.specifiedTo,
                     );
                     if (!Number.isFinite(numericalTo)) {
                         console.warn(
-                            "Invalid to of number sequence.  Must be a number"
+                            "Invalid to of number sequence.  Must be a number",
                         );
                         validSequence = false;
                     }
@@ -514,7 +514,7 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                     length = Math.floor(
                         (to.subtract(1).divide(step).evaluate_to_constant() +
                             1) *
-                            (1 + 1e-14)
+                            (1 + 1e-14),
                     );
                 } else {
                     length = Math.floor(((to - 1) / step + 1) * (1 + 1e-14));
@@ -531,7 +531,7 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                     if (from < 1) {
                         // adjust length so that have valid letters
                         length = Math.floor(
-                            ((to - 1) / step + 1) * (1 + 1e-14)
+                            ((to - 1) / step + 1) * (1 + 1e-14),
                         );
                         from = to - step * (length - 1);
                     }
@@ -560,7 +560,7 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                         step = me.fromAst(1);
                         length = Math.floor(
                             to.subtract(from).add(1).evaluate_to_constant() *
-                                (1 + 1e-14)
+                                (1 + 1e-14),
                         );
                     } else {
                         step = 1;
@@ -587,17 +587,17 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
                                 .divide(step)
                                 .add(1)
                                 .evaluate_to_constant() *
-                                (1 + 1e-14)
+                                (1 + 1e-14),
                         );
                     } else {
                         length = Math.floor(
-                            ((to - from) / step + 1) * (1 + 1e-14)
+                            ((to - from) / step + 1) * (1 + 1e-14),
                         );
                     }
                 } else {
                     // from, to, step, and length defined
                     throw Error(
-                        "Can't define from, to, step, and length for sequence"
+                        "Can't define from, to, step, and length for sequence",
                     );
                 }
             }
@@ -606,7 +606,7 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
 
     if (!Number.isInteger(length) || length < 0) {
         console.warn(
-            "Invalid length of sequence.  Must be a non-negative integer."
+            "Invalid length of sequence.  Must be a non-negative integer.",
         );
         length = 0;
     }
@@ -620,7 +620,7 @@ export function calculateSequenceParameters({ from, to, step, length, type }) {
 
 export function returnSequenceValues(
     { from, step, length, exclude, type, lowercase, maxNum },
-    includeOriginalIndex = false
+    includeOriginalIndex = false,
 ) {
     let sequenceValues = [];
     let nValues = 0;
@@ -647,7 +647,7 @@ export function returnSequenceValues(
                 exclude.some(
                     (x) =>
                         Math.abs(x - value) <=
-                        1e-14 * Math.max(Math.abs(x), Math.abs(value))
+                        1e-14 * Math.max(Math.abs(x), Math.abs(value)),
                 )
             ) {
                 continue;
@@ -714,7 +714,7 @@ export function returnSequenceValueForIndex({
             exclude.some(
                 (x) =>
                     Math.abs(x - value) <=
-                    1e-14 * Math.max(Math.abs(x), Math.abs(value))
+                    1e-14 * Math.max(Math.abs(x), Math.abs(value)),
             )
         ) {
             return null;

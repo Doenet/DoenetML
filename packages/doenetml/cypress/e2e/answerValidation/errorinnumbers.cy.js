@@ -27,7 +27,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -36,7 +36,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputEditiableFieldAnchor =
@@ -58,20 +58,20 @@ describe("Allow error in numbers validation tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        "log(32x+c)"
+                        "log(32x+c)",
                     );
                 });
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.04x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -79,14 +79,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("shink error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.01x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -94,14 +94,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("shink error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.001x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -109,14 +109,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.0001x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -124,14 +124,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("increase error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.999x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -139,14 +139,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("increase error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.99x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -154,14 +154,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("error too large again");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.9x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -169,7 +169,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -196,7 +196,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -205,7 +205,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -225,14 +225,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.002x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -240,14 +240,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("shink error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.0005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -255,14 +255,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("shink error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.00005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -270,14 +270,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.000005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -285,14 +285,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("increase error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.99995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -300,14 +300,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("increase error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.9995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -315,14 +315,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("error too large again");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -330,7 +330,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -355,7 +355,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -380,7 +380,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
@@ -393,7 +393,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
@@ -406,7 +406,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
@@ -419,7 +419,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -448,7 +448,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -457,7 +457,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -467,7 +467,7 @@ describe("Allow error in numbers validation tests", function () {
 
             let mathinput2Name = cesc2(
                 stateVariables["/_answer2"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinput2Anchor = "#" + mathinput2Name + " textarea";
             let mathinput2SubmitAnchor = "#" + mathinput2Name + "_submit";
@@ -493,23 +493,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.002x^2.0004{rightarrow}-4.0008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.002x^2.0004{rightarrow}-4.0008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -517,23 +517,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Too large an error if don't allow exponent error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.002x^2{rightarrow}-4.0008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.002x^2{rightarrow}-4.0008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -541,23 +541,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Shrink to allowable error in both cases");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.0002x^2{rightarrow}-4.00008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.0002x^2{rightarrow}-4.00008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -565,10 +565,10 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -595,7 +595,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -604,7 +604,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -624,14 +624,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.04x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -639,14 +639,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("shink error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.01x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -654,14 +654,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("shink error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.001x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -669,14 +669,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.0001x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -684,14 +684,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("increase error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.999x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -699,14 +699,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("increase error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.99x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -714,14 +714,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("error too large again");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.9x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -729,7 +729,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -750,7 +750,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -759,7 +759,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -779,14 +779,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.002x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -794,14 +794,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("shink error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.0005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -809,14 +809,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("shink error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.00005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -824,14 +824,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(32.000005x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -839,14 +839,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("increase error");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.99995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -854,14 +854,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("increase error further");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.9995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -869,14 +869,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("error too large again");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}log(31.995x+c)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -884,7 +884,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -911,7 +911,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -920,7 +920,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -933,21 +933,21 @@ describe("Allow error in numbers validation tests", function () {
             cy.log("Submit exact answer");
             cy.get(mathinputAnchor).type(
                 "10000 exp(7x^2{rightarrow}/0.00003-sqrty{enter}",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputCorrectAnchor).should("be.visible");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error in first number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999 exp(7x^2{rightarrow}/0.00003-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -955,14 +955,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Enter too large an error in second number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10000 exp(7.0001x^2{rightarrow}/0.00003-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -970,14 +970,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Enter too large an error in third number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10000 exp(7x^2{rightarrow}/0.0000300005-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -985,14 +985,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("partial credit error in each");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.91 exp(7.00005x^2{rightarrow}/0.0000300002-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -1000,14 +1000,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
             cy.log("higher partial credit error in each");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.991 exp(7.000005x^2{rightarrow}/0.00003000002-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -1015,14 +1015,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.9991 exp(7.0000005x^2{rightarrow}/0.000030000002-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1030,7 +1030,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1057,7 +1057,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1066,7 +1066,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1079,21 +1079,21 @@ describe("Allow error in numbers validation tests", function () {
             cy.log("Submit exact answer");
             cy.get(mathinputAnchor).type(
                 "10000 exp(7x^2{rightarrow}/0.00003-sqrty{enter}",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputCorrectAnchor).should("be.visible");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error in first number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.9999 exp(7x^2{rightarrow}/0.00003-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1101,14 +1101,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Enter too large an error in second number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10000 exp(7.00002x^2{rightarrow}/0.00003-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1116,14 +1116,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Enter too large an error in third number");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10000 exp(7x^2{rightarrow}/0.00005-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1131,14 +1131,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("partial credit error in each");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.999991 exp(7.000005x^2{rightarrow}/0.000032-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "60 %");
@@ -1146,7 +1146,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.6, 1e-14);
             });
 
@@ -1154,7 +1154,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.get(mathinputAnchor)
                 .type(
                     "{ctrl+home}{shift+end}{backspace}9999.9999991 exp(7.0000005x^2{rightarrow}/0.0000302-sqrty",
-                    { force: true, delay: 5 }
+                    { force: true, delay: 5 },
                 )
                 .blur();
 
@@ -1163,7 +1163,7 @@ describe("Allow error in numbers validation tests", function () {
             // and make justSubmitted of the answer be false
             cy.get(`#${mathinputName} .mq-editable-field`).should(
                 "not.contain.text",
-                "9999.9999991"
+                "9999.9999991",
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "80 %");
@@ -1171,14 +1171,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.8, 1e-14);
             });
 
             cy.log("acceptable error for full credit");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}9999.99999991 exp(7.00000005x^2{rightarrow}/0.00003002-sqrty",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1186,7 +1186,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1215,7 +1215,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1224,7 +1224,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1234,7 +1234,7 @@ describe("Allow error in numbers validation tests", function () {
 
             let mathinput2Name = cesc2(
                 stateVariables["/_answer2"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinput2Anchor = "#" + mathinput2Name + " textarea";
             let mathinput2SubmitAnchor = "#" + mathinput2Name + "_submit";
@@ -1260,23 +1260,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error in exponent");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10x^2.0004{rightarrow}-4",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10x^2.0004{rightarrow}-4",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2IncorrectAnchor).should("be.visible");
@@ -1284,23 +1284,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Small error in exponent");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10x^2.0001{rightarrow}-4",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10x^2.0001{rightarrow}-4",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -1308,23 +1308,23 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Error in numbers not in exponents");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.0002x^2{rightarrow}-4.00008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
             cy.get(mathinput2Anchor).type(
                 "{ctrl+home}{shift+end}{backspace}10.0002x^2{rightarrow}-4.00008",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinput2SubmitAnchor).click();
             cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -1332,10 +1332,10 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
                 expect(
-                    stateVariables["/_answer2"].stateValues.creditAchieved
+                    stateVariables["/_answer2"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1356,7 +1356,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1365,7 +1365,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1385,14 +1385,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Reordering not allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}pi2.15234262+e*25.602348230",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1400,12 +1400,12 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}e*25.602348230+2.15234262pi",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1413,14 +1413,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Numeric evaluation not allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}.35618172248981",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1428,14 +1428,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Round too much");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}2.15pi+e*25.602348230",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1443,12 +1443,12 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}2.15234262pi+2.73*25.602348230",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1456,14 +1456,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("acceptable rounding");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}2.152 3.142 + 2.718*25.6",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1471,7 +1471,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
         });
@@ -1493,7 +1493,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1502,7 +1502,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1522,14 +1522,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Reordering not allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+pi+1x+4x+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1537,14 +1537,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Combining terms not allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+5x+pi+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1552,14 +1552,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Numeric evaluation OK");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(6.28318+x+4x+9.14159)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1567,14 +1567,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Round too much");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(6.28318+x+4x+9.14",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1582,12 +1582,12 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}6.28+x+4x+9.14159",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1595,7 +1595,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -1616,7 +1616,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1625,7 +1625,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1645,14 +1645,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Reordering allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+pi+1x+4x+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1660,14 +1660,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Combining terms not allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+5x+pi+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1675,14 +1675,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
 
             cy.log("Numeric evaluation OK");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(6.28318+x+4x+9.14159)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1690,13 +1690,13 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(x+15.42478+4x)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1704,14 +1704,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Round too much");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(x+15.4+4x)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1719,7 +1719,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -1740,7 +1740,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1749,7 +1749,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1769,14 +1769,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Reordering allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+pi+1x+4x+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1784,14 +1784,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Combining terms allowed");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(2pi+5x+pi+6)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1799,14 +1799,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Numeric evaluation OK");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(6.28318+x+4x+9.14159)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1814,13 +1814,13 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(15.42478+5x)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputCorrectAnchor).should("be.visible");
@@ -1828,14 +1828,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Round too much");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}sin(15.4+5x)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputIncorrectAnchor).should("be.visible");
@@ -1843,7 +1843,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0);
             });
         });
@@ -1864,7 +1864,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1873,7 +1873,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -1893,14 +1893,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error in first component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(log(32.04x+c), 42)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
@@ -1908,7 +1908,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0.5);
             });
 
@@ -1923,14 +1923,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0.0);
             });
 
             cy.log("shink error in first component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(log(32.01x+c), 42.3)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
@@ -1938,7 +1938,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.5, 1e-14);
             });
 
@@ -1953,7 +1953,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1.0);
             });
         });
@@ -1974,7 +1974,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -1983,7 +1983,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let mathinputName = cesc2(
                 stateVariables["/_answer1"].stateValues.inputChildren[0]
-                    .componentName
+                    .componentName,
             );
             let mathinputAnchor = "#" + mathinputName + " textarea";
             let mathinputSubmitAnchor = "#" + mathinputName + "_submit";
@@ -2003,14 +2003,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1);
             });
 
             cy.log("Enter too large an error in first component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(log(32.04x+c), 42)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
@@ -2018,7 +2018,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0.5);
             });
 
@@ -2033,14 +2033,14 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(0.0);
             });
 
             cy.log("shink error in first component");
             cy.get(mathinputAnchor).type(
                 "{ctrl+home}{shift+end}{backspace}(log(32.01x+c), 42.3)",
-                { force: true, delay: 5 }
+                { force: true, delay: 5 },
             );
             cy.get(mathinputSubmitAnchor).click();
             cy.get(mathinputPartialAnchor).should("have.text", "50 %");
@@ -2048,7 +2048,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).closeTo(0.5, 1e-14);
             });
 
@@ -2063,7 +2063,7 @@ describe("Allow error in numbers validation tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_answer1"].stateValues.creditAchieved
+                    stateVariables["/_answer1"].stateValues.creditAchieved,
                 ).eq(1.0);
             });
         });
@@ -2086,7 +2086,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -2114,7 +2114,7 @@ describe("Allow error in numbers validation tests", function () {
         cy.log("Enter too large an error in first component");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}log(32.04x+c)",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/ans_submit")).click();
         cy.get(cesc("#\\/ans_partial"))
@@ -2144,7 +2144,7 @@ describe("Allow error in numbers validation tests", function () {
         cy.log("shink error in first component");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}log(32.01x+c)",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/ans_submit")).click();
         cy.get(cesc("#\\/ans_partial"))
@@ -2157,7 +2157,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ans"].stateValues.creditAchieved).closeTo(
                 0.5,
-                1e-14
+                1e-14,
             );
         });
 
@@ -2192,7 +2192,7 @@ describe("Allow error in numbers validation tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_p1")).should("have.text", "a"); // to wait until loaded
@@ -2220,7 +2220,7 @@ describe("Allow error in numbers validation tests", function () {
         cy.log("Enter too large an error in first component");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}log(32.04x+c)",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/ans_submit")).click();
         cy.get(cesc("#\\/ans_partial"))
@@ -2250,7 +2250,7 @@ describe("Allow error in numbers validation tests", function () {
         cy.log("shink error in first component");
         cy.get(cesc("#\\/mi1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}log(32.01x+c)",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/ans_submit")).click();
         cy.get(cesc("#\\/ans_partial"))
@@ -2263,7 +2263,7 @@ describe("Allow error in numbers validation tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ans"].stateValues.creditAchieved).closeTo(
                 0.5,
-                1e-14
+                1e-14,
             );
         });
 

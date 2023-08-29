@@ -16,7 +16,7 @@ describe("Document Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -38,7 +38,7 @@ describe("Document Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -75,7 +75,7 @@ describe("Document Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -116,7 +116,7 @@ describe("Document Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -126,7 +126,7 @@ describe("Document Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_document1"].stateValues.itemCreditAchieved
+                stateVariables["/_document1"].stateValues.itemCreditAchieved,
             ).eqls([0, 0, 0, 0, 0]);
 
             let mathinputXName =
@@ -157,7 +157,8 @@ describe("Document Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.itemCreditAchieved
+                    stateVariables["/_document1"].stateValues
+                        .itemCreditAchieved,
                 ).eqls([1, 0, 0, 0, 0]);
             });
 
@@ -168,7 +169,8 @@ describe("Document Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.itemCreditAchieved
+                    stateVariables["/_document1"].stateValues
+                        .itemCreditAchieved,
                 ).eqls([1, 1, 0, 0, 0]);
             });
 
@@ -179,7 +181,8 @@ describe("Document Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.itemCreditAchieved
+                    stateVariables["/_document1"].stateValues
+                        .itemCreditAchieved,
                 ).eqls([1, 1, 1, 0, 0]);
             });
 
@@ -190,7 +193,8 @@ describe("Document Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.itemCreditAchieved
+                    stateVariables["/_document1"].stateValues
+                        .itemCreditAchieved,
                 ).eqls([1, 1, 1, 1, 0]);
             });
 
@@ -201,7 +205,8 @@ describe("Document Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
-                    stateVariables["/_document1"].stateValues.itemCreditAchieved
+                    stateVariables["/_document1"].stateValues
+                        .itemCreditAchieved,
                 ).eqls([1, 1, 1, 1, 1]);
             });
         });
@@ -219,7 +224,7 @@ describe("Document Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 

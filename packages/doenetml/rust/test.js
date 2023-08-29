@@ -15,6 +15,6 @@ window.importDoenet = function (domId, variantIndex, doenetML) {
             },
             requestedVariantIndex: variantIndex,
             addVirtualKeyboard: true,
-        })
+        }),
     );
 };

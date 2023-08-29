@@ -16,7 +16,7 @@ describe("Text Tag Tests", function () {
     <p><text>We <text>could</text> be $_text2.</text></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -38,7 +38,7 @@ describe("Text Tag Tests", function () {
     <p>math: <text><math>5-2</math></text></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -67,7 +67,7 @@ describe("Text Tag Tests", function () {
     <p>math multiplies adjacent text and string: <math name="m5" simplify>5<text>4</text></math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -110,7 +110,7 @@ describe("Text Tag Tests", function () {
     <p name="insideText"><text name="t2"><q>Hello,</q> said the <em>cow</em>.  <sq>Bye,</sq> came the <alert>reply</alert>.  The <attr>text</attr> attribute of <tag>text</tag> or <tage>text</tage> (or <tagc>text</tagc>?) doesn't <term>do</term> <c>much</c>.</text></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -118,7 +118,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/orig")).should(
             "have.text",
-            `“Hello,” said the cow.  ‘Bye,’ came the reply.  The text attribute of <text> or <text/> (or </text>?) doesn't do much.`
+            `“Hello,” said the cow.  ‘Bye,’ came the reply.  The text attribute of <text> or <text/> (or </text>?) doesn't do much.`,
         );
         cy.get(cesc("#\\/textOnly")).should("have.text", theText);
         cy.get(cesc("#\\/insideText")).should("have.text", theText);
@@ -142,30 +142,30 @@ describe("Text Tag Tests", function () {
     <p name="insideText"><text name="t2">Pick a <lsq/>number<rsq/> from 1 <ndash/> 2 <mdash/> no, <lq/>maybe<rq/> from<nbsp/>3<ellipsis /></text></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/orig")).should(
             "have.text",
-            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…"
+            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…",
         );
         cy.get(cesc("#\\/textOnly")).should(
             "have.text",
-            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…"
+            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…",
         );
         cy.get(cesc("#\\/insideText")).should(
             "have.text",
-            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…"
+            "Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/t"].stateValues.value).eq(
-                `Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…`
+                `Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…`,
             );
             expect(stateVariables["/t2"].stateValues.value).eq(
-                `Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…`
+                `Pick a ‘number’ from 1 – 2 — no, “maybe” from\u00a03…`,
             );
         });
     });
@@ -181,7 +181,7 @@ describe("Text Tag Tests", function () {
     </boolean>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -254,7 +254,7 @@ describe("Text Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -269,21 +269,21 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1")).should("have.text", "Content 1: hello");
         cy.get(cesc("#\\/pContent2")).should("have.text", "Content 2: bye");
@@ -305,7 +305,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -319,16 +319,16 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -344,11 +344,11 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -357,11 +357,11 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move texts by dragging");
@@ -395,7 +395,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pContent1")).should(
             "have.text",
-            "Content 1: hello there"
+            "Content 1: hello there",
         );
         cy.get(cesc("#\\/pContent2")).should("have.text", "Content 2: bye now");
 
@@ -405,11 +405,11 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -427,7 +427,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -443,27 +443,27 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for text 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -504,11 +504,11 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make completely fixed");
@@ -521,16 +521,16 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -546,11 +546,11 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change content only for text 1");
@@ -558,7 +558,7 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/content1")).type("{end} again{enter}");
         cy.get(cesc("#\\/pContent1")).should(
             "have.text",
-            "Content 1: hello there again"
+            "Content 1: hello there again",
         );
         cy.get(cesc("#\\/pContent2")).should("have.text", "Content 2: bye now");
     });
@@ -581,7 +581,7 @@ describe("Text Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -595,12 +595,12 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,7)"
+            "(6,7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -611,7 +611,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should("contain.text", "q");
@@ -647,7 +647,7 @@ describe("Text Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -666,34 +666,34 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -717,34 +717,34 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -753,7 +753,7 @@ describe("Text Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -769,34 +769,34 @@ describe("Text Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -842,7 +842,7 @@ describe("Text Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -910,7 +910,7 @@ describe("Text Tag Tests", function () {
 
             cy.get(cesc("#\\/t2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(4,−5)"
+                "(4,−5)",
             );
 
             cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
@@ -948,7 +948,7 @@ describe("Text Tag Tests", function () {
 
             cy.get(cesc("#\\/t2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−8,2)"
+                "(−8,2)",
             );
 
             cy.get(cesc("#\\/t1coords") + " .mjx-mrow")
@@ -986,7 +986,7 @@ describe("Text Tag Tests", function () {
 
             cy.get(cesc("#\\/t2bcoords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−5,−4)"
+                "(−5,−4)",
             );
 
             cy.get(cesc("#\\/t1coords") + " .mjx-mrow")

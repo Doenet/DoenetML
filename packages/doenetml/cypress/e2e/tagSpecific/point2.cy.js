@@ -23,7 +23,7 @@ describe("Point Tag Tests 2", function () {
     
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -34,7 +34,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(9,7)`
+            `(9,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -62,11 +62,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -93,11 +93,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -127,7 +127,7 @@ describe("Point Tag Tests 2", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -138,7 +138,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(9,7)`
+            `(9,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -166,11 +166,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -197,11 +197,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -235,7 +235,7 @@ describe("Point Tag Tests 2", function () {
   <coords copysource="_point1.coords" name="coords1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -246,7 +246,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(9,7)`
+            `(9,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -280,11 +280,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -317,11 +317,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -354,11 +354,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -391,11 +391,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -436,7 +436,7 @@ describe("Point Tag Tests 2", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -447,7 +447,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(9,7)`
+            `(9,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -481,11 +481,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -518,11 +518,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -555,11 +555,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -592,11 +592,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -633,7 +633,7 @@ describe("Point Tag Tests 2", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -644,7 +644,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(9,7)`
+            `(9,7)`,
         );
 
         cy.window().then(async (win) => {
@@ -672,11 +672,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -703,11 +703,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -738,7 +738,7 @@ describe("Point Tag Tests 2", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -763,7 +763,7 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${x1},${y1})`
+                `(${x1},${y1})`,
             );
         });
 
@@ -791,19 +791,19 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x1)}`
+                `${Math.abs(x1)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y1)}`
+                `${Math.abs(y1)}`,
             );
             cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x2)}`
+                `${Math.abs(x2)}`,
             );
             cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y2)}`
+                `${Math.abs(y2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -836,7 +836,7 @@ describe("Point Tag Tests 2", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -860,7 +860,7 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `(${x1},${y1})`
+                `(${x1},${y1})`,
             );
         });
 
@@ -884,19 +884,19 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x1)}`
+                `${Math.abs(x1)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `10`
+                `10`,
             );
             cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
                 "contain.text",
-                `−10`
+                `−10`,
             );
             cy.get(cesc("#\\/coords2") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y2)}`
+                `${Math.abs(y2)}`,
             );
 
             cy.window().then(async (win) => {
@@ -932,7 +932,7 @@ describe("Point Tag Tests 2", function () {
   <p>Label 2: $_point2.label</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1002,11 +1002,11 @@ describe("Point Tag Tests 2", function () {
 
                 cy.get(cesc("#\\/_p1")).should(
                     "have.text",
-                    `Label 1: ${label1}`
+                    `Label 1: ${label1}`,
                 );
                 cy.get(cesc("#\\/_p2")).should(
                     "have.text",
-                    `Label 2: ${label2}`
+                    `Label 2: ${label2}`,
                 );
             });
         });
@@ -1076,7 +1076,7 @@ describe("Point Tag Tests 2", function () {
   <p>Label 2: $_point2.label</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1296,7 +1296,7 @@ describe("Point Tag Tests 2", function () {
     <booleaninput name="bi" /> $bi{name="b"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1304,7 +1304,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
             "contain.text",
-            `(−4,1)`
+            `(−4,1)`,
         );
 
         cy.window().then(async (win) => {
@@ -1333,11 +1333,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1365,11 +1365,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1397,11 +1397,11 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(x)}`
+                `${Math.abs(x)}`,
             );
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `${Math.abs(y)}`
+                `${Math.abs(y)}`,
             );
 
             cy.window().then(async (win) => {
@@ -1429,7 +1429,7 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `(1,−7)`
+                `(1,−7)`,
             );
 
             cy.window().then(async (win) => {
@@ -1463,7 +1463,7 @@ describe("Point Tag Tests 2", function () {
 
             cy.get(cesc("#\\/coords1") + " .mjx-mrow").should(
                 "contain.text",
-                `(1,−7)`
+                `(1,−7)`,
             );
 
             cy.window().then(async (win) => {
@@ -1559,7 +1559,7 @@ describe("Point Tag Tests 2", function () {
  
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1781,12 +1781,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("Create 2D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{end}{backspace}(a,b){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(a,b)"
+            "(a,b)",
         );
         cy.get(cesc("#\\/point1p"))
             .find(".mjx-mrow")
@@ -2105,7 +2105,7 @@ describe("Point Tag Tests 2", function () {
         cy.log("Back to 1D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should("contain.text", "q");
@@ -2340,12 +2340,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("Create 3D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{end}{backspace}\\langle 2x,u/v{rightarrow},w^2{rightarrow}\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(2x,uv,w2)"
+            "(2x,uv,w2)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -2826,12 +2826,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 1 coords");
         cy.get(cesc("#\\/coords1b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(7,8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(7,8,9)"
+            "(7,8,9)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -3237,12 +3237,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 2 coords");
         cy.get(cesc("#\\/coords2b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle i,j,k\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(i,j,k)"
+            "(i,j,k)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -3648,12 +3648,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 3 coords");
         cy.get(cesc("#\\/coords3b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(l,m,n){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(l,m,n)"
+            "(l,m,n)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -4059,20 +4059,20 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 1 individual components");
         cy.get(cesc("#\\/point1x1b") + " textarea").type(
             "{end}{backspace}r{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point1x2b") + " textarea").type(
             "{end}{backspace}s{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point1x3b") + " textarea").type(
             "{end}{backspace}t{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(r,s,t)"
+            "(r,s,t)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -4478,20 +4478,20 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 2 individual components");
         cy.get(cesc("#\\/point2x1b") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point2x2b") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point2x3b") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(f,g,h)"
+            "(f,g,h)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -4896,20 +4896,20 @@ describe("Point Tag Tests 2", function () {
         cy.log("change the coordinates from point 3 individual components");
         cy.get(cesc("#\\/point3x1b") + " textarea").type(
             "{end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point3x2b") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/point3x3b") + " textarea").type(
             "{end}{backspace}z{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(x,y,z)"
+            "(x,y,z)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -5315,12 +5315,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't decrease dimension from inverse direction 1`);
         cy.get(cesc("#\\/coords1b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(u,v){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(u,v,z)"
+            "(u,v,z)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -5726,12 +5726,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't decrease dimension from inverse direction 2`);
         cy.get(cesc("#\\/coords2b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(s,t){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(s,t,z)"
+            "(s,t,z)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -6137,12 +6137,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't decrease dimension from inverse direction 3`);
         cy.get(cesc("#\\/coords3b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(q,r){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(q,r,z)"
+            "(q,r,z)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -6547,12 +6547,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("Back to 2D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(p,q){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(p,q)"
+            "(p,q)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -6872,12 +6872,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't increase dimension from inverse direction 1`);
         cy.get(cesc("#\\/coords1b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(a,b,c){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(a,b)"
+            "(a,b)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -7197,12 +7197,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't increase dimension from inverse direction 2`);
         cy.get(cesc("#\\/coords2b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(d,e,f){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(d,e)"
+            "(d,e)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -7522,12 +7522,12 @@ describe("Point Tag Tests 2", function () {
         cy.log(`can't increase dimension from inverse direction 3`);
         cy.get(cesc("#\\/coords3b") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(g,h,i){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(g,h)"
+            "(g,h)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -7863,7 +7863,7 @@ describe("Point Tag Tests 2", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7912,7 +7912,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(a,b)"
+            "(a,b)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -7957,7 +7957,7 @@ describe("Point Tag Tests 2", function () {
         cy.log("Back to 1D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should("contain.text", "q");
@@ -8001,12 +8001,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("Create 3D point");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{end}{backspace}(2x,u/v{rightarrow},w^2{rightarrow}){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(2x,uv,w2)"
+            "(2x,uv,w2)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -8089,12 +8089,12 @@ describe("Point Tag Tests 2", function () {
         cy.log("Back to 2D point 2");
         cy.get(cesc("#\\/originalCoords") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(p,q){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/point1p") + " .mjx-mrow").should(
             "contain.text",
-            "(p,q)"
+            "(p,q)",
         );
 
         cy.get(cesc("#\\/point1p"))
@@ -8163,7 +8163,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8207,7 +8207,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8260,11 +8260,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−7,4)"
+            "(−2,−7,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−6,1)"
+            "(−3,−6,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8301,11 +8301,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−5,4)"
+            "(−2,−5,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−8,1)"
+            "(−5,−8,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8351,7 +8351,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8403,11 +8403,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−7,4)"
+            "(−2,−7,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−6,1)"
+            "(−3,−6,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8444,11 +8444,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−5,4)"
+            "(−2,−5,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−8,1)"
+            "(−5,−8,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8494,7 +8494,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8546,11 +8546,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−7,4)"
+            "(−2,−7,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−6,1)"
+            "(−3,−6,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8587,11 +8587,11 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/A2") + " .mjx-mrow").should(
             "contain.text",
-            "(−2,−5,4)"
+            "(−2,−5,4)",
         );
         cy.get(cesc("#\\/C3") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−8,1)"
+            "(−5,−8,1)",
         );
 
         cy.window().then(async (win) => {
@@ -8636,7 +8636,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8803,7 +8803,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8863,7 +8863,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9033,7 +9033,7 @@ describe("Point Tag Tests 2", function () {
     <p><point name="p1Dec6a" copySource="p1Dig4" displayDecimals="5" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9089,7 +9089,7 @@ describe("Point Tag Tests 2", function () {
     <p name="labelSPar">Label for S: $S.label</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9097,7 +9097,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/labelPPar")).should(
             "contain.text",
-            "Label for P: We have "
+            "Label for P: We have ",
         );
         cy.get(cesc("#\\/labelPPar") + " .mjx-mrow")
             .eq(0)
@@ -9107,16 +9107,16 @@ describe("Point Tag Tests 2", function () {
             });
         cy.get(cesc("#\\/labelQPar")).should(
             "have.text",
-            "Label for Q: No latex: x^3.00 + y^4.00"
+            "Label for Q: No latex: x^3.00 + y^4.00",
         );
         cy.get(cesc("#\\/labelRPar")).should(
             "contain.text",
-            "Label for R: We have "
+            "Label for R: We have ",
         );
         cy.get(cesc("#\\/labelRPar")).should("contain.text", " and ");
         cy.get(cesc("#\\/labelSPar")).should(
             "contain.text",
-            "Label for S: No latex: x^3.00 + y^4.00 and "
+            "Label for S: No latex: x^3.00 + y^4.00 and ",
         );
         cy.get(cesc("#\\/labelSPar") + " .mjx-mrow")
             .eq(0)
@@ -9128,22 +9128,22 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\)"
+                "We have \\(x^{1.0} + y^{2.0}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/Q"].stateValues.label).eq(
-                "No latex: x^3.00 + y^4.00"
+                "No latex: x^3.00 + y^4.00",
             );
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\) and \\(\\left( 5, 6 \\right)\\)"
+                "We have \\(x^{1.0} + y^{2.0}\\) and \\(\\left( 5, 6 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/S"].stateValues.label).eq(
-                "No latex: x^3.00 + y^4.00 and \\(\\left( 7, 8 \\right)\\)"
+                "No latex: x^3.00 + y^4.00 and \\(\\left( 7, 8 \\right)\\)",
             );
             expect(stateVariables["/S"].stateValues.labelHasLatex).eq(true);
         });
@@ -9174,12 +9174,12 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/labelQPar")).should(
             "have.text",
-            "Label for Q: No latex: x^1.41 + y^0.333"
+            "Label for Q: No latex: x^1.41 + y^0.333",
         );
 
         cy.get(cesc("#\\/labelPPar")).should(
             "contain.text",
-            "Label for P: We have "
+            "Label for P: We have ",
         );
         cy.get(cesc("#\\/labelPPar") + " .mjx-mrow")
             .eq(0)
@@ -9189,7 +9189,7 @@ describe("Point Tag Tests 2", function () {
             });
         cy.get(cesc("#\\/labelSPar")).should(
             "contain.text",
-            "Label for S: No latex: x^1.41 + y^0.333 and "
+            "Label for S: No latex: x^1.41 + y^0.333 and ",
         );
         cy.get(cesc("#\\/labelSPar") + " .mjx-mrow")
             .eq(0)
@@ -9201,22 +9201,22 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\)"
+                "We have \\(x^{3.1} + y^{2.7}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/Q"].stateValues.label).eq(
-                "No latex: x^1.41 + y^0.333"
+                "No latex: x^1.41 + y^0.333",
             );
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
 
             expect(stateVariables["/R"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\) and \\(\\left( 0.17, 0.67 \\right)\\)"
+                "We have \\(x^{3.1} + y^{2.7}\\) and \\(\\left( 0.17, 0.67 \\right)\\)",
             );
             expect(stateVariables["/R"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/S"].stateValues.label).eq(
-                "No latex: x^1.41 + y^0.333 and \\(\\left( 0.13, 1.1 \\right)\\)"
+                "No latex: x^1.41 + y^0.333 and \\(\\left( 0.13, 1.1 \\right)\\)",
             );
             expect(stateVariables["/S"].stateValues.labelHasLatex).eq(true);
         });
@@ -9244,7 +9244,7 @@ describe("Point Tag Tests 2", function () {
     <p name="labelQPar">Label for Q: $Q.label</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9252,7 +9252,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/labelPPar")).should(
             "contain.text",
-            "Label for P: We have "
+            "Label for P: We have ",
         );
         cy.get(cesc("#\\/labelPPar") + " .mjx-mrow")
             .eq(0)
@@ -9262,18 +9262,18 @@ describe("Point Tag Tests 2", function () {
             });
         cy.get(cesc("#\\/labelQPar")).should(
             "have.text",
-            "Label for Q: No latex: x^1.00 + y^2.00"
+            "Label for Q: No latex: x^1.00 + y^2.00",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{1.0} + y^{2.0}\\)"
+                "We have \\(x^{1.0} + y^{2.0}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/Q"].stateValues.label).eq(
-                "No latex: x^1.00 + y^2.00"
+                "No latex: x^1.00 + y^2.00",
             );
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
         });
@@ -9289,12 +9289,12 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/labelQPar")).should(
             "have.text",
-            "Label for Q: No latex: x^3.14 + y^2.72"
+            "Label for Q: No latex: x^3.14 + y^2.72",
         );
 
         cy.get(cesc("#\\/labelPPar")).should(
             "contain.text",
-            "Label for P: We have "
+            "Label for P: We have ",
         );
         cy.get(cesc("#\\/labelPPar") + " .mjx-mrow")
             .eq(0)
@@ -9306,12 +9306,12 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P"].stateValues.label).eq(
-                "We have \\(x^{3.1} + y^{2.7}\\)"
+                "We have \\(x^{3.1} + y^{2.7}\\)",
             );
             expect(stateVariables["/P"].stateValues.labelHasLatex).eq(true);
 
             expect(stateVariables["/Q"].stateValues.label).eq(
-                "No latex: x^3.14 + y^2.72"
+                "No latex: x^3.14 + y^2.72",
             );
             expect(stateVariables["/Q"].stateValues.labelHasLatex).eq(false);
         });
@@ -9369,7 +9369,7 @@ describe("Point Tag Tests 2", function () {
     
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9405,32 +9405,32 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/theLabel2"].stateValues.hasLatex).eq(false);
 
             expect(stateVariables["/P3"].stateValues.label).eq(
-                "\\(\\frac{P}{3}\\)"
+                "\\(\\frac{P}{3}\\)",
             );
             expect(stateVariables["/P3"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel3"].stateValues.value).eq(
-                "\\(\\frac{P}{3}\\)"
+                "\\(\\frac{P}{3}\\)",
             );
             expect(stateVariables["/theLabel3"].stateValues.text).eq(
-                "\\frac{P}{3}"
+                "\\frac{P}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.latex).eq(
-                "\\frac{P}{3}"
+                "\\frac{P}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.hasLatex).eq(true);
 
             expect(stateVariables["/P4"].stateValues.label).eq(
-                "\\(\\frac{P}{4}\\)"
+                "\\(\\frac{P}{4}\\)",
             );
             expect(stateVariables["/P4"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel4"].stateValues.value).eq(
-                "\\(\\frac{P}{4}\\)"
+                "\\(\\frac{P}{4}\\)",
             );
             expect(stateVariables["/theLabel4"].stateValues.text).eq(
-                "\\frac{P}{4}"
+                "\\frac{P}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.latex).eq(
-                "\\frac{P}{4}"
+                "\\frac{P}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.hasLatex).eq(true);
         });
@@ -9442,7 +9442,7 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/ti4_input")).clear().type("\\frac{{}Q}{{}4}{enter}");
         cy.get(cesc("#\\/theLabel4") + " .mjx-mrow").should(
             "contain.text",
-            "Q4"
+            "Q4",
         );
 
         cy.get(cesc("#\\/theLabel1")).should("have.text", "Q1");
@@ -9475,32 +9475,32 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/theLabel2"].stateValues.hasLatex).eq(false);
 
             expect(stateVariables["/P3"].stateValues.label).eq(
-                "\\(\\frac{Q}{3}\\)"
+                "\\(\\frac{Q}{3}\\)",
             );
             expect(stateVariables["/P3"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel3"].stateValues.value).eq(
-                "\\(\\frac{Q}{3}\\)"
+                "\\(\\frac{Q}{3}\\)",
             );
             expect(stateVariables["/theLabel3"].stateValues.text).eq(
-                "\\frac{Q}{3}"
+                "\\frac{Q}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.latex).eq(
-                "\\frac{Q}{3}"
+                "\\frac{Q}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.hasLatex).eq(true);
 
             expect(stateVariables["/P4"].stateValues.label).eq(
-                "\\(\\frac{Q}{4}\\)"
+                "\\(\\frac{Q}{4}\\)",
             );
             expect(stateVariables["/P4"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel4"].stateValues.value).eq(
-                "\\(\\frac{Q}{4}\\)"
+                "\\(\\frac{Q}{4}\\)",
             );
             expect(stateVariables["/theLabel4"].stateValues.text).eq(
-                "\\frac{Q}{4}"
+                "\\frac{Q}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.latex).eq(
-                "\\frac{Q}{4}"
+                "\\frac{Q}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.hasLatex).eq(true);
         });
@@ -9512,7 +9512,7 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/revert4_button")).click();
         cy.get(cesc("#\\/theLabel4") + " .mjx-mrow").should(
             "contain.text",
-            "P4"
+            "P4",
         );
 
         cy.get(cesc("#\\/theLabel1")).should("have.text", "P1");
@@ -9545,32 +9545,32 @@ describe("Point Tag Tests 2", function () {
             expect(stateVariables["/theLabel2"].stateValues.hasLatex).eq(false);
 
             expect(stateVariables["/P3"].stateValues.label).eq(
-                "\\(\\frac{P}{3}\\)"
+                "\\(\\frac{P}{3}\\)",
             );
             expect(stateVariables["/P3"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel3"].stateValues.value).eq(
-                "\\(\\frac{P}{3}\\)"
+                "\\(\\frac{P}{3}\\)",
             );
             expect(stateVariables["/theLabel3"].stateValues.text).eq(
-                "\\frac{P}{3}"
+                "\\frac{P}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.latex).eq(
-                "\\frac{P}{3}"
+                "\\frac{P}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.hasLatex).eq(true);
 
             expect(stateVariables["/P4"].stateValues.label).eq(
-                "\\(\\frac{P}{4}\\)"
+                "\\(\\frac{P}{4}\\)",
             );
             expect(stateVariables["/P4"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel4"].stateValues.value).eq(
-                "\\(\\frac{P}{4}\\)"
+                "\\(\\frac{P}{4}\\)",
             );
             expect(stateVariables["/theLabel4"].stateValues.text).eq(
-                "\\frac{P}{4}"
+                "\\frac{P}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.latex).eq(
-                "\\frac{P}{4}"
+                "\\frac{P}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.hasLatex).eq(true);
         });
@@ -9590,18 +9590,18 @@ describe("Point Tag Tests 2", function () {
             .type("\\(\\frac{{}Q}{{}4}\\){enter}");
         cy.get(cesc("#\\/theLabel4") + " .mjx-mrow").should(
             "contain.text",
-            "Q4"
+            "Q4",
         );
 
         cy.get(cesc("#\\/theLabel1")).should("have.text", "\\(\\frac{Q}{1}\\)");
         cy.get(cesc("#\\/ti1_input")).should(
             "have.value",
-            "\\(\\frac{Q}{1}\\)"
+            "\\(\\frac{Q}{1}\\)",
         );
         cy.get(cesc("#\\/theLabel2")).should("have.text", "\\(\\frac{Q}{2}\\)");
         cy.get(cesc("#\\/ti2_input")).should(
             "have.value",
-            "\\(\\frac{Q}{2}\\)"
+            "\\(\\frac{Q}{2}\\)",
         );
         cy.get(cesc("#\\/theLabel3") + " .mjx-mrow")
             .eq(0)
@@ -9615,62 +9615,62 @@ describe("Point Tag Tests 2", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/P1"].stateValues.label).eq(
-                "\\(\\frac{Q}{1}\\)"
+                "\\(\\frac{Q}{1}\\)",
             );
             expect(stateVariables["/P1"].stateValues.labelHasLatex).eq(false);
             expect(stateVariables["/theLabel1"].stateValues.value).eq(
-                "\\(\\frac{Q}{1}\\)"
+                "\\(\\frac{Q}{1}\\)",
             );
             expect(stateVariables["/theLabel1"].stateValues.text).eq(
-                "\\(\\frac{Q}{1}\\)"
+                "\\(\\frac{Q}{1}\\)",
             );
             expect(stateVariables["/theLabel1"].stateValues.latex).eq(
-                "\\(\\frac{Q}{1}\\)"
+                "\\(\\frac{Q}{1}\\)",
             );
             expect(stateVariables["/theLabel1"].stateValues.hasLatex).eq(false);
 
             expect(stateVariables["/P2"].stateValues.label).eq(
-                "\\(\\frac{Q}{2}\\)"
+                "\\(\\frac{Q}{2}\\)",
             );
             expect(stateVariables["/P2"].stateValues.labelHasLatex).eq(false);
             expect(stateVariables["/theLabel2"].stateValues.value).eq(
-                "\\(\\frac{Q}{2}\\)"
+                "\\(\\frac{Q}{2}\\)",
             );
             expect(stateVariables["/theLabel2"].stateValues.text).eq(
-                "\\(\\frac{Q}{2}\\)"
+                "\\(\\frac{Q}{2}\\)",
             );
             expect(stateVariables["/theLabel2"].stateValues.latex).eq(
-                "\\(\\frac{Q}{2}\\)"
+                "\\(\\frac{Q}{2}\\)",
             );
             expect(stateVariables["/theLabel2"].stateValues.hasLatex).eq(false);
 
             expect(stateVariables["/P3"].stateValues.label).eq(
-                "\\(\\frac{Q}{3}\\)"
+                "\\(\\frac{Q}{3}\\)",
             );
             expect(stateVariables["/P3"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel3"].stateValues.value).eq(
-                "\\(\\frac{Q}{3}\\)"
+                "\\(\\frac{Q}{3}\\)",
             );
             expect(stateVariables["/theLabel3"].stateValues.text).eq(
-                "\\frac{Q}{3}"
+                "\\frac{Q}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.latex).eq(
-                "\\frac{Q}{3}"
+                "\\frac{Q}{3}",
             );
             expect(stateVariables["/theLabel3"].stateValues.hasLatex).eq(true);
 
             expect(stateVariables["/P4"].stateValues.label).eq(
-                "\\(\\frac{Q}{4}\\)"
+                "\\(\\frac{Q}{4}\\)",
             );
             expect(stateVariables["/P4"].stateValues.labelHasLatex).eq(true);
             expect(stateVariables["/theLabel4"].stateValues.value).eq(
-                "\\(\\frac{Q}{4}\\)"
+                "\\(\\frac{Q}{4}\\)",
             );
             expect(stateVariables["/theLabel4"].stateValues.text).eq(
-                "\\frac{Q}{4}"
+                "\\frac{Q}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.latex).eq(
-                "\\frac{Q}{4}"
+                "\\frac{Q}{4}",
             );
             expect(stateVariables["/theLabel4"].stateValues.hasLatex).eq(true);
         });
@@ -9700,7 +9700,7 @@ describe("Point Tag Tests 2", function () {
 </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9713,7 +9713,7 @@ describe("Point Tag Tests 2", function () {
             expect(errorWarnings.warnings.length).eq(3);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable"
+                "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
@@ -9722,7 +9722,7 @@ describe("Point Tag Tests 2", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(32);
 
             expect(errorWarnings.warnings[1].message).contain(
-                "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable"
+                "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(7);
@@ -9731,7 +9731,7 @@ describe("Point Tag Tests 2", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(32);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable"
+                "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(15);
@@ -9767,7 +9767,7 @@ describe("Point Tag Tests 2", function () {
  
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9877,7 +9877,7 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/Cc2") + " .mjx-mrow").should("contain.text", "(7,8)");
         cy.get(cesc("#\\/Dc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−2)"
+            "(−1,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -9898,11 +9898,11 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/Bc2") + " .mjx-mrow").should("contain.text", "(−1,6)");
         cy.get(cesc("#\\/Cc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−4)"
+            "(−3,−4)",
         );
         cy.get(cesc("#\\/Dc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−1,−2)"
+            "(−1,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -9921,19 +9921,19 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/Ac2") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−6)"
+            "(−3,−6)",
         );
         cy.get(cesc("#\\/Bc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−6)"
+            "(−5,−6)",
         );
         cy.get(cesc("#\\/Cc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−3,−4)"
+            "(−3,−4)",
         );
         cy.get(cesc("#\\/Dc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−2)"
+            "(−5,−2)",
         );
 
         cy.window().then(async (win) => {
@@ -9952,19 +9952,19 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/Ac2") + " .mjx-mrow").should(
             "contain.text",
-            "(−7,−8)"
+            "(−7,−8)",
         );
         cy.get(cesc("#\\/Bc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−8)"
+            "(−5,−8)",
         );
         cy.get(cesc("#\\/Cc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−7,−4)"
+            "(−7,−4)",
         );
         cy.get(cesc("#\\/Dc2") + " .mjx-mrow").should(
             "contain.text",
-            "(−5,−2)"
+            "(−5,−2)",
         );
     });
 
@@ -9981,7 +9981,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10031,7 +10031,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10100,7 +10100,7 @@ describe("Point Tag Tests 2", function () {
     <number copysource="P.layer" name="l2" /> 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10143,14 +10143,14 @@ describe("Point Tag Tests 2", function () {
     <p name="Cdescrip">C is a $C.styleDescriptionWithNoun.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should("have.text", "Point A is brown.");
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a dark red square."
+            "B is a dark red square.",
         );
         cy.get(cesc("#\\/Cdescrip")).should("have.text", "C is a black point.");
 
@@ -10163,7 +10163,7 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/Adescrip")).should("have.text", "Point A is yellow.");
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a light red square."
+            "B is a light red square.",
         );
         cy.get(cesc("#\\/Cdescrip")).should("have.text", "C is a white point.");
     });
@@ -10194,7 +10194,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10213,34 +10213,34 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -10264,34 +10264,34 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -10300,7 +10300,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -10316,34 +10316,34 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -10368,7 +10368,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10392,7 +10392,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc2("#/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(3,5)"
+            "(3,5)",
         );
         cy.get(cesc2("#/Pcoords") + " .mjx-mrow")
             .eq(0)
@@ -10446,11 +10446,11 @@ describe("Point Tag Tests 2", function () {
         cy.log("can move entering coordinates");
         cy.get(cesc2("#/miP") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(8,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/Pcoords") + " .mjx-mrow").should(
             "contain.text",
-            "(8,7)"
+            "(8,7)",
         );
         cy.get(cesc2("#/Pcoords") + " .mjx-mrow")
             .eq(0)
@@ -10508,7 +10508,7 @@ describe("Point Tag Tests 2", function () {
         cy.log("can't move entering coordinates");
         cy.get(cesc2("#/miP") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(-5,-9){enter}",
-            { force: true }
+            { force: true },
         );
 
         // since nothing will change, wait for boolean input to change to know core has responded
@@ -10559,7 +10559,7 @@ describe("Point Tag Tests 2", function () {
         cy.get(cesc2("#/dg2")).should("have.text", "true");
 
         cy.log(
-            "trying to focus point or click point does not increment counters"
+            "trying to focus point or click point does not increment counters",
         );
         cy.window().then(async (win) => {
             await win.callAction1({
@@ -10605,7 +10605,7 @@ describe("Point Tag Tests 2", function () {
     <p>Midpoint: <math name="Ma" copySource="M" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10728,7 +10728,7 @@ describe("Point Tag Tests 2", function () {
     <boolean copySource="R3.hideOffGraphIndicator" name="R3h" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10763,7 +10763,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10806,7 +10806,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10835,7 +10835,7 @@ describe("Point Tag Tests 2", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10848,12 +10848,12 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc2("#/mi1") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{leftArrow}{backspace}{backspace}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/mi2") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/C2a") + " .mjx-mrow").should("contain.text", "(1,−1)");
@@ -10894,7 +10894,7 @@ describe("Point Tag Tests 2", function () {
   <point copySource="P0" name="P0a" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10914,7 +10914,7 @@ describe("Point Tag Tests 2", function () {
                         actionName: "movePoint",
                         componentName: "/P0",
                         args: { x, y, skippable: true },
-                    })
+                    }),
                 );
             });
             cy.wait(10);
@@ -10934,14 +10934,14 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc2("#/P0a") + " .mjx-mrow").should(
             "contain.text",
-            "(9.9,9.9)"
+            "(9.9,9.9)",
         );
         cy.get(cesc2("#/P0a") + " .mjx-mrow")
             .eq(0)
             .should("have.text", "(9.9,9.9)");
 
         cy.log(
-            "move point using skippable and non-skippable actions to upper left"
+            "move point using skippable and non-skippable actions to upper left",
         );
         let promises2 = [];
         for (let i = 0; i < 100; i++) {
@@ -10954,14 +10954,14 @@ describe("Point Tag Tests 2", function () {
                         actionName: "movePoint",
                         componentName: "/P0",
                         args: { x, y, skippable: i % 10 !== 5 },
-                    })
+                    }),
                 );
             });
             cy.wait(10);
         }
 
         cy.log(
-            "most of the skippable but none of the non-skippable actions were skipped"
+            "most of the skippable but none of the non-skippable actions were skipped",
         );
         cy.window().then(async (win) => {
             Promise.all(promises2).then((values) => {
@@ -10971,7 +10971,7 @@ describe("Point Tag Tests 2", function () {
 
                 // None of the non-skippable actions were skipped
                 expect(values.filter((x, i) => i % 10 == 5).every((x) => x)).eq(
-                    true
+                    true,
                 );
 
                 expect(values.slice(1, 99).filter((x) => x).length)
@@ -10982,7 +10982,7 @@ describe("Point Tag Tests 2", function () {
 
         cy.get(cesc2("#/P0a") + " .mjx-mrow").should(
             "contain.text",
-            "(−9.9,9.9)"
+            "(−9.9,9.9)",
         );
         cy.get(cesc2("#/P0a") + " .mjx-mrow")
             .eq(0)

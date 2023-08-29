@@ -30,7 +30,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
         let serializedComponents;
         if (preliminarySerializedComponents[ind]) {
             serializedComponents = JSON.parse(
-                JSON.stringify(preliminarySerializedComponents[ind])
+                JSON.stringify(preliminarySerializedComponents[ind]),
             );
         } else {
             result = parseAndCompile(doenetML);
@@ -47,28 +47,28 @@ export async function expandDoenetMLsToFullSerializedComponents({
 
         result = correctComponentTypeCapitalization(
             serializedComponents,
-            componentInfoObjects
+            componentInfoObjects,
         );
         errorsForDoenetML.push(...result.errors);
         warningsForDoenetML.push(...result.warnings);
 
         result = copyTargetOrFromURIAttributeCreatesCopyComponent(
             serializedComponents,
-            componentInfoObjects.isCompositeComponent
+            componentInfoObjects.isCompositeComponent,
         );
         errorsForDoenetML.push(...result.errors);
         warningsForDoenetML.push(...result.warnings);
 
         result = createAttributesFromProps(
             serializedComponents,
-            componentInfoObjects
+            componentInfoObjects,
         );
         errorsForDoenetML.push(...result.errors);
         warningsForDoenetML.push(...result.warnings);
 
         result = breakUpTargetIntoPropsAndIndices(
             serializedComponents,
-            componentInfoObjects
+            componentInfoObjects,
         );
         errorsForDoenetML.push(...result.errors);
         warningsForDoenetML.push(...result.warnings);
@@ -127,8 +127,8 @@ export async function expandDoenetMLsToFullSerializedComponents({
             if (newCids[ind] && newCids[ind].substring(0, cid.length) !== cid) {
                 return Promise.reject(
                     new Error(
-                        `Requested cid ${cid} but got back ${newCids[ind]}!`
-                    )
+                        `Requested cid ${cid} but got back ${newCids[ind]}!`,
+                    ),
                 );
             }
         }
@@ -181,12 +181,12 @@ export async function expandDoenetMLsToFullSerializedComponents({
                 originalCopyWithUri.doenetAttributes.copiedURI = true;
 
                 let originalChildren = JSON.parse(
-                    JSON.stringify(serializedComponentsForCid)
+                    JSON.stringify(serializedComponentsForCid),
                 );
 
                 // remove blank string children
                 let nonBlankStringChildren = originalChildren.filter(
-                    (x) => typeof x !== "string" || x.trim()
+                    (x) => typeof x !== "string" || x.trim(),
                 );
 
                 let haveSingleComponent =
@@ -234,7 +234,7 @@ export async function expandDoenetMLsToFullSerializedComponents({
                     let extContent = {
                         componentType: "externalContent",
                         children: JSON.parse(
-                            JSON.stringify(serializedComponentsForCid)
+                            JSON.stringify(serializedComponentsForCid),
                         ),
                         attributes: { newNamespace: { primitive: true } },
                         doenetAttributes: { createUniqueName: true },
@@ -307,7 +307,7 @@ function cidsToDoenetMLs(cids) {
 
 export function removeBlankStringChildren(
     serializedComponents,
-    componentInfoObjects
+    componentInfoObjects,
 ) {
     for (let component of serializedComponents) {
         if (component.children) {
@@ -317,7 +317,7 @@ export function removeBlankStringChildren(
                 ];
             if (componentClass && !componentClass.includeBlankStringChildren) {
                 component.children = component.children.filter(
-                    (x) => typeof x !== "string" || x.trim() !== ""
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
             }
 
@@ -337,7 +337,7 @@ export function removeBlankStringChildren(
 
 function removeComments(serializedComponents) {
     let filteredComponents = serializedComponents.filter(
-        (x) => x.componentType !== "_comment"
+        (x) => x.componentType !== "_comment",
     );
     for (let component of filteredComponents) {
         if (component.children) {
@@ -566,7 +566,7 @@ function substituteAttributeDeprecations(serializedComponents) {
 
                         warnings.push({
                             message: `Attribute ${prop} of component type ${cType} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
-                                removeInVersion
+                                removeInVersion,
                             )}`,
                             doenetMLrange: component.doenetMLrange,
                             level: 1,
@@ -589,7 +589,7 @@ function substituteAttributeDeprecations(serializedComponents) {
 
                         warnings.push({
                             message: `Attribute ${prop} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
-                                removeInVersion
+                                removeInVersion,
                             )}`,
                             doenetMLrange: component.doenetMLrange,
                             level: 1,
@@ -608,7 +608,7 @@ function substituteAttributeDeprecations(serializedComponents) {
 
                         warnings.push({
                             message: `Attribute ${prop} of component type ${cType} is deprecated. It is ignored. ${returnDeprecationMessage(
-                                removeInVersion
+                                removeInVersion,
                             )}`,
                             doenetMLrange: component.doenetMLrange,
                             level: 1,
@@ -627,7 +627,7 @@ function substituteAttributeDeprecations(serializedComponents) {
 
                         warnings.push({
                             message: `Attribute ${prop} is deprecated. It is ignored. ${returnDeprecationMessage(
-                                removeInVersion
+                                removeInVersion,
                             )}`,
                             doenetMLrange: component.doenetMLrange,
                             level: 1,
@@ -754,7 +754,7 @@ const deprecatedPropertySubstitutionsLowerCase = {};
 Object.keys(deprecatedPropertySubstitutions).forEach(
     (key) =>
         (deprecatedPropertySubstitutionsLowerCase[key.toLowerCase()] =
-            deprecatedPropertySubstitutions[key])
+            deprecatedPropertySubstitutions[key]),
 );
 
 function substitutePropertyDeprecations(serializedComponents) {
@@ -785,7 +785,7 @@ function substitutePropertyDeprecations(serializedComponents) {
 
                 warnings.push({
                     message: `Property ${propName} is deprecated. Use ${newProp} instead. ${returnDeprecationMessage(
-                        removeInVersion
+                        removeInVersion,
                     )}`,
                     doenetMLrange: component.doenetMLrange,
                     level: 1,
@@ -887,7 +887,7 @@ function temporarilyRenameSourceBackToTarget(serializedComponents) {
 
 function cleanIfHaveJustDocument(serializedComponents) {
     let componentsWithoutBlankStrings = serializedComponents.filter(
-        (x) => typeof x !== "string" || x.trim() !== ""
+        (x) => typeof x !== "string" || x.trim() !== "",
     );
 
     if (
@@ -903,7 +903,7 @@ function cleanIfHaveJustDocument(serializedComponents) {
 function correctComponentTypeCapitalization(
     serializedComponents,
     componentInfoObjects,
-    ignoreErrors = false
+    ignoreErrors = false,
 ) {
     let errors = [];
     let warnings = [];
@@ -941,7 +941,7 @@ function correctComponentTypeCapitalization(
             let res = correctComponentTypeCapitalization(
                 component.children,
                 componentInfoObjects,
-                ignoreErrors || cClass?.ignoreErrorsFromChildren
+                ignoreErrors || cClass?.ignoreErrorsFromChildren,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -952,7 +952,7 @@ function correctComponentTypeCapitalization(
 
 function copyTargetOrFromURIAttributeCreatesCopyComponent(
     serializedComponents,
-    isCompositeComponent
+    isCompositeComponent,
 ) {
     // Convert <ctype copySource="name" /> essentially into <copy source="name" createComponentOfType="ctype" />
     // and <ctype copyFromURI="theuri" /> essentially into <copy uri="theuri" createComponentOfType="ctype" />
@@ -982,12 +982,12 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
                             throw Error(`Cannot repeat attribute ${prop}.`);
                         } else if (foundCopyFromURI) {
                             throw Error(
-                                `Cannot combine copySource and copyFromURI attribiutes.`
+                                `Cannot combine copySource and copyFromURI attribiutes.`,
                             );
                         } else if (foundAssignNames) {
                             // Note: foundAssignNames is not set if haveComposite
                             throw Error(
-                                `Invalid attribute assignNames for component of type <${originalType}>`
+                                `Invalid attribute assignNames for component of type <${originalType}>`,
                             );
                         }
                         foundCopyTarget = true;
@@ -1011,12 +1011,12 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
                             throw Error(`Cannot repeat attribute ${prop}.`);
                         } else if (foundCopyTarget) {
                             throw Error(
-                                `Cannot combine copySource and copyFromURI attributes.`
+                                `Cannot combine copySource and copyFromURI attributes.`,
                             );
                         } else if (foundAssignNames) {
                             // Note: foundAssignNames is not set if haveComposite
                             throw Error(
-                                `Invalid attribute assignNames for component of type <${originalType}>.`
+                                `Invalid attribute assignNames for component of type <${originalType}>.`,
                             );
                         }
                         foundCopyFromURI = true;
@@ -1039,7 +1039,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
                     ) {
                         if (foundCopyTarget || foundCopyFromURI) {
                             throw Error(
-                                `Invalid attribute assignNames for component of type <${originalType}>.`
+                                `Invalid attribute assignNames for component of type <${originalType}>.`,
                             );
                         }
                         foundAssignNames = true;
@@ -1053,7 +1053,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
                         let lowerCaseProp = prop.toLowerCase();
                         if (lowerCaseProp === "prop") {
                             throw Error(
-                                `Invalid attribute prop for component of type <${originalType}>`
+                                `Invalid attribute prop for component of type <${originalType}>`,
                             );
                         }
                     }
@@ -1082,7 +1082,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
         if (component.children) {
             let res = copyTargetOrFromURIAttributeCreatesCopyComponent(
                 component.children,
-                isCompositeComponent
+                isCompositeComponent,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -1094,7 +1094,7 @@ function copyTargetOrFromURIAttributeCreatesCopyComponent(
 function breakUpTargetIntoPropsAndIndices(
     serializedComponents,
     componentInfoObjects,
-    ancestorString = ""
+    ancestorString = "",
 ) {
     let errors = [];
     let warnings = [];
@@ -1106,7 +1106,7 @@ function breakUpTargetIntoPropsAndIndices(
             if (
                 component.props &&
                 ["copy", "updateValue", "animateFromSequence"].includes(
-                    component.componentType
+                    component.componentType,
                 )
             ) {
                 let targetPropName;
@@ -1127,7 +1127,7 @@ function breakUpTargetIntoPropsAndIndices(
                                 propNameForError = "source";
                             }
                             throw Error(
-                                `Cannot repeat attribute ${propNameForError}.`
+                                `Cannot repeat attribute ${propNameForError}.`,
                             );
                         }
 
@@ -1140,13 +1140,13 @@ function breakUpTargetIntoPropsAndIndices(
                                 propNameForError = "source";
                             }
                             throw Error(
-                                `Must specify value for ${propNameForError}.`
+                                `Must specify value for ${propNameForError}.`,
                             );
                         }
 
                         let sourcePiecesResult = buildSourcePieces(
                             originalSource,
-                            true
+                            true,
                         );
 
                         if (
@@ -1174,18 +1174,18 @@ function breakUpTargetIntoPropsAndIndices(
 
                         if (component.attributes.prop) {
                             throw Error(
-                                `Cannot combine the prop attribute with an extended source attribute.`
+                                `Cannot combine the prop attribute with an extended source attribute.`,
                             );
                         }
 
                         if (component.attributes.propIndex) {
                             throw Error(
-                                `Cannot combine the propIndex attribute with an extended source attribute.`
+                                `Cannot combine the propIndex attribute with an extended source attribute.`,
                             );
                         }
                         if (component.attributes.componentIndex) {
                             throw Error(
-                                `Cannot combine the componentIndex attribute with an extended source attribute.`
+                                `Cannot combine the componentIndex attribute with an extended source attribute.`,
                             );
                         }
 
@@ -1197,7 +1197,7 @@ function breakUpTargetIntoPropsAndIndices(
                                 componentAttributes,
                                 propArray,
                                 componentInfoObjects,
-                            }
+                            },
                         );
                         // Note: don't need to create errors from createComponentFromExtendedSource
                         // as an error for it will be created, below
@@ -1205,7 +1205,7 @@ function breakUpTargetIntoPropsAndIndices(
                             ...componentResult.warnings.map((w) => {
                                 w.doenetMLrange = component.doenetMLrange;
                                 return w;
-                            })
+                            }),
                         );
 
                         if (componentResult.success) {
@@ -1217,14 +1217,14 @@ function breakUpTargetIntoPropsAndIndices(
                                 delete component.props[targetPropName];
                                 Object.assign(
                                     component.attributes,
-                                    newComponent.attributes
+                                    newComponent.attributes,
                                 );
                                 if (!component.doenetAttributes) {
                                     component.doenetAttributes = {};
                                 }
                                 Object.assign(
                                     component.doenetAttributes,
-                                    newComponent.doenetAttributes
+                                    newComponent.doenetAttributes,
                                 );
                                 component.componentType =
                                     newComponent.componentType;
@@ -1259,7 +1259,7 @@ function breakUpTargetIntoPropsAndIndices(
                                     delete component.props[targetPropName];
                                     Object.assign(
                                         component.attributes,
-                                        newComponent.attributes
+                                        newComponent.attributes,
                                     );
                                     // rename attributes to refer to target rather than source
                                     if (component.attributes.sourceSubnames) {
@@ -1283,7 +1283,7 @@ function breakUpTargetIntoPropsAndIndices(
                                     }
                                     Object.assign(
                                         component.doenetAttributes,
-                                        newComponent.doenetAttributes
+                                        newComponent.doenetAttributes,
                                     );
                                 } else {
                                     // if the new component created was an extract
@@ -1297,7 +1297,7 @@ function breakUpTargetIntoPropsAndIndices(
                                         component_ind;
                                     let nameForExtract = createUniqueName(
                                         "extract",
-                                        longNameId
+                                        longNameId,
                                     );
                                     newComponent.doenetAttributes.prescribedName =
                                         nameForExtract;
@@ -1365,7 +1365,7 @@ function breakUpTargetIntoPropsAndIndices(
             let res = breakUpTargetIntoPropsAndIndices(
                 component.children,
                 componentInfoObjects,
-                ancestorString + "|" + component_ind
+                ancestorString + "|" + component_ind,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -1378,7 +1378,7 @@ function breakUpTargetIntoPropsAndIndices(
 function createAttributesFromProps(
     serializedComponents,
     componentInfoObjects,
-    ignoreErrors = false
+    ignoreErrors = false,
 ) {
     let errors = [];
     let warnings = [];
@@ -1429,7 +1429,7 @@ function createAttributesFromProps(
                         delete component.props[prop];
                     } else if (
                         !["name", "assignnames", "target"].includes(
-                            prop.toLowerCase()
+                            prop.toLowerCase(),
                         )
                     ) {
                         if (componentClass.acceptAnyAttribute) {
@@ -1446,7 +1446,7 @@ function createAttributesFromProps(
                             delete component.props[prop];
                         } else {
                             throw Error(
-                                `Invalid attribute "${prop}" for a component of type <${component.componentType}>.`
+                                `Invalid attribute "${prop}" for a component of type <${component.componentType}>.`,
                             );
                         }
                     }
@@ -1494,7 +1494,7 @@ function createAttributesFromProps(
             let res = createAttributesFromProps(
                 component.children,
                 componentInfoObjects,
-                ignoreErrorsInChildren
+                ignoreErrorsInChildren,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -1586,7 +1586,7 @@ export function componentFromAttribute({
                 for (let attrName of attrObj.copyComponentAttributesForCreatedComponent) {
                     if (originalComponentProps[attrName]) {
                         newComponent.props[attrName] = JSON.parse(
-                            JSON.stringify(originalComponentProps[attrName])
+                            JSON.stringify(originalComponentProps[attrName]),
                         );
                     }
                 }
@@ -1594,7 +1594,7 @@ export function componentFromAttribute({
 
             let res = createAttributesFromProps(
                 [newComponent],
-                componentInfoObjects
+                componentInfoObjects,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -1710,7 +1710,7 @@ function findPreSugarIndsAndMarkFromSugar(components) {
 export function applyMacros(
     serializedComponents,
     componentInfoObjects,
-    startDoenetMLInd = 0
+    startDoenetMLInd = 0,
 ) {
     let errors = [];
     let warnings = [];
@@ -1728,7 +1728,7 @@ export function applyMacros(
             let res = applyMacros(
                 component.children,
                 componentInfoObjects,
-                startDoenetMLIndForChildren
+                startDoenetMLIndForChildren,
             );
             errors.push(...res.errors);
             warnings.push(...res.warnings);
@@ -1737,13 +1737,13 @@ export function applyMacros(
             for (let attrName in component.attributes) {
                 let attribute = component.attributes[attrName];
                 let startDoenetMLIndForAttr = Number(
-                    component.attributeRanges?.[attrName]?.begin - 1
+                    component.attributeRanges?.[attrName]?.begin - 1,
                 );
                 if (attribute.component) {
                     let res = applyMacros(
                         [attribute.component],
                         componentInfoObjects,
-                        startDoenetMLIndForAttr
+                        startDoenetMLIndForAttr,
                     );
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
@@ -1751,7 +1751,7 @@ export function applyMacros(
                     let res = applyMacros(
                         attribute.childrenForComponent,
                         componentInfoObjects,
-                        startDoenetMLIndForAttr
+                        startDoenetMLIndForAttr,
                     );
                     errors.push(...res.errors);
                     warnings.push(...res.warnings);
@@ -1763,7 +1763,7 @@ export function applyMacros(
     let res = substituteMacros(
         serializedComponents,
         componentInfoObjects,
-        startDoenetMLInd
+        startDoenetMLInd,
     );
     errors.push(...res.errors);
     warnings.push(...res.warnings);
@@ -1773,7 +1773,7 @@ export function applyMacros(
 function substituteMacros(
     serializedComponents,
     componentInfoObjects,
-    startDoenetMLInd = 0
+    startDoenetMLInd = 0,
 ) {
     let errors = [];
     let warnings = [];
@@ -1827,7 +1827,7 @@ function substituteMacros(
                     ...componentResult.warnings.map((w) => {
                         w.doenetMLrange = doenetMLrange;
                         return w;
-                    })
+                    }),
                 );
 
                 let newComponent;
@@ -1839,7 +1839,7 @@ function substituteMacros(
                 } else {
                     let strWithError = str.slice(
                         firstIndMatched,
-                        firstIndMatched + matchLength
+                        firstIndMatched + matchLength,
                     );
 
                     let message = `${componentResult.errors[0].message} Found: ${strWithError}.`;
@@ -1870,7 +1870,7 @@ function substituteMacros(
 
                 let numComponentsToRemove = 1;
                 let stringToAddAtEnd = str.substring(
-                    firstIndMatched + matchLength
+                    firstIndMatched + matchLength,
                 );
 
                 if (nDollarSigns === 2) {
@@ -1902,13 +1902,13 @@ function substituteMacros(
                         includeFirstInRemaining = true;
                         remainingComponents.push(
                             str.substring(
-                                firstIndMatched + matchLengthWithOpeningParens
-                            )
+                                firstIndMatched + matchLengthWithOpeningParens,
+                            ),
                         );
                     }
 
                     remainingComponents.push(
-                        ...serializedComponents.slice(componentInd + 1)
+                        ...serializedComponents.slice(componentInd + 1),
                     );
 
                     let evaluateResult =
@@ -1968,7 +1968,7 @@ function substituteMacros(
                 serializedComponents.splice(
                     componentInd,
                     numComponentsToRemove,
-                    ...replacements
+                    ...replacements,
                 );
 
                 let indOfLastComponentAddedBackIn =
@@ -2078,11 +2078,11 @@ function createComponentFromExtendedSource({
                             sourceSubnames -
                                 1 -
                                 sourceSubnamesComponentIndex.length
-                        ].fill(NaN)
+                        ].fill(NaN),
                     );
                 }
                 sourceSubnamesComponentIndex.push(
-                    subNameObj.subNameComponentIndex
+                    subNameObj.subNameComponentIndex,
                 );
             }
         }
@@ -2115,7 +2115,7 @@ function createComponentFromExtendedSource({
 
         let attributesResult = createAttributesFromString(
             componentAttributes,
-            componentInfoObjects
+            componentInfoObjects,
         );
         if (!attributesResult.success) {
             return attributesResult;
@@ -2168,7 +2168,7 @@ function createComponentFromExtendedSource({
         if (propObj.attributes) {
             let attributesResult = createAttributesFromString(
                 propObj.attributes,
-                componentInfoObjects
+                componentInfoObjects,
             );
             if (!attributesResult.success) {
                 return attributesResult;
@@ -2178,7 +2178,7 @@ function createComponentFromExtendedSource({
 
             Object.assign(
                 newComponent.attributes,
-                attributesResult.newAttributes
+                attributesResult.newAttributes,
             );
 
             if (attributesResult.assignNames) {
@@ -2221,7 +2221,7 @@ function createAttributesFromString(componentAttributes, componentInfoObjects) {
 
     res = createAttributesFromProps(
         componentsForAttributes,
-        componentInfoObjects
+        componentInfoObjects,
     );
     errors.push(...res.errors);
     warnings.push(...res.warnings);
@@ -2305,7 +2305,7 @@ function findFirstFullMacroInString(str) {
 
             let findResult = findWordOrDelimitedGroup(
                 strForMacro,
-                extendedWordCharacters
+                extendedWordCharacters,
             );
 
             if (findResult.startDelim === "(") {
@@ -2564,7 +2564,7 @@ function createEvaluateIfFindMatchedClosingParens({
     // save in stringAfterFunction
     if (result.charInd + 1 < lastComponentOfFunction.length) {
         stringAfterFunction = lastComponentOfFunction.substring(
-            result.charInd + 1
+            result.charInd + 1,
         );
     }
 
@@ -2699,7 +2699,7 @@ function decodeXMLEntities(serializedComponents) {
                     } else if (attribute.primitive) {
                         if (typeof attribute.primitive === "string") {
                             attribute.primitive = replaceEntities(
-                                attribute.primitive
+                                attribute.primitive,
                             );
                         }
                     } else {
@@ -2708,7 +2708,7 @@ function decodeXMLEntities(serializedComponents) {
                         }
                         if (attribute.rawString) {
                             attribute.rawString = replaceEntities(
-                                attribute.rawString
+                                attribute.rawString,
                             );
                         }
                     }
@@ -2765,7 +2765,7 @@ export function applySugar({
 
                         if (sugarInstruction.childrenRegex) {
                             let match = childTypes.match(
-                                sugarInstruction.childrenRegex
+                                sugarInstruction.childrenRegex,
                             );
 
                             if (
@@ -2806,7 +2806,7 @@ export function applySugar({
                                 componentInfoObjects,
                                 isAttributeComponent,
                                 createdFromMacro,
-                            }
+                            },
                         );
 
                         // console.log("sugarResults")
@@ -2817,7 +2817,7 @@ export function applySugar({
                                 ...sugarResults.warnings.map((w) => {
                                     w.doenetMLrange = component.doenetMLrange;
                                     return w;
-                                })
+                                }),
                             );
                         }
 
@@ -2831,7 +2831,7 @@ export function applySugar({
                             if (newChildren) {
                                 preSugarIndsFoundInChildren =
                                     findPreSugarIndsAndMarkFromSugar(
-                                        newChildren
+                                        newChildren,
                                     );
                             }
                             if (newAttributes) {
@@ -2841,8 +2841,8 @@ export function applySugar({
                                     if (comp) {
                                         preSugarIndsFoundInAttributes.push(
                                             ...findPreSugarIndsAndMarkFromSugar(
-                                                comp.children
-                                            )
+                                                comp.children,
+                                            ),
                                         );
                                     }
                                 }
@@ -2860,7 +2860,7 @@ export function applySugar({
                                     .every((v, i) => v === i)
                             ) {
                                 throw Error(
-                                    `Invalid sugar for ${componentType} as didn't return set of original components`
+                                    `Invalid sugar for ${componentType} as didn't return set of original components`,
                                 );
                             }
 
@@ -2871,11 +2871,12 @@ export function applySugar({
                                 if (
                                     !sortedList.every(
                                         (v, i) =>
-                                            v === preSugarIndsFoundInChildren[i]
+                                            v ===
+                                            preSugarIndsFoundInChildren[i],
                                     )
                                 ) {
                                     throw Error(
-                                        `Invalid sugar for ${componentType} as didn't return original components in order`
+                                        `Invalid sugar for ${componentType} as didn't return original components in order`,
                                     );
                                 }
                             }
@@ -2883,7 +2884,7 @@ export function applySugar({
                             if (sugarResults.parametersForChildrenSugar) {
                                 Object.assign(
                                     newParentParametersFromSugar,
-                                    sugarResults.parametersForChildrenSugar
+                                    sugarResults.parametersForChildrenSugar,
                                 );
                             }
 
@@ -2899,7 +2900,7 @@ export function applySugar({
                                 }
                                 Object.assign(
                                     component.attributes,
-                                    newAttributes
+                                    newAttributes,
                                 );
                             }
                         }
@@ -2908,7 +2909,7 @@ export function applySugar({
 
                 if (componentClass.removeBlankStringChildrenPostSugar) {
                     component.children = component.children.filter(
-                        (x) => typeof x !== "string" || /\S/.test(x)
+                        (x) => typeof x !== "string" || /\S/.test(x),
                     );
                 }
 
@@ -3026,7 +3027,7 @@ function breakStringInPiecesBySpacesOrParens(string) {
 
 export function countRegularComponentTypesInNamespace(
     serializedComponents,
-    componentCounts = {}
+    componentCounts = {},
 ) {
     for (let serializedComponent of serializedComponents) {
         if (typeof serializedComponent === "object") {
@@ -3058,7 +3059,7 @@ export function countRegularComponentTypesInNamespace(
                 // if don't have new namespace, recurse to children
                 componentCounts = countRegularComponentTypesInNamespace(
                     serializedComponent.children,
-                    componentCounts
+                    componentCounts,
                 );
             }
         }
@@ -3069,7 +3070,7 @@ export function countRegularComponentTypesInNamespace(
 
 export function renameAutonameBasedOnNewCounts(
     serializedComponents,
-    newComponentCounts = {}
+    newComponentCounts = {},
 ) {
     let componentCounts = { ...newComponentCounts };
 
@@ -3102,21 +3103,21 @@ export function renameAutonameBasedOnNewCounts(
                         serializedComponent.componentName.lastIndexOf("/");
                     let originalName =
                         serializedComponent.componentName.substring(
-                            lastSlash + 1
+                            lastSlash + 1,
                         );
                     let nameStartFromComponentType =
                         "_" + componentType.toLowerCase();
                     if (
                         originalName.substring(
                             0,
-                            nameStartFromComponentType.length
+                            nameStartFromComponentType.length,
                         ) === nameStartFromComponentType
                     ) {
                         // recreate using new count
                         serializedComponent.componentName =
                             serializedComponent.componentName.substring(
                                 0,
-                                lastSlash + 1
+                                lastSlash + 1,
                             ) +
                             nameStartFromComponentType +
                             count;
@@ -3131,7 +3132,7 @@ export function renameAutonameBasedOnNewCounts(
                 // if don't have new namespace, recurse to children
                 componentCounts = renameAutonameBasedOnNewCounts(
                     serializedComponent.children,
-                    componentCounts
+                    componentCounts,
                 );
             }
         }
@@ -3246,7 +3247,7 @@ export function createComponentNames({
                 } else if (lowercaseKey === "assignnames") {
                     if (assignNames === undefined) {
                         let result = breakStringInPiecesBySpacesOrParens(
-                            props[key]
+                            props[key],
                         );
                         if (result.success) {
                             assignNames = result.pieces;
@@ -3319,7 +3320,7 @@ export function createComponentNames({
 
             if (serializedComponent.downstreamDependencies) {
                 longNameId += JSON.stringify(
-                    serializedComponent.downstreamDependencies
+                    serializedComponent.downstreamDependencies,
                 );
             } else {
                 longNameId +=
@@ -3328,7 +3329,7 @@ export function createComponentNames({
 
             prescribedName = createUniqueName(
                 componentType.toLowerCase(),
-                longNameId
+                longNameId,
             );
         }
 
@@ -3380,7 +3381,7 @@ export function createComponentNames({
                                 foundError = true;
                                 if (!errorMessage) {
                                     errorMessage = `Invalid assignNames: ${assignNamesToString(
-                                        assignNames
+                                        assignNames,
                                     )}.  All assigned names must begin with a letter.`;
                                 }
                                 assignNames = undefined;
@@ -3391,7 +3392,7 @@ export function createComponentNames({
                                 foundError = true;
                                 if (!errorMessage) {
                                     errorMessage = `Invalid assignNames: ${assignNamesToString(
-                                        assignNames
+                                        assignNames,
                                     )}.  Assigned names can contain only letters, numbers, hyphens, and underscores.`;
                                 }
                                 assignNames = undefined;
@@ -3407,7 +3408,7 @@ export function createComponentNames({
                         foundError = true;
                         if (!errorMessage) {
                             errorMessage = `A name is duplicated in assignNames: ${assignNamesToString(
-                                assignNames
+                                assignNames,
                             )}.`;
                         }
                         assignNames = undefined;
@@ -3460,7 +3461,7 @@ export function createComponentNames({
                     let lastInd =
                         serializedComponent.originalName.lastIndexOf("/");
                     prescribedName = serializedComponent.originalName.substring(
-                        lastInd + 1
+                        lastInd + 1,
                     );
                     // } else if (serializedComponent.componentName) {
                     //   let lastInd = serializedComponent.componentName.lastIndexOf("/");
@@ -3472,7 +3473,7 @@ export function createComponentNames({
                     let longNameId = parentName + "|createUniqueName|";
                     if (serializedComponent.downstreamDependencies) {
                         longNameId += JSON.stringify(
-                            serializedComponent.downstreamDependencies
+                            serializedComponent.downstreamDependencies,
                         );
                     } else {
                         longNameId +=
@@ -3485,7 +3486,7 @@ export function createComponentNames({
 
                     prescribedName = createUniqueName(
                         componentType.toLowerCase(),
-                        longNameId
+                        longNameId,
                     );
                 } else {
                     prescribedName = "_" + componentType.toLowerCase() + count;
@@ -3544,7 +3545,7 @@ export function createComponentNames({
 
             if (serializedComponent.downstreamDependencies) {
                 longNameId += JSON.stringify(
-                    serializedComponent.downstreamDependencies
+                    serializedComponent.downstreamDependencies,
                 );
             } else {
                 longNameId +=
@@ -3553,7 +3554,7 @@ export function createComponentNames({
 
             prescribedName = createUniqueName(
                 serializedComponent.componentType,
-                longNameId
+                longNameId,
             );
         } else if (
             (serializedComponent.componentType === "copy" ||
@@ -3592,7 +3593,7 @@ export function createComponentNames({
                 if (!errorMessage) {
                     let lastSlash = componentName.lastIndexOf("/");
                     let componentNameRelative = componentName.slice(
-                        lastSlash + 1
+                        lastSlash + 1,
                     );
                     errorMessage = `Duplicate component name: ${componentNameRelative}.`;
                 }
@@ -3632,7 +3633,7 @@ export function createComponentNames({
                 let lastInd = serializedComponent.originalName.lastIndexOf("/");
                 oldNamespace = serializedComponent.originalName.slice(
                     0,
-                    lastInd + 1
+                    lastInd + 1,
                 );
             } else {
                 namespace = componentName + "/";
@@ -3654,7 +3655,7 @@ export function createComponentNames({
 
         renameMatchingTargetNames(
             serializedComponent,
-            attributesByTargetComponentName
+            attributesByTargetComponentName,
         );
 
         if (target) {
@@ -3803,7 +3804,7 @@ export function createComponentNames({
                 // if (assignNames && !componentClass.assignNamesToChildren) {
                 if (assignNames) {
                     flattenDeep(assignNames).forEach(
-                        (x) => (namesUsed[x] = true)
+                        (x) => (namesUsed[x] = true),
                     );
                 }
 
@@ -3862,7 +3863,7 @@ export function createComponentNames({
                             if (
                                 Boolean(
                                     child.doenetAttributes
-                                        ?.ignoreParentNewNamespace
+                                        ?.ignoreParentNewNamespace,
                                 ) === addingNewNamespace
                             ) {
                                 break;
@@ -3880,7 +3881,7 @@ export function createComponentNames({
                             // so give the child a unique name
                             nextChildren.forEach(
                                 (child) =>
-                                    (child.doenetAttributes.createUniqueName = true)
+                                    (child.doenetAttributes.createUniqueName = true),
                             );
                         }
 
@@ -4025,7 +4026,7 @@ function createNewAssignNamesAndrenameMatchingTargetNames({
             renameMatchingTargetNames(
                 infoForRenaming,
                 attributesByTargetComponentName,
-                true
+                true,
             );
         }
     }
@@ -4111,7 +4112,7 @@ let nanInfinityReviver = function (key, value) {
 export function serializedComponentsReviver(key, value) {
     return me.reviver(
         key,
-        subsets.Subset.reviver(key, nanInfinityReviver(key, value))
+        subsets.Subset.reviver(key, nanInfinityReviver(key, value)),
     );
 }
 
@@ -4190,7 +4191,7 @@ export function processAssignNames({
             let lastSlash = component.originalName.lastIndexOf("/");
             let originalNamespace = component.originalName.substring(
                 0,
-                lastSlash
+                lastSlash,
             );
 
             setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames(
@@ -4198,7 +4199,7 @@ export function processAssignNames({
                     namespace: originalNamespace,
                     components: [component],
                     attributesByTargetComponentName,
-                }
+                },
             );
         }
     }
@@ -4287,7 +4288,7 @@ export function processAssignNames({
                     component.doenetAttributes.prescribedName =
                         createUniqueName(
                             component.componentType.toLowerCase(),
-                            longNameId
+                            longNameId,
                         );
                 }
 
@@ -4356,7 +4357,7 @@ export function processAssignNames({
                 }
                 name = createUniqueName(
                     component.componentType.toLowerCase(),
-                    longNameId
+                    longNameId,
                 );
             }
         }
@@ -4474,7 +4475,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                     attributesByTargetComponentName[targetComponentName] = [];
                 }
                 attributesByTargetComponentName[targetComponentName].push(
-                    component.doenetAttributes
+                    component.doenetAttributes,
                 );
             }
         }
@@ -4495,7 +4496,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             attributesByTargetComponentName[absoluteName] = [];
                         }
                         attributesByTargetComponentName[absoluteName].push(
-                            nameObj
+                            nameObj,
                         );
                     }
                 }
@@ -4508,7 +4509,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                     namespace,
                     components: component.children,
                     attributesByTargetComponentName,
-                }
+                },
             );
         }
         if (component.attributes) {
@@ -4520,7 +4521,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             namespace,
                             components: [attribute.component],
                             attributesByTargetComponentName,
-                        }
+                        },
                     );
                 } else if (attribute.childrenForComponent) {
                     setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames(
@@ -4528,7 +4529,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
                             namespace,
                             components: attribute.childrenForComponent,
                             attributesByTargetComponentName,
-                        }
+                        },
                     );
                 }
             }
@@ -4539,7 +4540,7 @@ function setTargetsOutsideNamespaceToAbsoluteAndRecordAllTargetComponentNames({
 function renameMatchingTargetNames(
     component,
     attributesByTargetComponentName,
-    renameMatchingNamespaces = false
+    renameMatchingNamespaces = false,
 ) {
     if (
         component.originalName &&
@@ -4612,7 +4613,7 @@ function moveComponentNamesToOriginalNames(components) {
                     moveComponentNamesToOriginalNames([attribute.component]);
                 } else if (attribute.childrenForComponent) {
                     moveComponentNamesToOriginalNames(
-                        attribute.childrenForComponent
+                        attribute.childrenForComponent,
                     );
                 }
             }
@@ -4836,7 +4837,7 @@ export function restrictTNamesToNamespace({
 
 export function extractComponentNamesAndIndices(
     serializedComponents,
-    nameSubstitutions = {}
+    nameSubstitutions = {},
 ) {
     let componentArray = [];
 
@@ -4846,7 +4847,7 @@ export function extractComponentNamesAndIndices(
             for (let originalName in nameSubstitutions) {
                 componentName = componentName.replace(
                     originalName,
-                    nameSubstitutions[originalName]
+                    nameSubstitutions[originalName],
                 );
             }
             if (serializedComponent.doenetAttributes?.fromCopyTarget) {
@@ -4892,8 +4893,8 @@ export function extractComponentNamesAndIndices(
                         serializedComponent.children,
                         {
                             ...nameSubstitutions,
-                        }
-                    )
+                        },
+                    ),
                 );
             }
         }

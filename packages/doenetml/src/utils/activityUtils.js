@@ -63,7 +63,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             errors.push({
                 message: `Invalid activity definition: duplicate attribute ${lowerProp}`,
                 doenetMLrange: convertDoenetMLAttrRange(
-                    serializedDocument.attributeRanges[prop]
+                    serializedDocument.attributeRanges[prop],
                 ),
                 displayInActivity: true,
             });
@@ -87,7 +87,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `Invalid activity definition: invalid itemWeights`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        serializedDocument.attributeRanges.itemweights
+                        serializedDocument.attributeRanges.itemweights,
                     ),
                     displayInActivity: true,
                 });
@@ -129,7 +129,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `Invalid activity definition: unrecognized xmlns`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        serializedDocument.attributeRanges.xmlns
+                        serializedDocument.attributeRanges.xmlns,
                     ),
                     displayInActivity: true,
                 });
@@ -152,7 +152,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             let end = -Infinity;
             for (let prop in documentProps) {
                 let attrRange = convertDoenetMLAttrRange(
-                    serializedDocument.attributeRanges[prop]
+                    serializedDocument.attributeRanges[prop],
                 );
                 begin = Math.min(begin, attrRange.begin);
                 end = Math.max(end, attrRange.end);
@@ -160,7 +160,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
 
             errors.push({
                 message: `Invalid activity definition: invalid document attributes: ${Object.keys(
-                    documentProps
+                    documentProps,
                 ).join(", ")}`,
                 doenetMLrange: { begin, end },
                 displayInActivity: true,
@@ -203,7 +203,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `Invalid activity definition: unrecognized xmlns`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        serializedDocument.attributeRanges.xmlns
+                        serializedDocument.attributeRanges.xmlns,
                     ),
                     displayInActivity: true,
                 });
@@ -237,7 +237,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `duplicate attribute of <order>: ${lowerProp}`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        order.attributeRanges[prop]
+                        order.attributeRanges[prop],
                     ),
                     displayInActivity: true,
                 });
@@ -259,7 +259,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `invalid <order> attribute: ${prop}`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        order.attributeRanges[prop]
+                        order.attributeRanges[prop],
                     ),
                     displayInActivity: true,
                 });
@@ -268,7 +268,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
 
         // remove blank string children
         let orderChildren = order.children.filter(
-            (x) => typeof x !== "string" || /\S/.test(x)
+            (x) => typeof x !== "string" || /\S/.test(x),
         );
 
         let children = [];
@@ -335,7 +335,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `duplicate attribute of <page>: ${lowerProp}`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        page.attributeRanges[prop]
+                        page.attributeRanges[prop],
                     ),
                     displayInActivity: true,
                 });
@@ -356,7 +356,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
                 errors.push({
                     message: `invalid <page> attribute: ${prop}`,
                     doenetMLrange: convertDoenetMLAttrRange(
-                        page.attributeRanges[prop]
+                        page.attributeRanges[prop],
                     ),
                     displayInActivity: true,
                 });
@@ -376,7 +376,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             try {
                 newPage.doenetML = await retrieveTextFileForCid(
                     newPage.cid,
-                    "doenet"
+                    "doenet",
                 );
             } catch (e) {
                 errors.push({
@@ -417,7 +417,7 @@ export async function parseActivityDefinition(activityDoenetML, activityCid) {
             // To calculate the cid, however, we use doenetML of just the page
             let pageDoenetML = activityDoenetML.slice(
                 page.doenetMLrange.openEnd,
-                page.doenetMLrange.closeBegin - 1
+                page.doenetMLrange.closeBegin - 1,
             );
             newPage.cid = await cidFromText(pageDoenetML);
         } else {
@@ -459,7 +459,7 @@ function removeOuterBlankStrings(serializedComponents) {
 
     serializedComponents = serializedComponents.slice(
         firstNonBlankInd,
-        lastNonBlankInd + 1
+        lastNonBlankInd + 1,
     );
 
     return serializedComponents;
@@ -471,9 +471,8 @@ export async function calculateOrderAndVariants({
 }) {
     let errors = [];
 
-    let activityVariantResult = await determineNumberOfActivityVariants(
-        activityDefinition
-    );
+    let activityVariantResult =
+        await determineNumberOfActivityVariants(activityDefinition);
 
     let variantIndex =
         ((requestedVariantIndex - 1) % activityVariantResult.numVariants) + 1;
@@ -545,7 +544,7 @@ export async function calculateOrderAndVariants({
                 returnAllPossibleVariants({
                     doenetML: page.doenetML,
                     serializedComponents: page.children,
-                })
+                }),
             );
         }
 
@@ -576,7 +575,7 @@ export async function calculateOrderAndVariants({
 
     let numberOfPageVariantCombinations = numVariantsPerPage.reduce(
         (a, c) => a * c,
-        1
+        1,
     );
 
     if (numberOfPageVariantCombinations <= activityVariantResult.numVariants) {
@@ -589,13 +588,12 @@ export async function calculateOrderAndVariants({
         })[pageVariantCombinationIndex - 1].map((x) => x + 1);
     } else {
         variantsByPage = [...Array(nPages).keys()].map(
-            (i) => Math.floor(rng() * numVariantsPerPage[i]) + 1
+            (i) => Math.floor(rng() * numVariantsPerPage[i]) + 1,
         );
     }
 
-    let previousComponentTypeCounts = await initializeComponentTypeCounts(
-        activityPages
-    );
+    let previousComponentTypeCounts =
+        await initializeComponentTypeCounts(activityPages);
 
     let activityInfo = {
         orderWithCids: activityPages,
@@ -635,7 +633,7 @@ export async function determineNumberOfActivityVariants(activityDefinition) {
                 returnAllPossibleVariants({
                     doenetML: page.doenetML,
                     serializedComponents: page.children,
-                })
+                }),
             );
         }
 
@@ -768,7 +766,7 @@ function processSelectOrder(order, rng) {
     //https://stackoverflow.com/a/44081700
     let cumulativeWeights = selectWeights.reduce(
         (a, x, i) => [...a, x + (a[i - 1] || 0)],
-        []
+        [],
     );
     let indsRemaining = [...Array(cumulativeWeights.length).keys()];
 
@@ -801,7 +799,7 @@ function processSelectOrder(order, rng) {
             selectWeights = selectWeights.map((x) => x / totalWeight);
             cumulativeWeights = selectWeights.reduce(
                 (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                []
+                [],
             );
         }
     }

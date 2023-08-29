@@ -125,7 +125,7 @@ describe("Ion Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -297,7 +297,7 @@ describe("Ion Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -458,7 +458,7 @@ describe("Ion Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -521,7 +521,7 @@ describe("Ion Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -534,13 +534,13 @@ describe("Ion Tests", function () {
                     .componentName;
             let mathinputClAnchor = cesc2("#" + mathinputClName) + " textarea";
             let mathinputClSubmitAnchor = cesc2(
-                "#" + mathinputClName + "_submit"
+                "#" + mathinputClName + "_submit",
             );
             let mathinputClCorrectAnchor = cesc2(
-                "#" + mathinputClName + "_correct"
+                "#" + mathinputClName + "_correct",
             );
             let mathinputClIncorrectAnchor = cesc2(
-                "#" + mathinputClName + "_incorrect"
+                "#" + mathinputClName + "_incorrect",
             );
 
             let mathinputHName =
@@ -548,13 +548,13 @@ describe("Ion Tests", function () {
                     .componentName;
             let mathinputHAnchor = cesc2("#" + mathinputHName) + " textarea";
             let mathinputHSubmitAnchor = cesc2(
-                "#" + mathinputHName + "_submit"
+                "#" + mathinputHName + "_submit",
             );
             let mathinputHCorrectAnchor = cesc2(
-                "#" + mathinputHName + "_correct"
+                "#" + mathinputHName + "_correct",
             );
             let mathinputHIncorrectAnchor = cesc2(
-                "#" + mathinputHName + "_incorrect"
+                "#" + mathinputHName + "_incorrect",
             );
 
             let mathinputMgName =
@@ -562,13 +562,13 @@ describe("Ion Tests", function () {
                     .componentName;
             let mathinputMgAnchor = cesc2("#" + mathinputMgName) + " textarea";
             let mathinputMgSubmitAnchor = cesc2(
-                "#" + mathinputMgName + "_submit"
+                "#" + mathinputMgName + "_submit",
             );
             let mathinputMgCorrectAnchor = cesc2(
-                "#" + mathinputMgName + "_correct"
+                "#" + mathinputMgName + "_correct",
             );
             let mathinputMgIncorrectAnchor = cesc2(
-                "#" + mathinputMgName + "_incorrect"
+                "#" + mathinputMgName + "_incorrect",
             );
 
             let mathinputPName =
@@ -576,13 +576,13 @@ describe("Ion Tests", function () {
                     .componentName;
             let mathinputPAnchor = cesc2("#" + mathinputPName) + " textarea";
             let mathinputPSubmitAnchor = cesc2(
-                "#" + mathinputPName + "_submit"
+                "#" + mathinputPName + "_submit",
             );
             let mathinputPCorrectAnchor = cesc2(
-                "#" + mathinputPName + "_correct"
+                "#" + mathinputPName + "_correct",
             );
             let mathinputPIncorrectAnchor = cesc2(
-                "#" + mathinputPName + "_incorrect"
+                "#" + mathinputPName + "_incorrect",
             );
 
             let mathinputSName =
@@ -590,13 +590,13 @@ describe("Ion Tests", function () {
                     .componentName;
             let mathinputSAnchor = cesc2("#" + mathinputSName) + " textarea";
             let mathinputSSubmitAnchor = cesc2(
-                "#" + mathinputSName + "_submit"
+                "#" + mathinputSName + "_submit",
             );
             let mathinputSCorrectAnchor = cesc2(
-                "#" + mathinputSName + "_correct"
+                "#" + mathinputSName + "_correct",
             );
             let mathinputSIncorrectAnchor = cesc2(
-                "#" + mathinputSName + "_incorrect"
+                "#" + mathinputSName + "_incorrect",
             );
 
             cy.get(mathinputClAnchor).type("Cl{enter}", { force: true });

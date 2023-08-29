@@ -20,7 +20,7 @@ export function returnStandardTriggeringAttributes(triggerActionOnChange) {
 
 export function addStandardTriggeringStateVariableDefinitions(
     stateVariableDefinitions,
-    triggeredAction
+    triggeredAction,
 ) {
     stateVariableDefinitions.insideTriggerSet = {
         returnDependencies: () => ({

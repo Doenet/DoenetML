@@ -163,7 +163,7 @@ export default class FunctionOperator extends Function {
                     setValue: {
                         formula:
                             dependencyValues.formulaOperator(
-                                formulaPreOperator
+                                formulaPreOperator,
                             ),
                         operatorBasedOnFormula: true,
                     },
@@ -292,14 +292,14 @@ export default class FunctionOperator extends Function {
                                             dependencyValuesWithChildFormula.variables,
                                         domain: globalDependencyValues.domain,
                                         component: ind,
-                                    })
+                                    }),
                                 );
                             }
                             let symbolicfs = {};
                             for (let arrayKey of arrayKeys) {
                                 symbolicfs[arrayKey] = (...xs) =>
                                     globalDependencyValues.symbolicFunctionOperator(
-                                        ...childFs.map((cf) => cf(...xs))
+                                        ...childFs.map((cf) => cf(...xs)),
                                     );
                             }
 
@@ -312,14 +312,14 @@ export default class FunctionOperator extends Function {
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             childFs.push(
                                 globalDependencyValues.functionChild[0]
-                                    .stateValues.symbolicfs[ind]
+                                    .stateValues.symbolicfs[ind],
                             );
                         }
                         let symbolicfs = {};
                         for (let arrayKey of arrayKeys) {
                             symbolicfs[arrayKey] = (...xs) =>
                                 globalDependencyValues.symbolicFunctionOperator(
-                                    ...childFs.map((cf) => cf(...xs))
+                                    ...childFs.map((cf) => cf(...xs)),
                                 );
                         }
 
@@ -332,7 +332,7 @@ export default class FunctionOperator extends Function {
                     for (let arrayKey of arrayKeys) {
                         symbolicfs[arrayKey] = (...xs) =>
                             globalDependencyValues.symbolicFunctionOperator(
-                                ...xs
+                                ...xs,
                             );
                     }
 
@@ -451,14 +451,14 @@ export default class FunctionOperator extends Function {
                                             globalDependencyValues.variables,
                                         domain: globalDependencyValues.domain,
                                         component: ind,
-                                    })
+                                    }),
                                 );
                             }
                             let numericalfs = {};
                             for (let arrayKey of arrayKeys) {
                                 numericalfs[arrayKey] = (...xs) =>
                                     globalDependencyValues.numericalFunctionOperator(
-                                        ...childFs.map((cf) => cf(...xs))
+                                        ...childFs.map((cf) => cf(...xs)),
                                     );
                             }
 
@@ -471,14 +471,14 @@ export default class FunctionOperator extends Function {
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             childFs.push(
                                 globalDependencyValues.functionChild[0]
-                                    .stateValues.numericalfs[ind]
+                                    .stateValues.numericalfs[ind],
                             );
                         }
                         let numericalfs = {};
                         for (let arrayKey of arrayKeys) {
                             numericalfs[arrayKey] = (...xs) =>
                                 globalDependencyValues.numericalFunctionOperator(
-                                    ...childFs.map((cf) => cf(...xs))
+                                    ...childFs.map((cf) => cf(...xs)),
                                 );
                         }
 
@@ -491,7 +491,7 @@ export default class FunctionOperator extends Function {
                     for (let arrayKey of arrayKeys) {
                         numericalfs[arrayKey] = (...xs) =>
                             globalDependencyValues.numericalFunctionOperator(
-                                ...xs
+                                ...xs,
                             );
                     }
 
@@ -580,7 +580,7 @@ export default class FunctionOperator extends Function {
                             functionType: "formula",
                             formula: globalDependencyValues.formula.tree,
                             variables: globalDependencyValues.variables.map(
-                                (x) => x.tree
+                                (x) => x.tree,
                             ),
                             numInputs: globalDependencyValues.numInputs,
                             numOutputs: globalDependencyValues.numOutputs,
@@ -603,7 +603,7 @@ export default class FunctionOperator extends Function {
                                     formula: "\uff3f",
                                     variables:
                                         globalDependencyValues.variables.map(
-                                            (x) => x.tree
+                                            (x) => x.tree,
                                         ),
                                     numInputs: globalDependencyValues.numInputs,
                                     numOutputs:
@@ -617,7 +617,7 @@ export default class FunctionOperator extends Function {
                         } else {
                             // TODO: is this case with a math child used anywhere?
                             throw Error(
-                                "function operator with math child not implemented yet"
+                                "function operator with math child not implemented yet",
                             );
                         }
                     } else {
@@ -649,7 +649,7 @@ export default class FunctionOperator extends Function {
                                     formula: "\uff3f",
                                     variables:
                                         globalDependencyValues.variables.map(
-                                            (x) => x.tree
+                                            (x) => x.tree,
                                         ),
                                     numInputs: globalDependencyValues.numInputs,
                                     numOutputs:
@@ -663,7 +663,7 @@ export default class FunctionOperator extends Function {
                         } else {
                             // TODO: is this case with a math child used anywhere?
                             throw Error(
-                                "function operator with math child not implemented yet"
+                                "function operator with math child not implemented yet",
                             );
                         }
                     } else {
@@ -702,7 +702,7 @@ export default class FunctionOperator extends Function {
         let originalAllMinimaReturnDeps =
             stateVariableDefinitions.allMinima.returnDependencies;
         stateVariableDefinitions.allMinima.returnDependencies = function (
-            args
+            args,
         ) {
             let dependencies = originalAllMinimaReturnDeps(args);
             delete dependencies.functionChildrenInfoToCalculateExtrema;
@@ -713,7 +713,7 @@ export default class FunctionOperator extends Function {
         let originalAllMaximaReturnDeps =
             stateVariableDefinitions.allMaxima.returnDependencies;
         stateVariableDefinitions.allMaxima.returnDependencies = function (
-            args
+            args,
         ) {
             let dependencies = originalAllMaximaReturnDeps(args);
             delete dependencies.functionChildrenInfoToCalculateExtrema;

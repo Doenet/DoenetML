@@ -42,7 +42,7 @@ describe("Lorem Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -58,13 +58,13 @@ describe("Lorem Tag Tests", function () {
                 nWords = 3;
 
             expect(stateVariables["/paragraphs/lPars"].replacements.length).eq(
-                nParagraphs
+                nParagraphs,
             );
             expect(stateVariables["/sentences/lSens"].replacements.length).eq(
-                2 * nSentences - 1
+                2 * nSentences - 1,
             );
             expect(stateVariables["/words/lWords"].replacements.length).eq(
-                2 * nWords - 1
+                2 * nWords - 1,
             );
 
             for (let [ind, repl] of stateVariables[
@@ -72,7 +72,7 @@ describe("Lorem Tag Tests", function () {
             ].replacements.entries()) {
                 cy.get(cesc2(`#/paragraphs/${names[ind]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
 
@@ -84,7 +84,7 @@ describe("Lorem Tag Tests", function () {
                 }
                 cy.get(cesc2(`#/sentences/${names[ind / 2]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
 
@@ -96,22 +96,22 @@ describe("Lorem Tag Tests", function () {
                 }
                 cy.get(cesc2(`#/words/${names[ind / 2]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
         });
 
         cy.get(cesc2("#/paragraphs/numPars") + " textarea").type(
             "{end}{backspace}6{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sentences/numSens") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/words/numWords") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/numWords")).should("contain.text", "5");
@@ -124,13 +124,13 @@ describe("Lorem Tag Tests", function () {
                 nWords = 5;
 
             expect(stateVariables["/paragraphs/lPars"].replacements.length).eq(
-                nParagraphs
+                nParagraphs,
             );
             expect(stateVariables["/sentences/lSens"].replacements.length).eq(
-                2 * nSentences - 1
+                2 * nSentences - 1,
             );
             expect(stateVariables["/words/lWords"].replacements.length).eq(
-                2 * nWords - 1
+                2 * nWords - 1,
             );
 
             for (let [ind, repl] of stateVariables[
@@ -138,7 +138,7 @@ describe("Lorem Tag Tests", function () {
             ].replacements.entries()) {
                 cy.get(cesc2(`#/paragraphs/${names[ind]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
 
@@ -150,7 +150,7 @@ describe("Lorem Tag Tests", function () {
                 }
                 cy.get(cesc2(`#/sentences/${names[ind / 2]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
 
@@ -162,7 +162,7 @@ describe("Lorem Tag Tests", function () {
                 }
                 cy.get(cesc2(`#/words/${names[ind / 2]}`)).should(
                     "have.text",
-                    stateVariables[repl.componentName].activeChildren[0]
+                    stateVariables[repl.componentName].activeChildren[0],
                 );
             }
         });
@@ -179,7 +179,7 @@ describe("Lorem Tag Tests", function () {
   `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -210,7 +210,7 @@ describe("Lorem Tag Tests", function () {
   `,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -224,7 +224,7 @@ describe("Lorem Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/lPars"].replacements[0].componentName
-                ].activeChildren[0]
+                ].activeChildren[0],
             ).eq(paragraph0);
             cy.get(cesc2("#/a")).should("have.text", paragraph0);
         });
@@ -239,7 +239,7 @@ describe("Lorem Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -270,7 +270,7 @@ describe("Lorem Tag Tests", function () {
   `,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -285,7 +285,7 @@ describe("Lorem Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/lPars"].replacements[0].componentName
-                ].activeChildren[0]
+                ].activeChildren[0],
             ).eq(paragraph1);
             cy.get(cesc2("#/a")).should("have.text", paragraph1);
         });

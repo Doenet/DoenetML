@@ -19,7 +19,7 @@ describe("Slider Tag Tests", function () {
   <p>Value: <number name="sv">$s</number></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -88,7 +88,7 @@ describe("Slider Tag Tests", function () {
   </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -101,7 +101,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "0"
+            "0",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -125,7 +125,7 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "1");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "1"
+            "1",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -149,7 +149,7 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "9");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "9"
+            "9",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -170,13 +170,13 @@ describe("Slider Tag Tests", function () {
             "{end}{backspace}2.5{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "3");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -195,7 +195,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         // use booleaninput to wait, since above has no effect
         cy.get(cesc("#\\/bi")).click();
@@ -204,7 +204,7 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "3");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "3"
+            "3",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -220,7 +220,7 @@ describe("Slider Tag Tests", function () {
         });
 
         cy.log(
-            "drag handle past below document and past end sets to maximum 10"
+            "drag handle past below document and past end sets to maximum 10",
         );
         cy.get(cesc("#\\/_document1"))
             .trigger("mousedown", numberToPx2(3), 50)
@@ -230,13 +230,13 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "10");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10"
+                    "10",
                 );
             });
 
@@ -253,7 +253,7 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "6");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "6"
+            "6",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -274,7 +274,7 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "2");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "2"
+            "2",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -296,13 +296,13 @@ describe("Slider Tag Tests", function () {
             200,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "0");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "0"
+            "0",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -324,13 +324,13 @@ describe("Slider Tag Tests", function () {
             300,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "7");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "contain.text",
-            "7"
+            "7",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
@@ -357,7 +357,7 @@ describe("Slider Tag Tests", function () {
   <p>Change value: <mathinput name="mi" bindValueTo="$s" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -410,13 +410,13 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "9.4");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "9.4"
+            "9.4",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "9.4"
+                    "9.4",
                 );
             });
 
@@ -431,7 +431,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2.5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "2.5");
@@ -440,7 +440,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "2.5"
+                    "2.5",
                 );
             });
 
@@ -463,7 +463,7 @@ describe("Slider Tag Tests", function () {
   <p>Change value: <mathinput name="mi" bindValueTo="$s" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -477,7 +477,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "100"
+                    "100",
                 );
             });
 
@@ -497,13 +497,13 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "137");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "137"
+            "137",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "137"
+                    "137",
                 );
             });
 
@@ -523,13 +523,13 @@ describe("Slider Tag Tests", function () {
         cy.get(cesc("#\\/sv")).should("have.text", "199");
         cy.get(cesc("#\\/mi") + " .mq-editable-field").should(
             "have.text",
-            "199"
+            "199",
         );
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "199"
+                    "199",
                 );
             });
 
@@ -544,7 +544,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}2.5{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "100");
@@ -553,7 +553,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "100"
+                    "100",
                 );
             });
 
@@ -568,7 +568,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}357{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "200");
@@ -577,7 +577,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "200"
+                    "200",
                 );
             });
 
@@ -592,7 +592,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}171{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "171");
@@ -601,7 +601,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "171"
+                    "171",
                 );
             });
 
@@ -624,7 +624,7 @@ describe("Slider Tag Tests", function () {
   <p>Change value: <mathinput name="mi" bindValueTo="$s" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -673,7 +673,7 @@ describe("Slider Tag Tests", function () {
             "{end}{backspace}4.2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "4");
@@ -703,7 +703,7 @@ describe("Slider Tag Tests", function () {
   <p>Change value: <mathinput name="mi" bindValueTo="$s" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -763,7 +763,7 @@ describe("Slider Tag Tests", function () {
             "{end}{backspace}4.2{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "4");
@@ -792,7 +792,7 @@ describe("Slider Tag Tests", function () {
             "{end}{backspace}8.7{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "9");
@@ -800,7 +800,7 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "8.7"
+                    "8.7",
                 );
             });
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
@@ -821,7 +821,7 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mi0") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "0");
@@ -876,7 +876,7 @@ describe("Slider Tag Tests", function () {
             "{end}{backspace}999{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/sv")).should("have.text", "10");
@@ -884,14 +884,14 @@ describe("Slider Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "999"
+                    "999",
                 );
             });
         cy.get(cesc("#\\/mi") + " .mq-editable-field")
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                    "10"
+                    "10",
                 );
             });
 
@@ -914,7 +914,7 @@ describe("Slider Tag Tests", function () {
   <p>Value: <number name="sv">$s</number></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -932,7 +932,7 @@ describe("Slider Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/s"].stateValues.value).eq(0);
             expect(stateVariables["/s"].stateValues.label).eq(
-                "Hello \\(x^2\\)"
+                "Hello \\(x^2\\)",
             );
             expect(stateVariables["/sv"].stateValues.value).eq(0);
         });
@@ -952,7 +952,7 @@ describe("Slider Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/s"].stateValues.value).eq(1);
             expect(stateVariables["/s"].stateValues.label).eq(
-                "Hello \\(x^2\\)"
+                "Hello \\(x^2\\)",
             );
             expect(stateVariables["/sv"].stateValues.value).eq(1);
         });
@@ -968,7 +968,7 @@ describe("Slider Tag Tests", function () {
   <p>Value: <number name="sv">$mySlider</number></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -985,7 +985,7 @@ describe("Slider Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mySlider"].stateValues.value).eq(0);
             expect(stateVariables["/mySlider"].stateValues.label).eq(
-                "my slider"
+                "my slider",
             );
             expect(stateVariables["/sv"].stateValues.value).eq(0);
         });
@@ -1000,14 +1000,14 @@ describe("Slider Tag Tests", function () {
 
         cy.get(cesc("#\\/mySlider-label")).should(
             "contain.text",
-            "my slider = 1"
+            "my slider = 1",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/mySlider"].stateValues.value).eq(1);
             expect(stateVariables["/mySlider"].stateValues.label).eq(
-                "my slider"
+                "my slider",
             );
             expect(stateVariables["/sv"].stateValues.value).eq(1);
         });

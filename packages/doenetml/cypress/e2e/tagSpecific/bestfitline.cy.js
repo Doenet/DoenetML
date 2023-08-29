@@ -31,7 +31,7 @@ describe("BestFitLine Tag Tests", function () {
       <p name="data">data: <aslist>$l.data</aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -133,7 +133,7 @@ describe("BestFitLine Tag Tests", function () {
       $l.equation{assignNames="eq"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -173,7 +173,7 @@ describe("BestFitLine Tag Tests", function () {
       $l.equation{assignNames="eq"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -214,7 +214,7 @@ describe("BestFitLine Tag Tests", function () {
       $l.equation{assignNames="eq"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -293,7 +293,7 @@ describe("BestFitLine Tag Tests", function () {
       $l.equation{assignNames="eq"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -399,7 +399,7 @@ describe("BestFitLine Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -492,7 +492,7 @@ describe("BestFitLine Tag Tests", function () {
       $l.equation{assignNames="eq"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -585,7 +585,7 @@ describe("BestFitLine Tag Tests", function () {
       <p name="data2">data2: <aslist>$l2.data</aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

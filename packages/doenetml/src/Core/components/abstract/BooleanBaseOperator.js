@@ -77,8 +77,8 @@ export default class BooleanOperator extends BooleanComponent {
                     setValue: {
                         value: constructor.applyBooleanOperator(
                             dependencyValues.booleanChildren.map(
-                                (x) => x.stateValues.value
-                            )
+                                (x) => x.stateValues.value,
+                            ),
                         ),
                     },
                 };

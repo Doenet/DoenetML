@@ -147,14 +147,14 @@ export default React.memo(function Curve(props) {
             newCurveJXG = board.create(
                 "curve",
                 [f1, f2, SVs.parMin, SVs.parMax],
-                curveAttributes
+                curveAttributes,
             );
         } else if (SVs.curveType === "bezier") {
             let fs = createFunctionFromDefinition(SVs.fDefinitions[0]);
             newCurveJXG = board.create(
                 "curve",
                 [fs[0], fs[1], SVs.parMin, SVs.parMax],
-                curveAttributes
+                curveAttributes,
             );
         } else {
             let f = createFunctionFromDefinition(SVs.fDefinitions[0]);
@@ -166,7 +166,7 @@ export default React.memo(function Curve(props) {
                 newCurveJXG = board.create(
                     "curve",
                     [f, (x) => x, minForF, maxForF],
-                    curveAttributes
+                    curveAttributes,
                 );
             } else {
                 let xmin = SVs.graphXmin;
@@ -176,7 +176,7 @@ export default React.memo(function Curve(props) {
                 newCurveJXG = board.create(
                     "functiongraph",
                     [f, minForF, maxForF],
-                    curveAttributes
+                    curveAttributes,
                 );
             }
             previousFlipFunction.current = SVs.flipFunction;
@@ -295,29 +295,29 @@ export default React.memo(function Curve(props) {
             let tp = board.create(
                 "point",
                 [...SVs.numericalThroughPoints[i]],
-                throughPointAttributes.current
+                throughPointAttributes.current,
             );
             throughPointsJXG.current.push(tp);
             let cp1 = board.create(
                 "point",
                 [...SVs.numericalControlPoints[i][0]],
-                controlPointAttributes.current
+                controlPointAttributes.current,
             );
             let cp2 = board.create(
                 "point",
                 [...SVs.numericalControlPoints[i][1]],
-                controlPointAttributes.current
+                controlPointAttributes.current,
             );
             controlPointsJXG.current.push([cp1, cp2]);
             let seg1 = board.create(
                 "segment",
                 [tp, cp1],
-                segmentAttributes.current
+                segmentAttributes.current,
             );
             let seg2 = board.create(
                 "segment",
                 [tp, cp2],
-                segmentAttributes.current
+                segmentAttributes.current,
             );
             segmentsJXG.current.push([seg1, seg2]);
             tp.on("drag", (e) => dragThroughPoint(i));
@@ -344,7 +344,7 @@ export default React.memo(function Curve(props) {
                         y.off("down");
                         board.removeObject(y);
                     }
-                })
+                }),
             );
             segmentsJXG.current = [];
             controlPointsJXG.current.forEach((x) =>
@@ -355,7 +355,7 @@ export default React.memo(function Curve(props) {
                         y.off("up");
                         board.removeObject(y);
                     }
-                })
+                }),
             );
             controlPointsJXG.current = [];
             throughPointsJXG.current.forEach((x) => {
@@ -387,7 +387,7 @@ export default React.memo(function Curve(props) {
 
         throughPointsJXG.current[i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastThroughPointPositionsFromCore.current[i]
+            lastThroughPointPositionsFromCore.current[i],
         );
         board.updateInfobox(throughPointsJXG.current[i]);
     }
@@ -434,7 +434,7 @@ export default React.memo(function Curve(props) {
 
         controlPointsJXG.current[point][i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            [...lastControlPointPositionsFromCore.current[point][i]]
+            [...lastControlPointPositionsFromCore.current[point][i]],
         );
         board.updateInfobox(controlPointsJXG.current[point][i]);
     }
@@ -539,7 +539,7 @@ export default React.memo(function Curve(props) {
                 let isVisible =
                     (i > 0 || SVs.extrapolateBackward) &&
                     ["symmetric", "both", "previous"].includes(
-                        vectorControlDirections.current[i]
+                        vectorControlDirections.current[i],
                     );
                 controlPointsJXG.current[i][0].visProp.visible = isVisible;
                 controlPointsJXG.current[i][0].visPropCalc.visible = isVisible;
@@ -556,7 +556,7 @@ export default React.memo(function Curve(props) {
                     (i < throughPointsJXG.current.length - 1 ||
                         SVs.extrapolateForward) &&
                     ["symmetric", "both", "next"].includes(
-                        vectorControlDirections.current[i]
+                        vectorControlDirections.current[i],
                     );
                 controlPointsJXG.current[i][1].visProp.visible = isVisible;
                 controlPointsJXG.current[i][1].visPropCalc.visible = isVisible;
@@ -686,11 +686,11 @@ export default React.memo(function Curve(props) {
                     let ymax = SVs.graphYmax;
                     let minForF = Math.max(
                         ymin - (ymax - ymin) * 0.1,
-                        SVs.parMin
+                        SVs.parMin,
                     );
                     let maxForF = Math.min(
                         ymax + (ymax - ymin) * 0.1,
-                        SVs.parMax
+                        SVs.parMax,
                     );
                     curveJXG.current.minX = () => minForF;
                     curveJXG.current.maxX = () => maxForF;
@@ -700,11 +700,11 @@ export default React.memo(function Curve(props) {
                     let xmax = SVs.graphXmax;
                     let minForF = Math.max(
                         xmin - (xmax - xmin) * 0.1,
-                        SVs.parMin
+                        SVs.parMin,
                     );
                     let maxForF = Math.min(
                         xmax + (xmax - xmin) * 0.1,
-                        SVs.parMax
+                        SVs.parMax,
                     );
                     curveJXG.current.minX = () => minForF;
                     curveJXG.current.maxX = () => maxForF;
@@ -775,7 +775,7 @@ export default React.memo(function Curve(props) {
 
                 let attributesForNewThroughPoints = Object.assign(
                     {},
-                    throughPointAttributes.current
+                    throughPointAttributes.current,
                 );
                 if (
                     throughPointsJXG.current[iPreviousLast].visProp
@@ -784,7 +784,7 @@ export default React.memo(function Curve(props) {
                 ) {
                     Object.assign(
                         attributesForNewThroughPoints,
-                        throughPointAlwaysVisible.current
+                        throughPointAlwaysVisible.current,
                     );
                 }
 
@@ -797,29 +797,29 @@ export default React.memo(function Curve(props) {
                     let tp = board.create(
                         "point",
                         [...SVs.numericalThroughPoints[i]],
-                        attributesForNewThroughPoints
+                        attributesForNewThroughPoints,
                     );
                     throughPointsJXG.current.push(tp);
                     let cp1 = board.create(
                         "point",
                         [...SVs.numericalControlPoints[i][0]],
-                        controlPointAttributes.current
+                        controlPointAttributes.current,
                     );
                     let cp2 = board.create(
                         "point",
                         [...SVs.numericalControlPoints[i][1]],
-                        controlPointAttributes.current
+                        controlPointAttributes.current,
                     );
                     controlPointsJXG.current.push([cp1, cp2]);
                     let seg1 = board.create(
                         "segment",
                         [tp, cp1],
-                        segmentAttributes.current
+                        segmentAttributes.current,
                     );
                     let seg2 = board.create(
                         "segment",
                         [tp, cp2],
-                        segmentAttributes.current
+                        segmentAttributes.current,
                     );
                     segmentsJXG.current.push([seg1, seg2]);
 
@@ -890,7 +890,7 @@ export default React.memo(function Curve(props) {
             // move old points and modify attributes, if needed
             let nOld = Math.min(
                 SVs.numericalThroughPoints.length,
-                previousNumberOfPoints.current
+                previousNumberOfPoints.current,
             );
 
             for (let i = 0; i < nOld; i++) {
@@ -923,13 +923,13 @@ export default React.memo(function Curve(props) {
 
                 throughPointsJXG.current[i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...SVs.numericalThroughPoints[i]]
+                    [...SVs.numericalThroughPoints[i]],
                 );
                 throughPointsJXG.current[i].needsUpdate = true;
                 throughPointsJXG.current[i].update();
                 controlPointsJXG.current[i][0].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...SVs.numericalControlPoints[i][0]]
+                    [...SVs.numericalControlPoints[i][0]],
                 );
                 controlPointsJXG.current[i][0].needsUpdate = true;
                 controlPointsJXG.current[i][0].update();
@@ -937,7 +937,7 @@ export default React.memo(function Curve(props) {
                 segmentsJXG.current[i][0].update();
                 controlPointsJXG.current[i][1].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...SVs.numericalControlPoints[i][1]]
+                    [...SVs.numericalControlPoints[i][1]],
                 );
                 controlPointsJXG.current[i][1].needsUpdate = true;
                 controlPointsJXG.current[i][1].update();
@@ -965,7 +965,7 @@ export default React.memo(function Curve(props) {
                             .controlVectorMoved;
                     if (ind !== undefined) {
                         board.updateInfobox(
-                            controlPointsJXG.current[ind[0]][ind[1]]
+                            controlPointsJXG.current[ind[0]][ind[1]],
                         );
                     }
                 }

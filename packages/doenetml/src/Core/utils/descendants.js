@@ -18,7 +18,7 @@ export function gatherDescendants({
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: child.componentType,
                 baseComponentType: ct,
-            })
+            }),
         );
 
     let childrenToCheck = [];
@@ -39,7 +39,7 @@ export function gatherDescendants({
                     composite: ancestor,
                     componentInfoObjects,
                     includeComposites: includeNonActiveChildren,
-                }).filter((x) => typeof x === "object")
+                }).filter((x) => typeof x === "object"),
             );
         }
     } else {
@@ -69,7 +69,7 @@ export function gatherDescendants({
                             typeof childName === "string" &&
                             childName.substring(
                                 childName.length - 5,
-                                childName.length
+                                childName.length,
                             ) === "adapt"
                         ) {
                             childIsAdapter = true;
@@ -131,7 +131,9 @@ export function gatherDescendants({
                     })
                         .filter((x) => typeof x === "object")
                         .map((x) =>
-                            x.componentName ? x.componentName : x.placeholderInd
+                            x.componentName
+                                ? x.componentName
+                                : x.placeholderInd,
                         ),
                 ];
             }
@@ -143,7 +145,7 @@ export function gatherDescendants({
                     !(
                         namesToIgnore.includes(x.componentName) ||
                         namesToIgnore.includes(x.placeholderInd)
-                    )
+                    ),
             );
         }
     }
@@ -200,7 +202,7 @@ function replacementsForComposites({
                 composite.replacementsToWithhold;
             originalReplacements = composite.replacements.slice(
                 0,
-                numReplacements
+                numReplacements,
             );
         } else {
             originalReplacements = composite.replacements;
@@ -221,7 +223,7 @@ function replacementsForComposites({
                         composite: replacement,
                         componentInfoObjects,
                         includeComposites,
-                    })
+                    }),
                 );
             } else {
                 replacements.push(replacement);
@@ -248,7 +250,7 @@ export function ancestorsIncludingComposites(comp, components) {
         comps.push(comp.replacementOf.componentName);
         let replacementAs = ancestorsIncludingComposites(
             comp.replacementOf,
-            components
+            components,
         );
         for (let a of replacementAs) {
             if (!comps.includes(a)) {

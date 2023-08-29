@@ -91,7 +91,7 @@ export default class Ref extends InlineComponent {
                 return {
                     setValue: {
                         targetInactive: Boolean(
-                            dependencyValues.targetIsInactiveCompositeReplacement
+                            dependencyValues.targetIsInactiveCompositeReplacement,
                         ),
                     },
                 };
@@ -211,7 +211,7 @@ export default class Ref extends InlineComponent {
                     cid = result[1];
                 }
                 result = dependencyValues.uri.match(
-                    /[:&]activityId=([^&^#]+)/i
+                    /[:&]activityId=([^&^#]+)/i,
                 );
                 if (result) {
                     activityId = result[1];

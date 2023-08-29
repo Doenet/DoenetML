@@ -36,8 +36,8 @@ export default class TextBaseOperatorOfMath extends TextComponent {
                     setValue: {
                         value: constructor.applyTextOperator(
                             dependencyValues.mathChildren.map(
-                                (x) => x.stateValues.value
-                            )
+                                (x) => x.stateValues.value,
+                            ),
                         ),
                     },
                 };

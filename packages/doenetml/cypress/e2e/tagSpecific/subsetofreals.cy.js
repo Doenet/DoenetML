@@ -56,7 +56,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -224,7 +224,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -392,7 +392,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -567,7 +567,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -766,7 +766,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -922,7 +922,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -998,7 +998,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1187,7 +1187,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1350,7 +1350,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1513,7 +1513,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1676,7 +1676,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -1839,7 +1839,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2002,7 +2002,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2165,7 +2165,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2303,7 +2303,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2364,7 +2364,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2381,7 +2381,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
         cy.get(cesc("#\\/variable") + " textarea").type(
             "{end}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "y∈∅");
         cy.get(cesc("#\\/result") + " .mjx-mrow")
@@ -2390,7 +2390,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
         cy.get(cesc("#\\/input") + " textarea").type(
             "{home}{rightArrow}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow").should("contain.text", "y>1");
         cy.get(cesc("#\\/result") + " .mjx-mrow")
@@ -2400,7 +2400,7 @@ describe("SubsetOfReals Tag Tests", function () {
         cy.get(cesc(`#\\/displayMode_choice${1}_input`)).click();
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "(1,∞)"
+            "(1,∞)",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2408,11 +2408,11 @@ describe("SubsetOfReals Tag Tests", function () {
 
         cy.get(cesc("#\\/input") + " textarea").type(
             "{end}{leftArrow}{backspace}\\ne{enter}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "(−∞,1)∪(1,∞)"
+            "(−∞,1)∪(1,∞)",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2420,11 +2420,11 @@ describe("SubsetOfReals Tag Tests", function () {
 
         cy.get(cesc("#\\/input") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(y>1)\\and(y<3){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "(1,3)"
+            "(1,3)",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2433,7 +2433,7 @@ describe("SubsetOfReals Tag Tests", function () {
         cy.get(cesc(`#\\/displayMode_choice${2}_input`)).click();
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "1<y<3"
+            "1<y<3",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2444,7 +2444,7 @@ describe("SubsetOfReals Tag Tests", function () {
         });
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "(1<y<3)∨(y>6)"
+            "(1<y<3)∨(y>6)",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2453,7 +2453,7 @@ describe("SubsetOfReals Tag Tests", function () {
         cy.get(cesc(`#\\/displayMode_choice${1}_input`)).click();
         cy.get(cesc("#\\/result") + " .mjx-mrow").should(
             "contain.text",
-            "(1,3)∪(6,∞)"
+            "(1,3)∪(6,∞)",
         );
         cy.get(cesc("#\\/result") + " .mjx-mrow")
             .eq(0)
@@ -2488,7 +2488,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -2510,43 +2510,43 @@ describe("SubsetOfReals Tag Tests", function () {
 
             cy.get(cesc("#\\/input0") + " .mq-editable-field").should(
                 "contain.text",
-                str0
+                str0,
             );
             cy.get(cesc("#\\/input1") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input2") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input3") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input4") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input5") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input6") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input7") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input8") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
             cy.get(cesc("#\\/input9") + " .mq-editable-field").should(
                 "contain.text",
-                str
+                str,
             );
 
             cy.get(cesc("#\\/s1") + " .mjx-mrow")
@@ -2580,70 +2580,70 @@ describe("SubsetOfReals Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str0
+                        str0,
                     );
                 });
             cy.get(cesc(`#\\/input1`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input2`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input3`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input4`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input5`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input6`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input7`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input8`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
             cy.get(cesc(`#\\/input9`) + ` .mq-editable-field`)
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
-                        str
+                        str,
                     );
                 });
         }
@@ -2652,70 +2652,70 @@ describe("SubsetOfReals Tag Tests", function () {
 
         cy.get(cesc("#\\/input0") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x>=3{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("[3,∞)", "x≥3");
 
         cy.get(cesc("#\\/input1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{{}q\\mid q=5}{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("{5}");
 
         cy.get(cesc("#\\/input2") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}[-\\infty, \\pi){enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("(−∞,3.141592654)");
 
         cy.get(cesc("#\\/input3") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(-\\infty,\\infty){enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("R");
 
         cy.get(cesc("#\\/input4") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x\\in \\emptyset {enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("∅");
 
         cy.get(cesc("#\\/input5") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x\\notin [9, \\infty){enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("(−∞,9)");
 
         cy.get(cesc("#\\/input6") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{7}\\ni x{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("{7}");
 
         cy.get(cesc("#\\/input7") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(-\\infty, -2) \\notni x{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("[−2,∞)");
 
         cy.get(cesc("#\\/input8") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{{}1}^c{rightArrow} \\cap {{}v\\mid v>=1}{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("(1,∞)");
 
         cy.get(cesc("#\\/input9") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x\\ne -6{enter}",
-            { force: true }
+            { force: true },
         );
 
         checkDisplay("(−∞,−6)∪(−6,∞)");
@@ -2739,7 +2739,7 @@ describe("SubsetOfReals Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load

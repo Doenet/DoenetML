@@ -21,7 +21,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -30,22 +30,22 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(-2);
@@ -55,28 +55,28 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "4");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(4);
@@ -100,7 +100,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -109,25 +109,25 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, -2), (2(-2), -4), (5,6)\\)"
+                "Hi \\((-1,2), (2, -2), (2(-2), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(-2);
@@ -137,31 +137,31 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "4");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             expect(stateVariables["/_curve1"].stateValues.label).eq(
-                "Hi \\((-1,2), (2, 4), (2(4), -4), (5,6)\\)"
+                "Hi \\((-1,2), (2, 4), (2(4), -4), (5,6)\\)",
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(4);
@@ -187,7 +187,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -196,22 +196,22 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(-2);
@@ -221,28 +221,28 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "4");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(4);
@@ -258,22 +258,22 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(5);
             expect(f2(1)).eq(7);
@@ -299,7 +299,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -308,22 +308,22 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.4
+                0.4,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(-2);
@@ -333,28 +333,28 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "4");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.4
+                0.4,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(2);
             expect(f2(1)).eq(4);
@@ -370,22 +370,22 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.4
+                0.4,
             );
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[0]
+                stateVariables["/_curve1"].stateValues.fDefinitions[0],
             );
             let f2 = createFunctionFromDefinition(
-                stateVariables["/_curve1"].stateValues.fDefinitions[1]
+                stateVariables["/_curve1"].stateValues.fDefinitions[1],
             );
             expect(f1(1)).eq(5);
             expect(f2(1)).eq(7);
@@ -420,7 +420,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput1.value{assignNames="m1"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -429,16 +429,16 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.curveType).eq(
-                "bezier"
+                "bezier",
             );
             expect(stateVariables["/_curve1"].stateValues.numThroughPoints).eq(
-                4
+                4,
             );
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
 
             let x = stateVariables["/_point5"].stateValues.xs[0];
@@ -452,10 +452,10 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let x = stateVariables["/_point5"].stateValues.xs[0];
             let y = stateVariables["/_point5"].stateValues.xs[1];
@@ -470,10 +470,10 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.8
+                0.8,
             );
             let x = stateVariables["/_point5"].stateValues.xs[0];
             let y = stateVariables["/_point5"].stateValues.xs[1];
@@ -496,16 +496,16 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0.1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "0.1");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.1
+                0.1,
             );
             let x = stateVariables["/_point5"].stateValues.xs[0];
             let y = stateVariables["/_point5"].stateValues.xs[1];
@@ -541,10 +541,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.1
+                0.1,
             );
             let x = stateVariables["/_point5"].stateValues.xs[0];
             let y = stateVariables["/_point5"].stateValues.xs[1];
@@ -561,10 +561,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(
-                0.1
+                0.1,
             );
             let x = stateVariables["/_point5"].stateValues.xs[0];
             let y = stateVariables["/_point5"].stateValues.xs[1];
@@ -574,7 +574,7 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.window().then(async (win) => {
             await win.callAction1({
@@ -584,7 +584,7 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "uniform"
+                "uniform",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(1);
             let x = stateVariables["/_point5"].stateValues.xs[0];
@@ -607,7 +607,7 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_curve1"].stateValues.splineForm).eq(
-                "centripetal"
+                "centripetal",
             );
             expect(stateVariables["/_curve1"].stateValues.splineTension).eq(1);
             let x = stateVariables["/_point5"].stateValues.xs[0];
@@ -672,7 +672,7 @@ describe("Curve Tag Tests", function () {
     $_booleaninput2.value{assignNames="b2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -826,7 +826,7 @@ describe("Curve Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1157,7 +1157,7 @@ describe("Curve Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1259,7 +1259,7 @@ describe("Curve Tag Tests", function () {
     $_mathinput2.value{assignNames="m2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1276,11 +1276,11 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m2")).should("contain.text", "1");
         cy.window().then(async (win) => {
@@ -1295,17 +1295,17 @@ describe("Curve Tag Tests", function () {
 
             for (let i = 0; i < 10; i++) {
                 expect(
-                    me.fromAst(throughPoints[i][0]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][0]).evaluate_to_constant(),
                 ).closeTo(i, 1e-12);
                 expect(
-                    me.fromAst(throughPoints[i][1]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][1]).evaluate_to_constant(),
                 ).closeTo(Math.sin(i), 1e-12);
             }
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}20{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "20");
 
@@ -1321,17 +1321,17 @@ describe("Curve Tag Tests", function () {
 
             for (let i = 0; i < 20; i++) {
                 expect(
-                    me.fromAst(throughPoints[i][0]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][0]).evaluate_to_constant(),
                 ).closeTo(i, 1e-12);
                 expect(
-                    me.fromAst(throughPoints[i][1]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][1]).evaluate_to_constant(),
                 ).closeTo(Math.sin(i), 1e-12);
             }
         });
 
         cy.get(cesc("#\\/_mathinput2") + " textarea").type(
             "{end}{backspace}{backspace}0.5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m2")).should("contain.text", "0.5");
 
@@ -1347,17 +1347,17 @@ describe("Curve Tag Tests", function () {
 
             for (let i = 0; i < 20; i++) {
                 expect(
-                    me.fromAst(throughPoints[i][0]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][0]).evaluate_to_constant(),
                 ).closeTo(i * 0.5, 1e-12);
                 expect(
-                    me.fromAst(throughPoints[i][1]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][1]).evaluate_to_constant(),
                 ).closeTo(Math.sin(i * 0.5), 1e-12);
             }
         });
 
         cy.get(cesc("#\\/_mathinput1") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/m1")).should("contain.text", "10");
 
@@ -1373,10 +1373,10 @@ describe("Curve Tag Tests", function () {
 
             for (let i = 0; i < 10; i++) {
                 expect(
-                    me.fromAst(throughPoints[i][0]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][0]).evaluate_to_constant(),
                 ).closeTo(i * 0.5, 1e-12);
                 expect(
-                    me.fromAst(throughPoints[i][1]).evaluate_to_constant()
+                    me.fromAst(throughPoints[i][1]).evaluate_to_constant(),
                 ).closeTo(Math.sin(i * 0.5), 1e-12);
             }
         });
@@ -1396,7 +1396,7 @@ describe("Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1417,28 +1417,28 @@ describe("Curve Tag Tests", function () {
             ];
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls(ps[0]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls(ps[1]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls(ps[2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls(ps[3]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[0]
+                stateVariables["/_curve2"].stateValues.throughPoints[0],
             ).eqls(psflipped[0]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[1]
+                stateVariables["/_curve2"].stateValues.throughPoints[1],
             ).eqls(psflipped[1]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[2]
+                stateVariables["/_curve2"].stateValues.throughPoints[2],
             ).eqls(psflipped[2]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[3]
+                stateVariables["/_curve2"].stateValues.throughPoints[3],
             ).eqls(psflipped[3]);
         });
 
@@ -1468,10 +1468,10 @@ describe("Curve Tag Tests", function () {
 
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls(ps[0]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[0]
+                stateVariables["/_curve2"].stateValues.throughPoints[0],
             ).eqls(psflipped[0]);
 
             await win.callAction1({
@@ -1485,10 +1485,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls(ps[1]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[1]
+                stateVariables["/_curve2"].stateValues.throughPoints[1],
             ).eqls(psflipped[1]);
 
             await win.callAction1({
@@ -1502,10 +1502,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls(ps[2]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[2]
+                stateVariables["/_curve2"].stateValues.throughPoints[2],
             ).eqls(psflipped[2]);
 
             await win.callAction1({
@@ -1519,10 +1519,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls(ps[3]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[3]
+                stateVariables["/_curve2"].stateValues.throughPoints[3],
             ).eqls(psflipped[3]);
         });
 
@@ -1552,10 +1552,10 @@ describe("Curve Tag Tests", function () {
 
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls(ps[0]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[0]
+                stateVariables["/_curve2"].stateValues.throughPoints[0],
             ).eqls(psflipped[0]);
 
             await win.callAction1({
@@ -1569,10 +1569,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls(ps[1]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[1]
+                stateVariables["/_curve2"].stateValues.throughPoints[1],
             ).eqls(psflipped[1]);
 
             await win.callAction1({
@@ -1586,10 +1586,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls(ps[2]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[2]
+                stateVariables["/_curve2"].stateValues.throughPoints[2],
             ).eqls(psflipped[2]);
 
             await win.callAction1({
@@ -1603,10 +1603,10 @@ describe("Curve Tag Tests", function () {
 
             stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls(ps[3]);
             expect(
-                stateVariables["/_curve2"].stateValues.throughPoints[3]
+                stateVariables["/_curve2"].stateValues.throughPoints[3],
             ).eqls(psflipped[3]);
         });
     });
@@ -1629,7 +1629,7 @@ describe("Curve Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1641,10 +1641,10 @@ describe("Curve Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([x, y]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([y, x]);
             expect(stateVariables["/x1"].stateValues.xs[0]).eq(x);
             expect(stateVariables["/x2"].stateValues.xs[0]).eq(y);
@@ -1662,10 +1662,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([x, y]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([y, x]);
             expect(stateVariables["/x1"].stateValues.xs[0]).eq(x);
             expect(stateVariables["/x2"].stateValues.xs[0]).eq(y);
@@ -1683,10 +1683,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([x, y]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([y, x]);
             expect(stateVariables["/x1"].stateValues.xs[0]).eq(x);
             expect(stateVariables["/x2"].stateValues.xs[0]).eq(y);
@@ -1704,10 +1704,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([x, y]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([y, x]);
             expect(stateVariables["/x1"].stateValues.xs[0]).eq(x);
             expect(stateVariables["/x2"].stateValues.xs[0]).eq(y);
@@ -1725,10 +1725,10 @@ describe("Curve Tag Tests", function () {
             });
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([x, y]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([y, x]);
             expect(stateVariables["/x1"].stateValues.xs[0]).eq(x);
             expect(stateVariables["/x2"].stateValues.xs[0]).eq(y);
@@ -1758,21 +1758,21 @@ describe("Curve Tag Tests", function () {
     <p name="Cdescrip">C is a $C.styleDescriptionWithNoun.</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Curve A is thick brown."
+            "Curve A is thick brown.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a dark red curve."
+            "B is a dark red curve.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin black curve."
+            "C is a thin black curve.",
         );
 
         cy.log("set dark mode");
@@ -1783,15 +1783,15 @@ describe("Curve Tag Tests", function () {
 
         cy.get(cesc("#\\/Adescrip")).should(
             "have.text",
-            "Curve A is thick yellow."
+            "Curve A is thick yellow.",
         );
         cy.get(cesc("#\\/Bdescrip")).should(
             "have.text",
-            "B is a light red curve."
+            "B is a light red curve.",
         );
         cy.get(cesc("#\\/Cdescrip")).should(
             "have.text",
-            "C is a thin white curve."
+            "C is a thin white curve.",
         );
     });
 });

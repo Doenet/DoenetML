@@ -121,7 +121,7 @@ export default React.memo(function MathComponent(props) {
         jsxMathAttributes.anchor = newAnchorPointJXG;
 
         let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-            SVs.positionFromAnchor
+            SVs.positionFromAnchor,
         );
         jsxMathAttributes.anchorx = anchorx;
         jsxMathAttributes.anchory = anchory;
@@ -149,7 +149,7 @@ export default React.memo(function MathComponent(props) {
         let newMathJXG = board.create(
             "text",
             [0, 0, beginDelim + SVs.latex + endDelim],
-            jsxMathAttributes
+            jsxMathAttributes,
         );
         newMathJXG.isDraggable = !fixLocation.current;
 
@@ -280,11 +280,11 @@ export default React.memo(function MathComponent(props) {
 
             calculatedX.current = Math.min(
                 xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current)
+                Math.max(xminAdjusted, calculatedX.current),
             );
             calculatedY.current = Math.min(
                 ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current)
+                Math.max(yminAdjusted, calculatedY.current),
             );
 
             callAction({
@@ -299,11 +299,11 @@ export default React.memo(function MathComponent(props) {
 
             newMathJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             newAnchorPointJXG.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionFromCore.current
+                lastPositionFromCore.current,
             );
         });
 
@@ -386,11 +386,11 @@ export default React.memo(function MathComponent(props) {
         } else {
             mathJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [0, 0]
+                [0, 0],
             );
             anchorPointJXG.current.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                anchorCoords
+                anchorCoords,
             );
 
             let beginDelim, endDelim;
@@ -474,7 +474,7 @@ export default React.memo(function MathComponent(props) {
 
             if (SVs.positionFromAnchor !== previousPositionFromAnchor.current) {
                 let { anchorx, anchory } = getPositionFromAnchorByCoordinate(
-                    SVs.positionFromAnchor
+                    SVs.positionFromAnchor,
                 );
                 mathJXG.current.visProp.anchorx = anchorx;
                 mathJXG.current.visProp.anchory = anchory;
@@ -533,7 +533,7 @@ export default React.memo(function MathComponent(props) {
     }
 
     let latexOrInputChildren = SVs.latexWithInputChildren.map((x) =>
-        typeof x === "number" ? this.children[x] : beginDelim + x + endDelim
+        typeof x === "number" ? this.children[x] : beginDelim + x + endDelim,
     );
 
     let anchors = [<a name={id} key={id} />];
@@ -542,7 +542,7 @@ export default React.memo(function MathComponent(props) {
             ...SVs.mrowChildNames.map((x) => {
                 let rowId = cesc(x);
                 return <a name={rowId} key={rowId} id={rowId} />;
-            })
+            }),
         );
     }
 

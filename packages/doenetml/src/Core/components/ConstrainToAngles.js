@@ -222,7 +222,7 @@ export default class ConstrainToAngles extends ConstraintComponent {
             }
 
             let distanceToAngle = Math.abs(
-                ((angle - foundAngle + Math.PI) % (2 * Math.PI)) - Math.PI
+                ((angle - foundAngle + Math.PI) % (2 * Math.PI)) - Math.PI,
             );
 
             if (distanceToAngle < closestDistance) {

@@ -16,7 +16,7 @@ describe("Math Tag Tests", function () {
     <math simplify>1+1</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -59,7 +59,7 @@ describe("Math Tag Tests", function () {
     <math simplify>3<math>x+1</math>+5</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -112,7 +112,7 @@ describe("Math Tag Tests", function () {
     <math>3$_math1{name="m1a"} + 5</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -167,7 +167,7 @@ describe("Math Tag Tests", function () {
     <math></math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -187,7 +187,7 @@ describe("Math Tag Tests", function () {
     <math> </math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -206,7 +206,7 @@ describe("Math Tag Tests", function () {
     <math />
     `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "c"); // wait to load
@@ -226,7 +226,7 @@ describe("Math Tag Tests", function () {
     <math format="latex">\\frac{x}{z}</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -269,7 +269,7 @@ describe("Math Tag Tests", function () {
   <copy prop="latex" source="_math1" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -295,7 +295,7 @@ describe("Math Tag Tests", function () {
             let replacement = stateVariables["/_copy1"].replacements[0];
             cy.get(cesc2("#" + replacement.componentName)).should(
                 "have.text",
-                "\\frac{x}{y}"
+                "\\frac{x}{y}",
             );
         });
     });
@@ -311,7 +311,7 @@ describe("Math Tag Tests", function () {
   $a{name="a2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -345,7 +345,7 @@ describe("Math Tag Tests", function () {
   <math simplify>2 + $_point1</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -381,7 +381,7 @@ describe("Math Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -438,7 +438,7 @@ describe("Math Tag Tests", function () {
   <p><math>0.3004 x + 4pi</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -504,7 +504,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -633,7 +633,7 @@ describe("Math Tag Tests", function () {
     <p>Simplify numbers preserve order: <math simplify="numberspreserveorder">1x^2-3 +0x^2 + 4 -2x^2-3 + 5x^2</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -698,10 +698,10 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_math1"].stateValues.value).eqls(
-                originalTree
+                originalTree,
             );
             expect(stateVariables["/_math2"].stateValues.value).eqls(
-                originalTree
+                originalTree,
             );
             expect(stateVariables["/_math3"].stateValues.value).eqls([
                 "+",
@@ -745,7 +745,7 @@ describe("Math Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -834,7 +834,7 @@ describe("Math Tag Tests", function () {
     <p>Alt vectors: <math>⟨1,2,3⟩,⟨4,5⟩,[6,7],(8,9],[10,11)</math></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -935,7 +935,7 @@ describe("Math Tag Tests", function () {
   <p><math parseScientificNotation displaysmallaszero="1E-12">2x + (1E-13)y</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -995,16 +995,16 @@ describe("Math Tag Tests", function () {
                 ["*", 1e-13, "y"],
             ]);
             expect(stateVariables["/_math1"].stateValues.displaySmallAsZero).eq(
-                0
+                0,
             );
             expect(stateVariables["/_math2"].stateValues.displaySmallAsZero).eq(
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_math3"].stateValues.displaySmallAsZero).eq(
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/_math4"].stateValues.displaySmallAsZero).eq(
-                1e-12
+                1e-12,
             );
         });
     });
@@ -1042,7 +1042,7 @@ describe("Math Tag Tests", function () {
   <p>$expr2{name="expr2Dig5Dec1" displayDigits="5" displayDecimals="1"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1226,7 +1226,7 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/expr1"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2"].stateValues.value).eqls([
                 "+",
@@ -1234,7 +1234,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5"].stateValues.value).eqls([
                 "+",
@@ -1242,7 +1242,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5"].stateValues.value).eqls([
                 "+",
@@ -1250,7 +1250,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5a"].stateValues.value).eqls([
                 "+",
@@ -1258,7 +1258,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5a"].stateValues.value).eqls([
                 "+",
@@ -1266,7 +1266,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5b"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5b"].stateValues.value).eqls([
                 "+",
@@ -1274,7 +1274,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5b"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5b"].stateValues.value).eqls([
                 "+",
@@ -1282,7 +1282,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5c"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5c"].stateValues.value).eqls([
                 "+",
@@ -1290,7 +1290,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5c"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5c"].stateValues.value).eqls([
                 "+",
@@ -1298,7 +1298,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5d"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5d"].stateValues.value).eqls([
                 "+",
@@ -1306,7 +1306,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5d"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5d"].stateValues.value).eqls([
                 "+",
@@ -1314,7 +1314,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5Dec1"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5Dec1"].stateValues.value).eqls([
                 "+",
@@ -1323,7 +1323,7 @@ describe("Math Tag Tests", function () {
             ]);
 
             expect(stateVariables["/expr1"].stateValues.valueForDisplay).eq(
-                621802.35
+                621802.35,
             );
             expect(stateVariables["/expr2"].stateValues.valueForDisplay).eqls([
                 "+",
@@ -1331,70 +1331,70 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5"].stateValues.valueForDisplay).eq(
-                621800
+                621800,
             );
             expect(
-                stateVariables["/expr2Dig5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(stateVariables["/expr1Dec5"].stateValues.valueForDisplay).eq(
-                621802.35203
+                621802.35203,
             );
             expect(
-                stateVariables["/expr2Dec5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5a"].stateValues.valueForDisplay,
             ).eq(621800);
             expect(
-                stateVariables["/expr2Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec5a"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5b"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5b"].stateValues.valueForDisplay,
             ).eq(621800);
             expect(
-                stateVariables["/expr2Dig5b"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5b"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec5b"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec5b"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dec5b"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5b"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5c"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5c"].stateValues.valueForDisplay,
             ).eq(621800);
             expect(
-                stateVariables["/expr2Dig5c"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5c"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec5c"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec5c"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dec5c"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5c"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5d"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5d"].stateValues.valueForDisplay,
             ).eq(621800);
             expect(
-                stateVariables["/expr2Dig5d"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5d"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec5d"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec5d"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dec5d"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5d"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5Dec1"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5Dec1"].stateValues.valueForDisplay,
             ).eq(621802.4);
             expect(
-                stateVariables["/expr2Dig5Dec1"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5Dec1"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
         });
     });
@@ -1430,7 +1430,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1599,7 +1599,7 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/expr1"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2"].stateValues.value).eqls([
                 "+",
@@ -1607,7 +1607,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5"].stateValues.value).eqls([
                 "+",
@@ -1615,7 +1615,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5"].stateValues.value).eqls([
                 "+",
@@ -1623,7 +1623,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig5a"].stateValues.value).eqls([
                 "+",
@@ -1631,7 +1631,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec5a"].stateValues.value).eqls([
                 "+",
@@ -1639,7 +1639,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig8Dec5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig8Dec5"].stateValues.value).eqls([
                 "+",
@@ -1647,7 +1647,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec8Dig5"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec8Dig5"].stateValues.value).eqls([
                 "+",
@@ -1655,7 +1655,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig8Dec5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig8Dec5a"].stateValues.value).eqls([
                 "+",
@@ -1663,7 +1663,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec8Dig5a"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec8Dig5a"].stateValues.value).eqls([
                 "+",
@@ -1671,7 +1671,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig3Dec8"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dig3Dec8"].stateValues.value).eqls([
                 "+",
@@ -1679,7 +1679,7 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dec3Dig8"].stateValues.value).eq(
-                621802.3520303639
+                621802.3520303639,
             );
             expect(stateVariables["/expr2Dec3Dig8"].stateValues.value).eqls([
                 "+",
@@ -1688,7 +1688,7 @@ describe("Math Tag Tests", function () {
             ]);
 
             expect(stateVariables["/expr1"].stateValues.valueForDisplay).eq(
-                621802.35
+                621802.35,
             );
             expect(stateVariables["/expr2"].stateValues.valueForDisplay).eqls([
                 "+",
@@ -1696,64 +1696,64 @@ describe("Math Tag Tests", function () {
                 ["*", 4, "pi"],
             ]);
             expect(stateVariables["/expr1Dig5"].stateValues.valueForDisplay).eq(
-                621800
+                621800,
             );
             expect(
-                stateVariables["/expr2Dig5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(stateVariables["/expr1Dec5"].stateValues.valueForDisplay).eq(
-                621802.35203
+                621802.35203,
             );
             expect(
-                stateVariables["/expr2Dec5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig5a"].stateValues.valueForDisplay,
             ).eq(621800);
             expect(
-                stateVariables["/expr2Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.384, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec5a"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig8Dec5"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig8Dec5"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dig8Dec5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig8Dec5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec8Dig5"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec8Dig5"].stateValues.valueForDisplay,
             ).eq(621802.35203036);
             expect(
-                stateVariables["/expr2Dec8Dig5"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec8Dig5"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig8Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig8Dec5a"].stateValues.valueForDisplay,
             ).eq(621802.35203);
             expect(
-                stateVariables["/expr2Dig8Dec5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig8Dec5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec8Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec8Dig5a"].stateValues.valueForDisplay,
             ).eq(621802.35203036);
             expect(
-                stateVariables["/expr2Dec8Dig5a"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec8Dig5a"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dig3Dec8"].stateValues.valueForDisplay
+                stateVariables["/expr1Dig3Dec8"].stateValues.valueForDisplay,
             ).eq(621802.35203036);
             expect(
-                stateVariables["/expr2Dig3Dec8"].stateValues.valueForDisplay
+                stateVariables["/expr2Dig3Dec8"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.38352054, "x"], ["*", 4, "pi"]]);
             expect(
-                stateVariables["/expr1Dec3Dig8"].stateValues.valueForDisplay
+                stateVariables["/expr1Dec3Dig8"].stateValues.valueForDisplay,
             ).eq(621802.352);
             expect(
-                stateVariables["/expr2Dec3Dig8"].stateValues.valueForDisplay
+                stateVariables["/expr2Dec3Dig8"].stateValues.valueForDisplay,
             ).eqls(["+", ["*", 31.383521, "x"], ["*", 4, "pi"]]);
         });
     });
@@ -1902,7 +1902,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2065,31 +2065,31 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/dig5cText")).should("have.text", "1.3 x + 4 π");
         cy.get(cesc("#\\/dig5cpadText")).should(
             "have.text",
-            "1.3000 x + 4.0000 π"
+            "1.3000 x + 4.0000 π",
         );
         cy.get(cesc("#\\/dec5aText")).should("have.text", "62.1");
         cy.get(cesc("#\\/dec5apadText")).should("have.text", "62.10000");
         cy.get(cesc("#\\/dec5bText")).should("have.text", "162.1 * 10⁻³");
         cy.get(cesc("#\\/dec5bpadText")).should(
             "have.text",
-            "162.10000 * 10⁻³"
+            "162.10000 * 10⁻³",
         );
         cy.get(cesc("#\\/dec5cText")).should("have.text", "1.3 x + 4 π");
         cy.get(cesc("#\\/dec5cpadText")).should(
             "have.text",
-            "1.30000 x + 4.00000 π"
+            "1.30000 x + 4.00000 π",
         );
         cy.get(cesc("#\\/dig5dec1aText")).should("have.text", "62.1");
         cy.get(cesc("#\\/dig5dec1apadText")).should("have.text", "62.100");
         cy.get(cesc("#\\/dig5dec1bText")).should("have.text", "162.1 * 10⁻³");
         cy.get(cesc("#\\/dig5dec1bpadText")).should(
             "have.text",
-            "162.10 * 10⁻³"
+            "162.10 * 10⁻³",
         );
         cy.get(cesc("#\\/dig5dec1cText")).should("have.text", "1.3 x + 4 π");
         cy.get(cesc("#\\/dig5dec1cpadText")).should(
             "have.text",
-            "1.3000 x + 4.0000 π"
+            "1.3000 x + 4.0000 π",
         );
 
         cy.get(cesc("#\\/dig5aValue"))
@@ -2526,7 +2526,7 @@ describe("Math Tag Tests", function () {
       <p>$ndecimals.value{assignNames="ndecimals2"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2551,7 +2551,7 @@ describe("Math Tag Tests", function () {
         cy.log("higher decimals");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndecimals2")).should("contain.text", "5");
         cy.get(cesc("#\\/na"))
@@ -2565,7 +2565,7 @@ describe("Math Tag Tests", function () {
         cy.log("lower decimals");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndecimals2")).should("contain.text", "−3");
         cy.get(cesc("#\\/na"))
@@ -2579,7 +2579,7 @@ describe("Math Tag Tests", function () {
         cy.log("increase digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}12{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndigits2")).should("contain.text", "12");
         cy.get(cesc("#\\/na"))
@@ -2593,7 +2593,7 @@ describe("Math Tag Tests", function () {
         cy.log("invalid ndigits, falls back to decimals");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}{backspace}x{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndigits2")).should("contain.text", "x");
         cy.get(cesc("#\\/na"))
@@ -2607,7 +2607,7 @@ describe("Math Tag Tests", function () {
         cy.log("invalid both, no rounding");
         cy.get(cesc("#\\/ndecimals") + " textarea").type(
             "{end}{backspace}{backspace}y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ndecimals2")).should("contain.text", "y");
         cy.get(cesc("#\\/na"))
@@ -2621,7 +2621,7 @@ describe("Math Tag Tests", function () {
         cy.log("only invalid ndecimals, falls back to digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/na"))
@@ -2637,7 +2637,7 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}-8{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/ndecimals2")).should("contain.text", "−8");
 
@@ -2652,7 +2652,7 @@ describe("Math Tag Tests", function () {
         cy.log("becomes zero with no digits");
         cy.get(cesc("#\\/ndigits") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/na"))
             .find(".mjx-mrow")
@@ -2667,7 +2667,7 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}6{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/ndecimals2")).should("contain.text", "−6");
 
@@ -2694,7 +2694,7 @@ describe("Math Tag Tests", function () {
   <p><math functionSymbols="g h">h(z)</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2795,7 +2795,7 @@ describe("Math Tag Tests", function () {
   $m5{functionSymbols="f" name="m6"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2896,7 +2896,7 @@ describe("Math Tag Tests", function () {
   <p><math sourcesAreFunctionSymbols="f">$x($f)</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2980,7 +2980,7 @@ describe("Math Tag Tests", function () {
   <p>$m5{sourcesAreFunctionSymbols="f" name="m6"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3089,7 +3089,7 @@ describe("Math Tag Tests", function () {
   <p>$m5a.value{simplify assignNames="m6a"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3233,7 +3233,7 @@ describe("Math Tag Tests", function () {
   <p><math name="m14" splitSymbols="false">xy uv x2y 2x x2</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3442,7 +3442,7 @@ describe("Math Tag Tests", function () {
   <p><math name="m14" splitSymbols="false"><math>xy uv x2y 2x x2</math></math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3667,7 +3667,7 @@ describe("Math Tag Tests", function () {
   <p><math format="latex" name="m15a" splitSymbols="false">3^x2</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4060,7 +4060,7 @@ describe("Math Tag Tests", function () {
   <p>$m5{splitSymbols="false" name="m6"}</p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4149,7 +4149,7 @@ describe("Math Tag Tests", function () {
   <p><math name="combinedTuple">(<math>a,b,c</math>,d,<math>e,f</math>)</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4238,7 +4238,7 @@ describe("Math Tag Tests", function () {
   <p>x4: <mathinput bindValueTo="$x4" name="mx4" /> <mathinput bindValueTo="$m2.x4" name="mx4_2" /> <mathinput bindValueTo="$m3.x4" name="mx4_3" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4249,11 +4249,11 @@ describe("Math Tag Tests", function () {
         function check_values(xs, operator) {
             cy.get(cesc(`#\\/numDim1`)).should(
                 "have.text",
-                xs.length.toString()
+                xs.length.toString(),
             );
             cy.get(cesc(`#\\/numDim2`)).should(
                 "have.text",
-                xs.length.toString()
+                xs.length.toString(),
             );
 
             for (let [ind, x] of xs.entries()) {
@@ -4265,7 +4265,7 @@ describe("Math Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(text.trim().replace(/−/g, "-")).equal(
-                                x.toString()
+                                x.toString(),
                             );
                         });
                     cy.get(cesc(`#\\/${comp}_2`))
@@ -4274,7 +4274,7 @@ describe("Math Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(text.trim().replace(/−/g, "-")).equal(
-                                x.toString()
+                                x.toString(),
                             );
                         });
                     cy.get(cesc(`#\\/${comp}_3`))
@@ -4283,7 +4283,7 @@ describe("Math Tag Tests", function () {
                         .invoke("text")
                         .then((text) => {
                             expect(text.trim().replace(/−/g, "-")).equal(
-                                x.toString()
+                                x.toString(),
                             );
                         });
                 }
@@ -4293,7 +4293,7 @@ describe("Math Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            x.toString()
+                            x.toString(),
                         );
                     });
                 cy.get(cesc(`#\\/x${ind + 1}_2`))
@@ -4302,7 +4302,7 @@ describe("Math Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            x.toString()
+                            x.toString(),
                         );
                     });
                 cy.get(cesc(`#\\/x${ind + 1}_3`))
@@ -4311,7 +4311,7 @@ describe("Math Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            x.toString()
+                            x.toString(),
                         );
                     });
             }
@@ -4320,10 +4320,10 @@ describe("Math Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
 
                 expect(stateVariables["/numDim1"].stateValues.value).eq(
-                    xs.length
+                    xs.length,
                 );
                 expect(stateVariables["/numDim2"].stateValues.value).eq(
-                    xs.length
+                    xs.length,
                 );
 
                 let m3Operator = operator === "tuple" ? "vector" : operator;
@@ -4345,23 +4345,23 @@ describe("Math Tag Tests", function () {
                     let comp = indToComp[ind];
                     if (comp) {
                         expect(
-                            stateVariables[`/${comp}`].stateValues.value
+                            stateVariables[`/${comp}`].stateValues.value,
                         ).eqls(x);
                         expect(
-                            stateVariables[`/${comp}_2`].stateValues.value
+                            stateVariables[`/${comp}_2`].stateValues.value,
                         ).eqls(x);
                         expect(
-                            stateVariables[`/${comp}_3`].stateValues.value
+                            stateVariables[`/${comp}_3`].stateValues.value,
                         ).eqls(x);
                     }
                     expect(
-                        stateVariables[`/x${ind + 1}`].stateValues.value
+                        stateVariables[`/x${ind + 1}`].stateValues.value,
                     ).eqls(x);
                     expect(
-                        stateVariables[`/x${ind + 1}_2`].stateValues.value
+                        stateVariables[`/x${ind + 1}_2`].stateValues.value,
                     ).eqls(x);
                     expect(
-                        stateVariables[`/x${ind + 1}_3`].stateValues.value
+                        stateVariables[`/x${ind + 1}_3`].stateValues.value,
                     ).eqls(x);
                 }
             });
@@ -4387,19 +4387,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}g{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/my_2") + " textarea").type(
             "{end}{backspace}h{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mz_2") + " textarea").type(
             "{end}{backspace}i{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "i");
         check_values(["g", "h", "i"], "tuple");
@@ -4409,19 +4409,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}j{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/my_3") + " textarea").type(
             "{end}{backspace}k{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mz_3") + " textarea").type(
             "{end}{backspace}l{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "l");
         check_values(["j", "k", "l"], "vector");
@@ -4444,19 +4444,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}p{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx2_2") + " textarea").type(
             "{end}{backspace}q{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx3_2") + " textarea").type(
             "{end}{backspace}r{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "r");
         check_values(["p", "q", "r"], "vector");
@@ -4466,19 +4466,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}s{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx2_3") + " textarea").type(
             "{end}{backspace}t{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx3_3") + " textarea").type(
             "{end}{backspace}u{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "u");
         check_values(["s", "t", "u"], "vector");
@@ -4486,7 +4486,7 @@ describe("Math Tag Tests", function () {
         cy.log("change to 4D list");
         cy.get(cesc("#\\/m") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}v,w,x,y{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/x4")).should("contain.text", "y");
 
@@ -4513,25 +4513,25 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}d{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx2_2") + " textarea").type(
             "{end}{backspace}e{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx3_2") + " textarea").type(
             "{end}{backspace}f{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mx4_2") + " textarea").type(
             "{end}{backspace}g{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/x4")).should("contain.text", "g");
         check_values(["d", "e", "f", "g"], "list");
@@ -4539,7 +4539,7 @@ describe("Math Tag Tests", function () {
         cy.log("change to 3D alt vector");
         cy.get(cesc("#\\/m") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}\\langle a,b,c\\rangle {enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "c");
 
@@ -4550,19 +4550,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}j{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/my_3") + " textarea").type(
             "{end}{backspace}k{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mz_3") + " textarea").type(
             "{end}{backspace}l{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/z")).should("contain.text", "l");
         check_values(["j", "k", "l"], "altvector");
@@ -4594,7 +4594,7 @@ describe("Math Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4681,7 +4681,7 @@ describe("Math Tag Tests", function () {
                 "c",
             ]);
             expect(stateVariables["/doubleNoList"].stateValues.text).eq(
-                "2 a b c"
+                "2 a b c",
             );
 
             expect(stateVariables["/doubleTuple"].stateValues.value).eqls([
@@ -4690,7 +4690,7 @@ describe("Math Tag Tests", function () {
                 ["tuple", "a", "b", "c"],
             ]);
             expect(stateVariables["/doubleTuple"].stateValues.text).eq(
-                "2 ( a, b, c )"
+                "2 ( a, b, c )",
             );
 
             expect(stateVariables["/appendNoList"].stateValues.value).eqls([
@@ -4699,7 +4699,7 @@ describe("Math Tag Tests", function () {
                 ["apply", "sin", "x"],
             ]);
             expect(stateVariables["/appendNoList"].stateValues.text).eq(
-                "a b c, sin(x)"
+                "a b c, sin(x)",
             );
 
             expect(stateVariables["/appendToList"].stateValues.value).eqls([
@@ -4710,7 +4710,7 @@ describe("Math Tag Tests", function () {
                 ["apply", "sin", "x"],
             ]);
             expect(stateVariables["/appendToList"].stateValues.text).eq(
-                "a, b, c, sin(x)"
+                "a, b, c, sin(x)",
             );
 
             expect(stateVariables["/functionNoList"].stateValues.value).eqls([
@@ -4719,7 +4719,7 @@ describe("Math Tag Tests", function () {
                 ["*", "a", "b", "c"],
             ]);
             expect(stateVariables["/functionNoList"].stateValues.text).eq(
-                "f(a b c)"
+                "f(a b c)",
             );
 
             expect(stateVariables["/functionOfList"].stateValues.value).eqls([
@@ -4728,7 +4728,7 @@ describe("Math Tag Tests", function () {
                 ["tuple", "a", "b", "c"],
             ]);
             expect(stateVariables["/functionOfList"].stateValues.text).eq(
-                "f( a, b, c )"
+                "f( a, b, c )",
             );
         });
     });
@@ -4755,7 +4755,7 @@ describe("Math Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4879,7 +4879,7 @@ describe("Math Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4966,7 +4966,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4975,13 +4975,13 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/unordered1"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered2"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered3"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/ordered1"].stateValues.unordered).eq(false);
             expect(stateVariables["/ordered2"].stateValues.unordered).eq(false);
@@ -5013,7 +5013,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5022,22 +5022,22 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/unordered1"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered2"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered3"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered4"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered5"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/unordered6"].stateValues.unordered).eq(
-                true
+                true,
             );
             expect(stateVariables["/ordered1"].stateValues.unordered).eq(false);
             expect(stateVariables["/ordered2"].stateValues.unordered).eq(false);
@@ -5072,7 +5072,7 @@ describe("Math Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5138,7 +5138,7 @@ describe("Math Tag Tests", function () {
   <mathinput name="mi" bindValueTo="$m" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5179,7 +5179,7 @@ describe("Math Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5234,7 +5234,7 @@ describe("Math Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5305,7 +5305,7 @@ describe("Math Tag Tests", function () {
   </graph>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5363,7 +5363,7 @@ describe("Math Tag Tests", function () {
         cy.log("enter value in mathinput");
         cy.get(cesc("#\\/coords2") + " textarea").type(
             "{end}{leftArrow}{backspace}{backspace}{backspace}6,9{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/n")).should("have.text", "2.5");
@@ -5415,7 +5415,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5482,7 +5482,7 @@ describe("Math Tag Tests", function () {
   <mathinput bindValueTo="$m.x" name="mi" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5546,7 +5546,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5677,7 +5677,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5862,7 +5862,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6066,7 +6066,7 @@ describe("Math Tag Tests", function () {
   <math>(-3)^2</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6079,7 +6079,7 @@ describe("Math Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_math1"].stateValues.latex).eq(
-                "\\left(-3\\right)^{2}"
+                "\\left(-3\\right)^{2}",
             );
         });
     });
@@ -6106,7 +6106,7 @@ describe("Math Tag Tests", function () {
   <math name="pinf7" simplify>-1/((-1)(0))</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6190,7 +6190,7 @@ describe("Math Tag Tests", function () {
   <p><math name="m9" displayBlanks="$displayBlanks">2+()+5</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6280,7 +6280,7 @@ describe("Math Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6359,7 +6359,7 @@ describe("Math Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6370,7 +6370,7 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/m1"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
@@ -6399,19 +6399,19 @@ describe("Math Tag Tests", function () {
             "{end}{backspace}4+5{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi3") + " textarea").type(
             "{end}{backspace}6+7{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc("#\\/mi5") + " textarea").type(
             "{end}{backspace}8+9{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/m5") + " .mjx-mrow").should("contain.text", "17");
@@ -6456,7 +6456,7 @@ describe("Math Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6467,7 +6467,7 @@ describe("Math Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/m1"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
@@ -6646,7 +6646,7 @@ describe("Math Tag Tests", function () {
   <p><math name="sv3a3ssumExp" expand>m$vector3+$altvector3*n</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7104,7 +7104,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7285,7 +7285,7 @@ describe("Math Tag Tests", function () {
     c e i k m o + c f i l m o + c g i k n o + c h i l n o + d e j k m o + d f j l m o + d g j k n o + d h j l n o & c e i k m p + c f i l m p + c g i k n p + c h i l n p + d e j k m p + d f j l m p + d g j k n p + d h j l n p\\end{pmatrix}</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7334,13 +7334,13 @@ describe("Math Tag Tests", function () {
             .eq(0)
             .should(
                 "have.text",
-                "[aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlnoaeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnpceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlnoceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp]"
+                "[aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlnoaeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnpceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlnoceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp]",
             );
         cy.get(cesc("#\\/longMultResult") + " .mjx-mrow")
             .eq(0)
             .should(
                 "have.text",
-                "[aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlnoaeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnpceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlnoceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp]"
+                "[aeikmo+afilmo+agikno+ahilno+bejkmo+bfjlmo+bgjkno+bhjlnoaeikmp+afilmp+agiknp+ahilnp+bejkmp+bfjlmp+bgjknp+bhjlnpceikmo+cfilmo+cgikno+chilno+dejkmo+dfjlmo+dgjkno+dhjlnoceikmp+cfilmp+cgiknp+chilnp+dejkmp+dfjlmp+dgjknp+dhjlnp]",
             );
     });
 
@@ -7368,7 +7368,7 @@ describe("Math Tag Tests", function () {
   <p><math name="a2m22Exp" expand>$altvector2$matrix22</math></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7949,7 +7949,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9245,7 +9245,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/v12") + " .mjx-mrow").should(
             "contain.text",
-            "⟨2,12⟩T"
+            "⟨2,12⟩T",
         );
 
         cy.get(cesc("#\\/v1") + " .mjx-mrow")
@@ -9289,104 +9289,104 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}-1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_0_1") + " textarea").type(
             "{end}{backspace}-2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_1_0") + " textarea").type(
             "{end}{backspace}-3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi4_component_0_1") + " textarea").type(
             "{end}{backspace}-4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi5_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi5_component_0_1") + " textarea").type(
             "{end}{backspace}-5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi6_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi6_component_1_0") + " textarea").type(
             "{end}{backspace}-6{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi7_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi7_component_1_0") + " textarea").type(
             "{end}{backspace}-7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi8_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi8_component_0_1") + " textarea").type(
             "{end}{backspace}-8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi9_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi9_component_0_1") + " textarea").type(
             "{end}{backspace}-9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi10_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi10_component_1_0") + " textarea").type(
             "{end}{backspace}{backspace}-10{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi11_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi11_component_0_1") + " textarea").type(
             "{end}{backspace}{backspace}-11{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi12_component_0_0") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi12_component_0_1") + " textarea").type(
             "{end}{backspace}{backspace}-12{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/v12") + " .mjx-mrow").should(
             "contain.text",
-            "⟨3,−12⟩T"
+            "⟨3,−12⟩T",
         );
 
         cy.get(cesc("#\\/v1") + " .mjx-mrow")
@@ -9665,7 +9665,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10077,82 +10077,82 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/mi1_component_0_0") + " textarea").type(
             "{end}{backspace}a{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_0_1") + " textarea").type(
             "{end}{backspace}b{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_0") + " textarea").type(
             "{end}{backspace}c{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_1_1") + " textarea").type(
             "{end}{backspace}d{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_0") + " textarea").type(
             "{end}{backspace}e{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi1_component_2_1") + " textarea").type(
             "{end}{backspace}f{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi2_component_0_0") + " textarea").type(
             "{end}{backspace}g{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_0_1") + " textarea").type(
             "{end}{backspace}h{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_1_0") + " textarea").type(
             "{end}{backspace}i{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_1_1") + " textarea").type(
             "{end}{backspace}j{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_2_0") + " textarea").type(
             "{end}{backspace}k{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi2_component_2_1") + " textarea").type(
             "{end}{backspace}l{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/mi3_component_0_0") + " textarea").type(
             "{end}{backspace}m{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_0_1") + " textarea").type(
             "{end}{backspace}n{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_1_0") + " textarea").type(
             "{end}{backspace}o{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_1_1") + " textarea").type(
             "{end}{backspace}p{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_2_0") + " textarea").type(
             "{end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/mi3_component_2_1") + " textarea").type(
             "{end}{backspace}r{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/m3") + " .mjx-mrow").should(
             "contain.text",
-            "⎡⎢⎣mnopqr⎤⎥⎦"
+            "⎡⎢⎣mnopqr⎤⎥⎦",
         );
 
         cy.get(cesc("#\\/m1") + " .mjx-mrow")
@@ -10181,7 +10181,7 @@ describe("Math Tag Tests", function () {
   <math simplify expand name="e7">(a+bi)(a-bi)</math>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10250,7 +10250,7 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10324,11 +10324,11 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/m9a") + " .mjx-mrow").should("contain.text", "2E+303");
         cy.get(cesc("#\\/m10") + " .mjx-mrow").should(
             "contain.text",
-            "2E3+300"
+            "2E3+300",
         );
         cy.get(cesc("#\\/m10a") + " .mjx-mrow").should(
             "contain.text",
-            "2E3+300"
+            "2E3+300",
         );
         cy.get(cesc("#\\/m9") + " .mjx-mrow")
             .eq(0)
@@ -10365,15 +10365,15 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/m9") + " .mjx-mrow").should("contain.text", "3E+2002");
         cy.get(cesc("#\\/m9a") + " .mjx-mrow").should(
             "contain.text",
-            "3E+2002"
+            "3E+2002",
         );
         cy.get(cesc("#\\/m10") + " .mjx-mrow").should(
             "contain.text",
-            "3E2+2000"
+            "3E2+2000",
         );
         cy.get(cesc("#\\/m10a") + " .mjx-mrow").should(
             "contain.text",
-            "3E2+2000"
+            "3E2+2000",
         );
         cy.get(cesc("#\\/m9") + " .mjx-mrow")
             .eq(0)
@@ -10393,11 +10393,11 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/m9a") + " .mjx-mrow").should("contain.text", "5E+5");
         cy.get(cesc("#\\/m10") + " .mjx-mrow").should(
             "contain.text",
-            "3E2+2E3"
+            "3E2+2E3",
         );
         cy.get(cesc("#\\/m10a") + " .mjx-mrow").should(
             "contain.text",
-            "3E2+2E3"
+            "3E2+2E3",
         );
         cy.get(cesc("#\\/m9") + " .mjx-mrow")
             .eq(0)
@@ -10431,18 +10431,18 @@ describe("Math Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait until loaded
         cy.get(cesc("#\\/m1t")).should(
             "have.text",
-            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀"
+            "2 x₁ y₂₃ + z₄₅₆ - a₇₊₈₋₉₀",
         );
         cy.get(cesc("#\\/m2t")).should(
             "have.text",
-            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰"
+            "2 x¹ y²³ + z⁴⁵⁶ - a⁷⁺⁸⁻⁹⁰",
         );
         cy.get(cesc("#\\/m3t")).should("have.text", "a² - b₂");
 
@@ -10513,7 +10513,7 @@ describe("Math Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10528,21 +10528,21 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow")
             .eq(0)
@@ -10568,7 +10568,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10582,16 +10582,16 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10607,11 +10607,11 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -10620,11 +10620,11 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move maths by dragging");
@@ -10662,7 +10662,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pContent2") + " .mjx-mrow").should(
             "contain.text",
-            "e−x2−a"
+            "e−x2−a",
         );
 
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow")
@@ -10678,11 +10678,11 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -10700,7 +10700,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10716,27 +10716,27 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for math 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10777,11 +10777,11 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make completely fixed");
@@ -10794,16 +10794,16 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10819,11 +10819,11 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change content only for math 1");
@@ -10836,7 +10836,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow").should(
             "contain.text",
-            "x23+5+z"
+            "x23+5+z",
         );
 
         cy.get(cesc("#\\/pContent1") + " .mjx-mrow")
@@ -10865,7 +10865,7 @@ describe("Math Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10879,12 +10879,12 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(6,7)"
+            "(6,7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -10895,7 +10895,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}q{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should("contain.text", "q");
@@ -10931,7 +10931,7 @@ describe("Math Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -10950,34 +10950,34 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         // TODO: how to test color in graph
@@ -11001,34 +11001,34 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/sn") + " textarea").type("{end}{backspace}3{enter}", {
@@ -11037,7 +11037,7 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc("#\\/tsd_variable_style")).should(
             "have.text",
-            "red with a blue background"
+            "red with a blue background",
         );
         cy.get(cesc("#\\/tc_variable_style")).should("have.text", "red");
         cy.get(cesc("#\\/bc_variable_style")).should("have.text", "blue");
@@ -11053,34 +11053,34 @@ describe("Math Tag Tests", function () {
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "color",
-            "rgb(0, 0, 0)"
+            "rgb(0, 0, 0)",
         );
         cy.get(cesc("#\\/no_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "color",
-            "rgb(0, 128, 0)"
+            "rgb(0, 128, 0)",
         );
         cy.get(cesc("#\\/fixed_style")).should(
             "have.css",
             "background-color",
-            "rgba(0, 0, 0, 0)"
+            "rgba(0, 0, 0, 0)",
         );
 
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "color",
-            "rgb(255, 0, 0)"
+            "rgb(255, 0, 0)",
         );
         cy.get(cesc("#\\/variable_style")).should(
             "have.css",
             "background-color",
-            "rgb(0, 0, 255)"
+            "rgb(0, 0, 255)",
         );
     });
 
@@ -11126,7 +11126,7 @@ describe("Math Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11194,7 +11194,7 @@ describe("Math Tag Tests", function () {
 
             cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(4,−5)"
+                "(4,−5)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -11232,7 +11232,7 @@ describe("Math Tag Tests", function () {
 
             cy.get(cesc("#\\/m2coords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−8,2)"
+                "(−8,2)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -11270,7 +11270,7 @@ describe("Math Tag Tests", function () {
 
             cy.get(cesc("#\\/m2bcoords") + " .mjx-mrow").should(
                 "contain.text",
-                "(−5,−4)"
+                "(−5,−4)",
             );
 
             cy.get(cesc("#\\/m1coords") + " .mjx-mrow")
@@ -11304,7 +11304,7 @@ describe("Math Tag Tests", function () {
     <math>vec a</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11340,7 +11340,7 @@ describe("Math Tag Tests", function () {
     <math>linesegment(A,B)</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11380,7 +11380,7 @@ describe("Math Tag Tests", function () {
     <math>v^perp</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11434,7 +11434,7 @@ describe("Math Tag Tests", function () {
     <math>v parallel u</math>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11487,7 +11487,7 @@ describe("Math Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11576,7 +11576,7 @@ describe("Math Tag Tests", function () {
             expect(stateVariables["/nperc25"].stateValues.value).eq(0.25);
             expect(stateVariables["/ndeg60"].stateValues.value).closeTo(
                 Math.PI / 3,
-                1e-14
+                1e-14,
             );
             expect(stateVariables["/nsin90deg"].stateValues.value).eq(1);
         });
@@ -11596,7 +11596,7 @@ describe("Math Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11644,7 +11644,7 @@ describe("Math Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11709,7 +11709,7 @@ describe("Math Tag Tests", function () {
   <mathinput name="mi2" bindValueTo="$m2" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11724,11 +11724,11 @@ describe("Math Tag Tests", function () {
 
         cy.get(cesc2("#/mi") + " textarea").type(
             "{end}{shift+home}{backspace}(6,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/mi2") + " textarea").type(
             "{end}{shift+home}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/n")).should("have.text", "3");

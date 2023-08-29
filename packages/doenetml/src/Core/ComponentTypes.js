@@ -396,13 +396,15 @@ export function allComponentClasses() {
         if (newComponentType === undefined) {
             throw Error(
                 "Cannot create component as componentType is undefined for class " +
-                    ct
+                    ct,
             );
         }
         let lowerCaseType = newComponentType.toLowerCase();
         if (lowerCaseComponentTypes.has(lowerCaseType)) {
             throw Error(
-                "component type " + newComponentType + " defined in two classes"
+                "component type " +
+                    newComponentType +
+                    " defined in two classes",
             );
         }
         componentClasses[newComponentType] = ct;
@@ -420,7 +422,7 @@ export function componentTypesCreatingVariants() {
             if (newComponentType === undefined) {
                 throw Error(
                     "Cannot create component as componentType is undefined for class " +
-                        ct
+                        ct,
                 );
             }
             let lowerCaseType = newComponentType.toLowerCase();
@@ -428,7 +430,7 @@ export function componentTypesCreatingVariants() {
                 throw Error(
                     "component type " +
                         newComponentType +
-                        " defined in two classes"
+                        " defined in two classes",
                 );
             }
             componentClasses[newComponentType] = ct;

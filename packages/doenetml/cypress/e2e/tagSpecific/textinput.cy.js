@@ -32,7 +32,7 @@ describe("TextInput Tag Tests", function () {
     $ti2.immediateValue{assignNames="iv2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -54,10 +54,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello"
+                "hello",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello");
@@ -86,10 +86,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello2"
+                "hello2",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello2"
+                "hello2",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello");
@@ -118,10 +118,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello2"
+                "hello2",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello2"
+                "hello2",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello2");
@@ -150,10 +150,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello2");
@@ -181,10 +181,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello you");
@@ -213,10 +213,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello you");
@@ -245,10 +245,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "hello you"
+                "hello you",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello you");
@@ -278,7 +278,7 @@ describe("TextInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abc"
+                "abc",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
             expect(stateVariables["/ti1"].stateValues.value).eq("hello you");
@@ -308,7 +308,7 @@ describe("TextInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abc"
+                "abc",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
             expect(stateVariables["/ti1"].stateValues.value).eq("abc");
@@ -338,7 +338,7 @@ describe("TextInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abc"
+                "abc",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq("bye");
             expect(stateVariables["/ti1"].stateValues.value).eq("abc");
@@ -368,10 +368,10 @@ describe("TextInput Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abc"
+                "abc",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abc");
@@ -399,13 +399,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abc");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abc");
@@ -431,13 +431,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcd");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcd");
@@ -465,7 +465,7 @@ describe("TextInput Tag Tests", function () {
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq("");
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcd");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcd");
@@ -491,13 +491,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcd"
+                "abcd",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcd");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcd");
@@ -523,13 +523,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcd");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcd");
@@ -555,13 +555,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcde");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcde");
@@ -587,13 +587,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcf"
+                "abcf",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcf"
+                "abcf",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcde");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcde");
@@ -619,13 +619,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti1a"].stateValues.immediateValue).eq(
-                "abcde"
+                "abcde",
             );
             expect(stateVariables["/ti2"].stateValues.immediateValue).eq(
-                "saludos"
+                "saludos",
             );
             expect(stateVariables["/ti1"].stateValues.value).eq("abcde");
             expect(stateVariables["/ti1a"].stateValues.value).eq("abcde");
@@ -643,7 +643,7 @@ describe("TextInput Tag Tests", function () {
     <p>Copied textinput: <textInput copySource="_textinput1" name="textinput2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -651,29 +651,29 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/textinput2_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_text1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(stateVariables["/textinput2"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(stateVariables["/textinput2"].stateValues.immediateValue).eq(
-                "hello there"
+                "hello there",
             );
         });
 
@@ -688,17 +688,17 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_text1"].stateValues.value).eq("bye now");
             expect(stateVariables["/textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(stateVariables["/textinput2"].stateValues.immediateValue).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -711,13 +711,13 @@ describe("TextInput Tag Tests", function () {
     <p>textinput based on text: <textinput prefill="bye now" bindValueTo="$_text1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", "hello there");
@@ -732,13 +732,13 @@ describe("TextInput Tag Tests", function () {
     <p>immediate value: $_textinput1.immediateValue{assignNames="iv"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            `can't update me`
+            `can't update me`,
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", `can't update me`);
@@ -748,13 +748,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`can't update me`);
             expect(stateVariables["/_text1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
         });
 
@@ -770,13 +770,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`disappear`);
             expect(stateVariables["/_text1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
         });
 
@@ -785,7 +785,7 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            `can't update me`
+            `can't update me`,
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", `can't update me`);
@@ -795,13 +795,13 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`can't update me`);
             expect(stateVariables["/_text1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
         });
     });
@@ -816,7 +816,7 @@ describe("TextInput Tag Tests", function () {
     <p>Copied textinput: <textInput copySource="_textinput1" name="textinput2" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -824,29 +824,29 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/textinput2_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_text1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(stateVariables["/textinput2"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(stateVariables["/textinput2"].stateValues.immediateValue).eq(
-                "hello there"
+                "hello there",
             );
         });
 
@@ -861,17 +861,17 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_text1"].stateValues.value).eq("bye now");
             expect(stateVariables["/textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(stateVariables["/textinput2"].stateValues.immediateValue).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -884,13 +884,13 @@ describe("TextInput Tag Tests", function () {
     <p>textinput based on text: <textinput prefill="bye now">$_text1</textinput></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", "hello there");
@@ -904,13 +904,13 @@ describe("TextInput Tag Tests", function () {
     <p>value: <text copySource="_textinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "Good morning"
+            "Good morning",
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", "Good morning");
@@ -930,13 +930,13 @@ describe("TextInput Tag Tests", function () {
     <p>value: <text copySource="_textinput1" /></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "Override with this"
+            "Override with this",
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", "ignore");
@@ -958,13 +958,13 @@ describe("TextInput Tag Tests", function () {
     <p>immediate value: $_textinput1.immediateValue{assignNames="iv"}</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            `can't update me`
+            `can't update me`,
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", `update`);
@@ -974,10 +974,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`can't update me`);
             expect(stateVariables["/_text1"].stateValues.value).eq(`update`);
         });
@@ -994,10 +994,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`disappear`);
             expect(stateVariables["/_text1"].stateValues.value).eq(`update`);
         });
@@ -1007,7 +1007,7 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            `can't update me`
+            `can't update me`,
         );
 
         cy.get(cesc("#\\/_text1")).should("have.text", `update`);
@@ -1017,10 +1017,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                `can't update me`
+                `can't update me`,
             );
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq(`can't update me`);
             expect(stateVariables["/_text1"].stateValues.value).eq(`update`);
         });
@@ -1039,22 +1039,22 @@ describe("TextInput Tag Tests", function () {
     <p>Value of second: <text name="secondvalue">$_textinput2.value</text></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.get(cesc("#\\/originalimmediate")).should(
             "have.text",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/originalvalue")).should("have.text", "hello there");
         cy.get(cesc("#\\/secondimmediate")).should("have.text", "hello there");
@@ -1063,16 +1063,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
         });
 
@@ -1082,7 +1082,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/_textinput1_input")).should("have.value", "bye now");
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
 
         cy.get(cesc("#\\/originalimmediate")).should("have.text", "bye now");
@@ -1093,16 +1093,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
         });
 
@@ -1120,16 +1120,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -1139,7 +1139,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/_textinput1_input")).should("have.value", "bye now");
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
 
         cy.get(cesc("#\\/originalimmediate")).should("have.text", "bye now");
@@ -1150,16 +1150,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -1168,16 +1168,16 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
 
         cy.get(cesc("#\\/originalimmediate")).should(
             "have.text",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/originalvalue")).should("have.text", "Hello again");
         cy.get(cesc("#\\/secondimmediate")).should("have.text", "Hello again");
@@ -1186,16 +1186,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "Hello again"
+                "Hello again",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "Hello again"
+                "Hello again",
             );
         });
     });
@@ -1214,21 +1214,21 @@ describe("TextInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/originalimmediate")).should(
             "have.text",
-            "hello there"
+            "hello there",
         );
         cy.get(cesc("#\\/originalvalue")).should("have.text", "hello there");
         cy.get(cesc("#\\/secondimmediate")).should("have.text", "hello there");
@@ -1237,16 +1237,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("hello there");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
         });
 
@@ -1263,16 +1263,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "hello there"
+                "hello there",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -1289,16 +1289,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -1308,7 +1308,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/_textinput1_input")).should("have.value", "bye now");
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/originalimmediate")).should("have.text", "bye now");
         cy.get(cesc("#\\/originalvalue")).should("have.text", "bye now");
@@ -1318,16 +1318,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("bye now");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "bye now"
+                "bye now",
             );
         });
 
@@ -1336,15 +1336,15 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/_textinput1_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/_textinput2_input")).should(
             "have.value",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/originalimmediate")).should(
             "have.text",
-            "Hello again"
+            "Hello again",
         );
         cy.get(cesc("#\\/originalvalue")).should("have.text", "Hello again");
         cy.get(cesc("#\\/secondimmediate")).should("have.text", "Hello again");
@@ -1353,16 +1353,16 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_textinput1"].stateValues.immediateValue
+                stateVariables["/_textinput1"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput1"].stateValues.value).eq(
-                "Hello again"
+                "Hello again",
             );
             expect(
-                stateVariables["/_textinput2"].stateValues.immediateValue
+                stateVariables["/_textinput2"].stateValues.immediateValue,
             ).eq("Hello again");
             expect(stateVariables["/_textinput2"].stateValues.value).eq(
-                "Hello again"
+                "Hello again",
             );
         });
     });
@@ -1380,7 +1380,7 @@ describe("TextInput Tag Tests", function () {
     <updateValue triggerWith="ti" target="h" newValue="$h$ti" type="text" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1425,7 +1425,7 @@ describe("TextInput Tag Tests", function () {
     <p>$(ti.immediateValue)</p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1454,7 +1454,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/ti_input")).type("{moveToStart}new{enter}old{enter}");
         cy.get(cesc("#\\/ti_input")).should(
             "have.value",
-            "new\nold\nhello\nbye\n"
+            "new\nold\nhello\nbye\n",
         );
         cy.get(cesc("#\\/_p2")).should("have.text", "new\nold\nhello\nbye\n");
         cy.get(cesc("#\\/_p1")).should("have.text", "new\noldhello\nbye\n");
@@ -1462,7 +1462,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/ti_input")).blur();
         cy.get(cesc("#\\/ti_input")).should(
             "have.value",
-            "new\nold\nhello\nbye\n"
+            "new\nold\nhello\nbye\n",
         );
         cy.get(cesc("#\\/_p2")).should("have.text", "new\nold\nhello\nbye\n");
         cy.get(cesc("#\\/_p1")).should("have.text", "new\nold\nhello\nbye\n");
@@ -1486,7 +1486,7 @@ describe("TextInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1504,7 +1504,7 @@ describe("TextInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1575,7 +1575,7 @@ describe("TextInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1592,21 +1592,21 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: upperright"
+            "Position from anchor 1: upperright",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: center"
+            "Position from anchor 2: center",
         );
         cy.get(cesc("#\\/positionFromAnchor1")).should("have.value", "1");
         cy.get(cesc("#\\/positionFromAnchor2")).should("have.value", "9");
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.log("move textinputs by dragging");
@@ -1626,7 +1626,7 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(4,−5)"
+            "(4,−5)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1640,16 +1640,16 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(6,7){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(8,9){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(8,9)"
+            "(8,9)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1665,11 +1665,11 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: lowerleft"
+            "Position from anchor 1: lowerleft",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("make not draggable");
@@ -1678,11 +1678,11 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: false"
+            "Draggable 1: false",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: false"
+            "Draggable 2: false",
         );
 
         cy.log("cannot move textinputs by dragging");
@@ -1716,11 +1716,11 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/draggable2")).click();
         cy.get(cesc("#\\/pDraggable1")).should(
             "have.text",
-            "Draggable 1: true"
+            "Draggable 1: true",
         );
         cy.get(cesc("#\\/pDraggable2")).should(
             "have.text",
-            "Draggable 2: true"
+            "Draggable 2: true",
         );
 
         cy.window().then(async (win) => {
@@ -1738,7 +1738,7 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pAnchor2") + " .mjx-mrow").should(
             "contain.text",
-            "(−8,−7)"
+            "(−8,−7)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1754,27 +1754,27 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc("#\\/fixLocation2")).click();
         cy.get(cesc("#\\/pFixLocation1")).should(
             "have.text",
-            "FixLocation 1: true"
+            "FixLocation 1: true",
         );
         cy.get(cesc("#\\/pFixLocation2")).should(
             "have.text",
-            "FixLocation 2: true"
+            "FixLocation 2: true",
         );
 
         cy.log("can change coordinates entering coordinates only for input 1");
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(3,4){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(1,2){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(1,2)"
+            "(1,2)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1815,11 +1815,11 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: top"
+            "Position from anchor 1: top",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute");
@@ -1838,16 +1838,16 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/anchorCoords2") + " textarea").type(
             "{home}{shift+end}{backspace}(7,8){enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/anchorCoords1") + " textarea").type(
             "{home}{shift+end}{backspace}(5,6){enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow").should(
             "contain.text",
-            "(5,6)"
+            "(5,6)",
         );
 
         cy.get(cesc("#\\/pAnchor1") + " .mjx-mrow")
@@ -1863,11 +1863,11 @@ describe("TextInput Tag Tests", function () {
 
         cy.get(cesc("#\\/pPositionFromAnchor1")).should(
             "have.text",
-            "Position from anchor 1: right"
+            "Position from anchor 1: right",
         );
         cy.get(cesc("#\\/pPositionFromAnchor2")).should(
             "have.text",
-            "Position from anchor 2: lowerright"
+            "Position from anchor 2: lowerright",
         );
 
         cy.log("can change disabled attribute only for input 1");
@@ -1892,7 +1892,7 @@ describe("TextInput Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1970,7 +1970,7 @@ describe("TextInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2222,7 +2222,7 @@ describe("TextInput Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2273,7 +2273,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc2("#/ti4ivchanged")).should("have.text", "false");
 
         cy.log(
-            "press enter in third marks first and third value/immediateValue as changed"
+            "press enter in third marks first and third value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/ti3") + "_input").type("{enter}");
@@ -2331,7 +2331,7 @@ describe("TextInput Tag Tests", function () {
         cy.get(cesc2("#/ti4ivchanged")).should("have.text", "true");
 
         cy.log(
-            "press enter in fourth marks third and fourth value/immediateValue as changed"
+            "press enter in fourth marks third and fourth value/immediateValue as changed",
         );
 
         cy.get(cesc2("#/ti4") + "_input").type("{enter}");
@@ -2369,7 +2369,7 @@ describe("TextInput Tag Tests", function () {
 
      `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2382,10 +2382,10 @@ describe("TextInput Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/ti1"].stateValues.label).eq(
-                "Type something"
+                "Type something",
             );
             expect(stateVariables["/ti2"].stateValues.label).eq(
-                "Hello \\(\\frac{a}{b}\\)"
+                "Hello \\(\\frac{a}{b}\\)",
             );
         });
     });

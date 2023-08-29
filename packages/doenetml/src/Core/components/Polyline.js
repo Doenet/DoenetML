@@ -56,7 +56,7 @@ export default class Polyline extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -294,7 +294,7 @@ export default class Polyline extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -306,22 +306,22 @@ export default class Polyline extends GraphicalComponent {
                     if (subArraySize.length === 1) {
                         // array of numbers from 0 to subArraySize[0], cast to strings
                         return Array.from(Array(subArraySize[0]), (_, i) =>
-                            String(i)
+                            String(i),
                         );
                     } else {
                         let currentSize = subArraySize[0];
                         let subSubKeys = getAllArrayKeysSub(
-                            subArraySize.slice(1)
+                            subArraySize.slice(1),
                         );
                         let subKeys = [];
                         for (let ind = 0; ind < currentSize; ind++) {
                             if (flatten) {
                                 subKeys.push(
-                                    ...subSubKeys.map((x) => ind + "," + x)
+                                    ...subSubKeys.map((x) => ind + "," + x),
                                 );
                             } else {
                                 subKeys.push(
-                                    subSubKeys.map((x) => ind + "," + x)
+                                    subSubKeys.map((x) => ind + "," + x),
                                 );
                             }
                         }
@@ -499,7 +499,7 @@ export default class Polyline extends GraphicalComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let vert = dependencyValuesByKey[arrayKey].vertex.map((x) =>
-                        x.evaluate_to_constant()
+                        x.evaluate_to_constant(),
                     );
                     if (!vert.every((x) => Number.isFinite(x))) {
                         vert = Array(vert.length).fill(NaN);
@@ -756,8 +756,8 @@ export default class Polyline extends GraphicalComponent {
             // whole polyline dragged
 
             let numericalVertices = pointCoords;
-            let resultingNumericalVertices = await this.stateValues
-                .numericalVertices;
+            let resultingNumericalVertices =
+                await this.stateValues.numericalVertices;
             let numVertices = await this.stateValues.numVertices;
 
             let verticesChanged = [];
@@ -769,7 +769,7 @@ export default class Polyline extends GraphicalComponent {
                     !vrtx.every(
                         (v, i) =>
                             Math.abs(v - resultingNumericalVertices[ind][i]) <
-                            tol
+                            tol,
                     )
                 ) {
                     verticesChanged.push(ind);
@@ -796,7 +796,7 @@ export default class Polyline extends GraphicalComponent {
 
                         if (
                             !changevec1.every(
-                                (v, i) => Math.abs(v - changevec2[i]) < tol
+                                (v, i) => Math.abs(v - changevec2[i]) < tol,
                             )
                         ) {
                             relationshipPreserved = false;
@@ -815,13 +815,13 @@ export default class Polyline extends GraphicalComponent {
                     for (let i = 0; i < numVertices; i++) {
                         if (verticesChanged.includes(i)) {
                             newNumericalVertices.push(
-                                resultingNumericalVertices[i]
+                                resultingNumericalVertices[i],
                             );
                         } else {
                             newNumericalVertices.push(
                                 numericalVertices[i].map(
-                                    (v, j) => v - changevec1[j]
-                                )
+                                    (v, j) => v - changevec1[j],
+                                ),
                             );
                         }
                     }
@@ -829,10 +829,10 @@ export default class Polyline extends GraphicalComponent {
                     let newVertexComponents = {};
                     for (let ind in newNumericalVertices) {
                         newVertexComponents[ind + ",0"] = me.fromAst(
-                            newNumericalVertices[ind][0]
+                            newNumericalVertices[ind][0],
                         );
                         newVertexComponents[ind + ",1"] = me.fromAst(
-                            newNumericalVertices[ind][1]
+                            newNumericalVertices[ind][1],
                         );
                     }
 

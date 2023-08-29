@@ -78,7 +78,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -136,7 +136,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr1") + " .mjx-mrow").should(
                 "contain.text",
-                "(1,0)"
+                "(1,0)",
             );
 
             cy.log("Click submit");
@@ -174,7 +174,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr2") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.log("Move second point to wrong location");
@@ -192,7 +192,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr2") + " .mjx-mrow").should(
                 "contain.text",
-                "(3,4)"
+                "(3,4)",
             );
 
             cy.log("Click submit");
@@ -259,7 +259,7 @@ describe("CobwebPolyline Tag Tests", function () {
             });
             cy.get(cesc("#\\/cr2") + " .mjx-mrow").should(
                 "contain.text",
-                "(1,1)"
+                "(1,1)",
             );
 
             cy.log("Click submit");
@@ -326,7 +326,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr2") + " .mjx-mrow").should(
                 "contain.text",
-                "(1,1.6667)"
+                "(1,1.6667)",
             );
 
             cy.log("Click submit");
@@ -390,13 +390,13 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr3") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "20%"
+                "20%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -476,7 +476,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr3") + " .mjx-mrow").should(
                 "contain.text",
-                `(1.6667,1.6667)`
+                `(1.6667,1.6667)`,
             );
 
             cy.log("Click submit");
@@ -484,7 +484,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "40%"
+                "40%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -555,7 +555,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr4") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.window().then(async (win) => {
@@ -571,7 +571,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr4") + " .mjx-mrow").should(
                 "contain.text",
-                `(1,2)`
+                `(1,2)`,
             );
 
             cy.log("Click submit");
@@ -579,7 +579,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "40%"
+                "40%",
             );
 
             cy.get(cesc("#\\/check_cobweb_partial"))
@@ -680,7 +680,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr4") + " .mjx-mrow").should(
                 "contain.text",
-                `(1.6667,2.4074)`
+                `(1.6667,2.4074)`,
             );
 
             cy.log("Click submit");
@@ -688,7 +688,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "60%"
+                "60%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -783,7 +783,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "40%"
+                "40%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -853,7 +853,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr4") + " .mjx-mrow").should(
                 "contain.text",
-                `(1.6667,2.4074)`
+                `(1.6667,2.4074)`,
             );
 
             cy.log("Click submit");
@@ -861,7 +861,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "60%"
+                "60%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -951,7 +951,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/addline_button")).click();
             cy.get(cesc("#\\/cr5") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.window().then(async () => {
@@ -967,7 +967,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr5") + " .mjx-mrow").should(
                 "contain.text",
-                `(2.4074,2.4074)`
+                `(2.4074,2.4074)`,
             );
 
             cy.log("Click submit");
@@ -975,7 +975,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "80%"
+                "80%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -1081,7 +1081,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/addline_button")).click();
             cy.get(cesc("#\\/cr6") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.window().then(async () => {
@@ -1097,7 +1097,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr6") + " .mjx-mrow").should(
                 "contain.text",
-                `(−1,3)`
+                `(−1,3)`,
             );
 
             cy.log("Click submit");
@@ -1105,7 +1105,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "80%"
+                "80%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -1241,7 +1241,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr6") + " .mjx-mrow").should(
                 "contain.text",
-                `(2.4074,2.8829)`
+                `(2.4074,2.8829)`,
             );
 
             cy.log("Click submit");
@@ -1367,7 +1367,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/addline_button")).click();
             cy.get(cesc("#\\/cr7") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.window().then(async () => {
@@ -1383,7 +1383,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr7") + " .mjx-mrow").should(
                 "contain.text",
-                `(3,1)`
+                `(3,1)`,
             );
 
             cy.log("Click submit");
@@ -1391,7 +1391,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/check_cobweb_submit")).click();
             cy.get(cesc("#\\/check_cobweb_partial")).should(
                 "contain.text",
-                "83%"
+                "83%",
             );
             cy.get(cesc("#\\/check_cobweb_partial"))
                 .invoke("text")
@@ -1540,7 +1540,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr7") + " .mjx-mrow").should(
                 "contain.text",
-                `(2.8829,2.8829)`
+                `(2.8829,2.8829)`,
             );
 
             cy.log("Click submit");
@@ -1679,7 +1679,7 @@ describe("CobwebPolyline Tag Tests", function () {
             cy.get(cesc("#\\/addline_button")).click();
             cy.get(cesc("#\\/cr8") + " .mjx-mrow").should(
                 "contain.text",
-                `(${xCenter},${yCenter})`
+                `(${xCenter},${yCenter})`,
             );
 
             cy.window().then(async () => {
@@ -1695,7 +1695,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
             cy.get(cesc("#\\/cr8") + " .mjx-mrow").should(
                 "contain.text",
-                `(2.8829,2.9954)`
+                `(2.8829,2.9954)`,
             );
 
             cy.log("Click submit");
@@ -1865,7 +1865,7 @@ describe("CobwebPolyline Tag Tests", function () {
   
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1875,12 +1875,12 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/gradedApplet/initialCorrect_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_incorrect")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_incorrect")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/startFeedback")).should("be.visible");
@@ -1896,14 +1896,14 @@ describe("CobwebPolyline Tag Tests", function () {
         });
 
         cy.get(cesc2("#/gradedApplet/initialCorrect_submit")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_incorrect")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/initialCorrect_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -1925,19 +1925,19 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/startFeedback")).should("be.visible");
 
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_incorrect")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/incorrectFeedback")).should("be.visible");
 
@@ -1953,7 +1953,7 @@ describe("CobwebPolyline Tag Tests", function () {
         });
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial"))
             .invoke("text")
@@ -1961,7 +1961,7 @@ describe("CobwebPolyline Tag Tests", function () {
                 expect(text.trim().toLowerCase()).equal("20% correct");
             });
         cy.get(cesc2("#/gradedApplet/insufficientFeedback")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -1977,7 +1977,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -1988,10 +1988,10 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/deleteLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_incorrect")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/startFeedback")).should("be.visible");
 
@@ -2010,7 +2010,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/initialCorrect_correct")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial"))
             .invoke("text")
@@ -2018,7 +2018,7 @@ describe("CobwebPolyline Tag Tests", function () {
                 expect(text.trim().toLowerCase()).equal("20% correct");
             });
         cy.get(cesc2("#/gradedApplet/insufficientFeedback")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2034,7 +2034,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2067,7 +2067,7 @@ describe("CobwebPolyline Tag Tests", function () {
                 expect(text.trim().toLowerCase()).equal("40% correct");
             });
         cy.get(cesc2("#/gradedApplet/insufficientFeedback")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2083,7 +2083,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2094,7 +2094,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial")).should(
-            "be.visible"
+            "be.visible",
         );
 
         let x2 = f(x1);
@@ -2108,7 +2108,7 @@ describe("CobwebPolyline Tag Tests", function () {
             });
         });
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2124,7 +2124,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2133,7 +2133,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`
+                    `x2=${Math.round(x2 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2145,7 +2145,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.window().then(async (win) => {
@@ -2159,7 +2159,7 @@ describe("CobwebPolyline Tag Tests", function () {
         });
 
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2175,7 +2175,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2184,7 +2184,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`
+                    `x2=${Math.round(x2 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2195,7 +2195,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial")).should(
-            "be.visible"
+            "be.visible",
         );
 
         let x3 = f(x2);
@@ -2211,7 +2211,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_correct")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2227,7 +2227,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2236,7 +2236,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`
+                    `x2=${Math.round(x2 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2245,7 +2245,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`
+                    `x3=${Math.round(x3 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2256,7 +2256,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial"))
             .invoke("text")
@@ -2276,7 +2276,7 @@ describe("CobwebPolyline Tag Tests", function () {
         });
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_correct")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2292,7 +2292,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2301,7 +2301,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`
+                    `x2=${Math.round(x2 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2310,7 +2310,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`
+                    `x3=${Math.round(x3 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2321,7 +2321,7 @@ describe("CobwebPolyline Tag Tests", function () {
         cy.get(cesc2("#/gradedApplet/cobwebApplet/addLine_button")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial")).should(
-            "be.visible"
+            "be.visible",
         );
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_partial"))
             .invoke("text")
@@ -2342,7 +2342,7 @@ describe("CobwebPolyline Tag Tests", function () {
         });
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_submit")).click();
         cy.get(cesc2("#/gradedApplet/correctCobwebbing_correct")).should(
-            "be.visible"
+            "be.visible",
         );
 
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2358,7 +2358,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x1=${Math.round(x1 * 10000) / 10000}`
+                    `x1=${Math.round(x1 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2367,7 +2367,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x2=${Math.round(x2 * 10000) / 10000}`
+                    `x2=${Math.round(x2 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2376,7 +2376,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x3=${Math.round(x3 * 10000) / 10000}`
+                    `x3=${Math.round(x3 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2385,7 +2385,7 @@ describe("CobwebPolyline Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    `x4=${Math.round(x4 * 10000) / 10000}`
+                    `x4=${Math.round(x4 * 10000) / 10000}`,
                 );
             });
         cy.get(cesc2("#/gradedApplet/cobwebApplet/calculatedValue"))
@@ -2409,7 +2409,7 @@ describe("CobwebPolyline Tag Tests", function () {
   <p>Credit achieved: <copy source="_document1" prop="creditAchieved" assignNames="ca" /></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2570,7 +2570,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/cobwebTutorial/shortcutButton_button")).click();
         cy.get(cesc2("#/cobwebTutorial/shortcutButton_button")).should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(cesc2("#/cobwebTutorial/next_button")).should("be.disabled");
         cy.get(cesc2("#/ca")).should("have.text", "1");
@@ -2732,7 +2732,7 @@ describe("CobwebPolyline Tag Tests", function () {
 
         cy.get(cesc2("#/cobwebTutorial/shortcutButton_button")).click();
         cy.get(cesc2("#/cobwebTutorial/shortcutButton_button")).should(
-            "not.exist"
+            "not.exist",
         );
         cy.get(cesc2("#/cobwebTutorial/next_button")).should("be.disabled");
         cy.get(cesc2("#/ca")).should("have.text", "1");

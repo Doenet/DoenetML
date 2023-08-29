@@ -90,7 +90,7 @@ export default class Line extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -433,7 +433,7 @@ export default class Line extends GraphicalComponent {
                     setValue: {
                         variables: returnNVariables(
                             arraySize[0],
-                            variablesSpecified
+                            variablesSpecified,
                         ),
                     },
                 };
@@ -521,7 +521,7 @@ export default class Line extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -556,7 +556,7 @@ export default class Line extends GraphicalComponent {
                             [arrayKey]: convertValueToMathExpression(
                                 desiredStateVariableValues.essentialPoints[
                                     arrayKey
-                                ]
+                                ],
                             ),
                         },
                     });
@@ -644,7 +644,7 @@ export default class Line extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -712,7 +712,7 @@ export default class Line extends GraphicalComponent {
                                     dependenciesByKey[
                                         arrayKey
                                     ].through.variableNames.push(
-                                        "pointX1_" + (Number(dim) + 1)
+                                        "pointX1_" + (Number(dim) + 1),
                                     );
                                 }
                                 dependenciesByKey[arrayKey].distForSecondPt = {
@@ -816,7 +816,7 @@ export default class Line extends GraphicalComponent {
 
                 if ("coeff0" in globalDependencyValues) {
                     let result = calculatePointsFromCoeffs(
-                        globalDependencyValues
+                        globalDependencyValues,
                     );
 
                     if (!result.success) {
@@ -940,7 +940,7 @@ export default class Line extends GraphicalComponent {
                                         let parallelTo = dependencyValuesByKey[
                                             arrayKey
                                         ].parallelToAttr.stateValues.direction.map(
-                                            (v) => v.evaluate_to_constant()
+                                            (v) => v.evaluate_to_constant(),
                                         );
 
                                         if (
@@ -966,12 +966,12 @@ export default class Line extends GraphicalComponent {
                                             dependencyValuesByKey[
                                                 arrayKey
                                             ].perpendicularToAttr.stateValues.direction.map(
-                                                (v) => v.evaluate_to_constant()
+                                                (v) => v.evaluate_to_constant(),
                                             );
 
                                         if (
                                             !perpendicularTo.every(
-                                                Number.isFinite
+                                                Number.isFinite,
                                             )
                                         ) {
                                             points[arrayKey] =
@@ -1040,7 +1040,7 @@ export default class Line extends GraphicalComponent {
 
                     Object.assign(
                         workspace.desiredPoints,
-                        desiredStateVariableValues.points
+                        desiredStateVariableValues.points,
                     );
 
                     let points = await stateValues.points;
@@ -1086,7 +1086,7 @@ export default class Line extends GraphicalComponent {
                         let sVCoeffVar2 = await stateValues.coeffvar2;
 
                         let prodDiff = Math.abs(
-                            coeffvar1 * sVCoeffVar2 - sVCoeffVar1 * coeffvar2
+                            coeffvar1 * sVCoeffVar2 - sVCoeffVar1 * coeffvar2,
                         );
 
                         let instructions = [];
@@ -1194,7 +1194,7 @@ export default class Line extends GraphicalComponent {
                     // process in reverse order so x-coordinate and first point
                     // are processed last and take precedence
                     for (let arrayKey of Object.keys(
-                        desiredStateVariableValues.points
+                        desiredStateVariableValues.points,
                     ).reverse()) {
                         let [pointInd, dim] = arrayKey.split(",");
                         let varEnding =
@@ -1232,7 +1232,7 @@ export default class Line extends GraphicalComponent {
                             } else {
                                 if (
                                     workspace.desiredPoint1.every(
-                                        Number.isFinite
+                                        Number.isFinite,
                                     )
                                 ) {
                                     let otherPt = (
@@ -1240,10 +1240,10 @@ export default class Line extends GraphicalComponent {
                                     )[0].map((v) => v.evaluate_to_constant());
                                     if (otherPt.every(Number.isFinite)) {
                                         let dx = workspace.desiredPoint1.map(
-                                            (v, i) => v - otherPt[i]
+                                            (v, i) => v - otherPt[i],
                                         );
                                         let distForSecondPt = Math.sqrt(
-                                            dx.reduce((a, c) => a + c * c, 0)
+                                            dx.reduce((a, c) => a + c * c, 0),
                                         );
 
                                         if (
@@ -1274,7 +1274,7 @@ export default class Line extends GraphicalComponent {
                                             globalDependencyValues.basedOnParallel
                                         ) {
                                             let unitVect = dx.map(
-                                                (v) => v / distForSecondPt
+                                                (v) => v / distForSecondPt,
                                             );
 
                                             instructions.push({
@@ -1283,14 +1283,14 @@ export default class Line extends GraphicalComponent {
                                                         arrayKey
                                                     ].parallelToAttr,
                                                 desiredValue: unitVect.map(
-                                                    (v) => me.fromAst(v)
+                                                    (v) => me.fromAst(v),
                                                 ),
                                                 variableIndex: 0,
                                             });
                                         } else {
                                             // based on perpendicular
                                             let unitVect = dx.map(
-                                                (v) => v / distForSecondPt
+                                                (v) => v / distForSecondPt,
                                             );
                                             instructions.push({
                                                 setDependency:
@@ -1567,7 +1567,7 @@ export default class Line extends GraphicalComponent {
 
                 if (dependencyValues.points) {
                     console.log(
-                        `Haven't implemented inverse definition of equation of line based on points`
+                        `Haven't implemented inverse definition of equation of line based on points`,
                     );
                     return { success: false };
                 }
@@ -1595,7 +1595,7 @@ export default class Line extends GraphicalComponent {
                     )
                 ) {
                     console.log(
-                        `Haven't implemented inverting coeffs if not specifying all of them`
+                        `Haven't implemented inverting coeffs if not specifying all of them`,
                     );
                     return { success: false };
                 }
@@ -1666,7 +1666,7 @@ export default class Line extends GraphicalComponent {
                     desiredPoints[`1,${dim}`] = me.fromAst([
                         "+",
                         desiredStateVariableValues.parallelCoords.get_component(
-                            dim
+                            dim,
                         ).tree,
                         dependencyValues.points[0][dim].tree,
                     ]);
@@ -2052,14 +2052,14 @@ export default class Line extends GraphicalComponent {
         {
             stateVariable: "equation",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "parallelCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions()
+                returnRoundingStateVariableDefinitions(),
             ),
         },
     ];
@@ -2142,8 +2142,8 @@ export default class Line extends GraphicalComponent {
             // based on two points
 
             let numericalPoints = [point1coords, point2coords];
-            let resultingNumericalPoints = await this.stateValues
-                .numericalPoints;
+            let resultingNumericalPoints =
+                await this.stateValues.numericalPoints;
 
             let pointsChanged = [];
             let numPointsChanged = 0;
@@ -2176,7 +2176,7 @@ export default class Line extends GraphicalComponent {
                         newNumericalPoints.push(resultingNumericalPoints[i]);
                     } else {
                         newNumericalPoints.push(
-                            numericalPoints[i].map((v, j) => v - changevec1[j])
+                            numericalPoints[i].map((v, j) => v - changevec1[j]),
                         );
                     }
                 }
@@ -2184,10 +2184,10 @@ export default class Line extends GraphicalComponent {
                 let newPointComponents = {};
                 for (let ind in newNumericalPoints) {
                     newPointComponents[ind + ",0"] = me.fromAst(
-                        newNumericalPoints[ind][0]
+                        newNumericalPoints[ind][0],
                     );
                     newPointComponents[ind + ",1"] = me.fromAst(
-                        newNumericalPoints[ind][1]
+                        newNumericalPoints[ind][1],
                     );
                 }
 

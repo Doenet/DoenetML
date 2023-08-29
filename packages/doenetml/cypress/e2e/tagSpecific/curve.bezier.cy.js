@@ -47,21 +47,21 @@ describe("Curve Tag Bezier Tests", function () {
                     let pt = throughPoints[ind];
                     if (vecs[0]) {
                         expect(curve.stateValues.controlVectors[ind][0]).eqls(
-                            vecs[0]
+                            vecs[0],
                         );
                         if (pt) {
                             expect(
-                                curve.stateValues.controlPoints[ind][0]
+                                curve.stateValues.controlPoints[ind][0],
                             ).eqls([pt[0] + vecs[0][0], pt[1] + vecs[0][1]]);
                         }
                     }
                     if (vecs[1]) {
                         expect(curve.stateValues.controlVectors[ind][1]).eqls(
-                            vecs[1]
+                            vecs[1],
                         );
                         if (pt) {
                             expect(
-                                curve.stateValues.controlPoints[ind][1]
+                                curve.stateValues.controlPoints[ind][1],
                             ).eqls([pt[0] + vecs[1][0], pt[1] + vecs[1][1]]);
                         }
                     }
@@ -139,7 +139,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -205,22 +205,22 @@ describe("Curve Tag Bezier Tests", function () {
             });
 
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1][0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][1][0],
             ).not.eq(2);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][1][1],
             ).not.eq(1);
             expect(
-                stateVariables["/g2/curve"].stateValues.controlVectors[0][1][0]
+                stateVariables["/g2/curve"].stateValues.controlVectors[0][1][0],
             ).not.eq(2);
             expect(
-                stateVariables["/g2/curve"].stateValues.controlVectors[0][1][1]
+                stateVariables["/g2/curve"].stateValues.controlVectors[0][1][1],
             ).not.eq(1);
             expect(
-                stateVariables["/g3/curve"].stateValues.controlVectors[0][1][0]
+                stateVariables["/g3/curve"].stateValues.controlVectors[0][1][0],
             ).not.eq(2);
             expect(
-                stateVariables["/g3/curve"].stateValues.controlVectors[0][1][1]
+                stateVariables["/g3/curve"].stateValues.controlVectors[0][1][1],
             ).not.eq(1);
         });
 
@@ -302,10 +302,10 @@ describe("Curve Tag Bezier Tests", function () {
             expect(v00).not.eq(4);
             expect(v01).not.eq(-2);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1][0]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][1][0],
             ).eq(-v00);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][1][1],
             ).eq(-v01);
         });
     });
@@ -381,7 +381,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -801,7 +801,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1291,7 +1291,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1726,7 +1726,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1738,12 +1738,12 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_controlvectors1"].stateValues.direction
+                stateVariables["/_controlvectors1"].stateValues.direction,
             ).eq("symmetric");
             // expect(stateVariables['/_controlvectors1'].state.direction.usedDefault).be.true
 
             expect(stateVariables["/cv1a"].stateValues.direction).eq(
-                "symmetric"
+                "symmetric",
             );
             // expect(stateVariables['/cv1a'].state.direction.usedDefault).be.true
         });
@@ -1756,7 +1756,7 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_controlvectors1"].stateValues.direction
+                stateVariables["/_controlvectors1"].stateValues.direction,
             ).eq("both");
             // expect(stateVariables['/_controlvectors1'].state.direction.usedDefault).not.be.true
 
@@ -1779,7 +1779,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1791,12 +1791,12 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_controlvectors1"].stateValues.direction
+                stateVariables["/_controlvectors1"].stateValues.direction,
             ).eq("symmetric");
             // expect(stateVariables['/_controlvectors1'].state.direction.usedDefault).be.true
 
             expect(stateVariables["/cv1a"].stateValues.direction).eq(
-                "symmetric"
+                "symmetric",
             );
             // expect(stateVariables['/cv1a'].state.direction.usedDefault).be.true
         });
@@ -1809,7 +1809,7 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_controlvectors1"].stateValues.direction
+                stateVariables["/_controlvectors1"].stateValues.direction,
             ).eq("none");
             // expect(stateVariables['/_controlvectors1'].state.direction.usedDefault).not.be.true
 
@@ -1894,7 +1894,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2389,7 +2389,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2883,7 +2883,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3383,7 +3383,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3879,7 +3879,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4375,7 +4375,7 @@ describe("Curve Tag Bezier Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5046,7 +5046,7 @@ describe("Curve Tag Bezier Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5296,7 +5296,7 @@ describe("Curve Tag Bezier Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5305,52 +5305,52 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[5][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[5][2],
             ).greaterThan(0);
         });
 
@@ -5374,52 +5374,52 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[0][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[5][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[5][2],
             ).greaterThan(0);
         });
     });
@@ -5446,7 +5446,7 @@ describe("Curve Tag Bezier Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5455,34 +5455,34 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2],
             ).eqls([1, -2]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3]
+                stateVariables["/_curve1"].stateValues.controlVectors[3],
             ).eqls([5, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4]
+                stateVariables["/_curve1"].stateValues.controlVectors[4],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5]
+                stateVariables["/_curve1"].stateValues.controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -5506,43 +5506,43 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5]
+                stateVariables["/_curve1"].stateValues.controlVectors[5],
             ).eqls([-2, 3]);
         });
     });
@@ -5569,7 +5569,7 @@ describe("Curve Tag Bezier Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5578,34 +5578,34 @@ describe("Curve Tag Bezier Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1],
             ).eqls([-4, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2],
             ).eqls([4, -1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3]
+                stateVariables["/_curve1"].stateValues.controlVectors[3],
             ).eqls([5, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4]
+                stateVariables["/_curve1"].stateValues.controlVectors[4],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5]
+                stateVariables["/_curve1"].stateValues.controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -5629,46 +5629,46 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[1][2],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][1],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2][2],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][1],
             ).greaterThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[3][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][1]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][1],
             ).lessThan(0);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4][2]
+                stateVariables["/_curve1"].stateValues.controlVectors[4][2],
             ).closeTo(0, 1e-12);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5]
+                stateVariables["/_curve1"].stateValues.controlVectors[5],
             ).eqls([-2, 3]);
         });
 
@@ -5692,34 +5692,34 @@ describe("Curve Tag Bezier Tests", function () {
                 },
             });
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[0]
+                stateVariables["/_curve1"].stateValues.throughPoints[0],
             ).eqls([1, 2]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[1]
+                stateVariables["/_curve1"].stateValues.throughPoints[1],
             ).eqls([3, 4]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[2]
+                stateVariables["/_curve1"].stateValues.throughPoints[2],
             ).eqls([-5, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.throughPoints[3]
+                stateVariables["/_curve1"].stateValues.throughPoints[3],
             ).eqls([2, -3]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[0]
+                stateVariables["/_curve1"].stateValues.controlVectors[0],
             ).eqls([3, 1]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[1]
+                stateVariables["/_curve1"].stateValues.controlVectors[1],
             ).eqls([-0.125, -6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[2]
+                stateVariables["/_curve1"].stateValues.controlVectors[2],
             ).eqls([0.125, 6]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[3]
+                stateVariables["/_curve1"].stateValues.controlVectors[3],
             ).eqls([-7, 0.125]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[4]
+                stateVariables["/_curve1"].stateValues.controlVectors[4],
             ).eqls([7, -0.125]);
             expect(
-                stateVariables["/_curve1"].stateValues.controlVectors[5]
+                stateVariables["/_curve1"].stateValues.controlVectors[5],
             ).eqls([-2, 3]);
         });
     });
@@ -5778,7 +5778,7 @@ describe("Curve Tag Bezier Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6317,7 +6317,7 @@ describe("Curve Tag Bezier Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6854,7 +6854,7 @@ describe("Curve Tag Bezier Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7383,7 +7383,7 @@ describe("Curve Tag Bezier Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7921,7 +7921,7 @@ describe("Curve Tag Bezier Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8537,7 +8537,7 @@ describe("Curve Tag Bezier Tests", function () {
   $g2{name="g3"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9195,7 +9195,7 @@ describe("Curve Tag Bezier Tests", function () {
   $g2{name="g3"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -9854,7 +9854,7 @@ describe("Curve Tag Bezier Tests", function () {
   $g2{name="g3"}
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -10243,7 +10243,7 @@ describe("Curve Tag Bezier Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -10672,7 +10672,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); //wait for page to load
@@ -11132,7 +11132,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11286,7 +11286,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11440,7 +11440,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11594,7 +11594,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11631,8 +11631,10 @@ describe("Curve Tag Bezier Tests", function () {
 
         let desiredControlPoints = desiredControlVectors.map((x, i) =>
             x.map((v) =>
-                v.map((a, j) => Math.round((a + throughPoints[i][j]) * 10) / 10)
-            )
+                v.map(
+                    (a, j) => Math.round((a + throughPoints[i][j]) * 10) / 10,
+                ),
+            ),
         );
 
         cy.get(cesc2("#/_text1")).should("have.text", "a"); //wait for page to load
@@ -11653,26 +11655,26 @@ describe("Curve Tag Bezier Tests", function () {
                 `{end}{backspace}${m}{enter}`,
                 {
                     force: true,
-                }
+                },
             );
 
             cy.get(cesc2("#/Vb1") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlVectors[m - 1][0])
+                pointInDOM(desiredControlVectors[m - 1][0]),
             );
             cy.get(cesc2("#/Vb2") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlVectors[m - 1][1])
+                pointInDOM(desiredControlVectors[m - 1][1]),
             );
             cy.get(cesc2("#/Vb3")).should("not.exist");
 
             cy.get(cesc2("#/Pb1") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlPoints[m - 1][0])
+                pointInDOM(desiredControlPoints[m - 1][0]),
             );
             cy.get(cesc2("#/Pb2") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlPoints[m - 1][1])
+                pointInDOM(desiredControlPoints[m - 1][1]),
             );
             cy.get(cesc2("#/Pb3")).should("not.exist");
 
@@ -11681,18 +11683,18 @@ describe("Curve Tag Bezier Tests", function () {
                     `{end}{backspace}${n}{enter}`,
                     {
                         force: true,
-                    }
+                    },
                 );
 
                 cy.get(cesc2("#/V1") + " .mjx-mrow").should(
                     "contain.text",
-                    pointInDOM(desiredControlVectors[m - 1][n - 1])
+                    pointInDOM(desiredControlVectors[m - 1][n - 1]),
                 );
                 cy.get(cesc2("#/V2")).should("not.exist");
 
                 cy.get(cesc2("#/P1") + " .mjx-mrow").should(
                     "contain.text",
-                    pointInDOM(desiredControlPoints[m - 1][n - 1])
+                    pointInDOM(desiredControlPoints[m - 1][n - 1]),
                 );
                 cy.get(cesc2("#/P2")).should("not.exist");
             }
@@ -11728,7 +11730,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11765,8 +11767,10 @@ describe("Curve Tag Bezier Tests", function () {
 
         let desiredControlPoints = desiredControlVectors.map((x, i) =>
             x.map((v) =>
-                v.map((a, j) => Math.round((a + throughPoints[i][j]) * 10) / 10)
-            )
+                v.map(
+                    (a, j) => Math.round((a + throughPoints[i][j]) * 10) / 10,
+                ),
+            ),
         );
 
         cy.get(cesc2("#/_text1")).should("have.text", "a"); //wait for page to load
@@ -11787,26 +11791,26 @@ describe("Curve Tag Bezier Tests", function () {
                 `{end}{backspace}${m}{enter}`,
                 {
                     force: true,
-                }
+                },
             );
 
             cy.get(cesc2("#/Vb1") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlVectors[m - 1][0])
+                pointInDOM(desiredControlVectors[m - 1][0]),
             );
             cy.get(cesc2("#/Vb2") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlVectors[m - 1][1])
+                pointInDOM(desiredControlVectors[m - 1][1]),
             );
             cy.get(cesc2("#/Vb3")).should("not.exist");
 
             cy.get(cesc2("#/Pb1") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlPoints[m - 1][0])
+                pointInDOM(desiredControlPoints[m - 1][0]),
             );
             cy.get(cesc2("#/Pb2") + " .mjx-mrow").should(
                 "contain.text",
-                pointInDOM(desiredControlPoints[m - 1][1])
+                pointInDOM(desiredControlPoints[m - 1][1]),
             );
             cy.get(cesc2("#/Pb3")).should("not.exist");
 
@@ -11815,18 +11819,18 @@ describe("Curve Tag Bezier Tests", function () {
                     `{end}{backspace}${n}{enter}`,
                     {
                         force: true,
-                    }
+                    },
                 );
 
                 cy.get(cesc2("#/V1") + " .mjx-mrow").should(
                     "contain.text",
-                    pointInDOM(desiredControlVectors[m - 1][n - 1])
+                    pointInDOM(desiredControlVectors[m - 1][n - 1]),
                 );
                 cy.get(cesc2("#/V2")).should("not.exist");
 
                 cy.get(cesc2("#/P1") + " .mjx-mrow").should(
                     "contain.text",
-                    pointInDOM(desiredControlPoints[m - 1][n - 1])
+                    pointInDOM(desiredControlPoints[m - 1][n - 1]),
                 );
                 cy.get(cesc2("#/P2")).should("not.exist");
             }
@@ -11853,7 +11857,7 @@ describe("Curve Tag Bezier Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -11989,7 +11993,7 @@ describe("Curve Tag Bezier Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12235,7 +12239,7 @@ describe("Curve Tag Bezier Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -12471,7 +12475,7 @@ describe("Curve Tag Bezier Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

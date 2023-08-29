@@ -93,7 +93,7 @@ export class FeedbackDefinitions extends BaseComponent {
                     if (child.stateValues.feedbackDefinition) {
                         Object.assign(
                             value,
-                            child.stateValues.feedbackDefinition
+                            child.stateValues.feedbackDefinition,
                         );
                     }
                 }

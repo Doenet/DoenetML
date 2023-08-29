@@ -8,5 +8,5 @@ const root = createRoot(document.getElementById("root"));
 root.render(
     <RecoilRoot>
         <DoenetTest />
-    </RecoilRoot>
+    </RecoilRoot>,
 );

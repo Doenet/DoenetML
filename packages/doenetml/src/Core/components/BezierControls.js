@@ -48,7 +48,7 @@ export default class BezierControls extends InlineComponent {
                     if (
                         !componentInfoObjects.componentIsSpecifiedType(
                             child,
-                            "controlVectors"
+                            "controlVectors",
                         )
                     ) {
                         return {
@@ -618,7 +618,7 @@ export default class BezierControls extends InlineComponent {
                                     ) {
                                         newControlValues[arrayKey] = me.fromAst(
                                             -dependencyValuesByKey[arrayKey]
-                                                .essentialSymmetricControl.tree
+                                                .essentialSymmetricControl.tree,
                                         );
                                     }
                                 } else {
@@ -690,7 +690,7 @@ export default class BezierControls extends InlineComponent {
                                     let desiredValue = me.fromAst(
                                         desiredStateVariableValues.controls[
                                             arrayKey
-                                        ].evaluate_to_constant()
+                                        ].evaluate_to_constant(),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({
@@ -754,7 +754,7 @@ export default class BezierControls extends InlineComponent {
                                 if (useEssential) {
                                     // make sure essential values are numeric
                                     desiredValue = me.fromAst(
-                                        desiredValue.evaluate_to_constant()
+                                        desiredValue.evaluate_to_constant(),
                                     );
                                     if (direction === "symmetric") {
                                         instructions.push({

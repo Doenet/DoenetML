@@ -39,7 +39,7 @@ describe("SideBySide Tag Tests", function () {
                 } else {
                     actualWidth = Math.max(
                         0,
-                        100 - actualLeftMargin - actualRightMargin
+                        100 - actualLeftMargin - actualRightMargin,
                     );
                 }
             }
@@ -48,19 +48,19 @@ describe("SideBySide Tag Tests", function () {
                 if (actualRightMargin === null) {
                     actualLeftMargin = actualRightMargin = Math.max(
                         0,
-                        (100 - actualWidth) / 2
+                        (100 - actualWidth) / 2,
                     );
                 } else {
                     actualLeftMargin = Math.max(
                         0,
-                        100 - actualWidth - actualRightMargin
+                        100 - actualWidth - actualRightMargin,
                     );
                 }
             } else {
                 if (actualRightMargin === null) {
                     actualRightMargin = Math.max(
                         0,
-                        100 - actualWidth - actualLeftMargin
+                        100 - actualWidth - actualLeftMargin,
                     );
                 }
             }
@@ -84,15 +84,15 @@ describe("SideBySide Tag Tests", function () {
         if (!ignoreInitialDOMChecks) {
             cy.get(cesc2("#" + widthValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidth)
+                Math.trunc(actualWidth),
             );
             cy.get(cesc2("#" + leftMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualLeftMargin)
+                Math.trunc(actualLeftMargin),
             );
             cy.get(cesc2("#" + rightMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualRightMargin)
+                Math.trunc(actualRightMargin),
             );
             cy.get(cesc2("#" + valignValueName)).should("have.text", valign);
         }
@@ -103,7 +103,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((width) => {
                     expect(Number(width)).closeTo(
                         (sbsWidth * actualWidth) / 100,
-                        0.1
+                        0.1,
                     );
                 });
 
@@ -112,7 +112,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * actualLeftMargin) / 100,
-                        0.1
+                        0.1,
                     );
                 });
 
@@ -121,7 +121,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * actualRightMargin) / 100,
-                        0.1
+                        0.1,
                     );
                 });
         }
@@ -137,23 +137,23 @@ describe("SideBySide Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables[sbsName].stateValues.widths.length).eq(1);
             expect(
-                stateVariables[sbsName].stateValues[specifiedWidthName]
+                stateVariables[sbsName].stateValues[specifiedWidthName],
             ).eqls([specifiedWidth]);
             expect(stateVariables[sbsName].stateValues.widths[0]).closeTo(
                 actualWidth,
-                1e-5
+                1e-5,
             );
             expect(
-                stateVariables[sbsName].stateValues[specifiedMarginName]
+                stateVariables[sbsName].stateValues[specifiedMarginName],
             ).eqls(specifiedMargins);
             expect(stateVariables[sbsName].stateValues.margins.length).eq(2);
             expect(stateVariables[sbsName].stateValues.margins[0]).closeTo(
                 actualLeftMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.margins[1]).closeTo(
                 actualRightMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.valigns).eqls([valign]);
         });
@@ -189,7 +189,7 @@ describe("SideBySide Tag Tests", function () {
                     } else {
                         actualWidth1 = actualWidth2 = Math.max(
                             0,
-                            (100 - 2 * actualRightMargin) / 2
+                            (100 - 2 * actualRightMargin) / 2,
                         );
                         actualLeftMargin = 0;
                     }
@@ -197,14 +197,14 @@ describe("SideBySide Tag Tests", function () {
                     if (actualRightMargin === null) {
                         actualWidth1 = actualWidth2 = Math.max(
                             0,
-                            (100 - 2 * actualLeftMargin) / 2
+                            (100 - 2 * actualLeftMargin) / 2,
                         );
                         actualRightMargin = 0;
                     } else {
                         actualWidth1 = actualWidth2 = Math.max(
                             0,
                             (100 - 2 * (actualLeftMargin + actualRightMargin)) /
-                                2
+                                2,
                         );
                     }
                 }
@@ -216,7 +216,7 @@ describe("SideBySide Tag Tests", function () {
                     } else {
                         actualWidth1 = Math.max(
                             0,
-                            100 - actualWidth2 - 2 * actualRightMargin
+                            100 - actualWidth2 - 2 * actualRightMargin,
                         );
                         actualLeftMargin = 0;
                     }
@@ -224,7 +224,7 @@ describe("SideBySide Tag Tests", function () {
                     if (actualRightMargin === null) {
                         actualWidth1 = Math.max(
                             0,
-                            100 - actualWidth2 - 2 * actualLeftMargin
+                            100 - actualWidth2 - 2 * actualLeftMargin,
                         );
                         actualRightMargin = 0;
                     } else {
@@ -232,7 +232,7 @@ describe("SideBySide Tag Tests", function () {
                             0,
                             100 -
                                 actualWidth2 -
-                                2 * (actualLeftMargin + actualRightMargin)
+                                2 * (actualLeftMargin + actualRightMargin),
                         );
                     }
                 }
@@ -246,7 +246,7 @@ describe("SideBySide Tag Tests", function () {
                     } else {
                         actualWidth2 = Math.max(
                             0,
-                            100 - actualWidth1 - 2 * actualRightMargin
+                            100 - actualWidth1 - 2 * actualRightMargin,
                         );
                         actualLeftMargin = 0;
                     }
@@ -254,7 +254,7 @@ describe("SideBySide Tag Tests", function () {
                     if (actualRightMargin === null) {
                         actualWidth2 = Math.max(
                             0,
-                            100 - actualWidth1 - 2 * actualLeftMargin
+                            100 - actualWidth1 - 2 * actualLeftMargin,
                         );
                         actualRightMargin = 0;
                     } else {
@@ -262,7 +262,7 @@ describe("SideBySide Tag Tests", function () {
                             0,
                             100 -
                                 actualWidth1 -
-                                2 * (actualLeftMargin + actualRightMargin)
+                                2 * (actualLeftMargin + actualRightMargin),
                         );
                     }
                 }
@@ -271,7 +271,7 @@ describe("SideBySide Tag Tests", function () {
                     if (actualRightMargin === null) {
                         actualLeftMargin = actualRightMargin = Math.max(
                             0,
-                            (100 - actualWidth1 - actualWidth2) / 4
+                            (100 - actualWidth1 - actualWidth2) / 4,
                         );
                     } else {
                         actualLeftMargin = Math.max(
@@ -280,7 +280,7 @@ describe("SideBySide Tag Tests", function () {
                                 actualWidth1 -
                                 actualWidth2 -
                                 2 * actualRightMargin) /
-                                2
+                                2,
                         );
                     }
                 } else {
@@ -291,7 +291,7 @@ describe("SideBySide Tag Tests", function () {
                                 actualWidth1 -
                                 actualWidth2 -
                                 2 * actualLeftMargin) /
-                                2
+                                2,
                         );
                     }
                 }
@@ -323,27 +323,27 @@ describe("SideBySide Tag Tests", function () {
         if (!ignoreInitialDOMChecks) {
             cy.get(cesc2("#" + leftWidthValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidth1)
+                Math.trunc(actualWidth1),
             );
             cy.get(cesc2("#" + rightWidthValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidth2)
+                Math.trunc(actualWidth2),
             );
             cy.get(cesc2("#" + leftMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualLeftMargin)
+                Math.trunc(actualLeftMargin),
             );
             cy.get(cesc2("#" + rightMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualRightMargin)
+                Math.trunc(actualRightMargin),
             );
             cy.get(cesc2("#" + leftValignValueName)).should(
                 "have.text",
-                valigns[0]
+                valigns[0],
             );
             cy.get(cesc2("#" + rightValignValueName)).should(
                 "have.text",
-                valigns[1]
+                valigns[1],
             );
         }
 
@@ -353,7 +353,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((width) => {
                     expect(Number(width)).closeTo(
                         (sbsWidth * actualWidth1) / 100,
-                        0.1
+                        0.1,
                     );
                 });
             cy.get(`${cesc2("#" + sbsName)} > span:nth-of-type(1)`)
@@ -361,7 +361,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * actualLeftMargin) / 100,
-                        0.1
+                        0.1,
                     );
                 });
             cy.get(`${cesc2("#" + sbsName)} > span:nth-of-type(1)`)
@@ -369,7 +369,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * (actualRightMargin + actualGap / 2)) / 100,
-                        0.1
+                        0.1,
                     );
                 });
 
@@ -378,7 +378,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((width) => {
                     expect(Number(width)).closeTo(
                         (sbsWidth * actualWidth2) / 100,
-                        0.1
+                        0.1,
                     );
                 });
             cy.get(`${cesc2("#" + sbsName)} > span:nth-of-type(2)`)
@@ -386,7 +386,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * (actualLeftMargin + actualGap / 2)) / 100,
-                        0.1
+                        0.1,
                     );
                 });
             cy.get(`${cesc2("#" + sbsName)} > span:nth-of-type(2)`)
@@ -394,7 +394,7 @@ describe("SideBySide Tag Tests", function () {
                 .then((margin) => {
                     expect(parseFloat(margin)).closeTo(
                         (sbsWidth * actualRightMargin) / 100,
-                        0.1
+                        0.1,
                     );
                 });
         }
@@ -409,32 +409,32 @@ describe("SideBySide Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables[sbsName].stateValues[specifiedWidthName]
+                stateVariables[sbsName].stateValues[specifiedWidthName],
             ).eqls(specifiedWidths);
             expect(stateVariables[sbsName].stateValues.widths.length).eq(2);
             expect(stateVariables[sbsName].stateValues.widths[0]).closeTo(
                 actualWidth1,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.widths[1]).closeTo(
                 actualWidth2,
-                1e-5
+                1e-5,
             );
             expect(
-                stateVariables[sbsName].stateValues[specifiedMarginName]
+                stateVariables[sbsName].stateValues[specifiedMarginName],
             ).eqls(specifiedMargins);
             expect(stateVariables[sbsName].stateValues.margins.length).eq(2);
             expect(stateVariables[sbsName].stateValues.margins[0]).closeTo(
                 actualLeftMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.margins[1]).closeTo(
                 actualRightMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.gapWidth).closeTo(
                 actualGap,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.valigns).eqls(valigns);
         });
@@ -557,43 +557,43 @@ describe("SideBySide Tag Tests", function () {
         if (!ignoreInitialDOMChecks) {
             cy.get(cesc2("#" + width1ValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidths[0])
+                Math.trunc(actualWidths[0]),
             );
             cy.get(cesc2("#" + width2ValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidths[1])
+                Math.trunc(actualWidths[1]),
             );
             cy.get(cesc2("#" + width3ValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidths[2])
+                Math.trunc(actualWidths[2]),
             );
             cy.get(cesc2("#" + width4ValueName)).should(
                 "contain.text",
-                Math.trunc(actualWidths[3])
+                Math.trunc(actualWidths[3]),
             );
             cy.get(cesc2("#" + leftMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualLeftMargin)
+                Math.trunc(actualLeftMargin),
             );
             cy.get(cesc2("#" + rightMarginValueName)).should(
                 "contain.text",
-                Math.trunc(actualRightMargin)
+                Math.trunc(actualRightMargin),
             );
             cy.get(cesc2("#" + valign1ValueName)).should(
                 "have.text",
-                valigns[0]
+                valigns[0],
             );
             cy.get(cesc2("#" + valign2ValueName)).should(
                 "have.text",
-                valigns[1]
+                valigns[1],
             );
             cy.get(cesc2("#" + valign3ValueName)).should(
                 "have.text",
-                valigns[2]
+                valigns[2],
             );
             cy.get(cesc2("#" + valign4ValueName)).should(
                 "have.text",
-                valigns[3]
+                valigns[3],
             );
         }
 
@@ -614,7 +614,7 @@ describe("SideBySide Tag Tests", function () {
                     .then((width) => {
                         expect(Number(width)).closeTo(
                             (sbsWidth * actualWidths[col]) / 100,
-                            0.1
+                            0.1,
                         );
                     });
 
@@ -623,7 +623,7 @@ describe("SideBySide Tag Tests", function () {
                     .then((margin) => {
                         expect(parseFloat(margin)).closeTo(
                             (sbsWidth * thisLeftMargin) / 100,
-                            0.1
+                            0.1,
                         );
                     });
 
@@ -632,7 +632,7 @@ describe("SideBySide Tag Tests", function () {
                     .then((margin) => {
                         expect(parseFloat(margin)).closeTo(
                             (sbsWidth * thisRightMargin) / 100,
-                            0.1
+                            0.1,
                         );
                     });
             }
@@ -648,40 +648,40 @@ describe("SideBySide Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables[sbsName].stateValues[specifiedWidthName]
+                stateVariables[sbsName].stateValues[specifiedWidthName],
             ).eqls(specifiedWidths);
             expect(stateVariables[sbsName].stateValues.widths.length).eq(4);
             expect(stateVariables[sbsName].stateValues.widths[0]).closeTo(
                 actualWidths[0],
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.widths[1]).closeTo(
                 actualWidths[1],
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.widths[2]).closeTo(
                 actualWidths[2],
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.widths[3]).closeTo(
                 actualWidths[3],
-                1e-5
+                1e-5,
             );
             expect(
-                stateVariables[sbsName].stateValues[specifiedMarginName]
+                stateVariables[sbsName].stateValues[specifiedMarginName],
             ).eqls(specifiedMargins);
             expect(stateVariables[sbsName].stateValues.margins.length).eq(2);
             expect(stateVariables[sbsName].stateValues.margins[0]).closeTo(
                 actualLeftMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.margins[1]).closeTo(
                 actualRightMargin,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.gapWidth).closeTo(
                 actualGap,
-                1e-5
+                1e-5,
             );
             expect(stateVariables[sbsName].stateValues.valigns).eqls(valigns);
         });
@@ -722,7 +722,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -739,14 +739,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change left margin first, unspecified width adjusts`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -758,7 +758,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, unspecified width adjusts`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -771,7 +771,7 @@ describe("SideBySide Tag Tests", function () {
                 //  Note: add to right margin since with one panel, there is not gapWidth to set
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}60{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -787,7 +787,7 @@ describe("SideBySide Tag Tests", function () {
                 // Computations assume the right margin is at the origin 20% specified
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}95{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -798,15 +798,15 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `shrink margins to make specified values add back to 100%`
+                    `shrink margins to make specified values add back to 100%`,
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}3{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}2{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2a")).should("not.contain.text", "1");
 
@@ -820,7 +820,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink right margin to 1, gets recreated to make 100%`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}1{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 // since value of m2a doesn't get changed, can't use it to determine how long to wait
                 // use boolean input to check that core has responded to that
@@ -837,7 +837,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left margin to make specified total be 100%`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}4{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -850,15 +850,15 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change totals to keep at 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}80{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}15{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -871,7 +871,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increasing right margin rescales`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -884,7 +884,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increasing left margin rescales`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}50{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -897,7 +897,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink width to get specified back to 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -969,7 +969,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -986,16 +986,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs"].stateValues.allWidthsSpecified
+                        stateVariables["/sbs"].stateValues.allWidthsSpecified,
                     ).eqls([null]);
                     expect(stateVariables["/sbs"].stateValues.widths).eqls([
                         100,
                     ]);
                     expect(
-                        stateVariables["/sbs"].stateValues.allMarginsSpecified
+                        stateVariables["/sbs"].stateValues.allMarginsSpecified,
                     ).eqls([null, null]);
                     expect(stateVariables["/sbs"].stateValues.margins).eqls([
                         0, 0,
@@ -1008,7 +1008,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change width first, unspecified margins adjusts`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}70{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1020,7 +1020,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change width larger than 100%, scaled back to 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}170{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1032,7 +1032,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change width smaller again`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}60{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1044,7 +1044,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, unspecified left margin adjusts`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1055,11 +1055,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change right margin so total is larger than 100%, rescales`
+                    `change right margin so total is larger than 100%, rescales`,
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}60{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1073,7 +1073,7 @@ describe("SideBySide Tag Tests", function () {
                 //  Note: add to right margin since with one panel, there is not gapWidth to set
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}120{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1120,7 +1120,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1140,16 +1140,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(
-                    `change left margin, specified margins stay symmetric, get rescaling`
+                    `change left margin, specified margins stay symmetric, get rescaling`,
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}40{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1161,11 +1161,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change right margin, specified margins stay symmetric, extra added to right`
+                    `change right margin, specified margins stay symmetric, extra added to right`,
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1179,7 +1179,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`symmetry regained by increasing width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}90{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1251,7 +1251,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1271,14 +1271,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`decrease left margin, space added to right margin`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1292,7 +1292,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase right margin, get rescaling`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}35{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1306,7 +1306,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease width to return to 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}55{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1378,7 +1378,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1397,16 +1397,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(
-                    `change left margin, specified margins stay symmetric, get rescaling`
+                    `change left margin, specified margins stay symmetric, get rescaling`,
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}40{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1418,11 +1418,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change right margin, specified margins stay symmetric, extra added to right`
+                    `change right margin, specified margins stay symmetric, extra added to right`,
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1436,7 +1436,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`symmetry regained by increasing width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}90{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -1513,7 +1513,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1530,14 +1530,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change left margin first, unspecified widths adjust`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1549,7 +1549,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, unspecified widths adjust`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1559,11 +1559,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change first width to be smaller, add extra to second width`
+                    `change first width to be smaller, add extra to second width`,
                 );
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1574,11 +1574,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change first width to be larger, second width shrinks to zero, rescale to 100%`
+                    `change first width to be larger, second width shrinks to zero, rescale to 100%`,
                 );
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}95{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1591,7 +1591,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change first width to be smaller again`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1604,7 +1604,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width to be smaller, extra added to gap`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}50{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1617,7 +1617,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width to be larger, rescaled to 100%`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}85{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1628,15 +1628,15 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `shrink margins to make specified values add back to 100%`
+                    `shrink margins to make specified values add back to 100%`,
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}1.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}1{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1649,7 +1649,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink right margin to 0.5, extra added to gap`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}0.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1662,7 +1662,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left margin to make specified total be 100%`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}2{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1675,19 +1675,19 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change totals to keep at 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}50{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}4{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}6{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1700,7 +1700,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increasing right margin rescales`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}18.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1713,7 +1713,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increasing left margin rescales`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}21.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1726,11 +1726,11 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink widths to get specified below 100%`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1817,7 +1817,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1834,16 +1834,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(
-                    `change second width past 100%, unspecified first width shrinks to zero, rescales`
+                    `change second width past 100%, unspecified first width shrinks to zero, rescales`,
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}130{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1855,7 +1855,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width, unspecified first width adjusts`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1867,7 +1867,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change first width, unspecified margins adjust`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1879,7 +1879,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, unspecified left margin adjusts`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1890,11 +1890,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `increase second width so total is past 100%, rescaling`
+                    `increase second width so total is past 100%, rescaling`,
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}85{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1907,7 +1907,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease second width`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1920,7 +1920,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`specify first margin to be smaller, remainder in gap`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -1972,7 +1972,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1992,14 +1992,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change first width, second matches`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2013,7 +2013,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width, first matches, rescaling`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}80{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2027,7 +2027,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink width, rest in gap`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2041,7 +2041,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left margin, right margin matches`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2055,7 +2055,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase right margin, left margin matches, rescaling`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}45{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2143,7 +2143,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2163,14 +2163,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change first width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2184,7 +2184,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width, rescaling`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}110{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2198,7 +2198,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink second width`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2212,7 +2212,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease right margin`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2226,7 +2226,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left margin, rescaling`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}77.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2314,7 +2314,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2334,14 +2334,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change first width, unspecified second width adjusts`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2353,11 +2353,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change right margin, left is symmetric, unspecified second width adjusts`
+                    `change right margin, left is symmetric, unspecified second width adjusts`,
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2371,7 +2371,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width, rest in gap`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2385,7 +2385,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change first width, rescaling`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}140{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2399,7 +2399,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink first width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2413,7 +2413,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease right margin, left matches`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2427,7 +2427,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left margin, right matches, rescaling`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}42.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -2525,7 +2525,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2542,14 +2542,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change left margin first, unspecified widths adjust`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}2{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2561,7 +2561,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, unspecified widths adjust`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}3{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2571,11 +2571,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change 3rd width to be smaller, add extra to other widths`
+                    `change 3rd width to be smaller, add extra to other widths`,
                 );
                 cy.get(cesc("#\\/w3") + " textarea").type(
                     "{end}{backspace}{backspace}14{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2586,11 +2586,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change 3rd width to be larger, others widths shrinks to zero, rescale to 100%`
+                    `change 3rd width to be larger, others widths shrinks to zero, rescale to 100%`,
                 );
                 cy.get(cesc("#\\/w3") + " textarea").type(
                     "{end}{backspace}{backspace}180{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2603,7 +2603,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change 3rd width to be smaller again`);
                 cy.get(cesc("#\\/w3") + " textarea").type(
                     "{end}{backspace}{backspace}11{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2616,7 +2616,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change 2nd width to be smaller`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}15{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2629,7 +2629,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change 1st width to be smaller`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2640,11 +2640,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `change 4th width to be smaller, remainder added to gap`
+                    `change 4th width to be smaller, remainder added to gap`,
                 );
                 cy.get(cesc("#\\/w4") + " textarea").type(
                     "{end}{backspace}{backspace}19{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2657,7 +2657,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change 2nd width to be larger, rescaled to 100%`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}55{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2668,11 +2668,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `shrink width 2 to make specified values add back to 100%`
+                    `shrink width 2 to make specified values add back to 100%`,
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2685,7 +2685,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink right margin, extra added to gap`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}1{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2804,7 +2804,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2824,14 +2824,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change 4th width, rest match, remainder added to gap`);
                 cy.get(cesc("#\\/w4") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2845,7 +2845,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change right margin, rescaled`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2859,7 +2859,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`shrink left margin`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}2{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2933,7 +2933,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2953,14 +2953,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change 4th width, remainder added to gap`);
                 cy.get(cesc("#\\/w4") + " textarea").type(
                     "{end}{backspace}{backspace}9{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2974,7 +2974,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change 1st width, rescaled`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}63{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -2988,15 +2988,15 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change more widths, remainder added to gap`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}3{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}8{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/w3") + " textarea").type(
                     "{end}{backspace}{backspace}13{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -3010,11 +3010,11 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change margins`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}7{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}6{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkFourColumnSbs({
@@ -3057,7 +3057,7 @@ describe("SideBySide Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3108,7 +3108,7 @@ describe("SideBySide Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3117,10 +3117,10 @@ describe("SideBySide Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_sidebyside1"].stateValues.marginsAbsolute
+                stateVariables["/_sidebyside1"].stateValues.marginsAbsolute,
             ).eq(false);
             expect(
-                stateVariables["/_sidebyside1"].stateValues.widthsAbsolute
+                stateVariables["/_sidebyside1"].stateValues.widthsAbsolute,
             ).eq(false);
         });
 
@@ -3131,7 +3131,7 @@ describe("SideBySide Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `<sideBySide> is not implemented for absolute measurements. Setting widths to relative`
+                `<sideBySide> is not implemented for absolute measurements. Setting widths to relative`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
@@ -3140,7 +3140,7 @@ describe("SideBySide Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(17);
 
             expect(errorWarnings.warnings[1].message).contain(
-                `<sideBySide> is not implemented for absolute measurements. Setting margins to relative`
+                `<sideBySide> is not implemented for absolute measurements. Setting margins to relative`,
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -3225,7 +3225,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3266,34 +3266,37 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbsg"].stateValues.absoluteMeasurements
+                        stateVariables["/sbsg"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs1"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs2"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(
-                    `change left margin of sbs1, unspecified width of sbs1 adjusts`
+                    `change left margin of sbs1, unspecified width of sbs1 adjusts`,
                 );
                 cy.get(cesc("#\\/m11") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3326,23 +3329,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width of sbsg, unspecified margin(s) adjust`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}70{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3378,25 +3381,25 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(
-                    `change right margin of sbs2, unspecified margin adjusts`
+                    `change right margin of sbs2, unspecified margin adjusts`,
                 );
                 cy.get(cesc("#\\/m22") + " textarea").type(
                     "{end}{backspace}{backspace}25{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3433,23 +3436,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(`change left margin of sbsg, affects only sbs2`);
                 cy.get(cesc("#\\/m1g") + " textarea").type(
                     "{end}{backspace}{backspace}4{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3487,25 +3490,25 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(
-                    `change sbsg width to be smaller, adds to unspecified or right margins`
+                    `change sbsg width to be smaller, adds to unspecified or right margins`,
                 );
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{end}{backspace}{backspace}60{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3543,25 +3546,25 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(
-                    `change sbs1 width to be smaller, adds to unspecified right margin`
+                    `change sbs1 width to be smaller, adds to unspecified right margin`,
                 );
                 cy.get(cesc("#\\/w11") + " textarea").type(
                     "{end}{backspace}{backspace}50{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3599,25 +3602,25 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(
-                    `increase sbsg left margin, cause rescaling just in sbs2`
+                    `increase sbsg left margin, cause rescaling just in sbs2`,
                 );
                 cy.get(cesc("#\\/m1g") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3655,25 +3658,25 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(
-                    `increase sbsg width, causing rescaling in sbsg and a second in sbs2`
+                    `increase sbsg width, causing rescaling in sbsg and a second in sbs2`,
                 );
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{end}{backspace}{backspace}90{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3711,23 +3714,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
                 cy.log(`shrink sbsg width to remove rescaling`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}40{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkSingleColumnSbs({
@@ -3765,16 +3768,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
@@ -3817,16 +3820,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
@@ -3871,16 +3874,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
@@ -3925,16 +3928,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
 
@@ -3981,16 +3984,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([50]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([10, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, 25]);
                 });
             });
@@ -4085,7 +4088,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4132,32 +4135,35 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbsg"].stateValues.absoluteMeasurements
+                        stateVariables["/sbsg"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs1"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs2"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbsg`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{end}{backspace}{backspace}40{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4198,23 +4204,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`override width1 of sbs1`);
                 cy.get(cesc("#\\/w11") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4255,23 +4261,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`override width2 of sbs2`);
                 cy.get(cesc("#\\/w22") + " textarea").type(
                     "{end}{backspace}{backspace}50{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4312,23 +4318,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbs1`);
                 cy.get(cesc("#\\/m11") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4370,23 +4376,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbsg`);
                 cy.get(cesc("#\\/m1g") + " textarea").type(
                     "{end}{backspace}{backspace}3{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4430,23 +4436,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.allMarginsSpecified
+                        stateVariables["/sbs2"].stateValues.allMarginsSpecified,
                     ).eqls([3, null]);
                 });
 
                 cy.log(`change right margin of sbsg`);
                 cy.get(cesc("#\\/m2g") + " textarea").type(
                     "{end}{backspace}{backspace}1{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4490,23 +4496,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change second width of sbsg`);
                 cy.get(cesc("#\\/w2g") + " textarea").type(
                     "{end}{backspace}{backspace}45{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4550,23 +4556,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`increase second width of sbsg to cause rescaling`);
                 cy.get(cesc("#\\/w2g") + " textarea").type(
                     "{end}{backspace}{backspace}65{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4610,23 +4616,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`decrease second width of sbs1 to drop below 100%`);
                 cy.get(cesc("#\\/w21") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}55{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4670,23 +4676,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`decrease first width of sbsg to drop below 100%`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}25{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -4730,16 +4736,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -4790,16 +4796,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -4850,16 +4856,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -4910,16 +4916,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -4970,16 +4976,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([30, 55]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([5, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 50]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
             });
@@ -5073,7 +5079,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5126,32 +5132,35 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbsg"].stateValues.absoluteMeasurements
+                        stateVariables["/sbsg"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs1"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs2"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbsg`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5198,23 +5207,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width2 of sbs2`);
                 cy.get(cesc("#\\/w22") + " textarea").type(
                     "{end}{backspace}{backspace}15{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5261,23 +5270,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width2 of sbsg`);
                 cy.get(cesc("#\\/w2g") + " textarea").type(
                     "{end}{backspace}{backspace}12{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5324,23 +5333,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbs1`);
                 cy.get(cesc("#\\/w11") + " textarea").type(
                     "{end}{backspace}{backspace}35{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5387,27 +5396,27 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change margins of sbs2`);
                 cy.get(cesc("#\\/m12") + " textarea").type(
                     "{end}{backspace}{backspace}22{enter}",
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/m22") + " textarea").type(
                     "{end}{backspace}{backspace}11{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5454,23 +5463,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change right margin of sbsg`);
                 cy.get(cesc("#\\/m2g") + " textarea").type(
                     "{end}{backspace}{backspace}8{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5517,23 +5526,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change right margin of sbs1`);
                 cy.get(cesc("#\\/m21") + " textarea").type(
                     "{end}{backspace}{backspace}7{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5580,23 +5589,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbsg`);
                 cy.get(cesc("#\\/m1g") + " textarea").type(
                     "{end}{backspace}{backspace}9{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5643,23 +5652,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbs1`);
                 cy.get(cesc("#\\/m11") + " textarea").type(
                     "{end}{backspace}{backspace}6{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -5706,16 +5715,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -5766,16 +5775,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -5826,16 +5835,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -5886,16 +5895,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -5946,16 +5955,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -6007,16 +6016,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 15]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
             });
@@ -6110,7 +6119,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -6163,32 +6172,35 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbsg"].stateValues.absoluteMeasurements
+                        stateVariables["/sbsg"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs1"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs2"].stateValues
+                            .absoluteMeasurements,
                     ).eq(false);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbsg`);
                 cy.get(cesc("#\\/w1g") + " textarea").type(
                     "{end}{backspace}{backspace}20{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6235,23 +6247,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width2 of sbs2`);
                 cy.get(cesc("#\\/w22") + " textarea").type(
                     "{end}{backspace}{backspace}25{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6298,23 +6310,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width2 of sbsg`);
                 cy.get(cesc("#\\/w2g") + " textarea").type(
                     "{end}{backspace}{backspace}12{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6361,23 +6373,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbs1`);
                 cy.get(cesc("#\\/w11") + " textarea").type(
                     "{end}{backspace}{backspace}35{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6424,23 +6436,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width2 of sbs1`);
                 cy.get(cesc("#\\/w21") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6487,23 +6499,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([null, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change width1 of sbs2`);
                 cy.get(cesc("#\\/w12") + " textarea").type(
                     "{end}{backspace}{backspace}22{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6550,23 +6562,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change right margin of sbsg`);
                 cy.get(cesc("#\\/m2g") + " textarea").type(
                     "{end}{backspace}{backspace}8{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6613,23 +6625,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change right margin of sbs1`);
                 cy.get(cesc("#\\/m21") + " textarea").type(
                     "{end}{backspace}{backspace}7{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6676,23 +6688,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbsg`);
                 cy.get(cesc("#\\/m1g") + " textarea").type(
                     "{end}{backspace}{backspace}9{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6739,23 +6751,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([null, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbs1`);
                 cy.get(cesc("#\\/m11") + " textarea").type(
                     "{end}{backspace}{backspace}6{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6802,23 +6814,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change right margin of sbs2`);
                 cy.get(cesc("#\\/m22") + " textarea").type(
                     "{end}{backspace}{backspace}3{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6865,23 +6877,23 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
                 cy.log(`change left margin of sbs2`);
                 cy.get(cesc("#\\/m12") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -6928,16 +6940,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -6988,16 +7000,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -7048,16 +7060,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -7108,16 +7120,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -7168,16 +7180,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
 
@@ -7229,16 +7241,16 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialWidths
+                        stateVariables["/sbs1"].stateValues.essentialWidths,
                     ).eqls([null, null]);
                     expect(
-                        stateVariables["/sbs1"].stateValues.essentialMargins
+                        stateVariables["/sbs1"].stateValues.essentialMargins,
                     ).eqls([6, 7]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialWidths
+                        stateVariables["/sbs2"].stateValues.essentialWidths,
                     ).eqls([22, 25]);
                     expect(
-                        stateVariables["/sbs2"].stateValues.essentialMargins
+                        stateVariables["/sbs2"].stateValues.essentialMargins,
                     ).eqls([null, null]);
                 });
             });
@@ -7265,7 +7277,7 @@ describe("SideBySide Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7372,7 +7384,7 @@ describe("SideBySide Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7381,10 +7393,10 @@ describe("SideBySide Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
-                stateVariables["/_sbsgroup1"].stateValues.marginsAbsolute
+                stateVariables["/_sbsgroup1"].stateValues.marginsAbsolute,
             ).eq(false);
             expect(stateVariables["/_sbsgroup1"].stateValues.widthsAbsolute).eq(
-                false
+                false,
             );
         });
 
@@ -7395,7 +7407,7 @@ describe("SideBySide Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(2);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative`
+                `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(3);
@@ -7404,7 +7416,7 @@ describe("SideBySide Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(15);
 
             expect(errorWarnings.warnings[1].message).contain(
-                `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative`
+                `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative`,
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -7432,7 +7444,7 @@ describe("SideBySide Tag Tests", function () {
   
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7452,7 +7464,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
             });
@@ -7503,7 +7515,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7523,14 +7535,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change first width, second matches`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7544,7 +7556,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second width, first matches, rescaling`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}80{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7558,7 +7570,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change defining width`);
                 cy.get(cesc("#\\/w") + " textarea").type(
                     "{end}{backspace}{backspace}25{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7572,7 +7584,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`invalid defining width treated as null`);
                 cy.get(cesc("#\\/w") + " textarea").type(
                     "{end}{backspace}{backspace}x{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7586,7 +7598,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset width by changing second width`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}10{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7600,7 +7612,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease defining margin`);
                 cy.get(cesc("#\\/m") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7614,7 +7626,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`invalid defining margin treated as null`);
                 cy.get(cesc("#\\/m") + " textarea").type(
                     "{end}{backspace}{backspace}none{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7628,7 +7640,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset from left margin, right margin matches`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{end}{backspace}{backspace}15{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7642,7 +7654,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase right margin, left margin matches, rescaling`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}45{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7763,7 +7775,7 @@ describe("SideBySide Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -7783,14 +7795,14 @@ describe("SideBySide Tag Tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/sbs"].stateValues.absoluteMeasurements
+                        stateVariables["/sbs"].stateValues.absoluteMeasurements,
                     ).eq(false);
                 });
 
                 cy.log(`change first width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7804,7 +7816,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`change second defining width, rescaling`);
                 cy.get(cesc("#\\/dw2") + " textarea").type(
                     "{end}{backspace}{backspace}110{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7816,11 +7828,11 @@ describe("SideBySide Tag Tests", function () {
                 });
 
                 cy.log(
-                    `make second defining width be invalid, treated as null`
+                    `make second defining width be invalid, treated as null`,
                 );
                 cy.get(cesc("#\\/dw2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}hello{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7834,7 +7846,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`make first defining width be invalid, treated as null`);
                 cy.get(cesc("#\\/dw1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}bye{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7848,7 +7860,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset second width`);
                 cy.get(cesc("#\\/w2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7862,7 +7874,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset first width`);
                 cy.get(cesc("#\\/w1") + " textarea").type(
                     "{end}{backspace}{backspace}30{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7876,7 +7888,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease right margin`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{end}{backspace}{backspace}5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7890,7 +7902,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`increase left defining margin, rescaling`);
                 cy.get(cesc("#\\/dm1") + " textarea").type(
                     "{end}{backspace}{backspace}77.5{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7904,7 +7916,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`decrease left margin`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}7{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7918,7 +7930,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`invalid left defining margin, treated as null`);
                 cy.get(cesc("#\\/dm1") + " textarea").type(
                     "{end}{backspace}{backspace}hello{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7932,7 +7944,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`invalid right defining margin, treated as null`);
                 cy.get(cesc("#\\/dm2") + " textarea").type(
                     "{end}{backspace}{backspace}bye{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7946,7 +7958,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset left margin`);
                 cy.get(cesc("#\\/m1") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}12{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({
@@ -7960,7 +7972,7 @@ describe("SideBySide Tag Tests", function () {
                 cy.log(`reset right margin`);
                 cy.get(cesc("#\\/m2") + " textarea").type(
                     "{ctrl+home}{shift+end}{backspace}8{enter}",
-                    { force: true }
+                    { force: true },
                 );
 
                 checkTwoColumnSbs({

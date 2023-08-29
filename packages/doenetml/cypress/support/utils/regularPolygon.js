@@ -47,7 +47,7 @@ export function setupRegularPolygonScene({ attributes }) {
   <graph name="g4" copySource="g3" newNamespace />
   `,
             },
-            "*"
+            "*",
         );
     });
 }
@@ -95,7 +95,7 @@ export function runRegularPolygonTests({
                     vertex1,
                     center,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -142,7 +142,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
         }
@@ -184,7 +184,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
 
@@ -207,7 +207,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
 
@@ -250,7 +250,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             }
@@ -297,7 +297,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             }
@@ -339,7 +339,7 @@ export function runRegularPolygonTests({
                     vertex1,
                     center,
                 },
-                stateVariables
+                stateVariables,
             );
         });
 
@@ -385,7 +385,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             }
@@ -426,7 +426,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
         }
@@ -441,7 +441,7 @@ export function runRegularPolygonTests({
 
             cy.get(cesc("#\\/micr") + " textarea").type(
                 `{home}{shift+end}{backspace}${circumradius}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/cr")).should("have.text", `${circumradius}`);
 
@@ -459,7 +459,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
         });
@@ -475,7 +475,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/mir") + " textarea").type(
                     `{home}{shift+end}{backspace}${radius}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/r")).should("have.text", `${radius}`);
 
@@ -493,7 +493,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -508,7 +508,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/miir") + " textarea").type(
                     `{home}{shift+end}{backspace}${inradius}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/ir")).should("have.text", `${inradius}`);
 
@@ -526,7 +526,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -541,7 +541,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/miap") + " textarea").type(
                     `{home}{shift+end}{backspace}${apothem}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/ap")).should("have.text", `${apothem}`);
 
@@ -559,7 +559,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -574,7 +574,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/misl") + " textarea").type(
                     `{home}{shift+end}{backspace}${sideLength}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/sl")).should("have.text", `${sideLength}`);
 
@@ -592,7 +592,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -607,7 +607,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/mip") + " textarea").type(
                     `{home}{shift+end}{backspace}${perimeter}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/p")).should("have.text", `${perimeter}`);
 
@@ -625,7 +625,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -640,7 +640,7 @@ export function runRegularPolygonTests({
 
                 cy.get(cesc("#\\/miar") + " textarea").type(
                     `{home}{shift+end}{backspace}${area}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc("#\\/ar")).should("have.text", `${area}`);
 
@@ -660,7 +660,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -673,7 +673,7 @@ export function runRegularPolygonTests({
                 center,
                 numVertices,
                 numVertices + 2,
-                conservedWhenChangeNumVertices
+                conservedWhenChangeNumVertices,
             );
 
             vertex1 = result.vertex1;
@@ -697,7 +697,7 @@ export function runRegularPolygonTests({
                         vertex1,
                         center,
                     },
-                    stateVariables
+                    stateVariables,
                 );
             });
         });
@@ -710,7 +710,7 @@ export function runRegularPolygonTests({
                     center,
                     numVertices,
                     numVertices - 1,
-                    conservedWhenChangeNumVertices
+                    conservedWhenChangeNumVertices,
                 );
 
                 vertex1 = result.vertex1;
@@ -734,7 +734,7 @@ export function runRegularPolygonTests({
                             vertex1,
                             center,
                         },
-                        stateVariables
+                        stateVariables,
                     );
                 });
             });
@@ -747,7 +747,7 @@ function adjustVertex1CenterWhenChangenumVertices(
     center,
     numVerticesOld,
     numVerticesNew,
-    conservedWhenChangeNumVertices
+    conservedWhenChangeNumVertices,
 ) {
     let radiusRatio = 1;
 
@@ -767,7 +767,7 @@ function adjustVertex1CenterWhenChangenumVertices(
         radiusRatio = Math.sqrt(
             ((numVerticesOld / 2) * Math.sin((2 * Math.PI) / numVerticesOld)) /
                 ((numVerticesNew / 2) *
-                    Math.sin((2 * Math.PI) / numVerticesNew))
+                    Math.sin((2 * Math.PI) / numVerticesNew)),
         );
     } else if (conservedWhenChangeNumVertices === "twoVertices") {
         // calculate vertex2
@@ -816,14 +816,14 @@ function adjustVertex1CenterWhenChangenumVertices(
 function checkPolygonValues(
     { polygonNames, vertexNames, centerPointName },
     { numVertices, center, vertex1 },
-    stateVariables
+    stateVariables,
 ) {
     let vertexCoords = [vertex1];
 
     let directionWithRadius = [vertex1[0] - center[0], vertex1[1] - center[1]];
 
     let circumradius = Math.sqrt(
-        directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2
+        directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2,
     );
     let inradius = circumradius * Math.cos(Math.PI / numVertices);
     let sideLength = circumradius * (2 * Math.sin(Math.PI / numVertices));
@@ -849,39 +849,39 @@ function checkPolygonValues(
         for (let i = 0; i < numVertices; i++) {
             expect(polygon.stateValues.vertices[i][0]).closeTo(
                 vertexCoords[i][0],
-                1e-14 * Math.abs(vertexCoords[i][0]) + 1e-14
+                1e-14 * Math.abs(vertexCoords[i][0]) + 1e-14,
             );
             expect(polygon.stateValues.vertices[i][1]).closeTo(
                 vertexCoords[i][1],
-                1e-14 * Math.abs(vertexCoords[i][1]) + 1e-14
+                1e-14 * Math.abs(vertexCoords[i][1]) + 1e-14,
             );
         }
         expect(polygon.stateValues.center[0]).closeTo(
             center[0],
-            1e-14 * Math.abs(center[0]) + 1e-14
+            1e-14 * Math.abs(center[0]) + 1e-14,
         );
         expect(polygon.stateValues.center[1]).closeTo(
             center[1],
-            1e-14 * Math.abs(center[1]) + 1e-14
+            1e-14 * Math.abs(center[1]) + 1e-14,
         );
 
         expect(polygon.stateValues.numVertices).eq(numVertices);
 
         expect(polygon.stateValues.circumradius).closeTo(
             circumradius,
-            1e-14 * circumradius
+            1e-14 * circumradius,
         );
         expect(polygon.stateValues.inradius).closeTo(
             inradius,
-            1e-14 * inradius
+            1e-14 * inradius,
         );
         expect(polygon.stateValues.sideLength).closeTo(
             sideLength,
-            1e-14 * sideLength
+            1e-14 * sideLength,
         );
         expect(polygon.stateValues.perimeter).closeTo(
             perimeter,
-            1e-14 * perimeter
+            1e-14 * perimeter,
         );
         expect(polygon.stateValues.area).closeTo(area, 1e-14 * area);
     }
@@ -891,11 +891,11 @@ function checkPolygonValues(
             let vertex = stateVariables[vertexName];
             expect(vertex.stateValues.xs[0]).closeTo(
                 vertexCoords[i][0],
-                1e-14 * Math.abs(vertexCoords[i][0]) + 1e-14
+                1e-14 * Math.abs(vertexCoords[i][0]) + 1e-14,
             );
             expect(vertex.stateValues.xs[1]).closeTo(
                 vertexCoords[i][1],
-                1e-14 * Math.abs(vertexCoords[i][1]) + 1e-14
+                1e-14 * Math.abs(vertexCoords[i][1]) + 1e-14,
             );
         }
     }
@@ -904,11 +904,11 @@ function checkPolygonValues(
         let centerPoint = stateVariables[centerPointName];
         expect(centerPoint.stateValues.xs[0]).closeTo(
             center[0],
-            1e-14 * Math.abs(center[0]) + 1e-14
+            1e-14 * Math.abs(center[0]) + 1e-14,
         );
         expect(centerPoint.stateValues.xs[1]).closeTo(
             center[1],
-            1e-14 * Math.abs(center[1]) + 1e-14
+            1e-14 * Math.abs(center[1]) + 1e-14,
         );
     }
 }

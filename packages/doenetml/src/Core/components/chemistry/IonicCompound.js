@@ -61,7 +61,7 @@ export default class IonicCompound extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 let charges = dependencyValues.ionChildren.map(
-                    (child) => child.stateValues.charge
+                    (child) => child.stateValues.charge,
                 );
 
                 if (charges.length !== 2) {

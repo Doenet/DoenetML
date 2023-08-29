@@ -187,7 +187,7 @@ export default class AttractTo extends ConstraintComponent {
                             for (let varName in variables) {
                                 numericalVariables[varName] =
                                     findFiniteNumericalValue(
-                                        variables[varName]
+                                        variables[varName],
                                     );
                             }
 
@@ -213,7 +213,7 @@ export default class AttractTo extends ConstraintComponent {
                                         (numericalVariables.x1 -
                                             nearestPoint.x1) /
                                             scales[0],
-                                        2
+                                        2,
                                     );
                                 }
                                 if (numericalVariables.x2 !== undefined) {
@@ -225,7 +225,7 @@ export default class AttractTo extends ConstraintComponent {
                                         (numericalVariables.x2 -
                                             nearestPoint.x2) /
                                             scales[1],
-                                        2
+                                        2,
                                     );
                                 }
                                 if (numericalVariables.x3 !== undefined) {
@@ -235,7 +235,7 @@ export default class AttractTo extends ConstraintComponent {
                                     constrainedVariables.x3 = nearestPoint.x3;
                                     distance2 += Math.pow(
                                         numericalVariables.x3 - nearestPoint.x3,
-                                        2
+                                        2,
                                     );
                                 }
 

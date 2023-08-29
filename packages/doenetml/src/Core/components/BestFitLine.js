@@ -263,7 +263,7 @@ export default class BestFitLine extends Line {
                         // array of "datumInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => datumInd + "," + i
+                            (_, i) => datumInd + "," + i,
                         );
                     } else {
                         return [];

@@ -198,7 +198,7 @@ export function getFromText({
                 functionSymbols,
                 splitSymbols,
                 parseScientificNotation,
-            }).convert(x)
+            }).convert(x),
         );
 }
 
@@ -222,8 +222,8 @@ export function getFromLatex({
                     allowedLatexSymbols,
                     parseScientificNotation,
                 }).convert(
-                    wrapWordIncludingNumberWithVar(x, parseScientificNotation)
-                )
+                    wrapWordIncludingNumberWithVar(x, parseScientificNotation),
+                ),
             );
     } else {
         return (x) =>
@@ -233,7 +233,7 @@ export function getFromLatex({
                     functionSymbols,
                     allowedLatexSymbols,
                     parseScientificNotation,
-                }).convert(wrapWordWithVar(x, parseScientificNotation))
+                }).convert(wrapWordWithVar(x, parseScientificNotation)),
             );
     }
 }
@@ -540,7 +540,7 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
     }
 
     let startLdotsMatch = latexString.match(
-        /^(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*(.*)$/
+        /^(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*(.*)$/,
     );
 
     if (startLdotsMatch) {
@@ -553,7 +553,7 @@ export function normalizeLatexString(latexString, { unionFromU = false } = {}) {
     }
 
     let endLdotsMatch = latexString.match(
-        /^(.*?)(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*$/
+        /^(.*?)(\\ )*(\\ldots|\.(\\ )*\.(\\ )*\.)(\\ )*$/,
     );
 
     if (endLdotsMatch) {
@@ -616,7 +616,7 @@ export function mathStateVariableFromNumberStateVariable({
             return {
                 setValue: {
                     [mathVariableName]: numberToMathExpression(
-                        dependencyValues.number
+                        dependencyValues.number,
                     ),
                 },
             };
@@ -683,7 +683,7 @@ export function roundForDisplay({ value, dependencyValues }) {
     let rounded = me.round_numbers_to_precision_plus_decimals(
         value,
         dependencyValues.displayDigits,
-        dependencyValues.displayDecimals
+        dependencyValues.displayDecimals,
     );
 
     if (
@@ -692,7 +692,7 @@ export function roundForDisplay({ value, dependencyValues }) {
     ) {
         rounded = me.set_small_zero(
             rounded,
-            dependencyValues.displaySmallAsZero
+            dependencyValues.displaySmallAsZero,
         );
     }
 
@@ -713,7 +713,7 @@ export function mergeListsWithOtherContainers(tree) {
                 Array.isArray(c) && c[0] === "list"
                     ? [...a, ...c.slice(1)]
                     : [...a, c],
-            []
+            [],
         );
     }
 
@@ -734,7 +734,7 @@ export function wrapWordWithVar(string, parseScientificNotation) {
         let endMatch = beginMatch + match[0].length;
         newString += wrapWordWithVarSub(
             string.substring(0, beginMatch),
-            parseScientificNotation
+            parseScientificNotation,
         );
         newString += string.substring(beginMatch, endMatch);
         string = string.substring(endMatch);
@@ -760,7 +760,7 @@ function wrapWordWithVarSub(string, parseScientificNotation) {
                 sci_notat_exp_regex +
                 ")|(\\.[0-9]+" +
                 sci_notat_exp_regex +
-                ")"
+                ")",
         );
     }
 
@@ -803,7 +803,7 @@ function wrapWordWithVarSub(string, parseScientificNotation) {
 
 export function wrapWordIncludingNumberWithVar(
     string,
-    parseScientificNotation
+    parseScientificNotation,
 ) {
     let newString = "";
 
@@ -814,7 +814,7 @@ export function wrapWordIncludingNumberWithVar(
         let endMatch = beginMatch + match[0].length;
         newString += wrapWordIncludingNumberWithVarSub(
             string.substring(0, beginMatch),
-            parseScientificNotation
+            parseScientificNotation,
         );
         newString += string.substring(beginMatch, endMatch);
         string = string.substring(endMatch);
@@ -822,7 +822,7 @@ export function wrapWordIncludingNumberWithVar(
     }
     newString += wrapWordIncludingNumberWithVarSub(
         string,
-        parseScientificNotation
+        parseScientificNotation,
     );
 
     return newString;
@@ -844,7 +844,7 @@ function wrapWordIncludingNumberWithVarSub(string, parseScientificNotation) {
                 sci_notat_exp_regex +
                 ")|(\\.[0-9]+" +
                 sci_notat_exp_regex +
-                ")"
+                ")",
         );
     }
 
@@ -1006,11 +1006,11 @@ export function unicodeToSuperSubscripts(text) {
 
     text = text.replaceAll(
         /([\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089\u208A\u208B]+)/g,
-        replaceSubscripts
+        replaceSubscripts,
     );
     text = text.replaceAll(
         /([\u2070\u00B9\u00B2\u00B3\u2074\u2075\u2076\u2077\u2078\u2079\u207A\u207B]+)/g,
-        replaceSuperscripts
+        replaceSuperscripts,
     );
 
     return text;

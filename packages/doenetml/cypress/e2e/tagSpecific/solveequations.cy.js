@@ -19,7 +19,7 @@ describe("SolveEquations Tag Tests", function () {
   <p name="sols">Solutions: <aslist><copy prop="solutions" target="solve" displayDigits="6" /></aslist></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -52,7 +52,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}a{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -83,7 +83,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{backspace}{backspace}-a^2{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -148,7 +148,7 @@ describe("SolveEquations Tag Tests", function () {
             {
                 force: true,
                 delay: 5,
-            }
+            },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 0);
@@ -163,7 +163,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x_1{rightArrow}- 0.1exp(x_1{rightArrow})=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -188,17 +188,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 0.111833,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 3.57715,
-                1e-5
+                1e-5,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}ab=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 0);
@@ -213,7 +213,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/var") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}b{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 1);
@@ -234,7 +234,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sin(10b) = b^3{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 7);
@@ -294,37 +294,37 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(7);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -0.870457,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 -0.657084,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[2]).closeTo(
                 -0.311147,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[3]).closeTo(
                 0,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[4]).closeTo(
                 0.311147,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[5]).closeTo(
                 0.657084,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[6]).closeTo(
                 0.870457,
-                1e-6
+                1e-6,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}b^2{rightArrow}+0.1b=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -349,11 +349,11 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -0.1,
-                1e-6
+                1e-6,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 0,
-                1e-6
+                1e-6,
             );
         });
     });
@@ -379,7 +379,7 @@ describe("SolveEquations Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_text1")).should("have.text", "a"); // to wait for page to load
@@ -396,7 +396,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{end}{leftArrow}{leftArrow}{backspace}{backspace}-a{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "a");
 
@@ -415,7 +415,7 @@ describe("SolveEquations Tag Tests", function () {
             {
                 force: true,
                 delay: 5,
-            }
+            },
         );
         cy.get(cesc("#\\/var2")).should("contain.text", "x1");
 
@@ -431,7 +431,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}x_1{rightArrow}- 0.1exp(x_1{rightArrow})=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 1);
@@ -449,13 +449,13 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(1);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 0.111833,
-                1e-6
+                1e-6,
             );
         });
 
         cy.get(cesc("#\\/maxvar") + " textarea").type(
             "{end}{backspace}100{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -480,17 +480,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 0.111833,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 3.57715,
-                1e-4
+                1e-4,
             );
         });
 
         cy.get(cesc("#\\/minvar") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 1);
@@ -508,17 +508,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(1);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 3.57715,
-                1e-4
+                1e-4,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}ab=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/var") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}b{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/var2")).should("contain.text", "b");
 
@@ -534,7 +534,7 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/minvar") + " textarea").type(
             "{end}{backspace}{backspace}0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 1);
@@ -555,12 +555,12 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/maxvar") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sin(10b) = b^3{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "sin(10b)");
 
@@ -600,25 +600,25 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(4);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 0,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 0.311147,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[2]).closeTo(
                 0.657084,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[3]).closeTo(
                 0.870457,
-                1e-5
+                1e-5,
             );
         });
 
         cy.get(cesc("#\\/minvar") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}-10{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 7);
@@ -678,37 +678,37 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(7);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -0.870457,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 -0.657084,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[2]).closeTo(
                 -0.311147,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[3]).closeTo(
                 0,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[4]).closeTo(
                 0.311147,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[5]).closeTo(
                 0.657084,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[6]).closeTo(
                 0.870457,
-                1e-5
+                1e-5,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sin(pi b) = 0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/minvar") + " textarea").type("{end}.1{enter}", {
             force: true,
@@ -727,14 +727,14 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(21);
             for (let i = 0; i < 21; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(i - 10, 1e-3);
             }
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}b^2{rightArrow}-0.001b = 0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "0.001b=0");
 
@@ -744,21 +744,21 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 0,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 0.001,
-                1e-5
+                1e-5,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}(b+0.03)(b+0.0301) = 0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should(
             "contain.text",
-            "(b+0.03)(b+0.0301)=0"
+            "(b+0.03)(b+0.0301)=0",
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -767,17 +767,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -0.0301,
-                1e-5
+                1e-5,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 -0.03,
-                1e-5
+                1e-5,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{end}{backspace}-0.1{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "=−0.1");
 
@@ -789,11 +789,11 @@ describe("SolveEquations Tag Tests", function () {
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}43.241(b+4.52352)(b+4.52365)(b-8.58230)(b-8.58263) = 0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should(
             "contain.text",
-            "43.241(b+4.52352)(b+4.52365)"
+            "43.241(b+4.52352)(b+4.52365)",
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 4);
@@ -802,25 +802,25 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(4);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -4.52365,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 -4.52352,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[2]).closeTo(
                 8.5823,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[3]).closeTo(
                 8.58263,
-                1e-4
+                1e-4,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{home}exp({end}{backspace}{backspace}{backspace})=1{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "=1");
 
@@ -830,25 +830,25 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(4);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -4.52365,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 -4.52352,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[2]).closeTo(
                 8.5823,
-                1e-4
+                1e-4,
             );
             expect(stateVariables["/solve"].stateValues.solutions[3]).closeTo(
                 8.58263,
-                1e-4
+                1e-4,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}cos(pi b) + 1=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 10);
@@ -857,14 +857,14 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(10);
             for (let i = 0; i < 10; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(2 * i - 9, 1e-3);
             }
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}cos(pib) = 1{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 11);
@@ -873,14 +873,14 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(11);
             for (let i = 0; i < 11; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(2 * i - 10, 1e-3);
             }
         });
 
         cy.get(cesc("#\\/minvar") + " textarea").type(
             "{end}{backspace}{backspace}{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/minvar2")).should("not.contain.text", ".1");
 
@@ -890,14 +890,14 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(11);
             for (let i = 0; i < 11; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(2 * i - 10, 1e-3);
             }
         });
 
         cy.get(cesc("#\\/maxvar") + " textarea").type(
             "{end}{backspace}{backspace}{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/maxvar2")).should("not.contain.text", ".1");
 
@@ -907,7 +907,7 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(11);
             for (let i = 0; i < 11; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(2 * i - 10, 1e-3);
             }
         });
@@ -924,14 +924,14 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(11);
             for (let i = 0; i < 11; i++) {
                 expect(
-                    stateVariables["/solve"].stateValues.solutions[i]
+                    stateVariables["/solve"].stateValues.solutions[i],
                 ).closeTo(2 * i - 10, 1e-3);
             }
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sqrtb-pi{rightArrow}=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 1);
@@ -940,13 +940,13 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(1);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 Math.PI,
-                1e-3
+                1e-3,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sqrtb^2{rightArrow}-pi^2{rightArrow}{rightArrow}=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -955,17 +955,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -Math.PI,
-                1e-3
+                1e-3,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 Math.PI,
-                1e-3
+                1e-3,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}sqrtpi^2{rightArrow}-b^2{rightArrow}{rightArrow}=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "√π2−b2=0");
 
@@ -975,21 +975,21 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -Math.PI,
-                1e-3
+                1e-3,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 Math.PI,
-                1e-3
+                1e-3,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10000000000sqrtpi^2{rightArrow}-b^2{rightArrow}{rightArrow}=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should(
             "contain.text",
-            "10000000000√π2−b2=0"
+            "10000000000√π2−b2=0",
         );
 
         cy.get(cesc("#\\/num")).should("have.text", 2);
@@ -998,17 +998,17 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -Math.PI,
-                1e-3
+                1e-3,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 Math.PI,
-                1e-3
+                1e-3,
             );
         });
 
         cy.get(cesc("#\\/equation") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}0.00000000000000000001sqrtpi^2{rightArrow}-b^2{rightArrow}{rightArrow}=0{enter}",
-            { force: true, delay: 5 }
+            { force: true, delay: 5 },
         );
         cy.get(cesc("#\\/equation2")).should("contain.text", "1⋅10−20√π2−b2=0");
 
@@ -1018,11 +1018,11 @@ describe("SolveEquations Tag Tests", function () {
             expect(stateVariables["/solve"].stateValues.numSolutions).eq(2);
             expect(stateVariables["/solve"].stateValues.solutions[0]).closeTo(
                 -Math.PI,
-                1e-3
+                1e-3,
             );
             expect(stateVariables["/solve"].stateValues.solutions[1]).closeTo(
                 Math.PI,
-                1e-3
+                1e-3,
             );
         });
     });

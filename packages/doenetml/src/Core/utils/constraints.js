@@ -1,6 +1,6 @@
 export function applyConstraintFromComponentConstraints(
     variables,
-    applyComponentConstraint
+    applyComponentConstraint,
 ) {
     let newVariables = {};
     let constrained = false;

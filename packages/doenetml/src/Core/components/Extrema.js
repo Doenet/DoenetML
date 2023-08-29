@@ -179,7 +179,7 @@ export class Extremum extends BaseComponent {
                         console.log(
                             "Cannot determine " +
                                 componentClass.componentType +
-                                " from a point that isn't 2D"
+                                " from a point that isn't 2D",
                         );
                         location = null;
                         value = null;

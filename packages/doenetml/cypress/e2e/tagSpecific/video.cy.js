@@ -17,7 +17,7 @@ describe("Video Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_video1"))
@@ -40,7 +40,7 @@ describe("Video Tag Tests", function () {
   <video width="560 px" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4" />
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_video1"))
@@ -53,8 +53,8 @@ describe("Video Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) =>
                 expect(src).eq(
-                    "https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4"
-                )
+                    "https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4",
+                ),
             );
         cy.get(cesc("#\\/_video1") + " source")
             .invoke("attr", "type")
@@ -73,7 +73,7 @@ describe("Video Tag Tests", function () {
   </video>
   `,
                 },
-                "*"
+                "*",
             );
         });
         cy.get(cesc("#\\/_video1"))
@@ -86,8 +86,8 @@ describe("Video Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) =>
                 expect(src).eq(
-                    "https://flowergarden.noaa.gov/image_library/video/seaharew.mp4"
-                )
+                    "https://flowergarden.noaa.gov/image_library/video/seaharew.mp4",
+                ),
             );
         cy.get(cesc("#\\/_video1") + " source:first-child")
             .invoke("attr", "type")
@@ -96,8 +96,8 @@ describe("Video Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) =>
                 expect(src).eq(
-                    "https://flowergarden.noaa.gov/image_library/video/seaharew.ogg"
-                )
+                    "https://flowergarden.noaa.gov/image_library/video/seaharew.ogg",
+                ),
             );
         cy.get(cesc("#\\/_video1") + " source:nth-child(2)")
             .invoke("attr", "type")
@@ -106,8 +106,8 @@ describe("Video Tag Tests", function () {
             .invoke("attr", "src")
             .then((src) =>
                 expect(src).eq(
-                    "https://flowergarden.noaa.gov/image_library/video/seaharew.webm"
-                )
+                    "https://flowergarden.noaa.gov/image_library/video/seaharew.webm",
+                ),
             );
         cy.get(cesc("#\\/_video1") + " source:nth-child(3)")
             .invoke("attr", "type")
@@ -158,7 +158,7 @@ describe("Video Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -204,7 +204,7 @@ describe("Video Tag Tests", function () {
                 console.log(stateVariables);
                 console.log("/" + name);
                 expect(stateVariables["/" + name].stateValues.size).eq(
-                    expectedSizes[name]
+                    expectedSizes[name],
                 );
             }
         });
@@ -233,7 +233,7 @@ describe("Video Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -242,19 +242,19 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/vleft"].stateValues.horizontalAlign).eq(
-                "left"
+                "left",
             );
             expect(stateVariables["/vright"].stateValues.horizontalAlign).eq(
-                "right"
+                "right",
             );
             expect(stateVariables["/vcenter"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
             expect(stateVariables["/vinvalid"].stateValues.horizontalAlign).eq(
-                "center"
+                "center",
             );
         });
 
@@ -275,7 +275,7 @@ describe("Video Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -285,13 +285,13 @@ describe("Video Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.displayMode).eq("block");
             expect(stateVariables["/vinline"].stateValues.displayMode).eq(
-                "inline"
+                "inline",
             );
             expect(stateVariables["/vblock"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
             expect(stateVariables["/vinvalid"].stateValues.displayMode).eq(
-                "block"
+                "block",
             );
         });
 
@@ -330,7 +330,7 @@ describe("Video Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -347,7 +347,7 @@ describe("Video Tag Tests", function () {
         cy.get(cesc("#\\/state")).contains("initializing");
 
         cy.log(
-            "clicking play action too early does not do anything (no error)"
+            "clicking play action too early does not do anything (no error)",
         );
         cy.get(cesc("#\\/playAction")).click();
         cy.get(cesc("#\\/state")).contains("stopped");
@@ -426,7 +426,7 @@ describe("Video Tag Tests", function () {
   </p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -465,7 +465,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                1
+                1,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -489,7 +489,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                1
+                1,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -513,7 +513,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                1
+                1,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -543,7 +543,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                2
+                2,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -570,7 +570,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                2
+                2,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -585,7 +585,7 @@ describe("Video Tag Tests", function () {
 
         cy.get(cesc("#\\/mi") + " textarea").type(
             "{end}{backspace}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/time")).should("have.text", "1");
 
@@ -605,7 +605,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                2
+                2,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];
@@ -633,7 +633,7 @@ describe("Video Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/v"].stateValues.segmentsWatched.length).eq(
-                2
+                2,
             );
             let theSegment =
                 stateVariables["/v"].stateValues.segmentsWatched[0];

@@ -335,7 +335,7 @@ export default class Video extends BlockComponent {
                 if (dependencyValues.segmentsWatched) {
                     secondsWatched = dependencyValues.segmentsWatched.reduce(
                         (a, c) => a + c[1] - c[0],
-                        0
+                        0,
                     );
                 }
                 return { setValue: { secondsWatched } };

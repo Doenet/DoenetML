@@ -37,7 +37,7 @@ describe("ODEsystem Tag Tests", function () {
     $tol.value{assignNames="tol2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -59,21 +59,21 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
 
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -86,7 +86,7 @@ describe("ODEsystem Tag Tests", function () {
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=xx(0)=3"
+            "dxdt=xx(0)=3",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -102,20 +102,20 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -128,7 +128,7 @@ describe("ODEsystem Tag Tests", function () {
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=−2xx(0)=3"
+            "dxdt=−2xx(0)=3",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -144,20 +144,20 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -177,20 +177,20 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -198,7 +198,7 @@ describe("ODEsystem Tag Tests", function () {
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=−2xx(0)=−5"
+            "dxdt=−2xx(0)=−5",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -211,12 +211,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("Change tolerance");
         cy.get(cesc("#\\/tol") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}1E-10{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/tol2") + " .mjx-mrow").should(
             "contain.text",
-            "1⋅10−10"
+            "1⋅10−10",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -232,20 +232,20 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -254,12 +254,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("Change parameter again");
         cy.get(cesc("#\\/a") + " textarea").type(
             `{end}{backspace}{backspace}0.5{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=0.5xx(0)=−5"
+            "dxdt=0.5xx(0)=−5",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -267,7 +267,7 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.replace(/−/g, "-").trim()).equal(
-                    "dxdt=0.5xx(0)=-5"
+                    "dxdt=0.5xx(0)=-5",
                 );
             });
 
@@ -277,20 +277,20 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedF = (x) => ic * Math.exp(a * x);
             for (let x = 0; x <= 5; x += 0.5) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
                 expect(solutionsFromCore[2 * x]).eq(solutionF(x));
             }
@@ -299,12 +299,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("Change initial condition to zero");
         cy.get(cesc("#\\/ic") + " textarea").type(
             `{end}{backspace}{backspace}0{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=0.5xx(0)=0"
+            "dxdt=0.5xx(0)=0",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -318,14 +318,14 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             for (let x = 0; x <= 1000; x += 100) {
                 expect(solutionF(x)).eq(0);
@@ -360,7 +360,7 @@ describe("ODEsystem Tag Tests", function () {
   $chunksize.value{assignNames="chunksize2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -376,7 +376,7 @@ describe("ODEsystem Tag Tests", function () {
             .then((text) => {
                 expect(Number(text.split("=")[1])).closeTo(
                     expectedF(10),
-                    tol * expectedF(10)
+                    tol * expectedF(10),
                 );
             });
 
@@ -385,12 +385,12 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             for (let x = 0; x <= 10; x += 1) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
             }
         });
@@ -398,7 +398,7 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("Can't make it to t=20");
         cy.get(cesc("#\\/T") + " textarea").type(
             `{end}{backspace}{backspace}20{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/T2") + " .mjx-mrow").should("contain.text", "20");
@@ -415,7 +415,7 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             assert.isNaN(solutionF(20));
         });
@@ -423,12 +423,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("increase maxiterations");
         cy.get(cesc("#\\/maxiter") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}2000{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maxiter2") + " .mjx-mrow").should(
             "contain.text",
-            "2000"
+            "2000",
         );
         cy.get(cesc("#\\/_m1"))
             .find(".mjx-mrow")
@@ -437,7 +437,7 @@ describe("ODEsystem Tag Tests", function () {
             .then((text) => {
                 expect(Number(text.split("=")[1])).closeTo(
                     expectedF(20),
-                    tol * expectedF(20)
+                    tol * expectedF(20),
                 );
             });
 
@@ -446,12 +446,12 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             for (let x = 0; x <= 20; x += 1) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
             }
         });
@@ -459,12 +459,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("Can't make it if decrease tolerance");
         cy.get(cesc("#\\/tol") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}1E-8{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/tol2") + " .mjx-mrow").should(
             "contain.text",
-            "1⋅10−8"
+            "1⋅10−8",
         );
         cy.get(cesc("#\\/_m1"))
             .find(".mjx-mrow")
@@ -479,7 +479,7 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             assert.isNaN(solutionF(20));
         });
@@ -487,12 +487,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("increase maxiterations further");
         cy.get(cesc("#\\/maxiter") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}5000{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maxiter2") + " .mjx-mrow").should(
             "contain.text",
-            "5000"
+            "5000",
         );
         cy.get(cesc("#\\/_m1"))
             .find(".mjx-mrow")
@@ -501,7 +501,7 @@ describe("ODEsystem Tag Tests", function () {
             .then((text) => {
                 expect(Number(text.split("=")[1])).closeTo(
                     expectedF(20),
-                    tol * expectedF(20)
+                    tol * expectedF(20),
                 );
             });
 
@@ -510,12 +510,12 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             for (let x = 0; x <= 20; x += 1) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
             }
         });
@@ -523,12 +523,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("decrease maxiterations back down");
         cy.get(cesc("#\\/maxiter") + " textarea").type(
             `{ctrl+home}{shift+end}{backspace}1000{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/maxiter2") + " .mjx-mrow").should(
             "contain.text",
-            "1000"
+            "1000",
         );
         cy.get(cesc("#\\/_m1"))
             .find(".mjx-mrow")
@@ -543,7 +543,7 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             assert.isNaN(solutionF(20));
         });
@@ -551,12 +551,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("decrease chunksize");
         cy.get(cesc("#\\/chunksize") + " textarea").type(
             `{end}{backspace}{backspace}1{enter}`,
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/chunksize2") + " .mjx-mrow").should(
             "not.contain.text",
-            "10"
+            "10",
         );
         cy.get(cesc("#\\/_m1"))
             .find(".mjx-mrow")
@@ -565,7 +565,7 @@ describe("ODEsystem Tag Tests", function () {
             .then((text) => {
                 expect(Number(text.split("=")[1])).closeTo(
                     expectedF(20),
-                    tol * expectedF(20)
+                    tol * expectedF(20),
                 );
             });
 
@@ -574,12 +574,12 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             for (let x = 0; x <= 20; x += 1) {
                 expect(solutionF(x)).closeTo(
                     expectedF(x),
-                    tol * Math.max(1, Math.abs(expectedF(x)))
+                    tol * Math.max(1, Math.abs(expectedF(x))),
                 );
             }
         });
@@ -614,7 +614,7 @@ describe("ODEsystem Tag Tests", function () {
   $dvar.value{assignNames="dvar2"}
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -636,14 +636,14 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
 
             expect(solutionF(0)).eq(1);
@@ -651,7 +651,7 @@ describe("ODEsystem Tag Tests", function () {
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -662,7 +662,7 @@ describe("ODEsystem Tag Tests", function () {
             `{end}{backspace}s{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ivar2") + " .mjx-mrow").should("contain.text", "s");
@@ -679,21 +679,21 @@ describe("ODEsystem Tag Tests", function () {
 
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -717,14 +717,14 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
@@ -739,7 +739,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}u{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ivar2") + " .mjx-mrow").should("contain.text", "u");
@@ -755,21 +755,21 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -780,7 +780,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ivar2") + " .mjx-mrow").should("contain.text", "1");
@@ -796,14 +796,14 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
@@ -818,7 +818,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}v{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ivar2") + " .mjx-mrow").should("contain.text", "v");
@@ -834,21 +834,21 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -859,7 +859,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}z{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/dvar2") + " .mjx-mrow").should("contain.text", "z");
@@ -875,21 +875,21 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -900,7 +900,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}v{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/dvar2") + " .mjx-mrow").should("contain.text", "v");
@@ -916,14 +916,14 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
@@ -938,7 +938,7 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}v_1{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/dvar2") + " .mjx-mrow").should("contain.text", "v1");
@@ -954,21 +954,21 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -977,7 +977,7 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("invalid dependent variable");
         cy.get(cesc("#\\/dvar") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}ab{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/dvar2") + " .mjx-mrow").should("contain.text", "ab");
@@ -993,14 +993,14 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
@@ -1013,12 +1013,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("restore dependent variable");
         cy.get(cesc("#\\/dvar") + " textarea").type(
             "{end}{backspace}{backspace}a{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/dvar2") + " .mjx-mrow").should(
             "not.contain.text",
-            "ab"
+            "ab",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1032,21 +1032,21 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let solutionF = createFunctionFromDefinition(
                 stateVariables["/ode"].stateValues
-                    .numericalSolutionFDefinitions[0]
+                    .numericalSolutionFDefinitions[0],
             );
             let solutionsFromCore = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             expect(solutionF(0)).eq(1);
             expect(solutionsFromCore[0]).eq(1);
             for (let t = 1; t <= 5; t += 1) {
                 expect(solutionF(t)).closeTo(
                     expectedF(t),
-                    tol * Math.max(1, Math.abs(expectedF(t)))
+                    tol * Math.max(1, Math.abs(expectedF(t))),
                 );
                 expect(solutionsFromCore[t]).eq(solutionF(t));
             }
@@ -1066,7 +1066,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1083,12 +1083,12 @@ describe("ODEsystem Tag Tests", function () {
         cy.log("change display digits");
         cy.get(cesc("#\\/digits") + " textarea").type(
             "{end}{backspace}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=0.12xx(0)=9.9"
+            "dxdt=0.12xx(0)=9.9",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1103,12 +1103,12 @@ describe("ODEsystem Tag Tests", function () {
             "{end}{backspace}14{enter}",
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=0.12345678912346xx(0)=9.8765432198765"
+            "dxdt=0.12345678912346xx(0)=9.8765432198765",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1116,7 +1116,7 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim()).equal(
-                    "dxdt=0.12345678912346xx(0)=9.8765432198765"
+                    "dxdt=0.12345678912346xx(0)=9.8765432198765",
                 );
             });
     });
@@ -1141,7 +1141,7 @@ describe("ODEsystem Tag Tests", function () {
   <m>x($tf) = $$(ode.numericalSolution)($tf)</m></p>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1171,7 +1171,7 @@ describe("ODEsystem Tag Tests", function () {
                 expect(text.split("=")[0].trim()).equal("x(10)");
                 expect(Number(text.split("=")[1])).closeTo(
                     Math.exp(10),
-                    1e-6 * Math.exp(10)
+                    1e-6 * Math.exp(10),
                 );
             });
 
@@ -1182,7 +1182,7 @@ describe("ODEsystem Tag Tests", function () {
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=xx(−5)=1"
+            "dxdt=xx(−5)=1",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1208,23 +1208,23 @@ describe("ODEsystem Tag Tests", function () {
                 expect(text.split("=")[0].trim()).equal("x(10)");
                 expect(Number(text.split("=")[1])).closeTo(
                     Math.exp(15),
-                    1e-6 * Math.exp(15)
+                    1e-6 * Math.exp(15),
                 );
             });
 
         cy.log("Change initial and final time");
         cy.get(cesc("#\\/tf") + " textarea").type(
             "{end}{backspace}{backspace}12{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/t0") + " textarea").type(
             "{end}{backspace}{backspace}11{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=xx(11)=1"
+            "dxdt=xx(11)=1",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1250,7 +1250,7 @@ describe("ODEsystem Tag Tests", function () {
                 expect(text.split("=")[0].trim()).equal("x(12)");
                 expect(Number(text.split("=")[1])).closeTo(
                     Math.exp(1),
-                    1e-6 * Math.exp(1)
+                    1e-6 * Math.exp(1),
                 );
             });
     });
@@ -1268,7 +1268,7 @@ describe("ODEsystem Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1297,7 +1297,7 @@ describe("ODEsystem Tag Tests", function () {
         cy.get(cesc("#\\/showic")).click();
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=xx(0)=1"
+            "dxdt=xx(0)=1",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1337,7 +1337,7 @@ describe("ODEsystem Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1351,7 +1351,7 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=1y(0)=3"
+                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=1y(0)=3",
                 );
             });
 
@@ -1359,30 +1359,30 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let ode = stateVariables["/ode"];
             let solutionFx = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[0]
+                ode.stateValues.numericalSolutionFDefinitions[0],
             );
             let solutionFy = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[1]
+                ode.stateValues.numericalSolutionFDefinitions[1],
             );
             let solutionFx2 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let solutionFy2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let solutionsFromCoreX = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let solutionsFromCoreY = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedFx = (t) =>
                 8 * Math.exp(0.1 * t) - 7 * Math.exp(0.2 * t);
@@ -1391,11 +1391,11 @@ describe("ODEsystem Tag Tests", function () {
             for (let t = 0; t <= 10; t += 1) {
                 expect(solutionFx(t)).closeTo(
                     expectedFx(t),
-                    tol * Math.max(1, Math.abs(expectedFx(t)))
+                    tol * Math.max(1, Math.abs(expectedFx(t))),
                 );
                 expect(solutionFy(t)).closeTo(
                     expectedFy(t),
-                    tol * Math.max(1, Math.abs(expectedFy(t)))
+                    tol * Math.max(1, Math.abs(expectedFy(t))),
                 );
                 expect(solutionFx2(t)).eq(solutionFx(t));
                 expect(solutionFy2(t)).eq(solutionFy(t));
@@ -1412,12 +1412,12 @@ describe("ODEsystem Tag Tests", function () {
             `{end}{backspace}-1{enter}`,
             {
                 force: true,
-            }
+            },
         );
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=−0.2ydydt=0.1x+0.3yx(0)=3y(0)=−1"
+            "dxdt=−0.2ydydt=0.1x+0.3yx(0)=3y(0)=−1",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1425,7 +1425,7 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=3y(0)=-1"
+                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=3y(0)=-1",
                 );
             });
 
@@ -1433,30 +1433,30 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let ode = stateVariables["/ode"];
             let solutionFx = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[0]
+                ode.stateValues.numericalSolutionFDefinitions[0],
             );
             let solutionFy = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[1]
+                ode.stateValues.numericalSolutionFDefinitions[1],
             );
             let solutionFx2 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let solutionFy2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let solutionsFromCoreX = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let solutionsFromCoreY = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedFx = (t) =>
                 4 * Math.exp(0.1 * t) - 1 * Math.exp(0.2 * t);
@@ -1465,11 +1465,11 @@ describe("ODEsystem Tag Tests", function () {
             for (let t = 0; t <= 10; t += 1) {
                 expect(solutionFx(t)).closeTo(
                     expectedFx(t),
-                    tol * Math.max(1, Math.abs(expectedFx(t)))
+                    tol * Math.max(1, Math.abs(expectedFx(t))),
                 );
                 expect(solutionFy(t)).closeTo(
                     expectedFy(t),
-                    tol * Math.max(1, Math.abs(expectedFy(t)))
+                    tol * Math.max(1, Math.abs(expectedFy(t))),
                 );
                 expect(solutionFx2(t)).eq(solutionFx(t));
                 expect(solutionFy2(t)).eq(solutionFy(t));
@@ -1490,30 +1490,30 @@ describe("ODEsystem Tag Tests", function () {
 
             let ode = stateVariables["/ode"];
             let solutionFx = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[0]
+                ode.stateValues.numericalSolutionFDefinitions[0],
             );
             let solutionFy = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[1]
+                ode.stateValues.numericalSolutionFDefinitions[1],
             );
             let solutionFx2 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let solutionFy2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let solutionsFromCoreX = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let solutionsFromCoreY = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let expectedFx = (t) =>
                 -6 * Math.exp(0.1 * t) + 1 * Math.exp(0.2 * t);
@@ -1522,11 +1522,11 @@ describe("ODEsystem Tag Tests", function () {
             for (let t = 0; t <= 10; t += 1) {
                 expect(solutionFx(t)).closeTo(
                     expectedFx(t),
-                    tol * Math.max(1, Math.abs(expectedFx(t)))
+                    tol * Math.max(1, Math.abs(expectedFx(t))),
                 );
                 expect(solutionFy(t)).closeTo(
                     expectedFy(t),
-                    tol * Math.max(1, Math.abs(expectedFy(t)))
+                    tol * Math.max(1, Math.abs(expectedFy(t))),
                 );
                 expect(solutionFx2(t)).eq(solutionFx(t));
                 expect(solutionFy2(t)).eq(solutionFy(t));
@@ -1541,14 +1541,14 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=-5y(0)=2"
+                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=-5y(0)=2",
                 );
             });
 
         cy.log("Change initial condition to zero");
         cy.get(cesc("#\\/ic1") + " textarea").type(
             `{end}{backspace}{backspace}0{enter}`,
-            { force: true }
+            { force: true },
         );
         cy.get(cesc("#\\/ic2") + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
@@ -1556,7 +1556,7 @@ describe("ODEsystem Tag Tests", function () {
 
         cy.get(cesc("#\\/ode") + " .mjx-mrow").should(
             "contain.text",
-            "dxdt=−0.2ydydt=0.1x+0.3yx(0)=0y(0)=0"
+            "dxdt=−0.2ydydt=0.1x+0.3yx(0)=0y(0)=0",
         );
         cy.get(cesc("#\\/ode"))
             .find(".mjx-mrow")
@@ -1564,7 +1564,7 @@ describe("ODEsystem Tag Tests", function () {
             .invoke("text")
             .then((text) => {
                 expect(text.trim().replace(/−/g, "-")).equal(
-                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=0y(0)=0"
+                    "dxdt=-0.2ydydt=0.1x+0.3yx(0)=0y(0)=0",
                 );
             });
 
@@ -1572,30 +1572,30 @@ describe("ODEsystem Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             let ode = stateVariables["/ode"];
             let solutionFx = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[0]
+                ode.stateValues.numericalSolutionFDefinitions[0],
             );
             let solutionFy = createFunctionFromDefinition(
-                ode.stateValues.numericalSolutionFDefinitions[1]
+                ode.stateValues.numericalSolutionFDefinitions[1],
             );
             let solutionFx2 = createFunctionFromDefinition(
-                stateVariables["/f1"].stateValues.fDefinitions[0]
+                stateVariables["/f1"].stateValues.fDefinitions[0],
             );
             let solutionFy2 = createFunctionFromDefinition(
-                stateVariables["/f2"].stateValues.fDefinitions[0]
+                stateVariables["/f2"].stateValues.fDefinitions[0],
             );
             let solutionsFromCoreX = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[0]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             let solutionsFromCoreY = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[
                         stateVariables[x.componentName].replacements[1]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
             );
             for (let t = 0; t <= 10; t += 1) {
                 expect(solutionFx(t)).eq(0);
@@ -1625,7 +1625,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1670,7 +1670,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1702,7 +1702,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1752,7 +1752,7 @@ describe("ODEsystem Tag Tests", function () {
   </odesystem>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1878,77 +1878,77 @@ describe("ODEsystem Tag Tests", function () {
             expect(
                 stateVariables[
                     stateVariables["/rhs1a"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhs1b"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhs1c"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhs1d"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhs2a"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs2tree);
             expect(
                 stateVariables[
                     stateVariables["/rhs2b"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs2tree);
             expect(
                 stateVariables[
                     stateVariables["/rhssa"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhssa"].replacements[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs2tree);
             expect(
                 stateVariables[
                     stateVariables["/rhssb"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs1tree);
             expect(
                 stateVariables[
                     stateVariables["/rhssb"].replacements[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(rhs2tree);
             expect(
                 stateVariables[
                     stateVariables["/ic1a"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls("c");
             expect(
                 stateVariables[
                     stateVariables["/ic1b"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls("c");
             expect(
                 stateVariables[
                     stateVariables["/ic2a"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(3);
             expect(
                 stateVariables[
                     stateVariables["/icsa"].replacements[0].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls("c");
             expect(
                 stateVariables[
                     stateVariables["/icsa"].replacements[1].componentName
-                ].stateValues.value
+                ].stateValues.value,
             ).eqls(3);
         });
     });
@@ -1978,7 +1978,7 @@ describe("ODEsystem Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1991,7 +1991,7 @@ describe("ODEsystem Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(4);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Invalid value of a variable: sin(x)`
+                `Invalid value of a variable: sin(x)`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(7);
@@ -2000,7 +2000,7 @@ describe("ODEsystem Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(52);
 
             expect(errorWarnings.warnings[1].message).contain(
-                `Variables of <odesystem> must be different than independent variable`
+                `Variables of <odesystem> must be different than independent variable`,
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(3);
@@ -2009,7 +2009,7 @@ describe("ODEsystem Tag Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(12);
 
             expect(errorWarnings.warnings[2].message).contain(
-                `Invalid value of a variable: sin(y)`
+                `Invalid value of a variable: sin(y)`,
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(11);
@@ -2018,7 +2018,7 @@ describe("ODEsystem Tag Tests", function () {
             expect(errorWarnings.warnings[2].doenetMLrange.charEnd).eq(28);
 
             expect(errorWarnings.warnings[3].message).contain(
-                `Can't define ODE RHS functions with duplicate dependent variable names`
+                `Can't define ODE RHS functions with duplicate dependent variable names`,
             );
             expect(errorWarnings.warnings[3].level).eq(1);
             expect(errorWarnings.warnings[3].doenetMLrange.lineBegin).eq(15);

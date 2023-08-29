@@ -15,7 +15,7 @@ describe("ContentPicker Tag Tests", function () {
         </contentPicker>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -45,7 +45,7 @@ describe("ContentPicker Tag Tests", function () {
         </contentPicker>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -81,7 +81,7 @@ describe("ContentPicker Tag Tests", function () {
         cy.get(cesc2(`#/_contentpicker1`) + ` select`).select(`3`);
         cy.get(cesc2("#/tx3")).should(
             "contain.text",
-            "A text must be untitled"
+            "A text must be untitled",
         );
         cy.get(cesc2("#/ex1")).should("not.exist");
         cy.get(cesc2("#/pr2")).should("not.exist");
@@ -116,7 +116,7 @@ describe("ContentPicker Tag Tests", function () {
         </contentPicker>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -150,7 +150,7 @@ describe("ContentPicker Tag Tests", function () {
         </contentPicker>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -215,7 +215,7 @@ describe("ContentPicker Tag Tests", function () {
         cy.get(cesc2(`#/_contentpicker1`) + ` select`).select(`3`);
         cy.get(cesc2("#/tx3")).should(
             "contain.text",
-            "A text must be untitled"
+            "A text must be untitled",
         );
         cy.get(cesc2("#/ex1")).should("not.exist");
         cy.get(cesc2("#/pr2")).should("not.exist");
@@ -248,7 +248,7 @@ describe("ContentPicker Tag Tests", function () {
         </contentPicker>
   `,
                 },
-                "*"
+                "*",
             );
         });
 

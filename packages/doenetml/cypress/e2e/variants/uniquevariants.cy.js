@@ -27,7 +27,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -35,17 +35,17 @@ describe("Specifying unique variant tests", function () {
 
             cy.get(cesc("#\\/x") + " .mjx-mrow").should(
                 "have.text",
-                values[(ind - 1) % 6]
+                values[(ind - 1) % 6],
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    values[(ind - 1) % 6]
+                    values[(ind - 1) % 6],
                 );
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
             });
         }
@@ -70,7 +70,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -81,11 +81,11 @@ describe("Specifying unique variant tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    ((ind - 1) % 5) + 1
+                    ((ind - 1) % 5) + 1,
                 );
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e"]);
             });
         }
@@ -112,7 +112,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -123,7 +123,7 @@ describe("Specifying unique variant tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    letters[(ind - 1) % 4]
+                    letters[(ind - 1) % 4],
                 );
             });
         }
@@ -178,7 +178,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -230,7 +230,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -293,7 +293,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -339,7 +339,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -394,7 +394,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -440,7 +440,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -501,7 +501,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -547,7 +547,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -602,7 +602,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -648,7 +648,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -706,7 +706,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -761,7 +761,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -813,7 +813,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -827,7 +827,7 @@ describe("Specifying unique variant tests", function () {
                 valuesFound.push(newValue);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
 
                 if (ind === 3) {
@@ -835,62 +835,62 @@ describe("Specifying unique variant tests", function () {
                     cy.window().then(async (win) => {
                         expect(valuesFound.some((x) => x <= 2)).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 101 && x <= 103)
+                            valuesFound.some((x) => x >= 101 && x <= 103),
                         ).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 201 && x <= 204)
+                            valuesFound.some((x) => x >= 201 && x <= 204),
                         ).eq(true);
                     });
                 }
 
                 if (ind === 6) {
                     cy.log(
-                        "all individual groups selected twice in first variants"
+                        "all individual groups selected twice in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                     });
                 }
 
                 if (ind === 8) {
                     cy.log(
-                        "most individual groups selected three times in first variants"
+                        "most individual groups selected three times in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                     });
                 }
@@ -920,7 +920,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -967,7 +967,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -981,7 +981,7 @@ describe("Specifying unique variant tests", function () {
                 valuesFound.push(newValue);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
 
                 if (ind === 3) {
@@ -989,62 +989,62 @@ describe("Specifying unique variant tests", function () {
                     cy.window().then(async (win) => {
                         expect(valuesFound.some((x) => x <= 2)).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 101 && x <= 103)
+                            valuesFound.some((x) => x >= 101 && x <= 103),
                         ).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 201 && x <= 204)
+                            valuesFound.some((x) => x >= 201 && x <= 204),
                         ).eq(true);
                     });
                 }
 
                 if (ind === 6) {
                     cy.log(
-                        "all individual groups selected twice in first variants"
+                        "all individual groups selected twice in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                     });
                 }
 
                 if (ind === 8) {
                     cy.log(
-                        "most individual groups selected three times in first variants"
+                        "most individual groups selected three times in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                     });
                 }
@@ -1074,7 +1074,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1121,7 +1121,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1135,7 +1135,7 @@ describe("Specifying unique variant tests", function () {
                 valuesFound.push(newValue);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i"]);
 
                 if (ind === 3) {
@@ -1143,62 +1143,62 @@ describe("Specifying unique variant tests", function () {
                     cy.window().then(async (win) => {
                         expect(valuesFound.some((x) => x <= 2)).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 101 && x <= 103)
+                            valuesFound.some((x) => x >= 101 && x <= 103),
                         ).eq(true);
                         expect(
-                            valuesFound.some((x) => x >= 201 && x <= 204)
+                            valuesFound.some((x) => x >= 201 && x <= 204),
                         ).eq(true);
                     });
                 }
 
                 if (ind === 6) {
                     cy.log(
-                        "all individual groups selected twice in first variants"
+                        "all individual groups selected twice in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                     });
                 }
 
                 if (ind === 8) {
                     cy.log(
-                        "most individual groups selected three times in first variants"
+                        "most individual groups selected three times in first variants",
                     );
                     cy.window().then(async (win) => {
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c <= 2 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(2);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                         expect(
                             valuesFound.reduce(
                                 (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                                0
-                            )
+                                0,
+                            ),
                         ).eq(3);
                     });
                 }
@@ -1228,7 +1228,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1285,7 +1285,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1327,7 +1327,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1375,7 +1375,7 @@ describe("Specifying unique variant tests", function () {
         `,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -1389,34 +1389,34 @@ describe("Specifying unique variant tests", function () {
             }
             cy.window().then(async (win) => {
                 expect(
-                    valuesFound1.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0)
+                    valuesFound1.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
                 ).eq(pass + 1);
                 expect(
                     valuesFound1.reduce(
                         (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0
-                    )
+                        0,
+                    ),
                 ).eq(pass + 1);
                 expect(
                     valuesFound1.reduce(
                         (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0
-                    )
+                        0,
+                    ),
                 ).eq(pass + 1);
                 expect(
-                    valuesFound2.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0)
+                    valuesFound2.reduce((a, c) => a + (c <= 2 ? 1 : 0), 0),
                 ).eq(pass + 1);
                 expect(
                     valuesFound2.reduce(
                         (a, c) => a + (c >= 101 && c <= 103 ? 1 : 0),
-                        0
-                    )
+                        0,
+                    ),
                 ).eq(pass + 1);
                 expect(
                     valuesFound2.reduce(
                         (a, c) => a + (c >= 201 && c <= 204 ? 1 : 0),
-                        0
-                    )
+                        0,
+                    ),
                 ).eq(pass + 1);
             });
         }
@@ -1476,7 +1476,7 @@ describe("Specifying unique variant tests", function () {
         let allColors = [...colorsA, ...colorsB, ...colorsC];
 
         let letters = [...Array(26)].map((_, i) =>
-            String.fromCharCode("a".charCodeAt(0) + i)
+            String.fromCharCode("a".charCodeAt(0) + i),
         );
 
         let variables = ["u", "v", "w", "x", "y", "z"];
@@ -1510,7 +1510,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1524,7 +1524,7 @@ describe("Specifying unique variant tests", function () {
                 let component =
                     stateVariables[
                         stateVariables["/p"].activeChildren.filter(
-                            (x) => x.componentName
+                            (x) => x.componentName,
                         )[0].componentName
                     ];
                 let newValue = component.stateValues.value;
@@ -1558,7 +1558,7 @@ describe("Specifying unique variant tests", function () {
                     cy.window().then(async (win) => {
                         for (let ind = 0; ind < 4; ind++) {
                             expect(
-                                categoriesFound.includes(categories[ind])
+                                categoriesFound.includes(categories[ind]),
                             ).eq(true);
                         }
                     });
@@ -1566,14 +1566,14 @@ describe("Specifying unique variant tests", function () {
 
                 if (ind === 8) {
                     cy.log(
-                        "all individual groups selected twice in first variants"
+                        "all individual groups selected twice in first variants",
                     );
                     cy.window().then(async (win) => {
                         for (let ind = 0; ind < 4; ind++) {
                             expect(
                                 categoriesFound
                                     .slice(4, 8)
-                                    .includes(categories[ind])
+                                    .includes(categories[ind]),
                             ).eq(true);
                         }
                     });
@@ -1582,19 +1582,28 @@ describe("Specifying unique variant tests", function () {
         }
 
         cy.log(
-            "the 24 values are distributed 6 to each category and evenly distributed across subcategories"
+            "the 24 values are distributed 6 to each category and evenly distributed across subcategories",
         );
         cy.window().then(async (win) => {
             let colorsFoundSet = new Set(colorsFound);
             expect(colorsFoundSet.size).eq(6);
             expect(
-                colorsA.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0)
+                colorsA.reduce(
+                    (a, c) => a + (colorsFoundSet.has(c) ? 1 : 0),
+                    0,
+                ),
             ).eq(2);
             expect(
-                colorsB.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0)
+                colorsB.reduce(
+                    (a, c) => a + (colorsFoundSet.has(c) ? 1 : 0),
+                    0,
+                ),
             ).eq(2);
             expect(
-                colorsC.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0)
+                colorsC.reduce(
+                    (a, c) => a + (colorsFoundSet.has(c) ? 1 : 0),
+                    0,
+                ),
             ).eq(2);
 
             expect(numbersFound.reduce((a, c) => a + (c > 0 ? 1 : 0), 0)).eq(3);
@@ -1615,7 +1624,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1627,7 +1636,7 @@ describe("Specifying unique variant tests", function () {
                 let component =
                     stateVariables[
                         stateVariables["/p"].activeChildren.filter(
-                            (x) => x.componentName
+                            (x) => x.componentName,
                         )[0].componentName
                     ];
                 let newValue = component.stateValues.value;
@@ -1709,7 +1718,7 @@ describe("Specifying unique variant tests", function () {
         let allWords = [...wordsA, ...wordsB];
 
         let letters = [...Array(26)].map((_, i) =>
-            String.fromCharCode("a".charCodeAt(0) + i)
+            String.fromCharCode("a".charCodeAt(0) + i),
         );
 
         let categories = ["Favorite color", "Selected word", "Chosen letter"];
@@ -1737,7 +1746,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -1760,7 +1769,7 @@ describe("Specifying unique variant tests", function () {
                     stateVariables[
                         stateVariables[
                             stateVariables["/problem"].activeChildren.filter(
-                                (x) => x.componentName
+                                (x) => x.componentName,
                             )[1].componentName
                         ].activeChildren[1].componentName
                     ];
@@ -1783,7 +1792,7 @@ describe("Specifying unique variant tests", function () {
 
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 categoriesFound.push(category);
@@ -1793,7 +1802,7 @@ describe("Specifying unique variant tests", function () {
                     cy.window().then(async (win) => {
                         for (let ind = 0; ind < 3; ind++) {
                             expect(
-                                categoriesFound.includes(categories[ind])
+                                categoriesFound.includes(categories[ind]),
                             ).eq(true);
                         }
                     });
@@ -1801,14 +1810,14 @@ describe("Specifying unique variant tests", function () {
 
                 if (ind === 6) {
                     cy.log(
-                        "all individual groups selected twice in first variants"
+                        "all individual groups selected twice in first variants",
                     );
                     cy.window().then(async (win) => {
                         for (let ind = 0; ind < 3; ind++) {
                             expect(
                                 categoriesFound
                                     .slice(3)
-                                    .includes(categories[ind])
+                                    .includes(categories[ind]),
                             ).eq(true);
                         }
                     });
@@ -1829,14 +1838,14 @@ describe("Specifying unique variant tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .creditAchieved
+                            .creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([newValue]);
                     expect(stateVariables[textinputName].stateValues.value).eq(
-                        newValue
+                        newValue,
                     );
                 });
 
@@ -1850,7 +1859,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
                 // to wait for page to load
@@ -1862,7 +1871,7 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/problem/ans"];
-                    })
+                    }),
                 );
 
                 cy.get(answerCorrect).should("be.visible");
@@ -1871,14 +1880,14 @@ describe("Specifying unique variant tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .creditAchieved
+                            .creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([newValue]);
                     expect(stateVariables[textinputName].stateValues.value).eq(
-                        newValue
+                        newValue,
                     );
                 });
 
@@ -1890,14 +1899,14 @@ describe("Specifying unique variant tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .creditAchieved
+                            .creditAchieved,
                     ).eq(0);
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([newValue + "X"]);
                     expect(stateVariables[textinputName].stateValues.value).eq(
-                        newValue + "X"
+                        newValue + "X",
                     );
                 });
 
@@ -1909,14 +1918,14 @@ describe("Specifying unique variant tests", function () {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .creditAchieved
+                            .creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/problem/ans"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([newValue]);
                     expect(stateVariables[textinputName].stateValues.value).eq(
-                        newValue
+                        newValue,
                     );
                 });
             });
@@ -1926,19 +1935,25 @@ describe("Specifying unique variant tests", function () {
             let colorsFoundSet = new Set(colorsFound);
             expect(colorsFoundSet.size).eq(2);
             expect(
-                colorsA.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0)
+                colorsA.reduce(
+                    (a, c) => a + (colorsFoundSet.has(c) ? 1 : 0),
+                    0,
+                ),
             ).eq(1);
             expect(
-                colorsB.reduce((a, c) => a + (colorsFoundSet.has(c) ? 1 : 0), 0)
+                colorsB.reduce(
+                    (a, c) => a + (colorsFoundSet.has(c) ? 1 : 0),
+                    0,
+                ),
             ).eq(1);
 
             let wordsFoundSet = new Set(wordsFound);
             expect(wordsFoundSet.size).eq(2);
             expect(
-                wordsA.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0)
+                wordsA.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0),
             ).eq(1);
             expect(
-                wordsB.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0)
+                wordsB.reduce((a, c) => a + (wordsFoundSet.has(c) ? 1 : 0), 0),
             ).eq(1);
         });
 
@@ -1956,7 +1971,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -1970,7 +1985,7 @@ describe("Specifying unique variant tests", function () {
                     stateVariables[
                         stateVariables[
                             stateVariables["/problem"].activeChildren.filter(
-                                (x) => x.componentName
+                                (x) => x.componentName,
                             )[1].componentName
                         ].activeChildren[1].componentName
                     ];
@@ -2018,7 +2033,7 @@ describe("Specifying unique variant tests", function () {
         <text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2033,7 +2048,7 @@ describe("Specifying unique variant tests", function () {
                 "{end}{backspace}3{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc("#\\/p1")).should("have.text", "letter: a");
             cy.get(cesc("#\\/p2")).should("have.text", "letter: b");
@@ -2042,26 +2057,26 @@ describe("Specifying unique variant tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    ((ind - 1) % 3) + 1
+                    ((ind - 1) % 3) + 1,
                 );
                 expect(
                     stateVariables[
                         stateVariables["/p1"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/p2"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("b");
                 expect(
                     stateVariables[
                         stateVariables["/p3"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("c");
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c"]);
             });
 
@@ -2075,7 +2090,7 @@ describe("Specifying unique variant tests", function () {
         <text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
 
@@ -2087,7 +2102,7 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     return stateVariables["/x"];
-                })
+                }),
             );
 
             cy.get(cesc("#\\/x")).should("have.text", ((ind - 1) % 3) + 1);
@@ -2099,22 +2114,22 @@ describe("Specifying unique variant tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    ((ind - 1) % 3) + 1
+                    ((ind - 1) % 3) + 1,
                 );
                 expect(
                     stateVariables[
                         stateVariables["/p1"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("a");
                 expect(
                     stateVariables[
                         stateVariables["/p2"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("b");
                 expect(
                     stateVariables[
                         stateVariables["/p3"].activeChildren[1].componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eq("c");
             });
 
@@ -2122,7 +2137,7 @@ describe("Specifying unique variant tests", function () {
                 "{end}{backspace}4{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(cesc("#\\/p1")).should("have.text", "letter: a");
             cy.get(cesc("#\\/p2")).should("have.text", "letter: b");
@@ -2167,7 +2182,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2181,20 +2196,20 @@ describe("Specifying unique variant tests", function () {
                 ordersFound.push(selectedOrder);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 for (let i = 0; i < 3; i++) {
                     cy.get(cesc(`#\\/ci_choice${i + 1}_input`)).click();
                     cy.get(cesc("#\\/selectedValue")).should(
                         "have.text",
-                        choices[choiceOrder[i] - 1]
+                        choices[choiceOrder[i] - 1],
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci"].stateValues.selectedValues
+                            stateVariables["/ci"].stateValues.selectedValues,
                         ).eqls([choices[choiceOrder[i] - 1]]);
                     });
                 }
@@ -2208,7 +2223,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -2221,31 +2236,31 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/ci"];
-                    })
+                    }),
                 );
 
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[2] - 1]
+                    choices[choiceOrder[2] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[2] - 1]]);
                 });
 
                 cy.get(cesc(`#\\/ci_choice1_input`)).click();
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[0] - 1]
+                    choices[choiceOrder[0] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[0] - 1]]);
                 });
             });
@@ -2266,7 +2281,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2321,7 +2336,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2335,20 +2350,20 @@ describe("Specifying unique variant tests", function () {
                 ordersFound.push(selectedOrder);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 for (let i = 0; i < 3; i++) {
                     cy.get(cesc(`#\\/ci_choice${i + 1}_input`)).click();
                     cy.get(cesc("#\\/selectedValue")).should(
                         "have.text",
-                        choices[choiceOrder[i] - 1]
+                        choices[choiceOrder[i] - 1],
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci"].stateValues.selectedValues
+                            stateVariables["/ci"].stateValues.selectedValues,
                         ).eqls([choices[choiceOrder[i] - 1]]);
                     });
                 }
@@ -2362,7 +2377,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -2375,31 +2390,31 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/ci"];
-                    })
+                    }),
                 );
 
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[2] - 1]
+                    choices[choiceOrder[2] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[2] - 1]]);
                 });
 
                 cy.get(cesc(`#\\/ci_choice1_input`)).click();
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[0] - 1]
+                    choices[choiceOrder[0] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[0] - 1]]);
                 });
             });
@@ -2420,7 +2435,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2469,7 +2484,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2487,24 +2502,24 @@ describe("Specifying unique variant tests", function () {
                 ordersFound.push(selectedOrder);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 for (let i = 0; i < 3; i++) {
                     cy.get(
-                        "#" + cesc2(choiceInputName) + `_choice${i + 1}_input`
+                        "#" + cesc2(choiceInputName) + `_choice${i + 1}_input`,
                     ).click();
                     cy.get("#" + cesc2(choiceInputName) + "_submit").click();
                     cy.get(cesc("#\\/sr")).should(
                         "have.text",
-                        choices[choiceOrder[i] - 1]
+                        choices[choiceOrder[i] - 1],
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables[choiceInputName].stateValues
-                                .selectedValues
+                                .selectedValues,
                         ).eqls([choices[choiceOrder[i] - 1]]);
                     });
                 }
@@ -2518,7 +2533,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -2531,19 +2546,19 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/ans"];
-                    })
+                    }),
                 );
 
                 cy.get(cesc("#\\/sr")).should(
                     "have.text",
-                    choices[choiceOrder[2] - 1]
+                    choices[choiceOrder[2] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables[choiceInputName].stateValues
-                            .selectedValues
+                            .selectedValues,
                     ).eqls([choices[choiceOrder[2] - 1]]);
                 });
 
@@ -2551,14 +2566,14 @@ describe("Specifying unique variant tests", function () {
                 cy.get("#" + cesc2(choiceInputName) + "_submit").click();
                 cy.get(cesc("#\\/sr")).should(
                     "have.text",
-                    choices[choiceOrder[0] - 1]
+                    choices[choiceOrder[0] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
                         stateVariables[choiceInputName].stateValues
-                            .selectedValues
+                            .selectedValues,
                     ).eqls([choices[choiceOrder[0] - 1]]);
                 });
             });
@@ -2579,7 +2594,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2630,7 +2645,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2647,20 +2662,20 @@ describe("Specifying unique variant tests", function () {
                 selectionsFound.push(selectedOption);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f", "g", "h"]);
 
                 for (let i = 0; i < 2; i++) {
                     cy.get(cesc(`#\\/ci_choice${i + 1}_input`)).click();
                     cy.get(cesc("#\\/selectedValue")).should(
                         "have.text",
-                        choices[choiceOrder[i] - 1]
+                        choices[choiceOrder[i] - 1],
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/ci"].stateValues.selectedValues
+                            stateVariables["/ci"].stateValues.selectedValues,
                         ).eqls([choices[choiceOrder[i] - 1]]);
                     });
                 }
@@ -2674,7 +2689,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -2687,31 +2702,31 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/ci"];
-                    })
+                    }),
                 );
 
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[1] - 1]
+                    choices[choiceOrder[1] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[1] - 1]]);
                 });
 
                 cy.get(cesc(`#\\/ci_choice1_input`)).click();
                 cy.get(cesc("#\\/selectedValue")).should(
                     "have.text",
-                    choices[choiceOrder[0] - 1]
+                    choices[choiceOrder[0] - 1],
                 );
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/ci"].stateValues.selectedValues
+                        stateVariables["/ci"].stateValues.selectedValues,
                     ).eqls([choices[choiceOrder[0] - 1]]);
                 });
             });
@@ -2732,7 +2747,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2785,7 +2800,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2802,12 +2817,12 @@ describe("Specifying unique variant tests", function () {
                 ordersFound.push(selectedOrder);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 cy.get(cesc("#\\/pList")).should(
                     "have.text",
-                    componentOrder.map((x) => colors[x - 1]).join(", ")
+                    componentOrder.map((x) => colors[x - 1]).join(", "),
                 );
 
                 // check reloading for just one variant
@@ -2824,7 +2839,7 @@ describe("Specifying unique variant tests", function () {
                                 doenetML: `<text>${ind}</text>${doenetML}`,
                                 requestedVariantIndex: ind,
                             },
-                            "*"
+                            "*",
                         );
                     });
 
@@ -2839,7 +2854,7 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/sh"].stateValues.componentOrder
+                            stateVariables["/sh"].stateValues.componentOrder,
                         ).eqls(componentOrder);
                     });
                 }
@@ -2861,7 +2876,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -2876,7 +2891,7 @@ describe("Specifying unique variant tests", function () {
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                componentOrder.map((x) => colors[x - 1]).join(", ")
+                componentOrder.map((x) => colors[x - 1]).join(", "),
             );
         });
     });
@@ -2921,7 +2936,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -2938,12 +2953,12 @@ describe("Specifying unique variant tests", function () {
                 ordersFound.push(selectedOrder);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 cy.get(cesc("#\\/pList")).should(
                     "have.text",
-                    componentOrder.map((x) => colors[x - 1]).join(", ")
+                    componentOrder.map((x) => colors[x - 1]).join(", "),
                 );
 
                 // check reloading for just one variant
@@ -2960,7 +2975,7 @@ describe("Specifying unique variant tests", function () {
                                 doenetML: `<text>${ind}</text>${doenetML}`,
                                 requestedVariantIndex: ind,
                             },
-                            "*"
+                            "*",
                         );
                     });
 
@@ -2975,7 +2990,7 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
-                            stateVariables["/sh"].stateValues.componentOrder
+                            stateVariables["/sh"].stateValues.componentOrder,
                         ).eqls(componentOrder);
                     });
                 }
@@ -2997,7 +3012,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: `<text>${ind}</text>${doenetML}`,
                     requestedVariantIndex: ind,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3012,7 +3027,7 @@ describe("Specifying unique variant tests", function () {
 
             cy.get(cesc("#\\/pList")).should(
                 "have.text",
-                componentOrder.map((x) => colors[x - 1]).join(", ")
+                componentOrder.map((x) => colors[x - 1]).join(", "),
             );
         });
     });
@@ -3055,7 +3070,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3069,7 +3084,7 @@ describe("Specifying unique variant tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -3081,7 +3096,7 @@ describe("Specifying unique variant tests", function () {
 
                 let mathinput2Name = cesc2(
                     stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinput2Anchor = "#" + mathinput2Name + " textarea";
                 let mathinput2EditiableFieldAnchor =
@@ -3096,7 +3111,7 @@ describe("Specifying unique variant tests", function () {
 
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c", "d", "e", "f"]);
 
                 cy.get(mathinputAnchor).type(`${m}{enter}`, { force: true });
@@ -3108,18 +3123,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
 
@@ -3132,7 +3147,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -3145,16 +3160,16 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.get(mathinputEditiableFieldAnchor).should(
                     "contain.text",
-                    `${m}`
+                    `${m}`,
                 );
                 cy.get(mathinput2EditiableFieldAnchor).should(
                     "contain.text",
-                    `${n}`
+                    `${n}`,
                 );
                 cy.get(mathinputCorrectAnchor).should("be.visible");
                 cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -3162,18 +3177,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
 
@@ -3187,18 +3202,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m * 10 + 1]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n * 10 + 1]);
                 });
 
@@ -3216,18 +3231,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
             });
@@ -3271,7 +3286,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML: `<text>${ind}</text>${doenetML}`,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3282,7 +3297,7 @@ describe("Specifying unique variant tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -3294,7 +3309,7 @@ describe("Specifying unique variant tests", function () {
 
                 let mathinput2Name = cesc2(
                     stateVariables["/_answer2"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinput2Anchor = "#" + mathinput2Name + " textarea";
                 let mathinput2EditiableFieldAnchor =
@@ -3328,18 +3343,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
 
@@ -3352,7 +3367,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML: `<text>${ind}</text>${doenetML}`,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -3365,16 +3380,16 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.get(mathinputEditiableFieldAnchor).should(
                     "contain.text",
-                    `${m}`
+                    `${m}`,
                 );
                 cy.get(mathinput2EditiableFieldAnchor).should(
                     "contain.text",
-                    `${n}`
+                    `${n}`,
                 );
                 cy.get(mathinputCorrectAnchor).should("be.visible");
                 cy.get(mathinput2CorrectAnchor).should("be.visible");
@@ -3382,18 +3397,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
 
@@ -3407,18 +3422,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m * 10 + 1]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n * 10 + 1]);
                 });
 
@@ -3436,18 +3451,18 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
-                        stateVariables["/_answer2"].stateValues.creditAchieved
+                        stateVariables["/_answer2"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                     expect(
                         stateVariables["/_answer2"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([n]);
                 });
             });
@@ -3486,7 +3501,7 @@ describe("Specifying unique variant tests", function () {
                         doenetML,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3499,7 +3514,7 @@ describe("Specifying unique variant tests", function () {
 
                 let mathinputName = cesc2(
                     stateVariables["/_answer1"].stateValues.inputChildren[0]
-                        .componentName
+                        .componentName,
                 );
                 let mathinputAnchor = "#" + mathinputName + " textarea";
                 let mathinputEditiableFieldAnchor =
@@ -3512,10 +3527,10 @@ describe("Specifying unique variant tests", function () {
                 expect(stateVariables["/m"].stateValues.value).eq(m);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["five", "six", "seven"]);
                 expect(
-                    stateVariables["/_document1"].sharedParameters.variantName
+                    stateVariables["/_document1"].sharedParameters.variantName,
                 ).eq(["five", "six", "seven"][(ind - 1) % 3]);
 
                 cy.get(mathinputAnchor).type(`${m}{enter}`, { force: true });
@@ -3525,11 +3540,11 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                 });
 
@@ -3542,7 +3557,7 @@ describe("Specifying unique variant tests", function () {
                             doenetML,
                             requestedVariantIndex: ind,
                         },
-                        "*"
+                        "*",
                     );
                 });
 
@@ -3555,23 +3570,23 @@ describe("Specifying unique variant tests", function () {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         return stateVariables["/_answer1"];
-                    })
+                    }),
                 );
 
                 cy.get(mathinputEditiableFieldAnchor).should(
                     "contain.text",
-                    `${m}`
+                    `${m}`,
                 );
                 cy.get(mathinputCorrectAnchor).should("be.visible");
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                 });
 
@@ -3582,11 +3597,11 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(0);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m * 10 + 1]);
                 });
 
@@ -3599,11 +3614,11 @@ describe("Specifying unique variant tests", function () {
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
                     expect(
-                        stateVariables["/_answer1"].stateValues.creditAchieved
+                        stateVariables["/_answer1"].stateValues.creditAchieved,
                     ).eq(1);
                     expect(
                         stateVariables["/_answer1"].stateValues
-                            .submittedResponses
+                            .submittedResponses,
                     ).eqls([m]);
                 });
             });
@@ -3619,7 +3634,7 @@ describe("Specifying unique variant tests", function () {
         hello!
       `,
                 },
-                "*"
+                "*",
             );
         });
         // to wait for page to load
@@ -3629,7 +3644,7 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a"]);
         });
     });
@@ -3648,7 +3663,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3656,17 +3671,17 @@ describe("Specifying unique variant tests", function () {
 
             cy.get(cesc("#\\/x") + " .mjx-mrow").should(
                 "have.text",
-                values[(ind - 1) % 3]
+                values[(ind - 1) % 3],
             );
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    values[(ind - 1) % 3]
+                    values[(ind - 1) % 3],
                 );
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants
+                        .allPossibleVariants,
                 ).eqls(["a", "b", "c"]);
             });
         }
@@ -3687,7 +3702,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3695,19 +3710,19 @@ describe("Specifying unique variant tests", function () {
 
             cy.get(cesc("#\\/x") + " .mjx-mrow").should(
                 "have.text",
-                values[ind - 1]
+                values[ind - 1],
             );
             cy.get(cesc("#\\/n")).should("have.text", ind.toString());
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(stateVariables["/x"].stateValues.value).eq(
-                    values[ind - 1]
+                    values[ind - 1],
                 );
                 expect(stateVariables["/n"].stateValues.value).eq(ind);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants.length
+                        .allPossibleVariants.length,
                 ).eq(30);
             });
         }
@@ -3725,7 +3740,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3738,7 +3753,7 @@ describe("Specifying unique variant tests", function () {
                 expect(stateVariables["/n"].stateValues.value).eq(ind);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants.length
+                        .allPossibleVariants.length,
                 ).eq(100);
             });
         }
@@ -3758,7 +3773,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3771,7 +3786,7 @@ describe("Specifying unique variant tests", function () {
                 }
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants.length
+                        .allPossibleVariants.length,
                 ).eq(100);
             });
         }
@@ -3802,7 +3817,7 @@ describe("Specifying unique variant tests", function () {
       `,
                         requestedVariantIndex: ind,
                     },
-                    "*"
+                    "*",
                 );
             });
             // to wait for page to load
@@ -3818,7 +3833,7 @@ describe("Specifying unique variant tests", function () {
                 valuesFound.push(val);
                 expect(
                     stateVariables["/_document1"].sharedParameters
-                        .allPossibleVariants.length
+                        .allPossibleVariants.length,
                 ).eq(8);
 
                 cy.get(cesc("#\\/a")).should("have.text", a.toString());
@@ -3828,7 +3843,7 @@ describe("Specifying unique variant tests", function () {
         }
         cy.window().then((win) => {
             expect([...valuesFound].sort((a, b) => a - b)).eqls(
-                [...values].sort((a, b) => a - b)
+                [...values].sort((a, b) => a - b),
             );
         });
     });
@@ -3848,7 +3863,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3859,20 +3874,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -3882,7 +3897,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>5</text" + baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3893,20 +3908,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -3924,7 +3939,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3935,20 +3950,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -3958,7 +3973,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3969,20 +3984,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4000,7 +4015,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4011,20 +4026,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4034,7 +4049,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>3</text" + baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4045,25 +4060,25 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -4078,7 +4093,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4089,20 +4104,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4112,7 +4127,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4123,20 +4138,20 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
     });
@@ -4158,7 +4173,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4169,36 +4184,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4208,7 +4223,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4219,36 +4234,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4268,7 +4283,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4279,36 +4294,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4318,7 +4333,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4329,36 +4344,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4378,7 +4393,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4389,36 +4404,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4428,7 +4443,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4439,41 +4454,41 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -4490,7 +4505,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4501,36 +4516,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4540,7 +4555,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4551,36 +4566,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
     });
@@ -4706,7 +4721,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4717,36 +4732,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4756,7 +4771,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLa,
                     requestedVariantIndex: 5,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4767,36 +4782,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(5);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4817,7 +4832,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4828,36 +4843,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4867,7 +4882,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4878,36 +4893,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4928,7 +4943,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4939,36 +4954,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -4978,7 +4993,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLc,
                     requestedVariantIndex: 3,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4989,41 +5004,41 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("3");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("c");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c", "d", "e", "f"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(3);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "c", "e", "f", "g", "i"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
         cy.log(
-            "get same variants when add variantsToInclude and variantsToExclude"
+            "get same variants when add variantsToInclude and variantsToExclude",
         );
 
         let baseDoenetMLd = `
@@ -5041,7 +5056,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5052,36 +5067,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("1");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("a");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("second");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
 
@@ -5091,7 +5106,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: baseDoenetMLd,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5102,36 +5117,36 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(5);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("2");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("b");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["a", "b", "c"]);
             expect(
-                stateVariables["/_document1"].sharedParameters.allVariantNames
+                stateVariables["/_document1"].sharedParameters.allVariantNames,
             ).eqls(allDocVariants);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantSeed
+                stateVariables["/_problem1"].sharedParameters.variantSeed,
             ).eq("5");
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantIndex
+                stateVariables["/_problem1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_problem1"].sharedParameters.variantName
+                stateVariables["/_problem1"].sharedParameters.variantName,
             ).eq("e");
             expect(
                 stateVariables["/_problem1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["second", "e", "g"]);
             expect(
-                stateVariables["/_problem1"].sharedParameters.allVariantNames
+                stateVariables["/_problem1"].sharedParameters.allVariantNames,
             ).eqls(["first", "second", "c", "d", "e", "f", "g", "h", "i", "j"]);
         });
     });
@@ -5151,7 +5166,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLa,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5162,17 +5177,17 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(20);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("20");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("t");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["t", "cv"]);
         });
 
@@ -5182,7 +5197,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLa,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5193,17 +5208,17 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).eq(100);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("100");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("cv");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["t", "cv"]);
         });
 
@@ -5221,7 +5236,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>1</text" + baseDoenetMLb,
                     requestedVariantIndex: 1,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5232,17 +5247,17 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).not.eq(20);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("20");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(1);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("t");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["t", "cv"]);
         });
 
@@ -5252,7 +5267,7 @@ describe("Specifying unique variant tests", function () {
                     doenetML: "<text>2</text" + baseDoenetMLb,
                     requestedVariantIndex: 2,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5263,17 +5278,17 @@ describe("Specifying unique variant tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/n"].stateValues.value).not.eq(100);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantSeed
+                stateVariables["/_document1"].sharedParameters.variantSeed,
             ).eq("100");
             expect(
-                stateVariables["/_document1"].sharedParameters.variantIndex
+                stateVariables["/_document1"].sharedParameters.variantIndex,
             ).eq(2);
             expect(
-                stateVariables["/_document1"].sharedParameters.variantName
+                stateVariables["/_document1"].sharedParameters.variantName,
             ).eq("cv");
             expect(
                 stateVariables["/_document1"].sharedParameters
-                    .allPossibleVariants
+                    .allPossibleVariants,
             ).eqls(["t", "cv"]);
         });
     });

@@ -164,7 +164,7 @@ export class SectioningComponent extends BlockComponent {
             returnFeedbackDefinitionStateVariables();
         Object.assign(
             stateVariableDefinitions,
-            feedbackDefinitionStateVariables
+            feedbackDefinitionStateVariables,
         );
 
         stateVariableDefinitions.inAList = {
@@ -226,7 +226,7 @@ export class SectioningComponent extends BlockComponent {
                     return { setValue: { enumeration, sectionNumber } };
                 } else {
                     let sectionNumber = String(
-                        dependencyValues.sectioningCounter
+                        dependencyValues.sectioningCounter,
                     );
                     return {
                         setValue: {
@@ -310,7 +310,7 @@ export class SectioningComponent extends BlockComponent {
                 let childIndicesToRender = [];
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
-                    (x) => x.componentName
+                    (x) => x.componentName,
                 );
 
                 for (let [
@@ -523,7 +523,7 @@ export class SectioningComponent extends BlockComponent {
                         scoredDescendants.push(descendant);
                     } else {
                         scoredDescendants.push(
-                            ...descendant.stateValues.scoredDescendants
+                            ...descendant.stateValues.scoredDescendants,
                         );
                     }
                 }
@@ -562,7 +562,7 @@ export class SectioningComponent extends BlockComponent {
                 return {
                     setValue: {
                         justSubmitted: dependencyValues.answerDescendants.every(
-                            (x) => x.stateValues.justSubmitted
+                            (x) => x.stateValues.justSubmitted,
                         ),
                     },
                 };
@@ -775,7 +775,7 @@ export class SectioningComponent extends BlockComponent {
                 variantDescendants: {
                     dependencyType: "descendant",
                     componentTypes: Object.keys(
-                        componentInfoObjects.componentTypesCreatingVariants
+                        componentInfoObjects.componentTypesCreatingVariants,
                     ),
                     variableNames: [
                         "isVariantComponent",
@@ -805,12 +805,12 @@ export class SectioningComponent extends BlockComponent {
                 for (let descendant of dependencyValues.variantDescendants) {
                     if (descendant.stateValues.isVariantComponent) {
                         subvariants.push(
-                            descendant.stateValues.generatedVariantInfo
+                            descendant.stateValues.generatedVariantInfo,
                         );
                     } else if (descendant.stateValues.generatedVariantInfo) {
                         subvariants.push(
                             ...descendant.stateValues.generatedVariantInfo
-                                .subvariants
+                                .subvariants,
                         );
                     }
                 }
@@ -1079,7 +1079,7 @@ export class SectioningComponent extends BlockComponent {
                     console.warn(
                         "Variant index " +
                             desiredVariant.index +
-                            " must be a number"
+                            " must be a number",
                     );
                     variantIndex = 1;
                 } else {
@@ -1087,7 +1087,7 @@ export class SectioningComponent extends BlockComponent {
                         console.warn(
                             "Variant index " +
                                 desiredVariant.index +
-                                " must be an integer"
+                                " must be an integer",
                         );
                         desiredVariantIndex = Math.round(desiredVariantIndex);
                     }
@@ -1127,10 +1127,10 @@ export class SectioningComponent extends BlockComponent {
             ];
 
         sharedParameters.variantRng = new sharedParameters.rngClass(
-            sharedParameters.variantSeed
+            sharedParameters.variantSeed,
         );
         sharedParameters.subpartVariantRng = new sharedParameters.rngClass(
-            sharedParameters.variantSeed + "s"
+            sharedParameters.variantSeed + "s",
         );
 
         // console.log("****Variant for sectioning component****")
@@ -1276,7 +1276,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                 let enumeration = [];
                 if (dependencyValues.inAList) {
                     enumeration.push(
-                        dependencyValues.countAmongSiblingsInAList
+                        dependencyValues.countAmongSiblingsInAList,
                     );
                 } else {
                     if (
@@ -1285,7 +1285,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     ) {
                         enumeration.push(
                             ...dependencyValues.sectionAncestor.stateValues
-                                .enumeration
+                                .enumeration,
                         );
                     }
                     enumeration.push(dependencyValues.countAmongSiblings);

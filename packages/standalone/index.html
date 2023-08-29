@@ -1,41 +1,39 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DoenetML Viewer</title>
-    <script src="https://www.youtube.com/iframe_api"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/test-main.tsx"></script>
-    <script>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DoenetML Viewer</title>
+        <script src="https://www.youtube.com/iframe_api"></script>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/test-main.tsx"></script>
+        <script></script>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+                <p>Use this to test DoenetML</p>
+                <graph showNavigation="false">
 
-    </script>
-    <div class="doenetml-applet">
-      <script type="text/doenetml">
-        <p>Use this to test DoenetML</p>
-        <graph showNavigation="false">
+                  <line through="(-8,8) (9,6)" />
+                  <line through="(0,4)" slope="1/2" styleNumber="2" />
 
-          <line through="(-8,8) (9,6)" />
-          <line through="(0,4)" slope="1/2" styleNumber="2" />
+                  <line equation="y=2x-8" styleNumber="3" />
+                  <line equation="x=-6" styleNumber="4" />
 
-          <line equation="y=2x-8" styleNumber="3" />
-          <line equation="x=-6" styleNumber="4" />
-          
-        </graph>
-      </script>
-    </div>
-    <div class="doenetml-applet" data-doenet-read-only="true">
-      <script type="text/doenetml">
-        <p>Use this to test DoenetML</p>
-        <graph showNavigation="false">
+                </graph>
+            </script>
+        </div>
+        <div class="doenetml-applet" data-doenet-read-only="true">
+            <script type="text/doenetml">
+                <p>Use this to test DoenetML</p>
+                <graph showNavigation="false">
 
-          <line through="(0,4)" slope="1/2" styleNumber="2" />
+                  <line through="(0,4)" slope="1/2" styleNumber="2" />
 
-        </graph>
-      </script>
-    </div>
-  </body>
+                </graph>
+            </script>
+        </div>
+    </body>
 </html>

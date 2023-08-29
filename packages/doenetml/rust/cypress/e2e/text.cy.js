@@ -13,7 +13,7 @@ describe("Text Tag Tests", function () {
       <p><text>We <text>could</text> be <text copySource="/_text2" />.</text></p></document>
       `,
                 },
-                "*"
+                "*",
             );
         });
 

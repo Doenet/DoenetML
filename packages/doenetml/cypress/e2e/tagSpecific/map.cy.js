@@ -31,7 +31,7 @@ describe("Map Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -91,7 +91,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -111,14 +111,14 @@ describe("Map Tag Tests", function () {
             cy.log("Test values displayed in browser");
             cy.get(cesc2(textr1Anchor)).should(
                 "have.text",
-                "You are a squirrel!"
+                "You are a squirrel!",
             );
             cy.get(cesc2(textr2Anchor)).should("have.text", "You are a bat!");
 
             cy.log("Test internal values are set to the correct values");
             cy.window().then(() => {
                 expect(stateVariables[textr1Name].stateValues.value).eq(
-                    "You are a squirrel!"
+                    "You are a squirrel!",
                 );
             });
         });
@@ -136,7 +136,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -148,7 +148,7 @@ describe("Map Tag Tests", function () {
             let mathrNames = replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let mathrAnchors = mathrNames.map((x) => cesc2("#" + x));
 
@@ -211,7 +211,7 @@ describe("Map Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -224,10 +224,10 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let mathrAnchors = mathrNames.map((x) => cesc2("#" + x));
 
@@ -325,7 +325,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -338,10 +338,10 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let mathrAnchors = mathrNames.map((x) => cesc2("#" + x));
 
@@ -653,7 +653,7 @@ describe("Map Tag Tests", function () {
     </map></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -666,7 +666,7 @@ describe("Map Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                "<map> has parallel behavior but different numbers of iterates in sources. Extra iterates will be ignored"
+                "<map> has parallel behavior but different numbers of iterates in sources. Extra iterates will be ignored",
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -687,7 +687,7 @@ describe("Map Tag Tests", function () {
     </map></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -700,7 +700,7 @@ describe("Map Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(1);
 
             expect(errorWarnings.warnings[0].message).contain(
-                `Invalid map behavior: "bad"`
+                `Invalid map behavior: "bad"`,
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(2);
@@ -727,7 +727,7 @@ describe("Map Tag Tests", function () {
     </aslist>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -748,10 +748,10 @@ describe("Map Tag Tests", function () {
                                 c1.componentName
                             ].replacements.map((x) => x.componentName),
                         ],
-                        []
+                        [],
                     ),
                 ],
-                []
+                [],
             );
             let mathrAnchors = mathrNames.map((x) => cesc2("#" + x));
 
@@ -840,7 +840,7 @@ describe("Map Tag Tests", function () {
     $_map1{name="mapcopy"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -852,231 +852,231 @@ describe("Map Tag Tests", function () {
             let graphNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let graphChildNames = graphNames.map((x) =>
-                stateVariables[x].activeChildren.map((x) => x.componentName)
+                stateVariables[x].activeChildren.map((x) => x.componentName),
             );
             let graphNames2 = stateVariables["/mapcopy"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let graph2ChildNames = graphNames2.map((x) =>
-                stateVariables[x].activeChildren.map((x) => x.componentName)
+                stateVariables[x].activeChildren.map((x) => x.componentName),
             );
 
             expect(
                 stateVariables[graphNames[0]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables[graphNames[1]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables[graphNames2[0]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(8);
             expect(
                 stateVariables[graphNames2[1]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(8);
 
             expect(stateVariables[graphChildNames[0][0]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graphChildNames[0][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[0][1]].stateValues.xs[0]).eq(
-                3
+                3,
             );
             expect(stateVariables[graphChildNames[0][1]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graphChildNames[0][2]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graphChildNames[0][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[0][3]].stateValues.xs[0]).eq(
-                4
+                4,
             );
             expect(stateVariables[graphChildNames[0][3]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graphChildNames[0][4]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graphChildNames[0][4]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[0][5]].stateValues.xs[0]).eq(
-                3
+                3,
             );
             expect(stateVariables[graphChildNames[0][5]].stateValues.xs[1]).eq(
-                2
+                2,
             );
             expect(stateVariables[graphChildNames[0][6]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graphChildNames[0][6]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[0][7]].stateValues.xs[0]).eq(
-                4
+                4,
             );
             expect(stateVariables[graphChildNames[0][7]].stateValues.xs[1]).eq(
-                2
+                2,
             );
 
             expect(stateVariables[graphChildNames[1][0]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[1][1]].stateValues.xs[0]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[1][1]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graphChildNames[1][2]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graphChildNames[1][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[1][3]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][3]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graphChildNames[1][4]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][4]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[1][5]].stateValues.xs[0]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[1][5]].stateValues.xs[1]).eq(
-                2
+                2,
             );
             expect(stateVariables[graphChildNames[1][6]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graphChildNames[1][6]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[1][7]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][7]].stateValues.xs[1]).eq(
-                2
+                2,
             );
 
             expect(stateVariables[graph2ChildNames[0][0]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graph2ChildNames[0][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graph2ChildNames[0][1]].stateValues.xs[0]).eq(
-                3
+                3,
             );
             expect(stateVariables[graph2ChildNames[0][1]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graph2ChildNames[0][2]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graph2ChildNames[0][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graph2ChildNames[0][3]].stateValues.xs[0]).eq(
-                4
+                4,
             );
             expect(stateVariables[graph2ChildNames[0][3]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graph2ChildNames[0][4]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graph2ChildNames[0][4]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[0][5]].stateValues.xs[0]).eq(
-                3
+                3,
             );
             expect(stateVariables[graph2ChildNames[0][5]].stateValues.xs[1]).eq(
-                2
+                2,
             );
             expect(stateVariables[graph2ChildNames[0][6]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graph2ChildNames[0][6]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[0][7]].stateValues.xs[0]).eq(
-                4
+                4,
             );
             expect(stateVariables[graph2ChildNames[0][7]].stateValues.xs[1]).eq(
-                2
+                2,
             );
 
             expect(stateVariables[graph2ChildNames[1][0]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graph2ChildNames[1][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graph2ChildNames[1][1]].stateValues.xs[0]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[1][1]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graph2ChildNames[1][2]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graph2ChildNames[1][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graph2ChildNames[1][3]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graph2ChildNames[1][3]].stateValues.xs[1]).eq(
-                1
+                1,
             );
             expect(stateVariables[graph2ChildNames[1][4]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graph2ChildNames[1][4]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[1][5]].stateValues.xs[0]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[1][5]].stateValues.xs[1]).eq(
-                2
+                2,
             );
             expect(stateVariables[graph2ChildNames[1][6]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graph2ChildNames[1][6]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graph2ChildNames[1][7]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graph2ChildNames[1][7]].stateValues.xs[1]).eq(
-                2
+                2,
             );
         });
     });
@@ -1115,7 +1115,7 @@ describe("Map Tag Tests", function () {
     <copy assignNames="c8" prop="coords" target="/v/v/v/A" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1177,11 +1177,11 @@ describe("Map Tag Tests", function () {
 
             expect(
                 stateVariables["/u/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(4);
             expect(
                 stateVariables["/v/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(4);
             expect(stateVariables["/u/u/u/A"].stateValues.xs[0]).eq(-9);
             expect(stateVariables["/u/u/u/A"].stateValues.xs[1]).eq(-5);
@@ -1220,7 +1220,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1231,68 +1231,68 @@ describe("Map Tag Tests", function () {
             let graphNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let graphChildNames = graphNames.map((x) =>
-                stateVariables[x].activeChildren.map((x) => x.componentName)
+                stateVariables[x].activeChildren.map((x) => x.componentName),
             );
 
             expect(
                 stateVariables[graphNames[0]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(4);
             expect(
                 stateVariables[graphNames[1]].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(4);
             expect(stateVariables[graphChildNames[0][0]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graphChildNames[0][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[0][1]].stateValues.xs[0]).eq(
-                -9
+                -9,
             );
             expect(stateVariables[graphChildNames[0][1]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[0][2]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graphChildNames[0][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[0][3]].stateValues.xs[0]).eq(
-                -8
+                -8,
             );
             expect(stateVariables[graphChildNames[0][3]].stateValues.xs[1]).eq(
-                5
+                5,
             );
 
             expect(stateVariables[graphChildNames[1][0]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][0]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[1][1]].stateValues.xs[0]).eq(
-                6
+                6,
             );
             expect(stateVariables[graphChildNames[1][1]].stateValues.xs[1]).eq(
-                5
+                5,
             );
             expect(stateVariables[graphChildNames[1][2]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graphChildNames[1][2]].stateValues.xs[1]).eq(
-                -5
+                -5,
             );
             expect(stateVariables[graphChildNames[1][3]].stateValues.xs[0]).eq(
-                7
+                7,
             );
             expect(stateVariables[graphChildNames[1][3]].stateValues.xs[1]).eq(
-                5
+                5,
             );
         });
     });
@@ -1314,7 +1314,7 @@ describe("Map Tag Tests", function () {
     $_map1{name="mapcopy"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1325,13 +1325,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables[
                 "/mapcopy"
@@ -1339,13 +1339,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.log("Test values displayed in browser");
@@ -1430,7 +1430,7 @@ describe("Map Tag Tests", function () {
     </updatevalue>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1441,13 +1441,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables[
                 "/mapcopy"
@@ -1455,13 +1455,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.log("Test values displayed in browser");
@@ -1507,13 +1507,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables[
                 "/mapcopy"
@@ -1521,13 +1521,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.get(`${replacementAnchors[0]} .mjx-mrow`)
@@ -1596,13 +1596,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables[
                 "/mapcopy"
@@ -1610,13 +1610,13 @@ describe("Map Tag Tests", function () {
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     ),
                 ],
-                []
+                [],
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.get(`${replacementAnchors[0]} .mjx-mrow`)
@@ -1743,7 +1743,7 @@ describe("Map Tag Tests", function () {
     $_map2{name="mapcopy"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1753,26 +1753,26 @@ describe("Map Tag Tests", function () {
             let replacementNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables["/_map2"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames3 = stateVariables["/mapcopy"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors3 = replacementNames3.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.log("Test values displayed in browser");
@@ -1829,7 +1829,7 @@ describe("Map Tag Tests", function () {
     $_map1{name="mapcopy"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1839,18 +1839,18 @@ describe("Map Tag Tests", function () {
             let replacementNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors = replacementNames.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
             let replacementNames2 = stateVariables["/mapcopy"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors2 = replacementNames2.map((x) =>
-                cesc2("#" + x)
+                cesc2("#" + x),
             );
 
             cy.log("Test values displayed in browser");
@@ -1900,7 +1900,7 @@ describe("Map Tag Tests", function () {
     </graph>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1934,11 +1934,11 @@ describe("Map Tag Tests", function () {
             let replacementNames = stateVariables["/hi/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
 
             expect(
-                stateVariables["/hi"].stateValues.graphicalDescendants.length
+                stateVariables["/hi"].stateValues.graphicalDescendants.length,
             ).eq(4);
             expect(stateVariables["/hi/q/_point1"].stateValues.xs[0]).eq(1);
             expect(stateVariables["/hi/q/_point1"].stateValues.xs[1]).eq(-3);
@@ -1948,7 +1948,7 @@ describe("Map Tag Tests", function () {
             expect(stateVariables["/hi/s/_point1"].stateValues.xs[1]).eq(-3);
             expect(stateVariables[replacementNames[3]].stateValues.xs[0]).eq(2);
             expect(stateVariables[replacementNames[3]].stateValues.xs[1]).eq(
-                -2
+                -2,
             );
         });
     });
@@ -1969,7 +1969,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2029,7 +2029,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2039,16 +2039,16 @@ describe("Map Tag Tests", function () {
             let replacementNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let replacementAnchors = replacementNames.map((x) =>
                 stateVariables[x].replacements.map((y) =>
                     cesc2(
                         "#" +
                             stateVariables[y.componentName].replacements[0]
-                                .componentName
-                    )
-                )
+                                .componentName,
+                    ),
+                ),
             );
 
             cy.log("Test values displayed in browser");
@@ -2122,7 +2122,7 @@ describe("Map Tag Tests", function () {
     $sequenceTo.value{assignNames="sequenceTo2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2162,7 +2162,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 1");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "1");
 
@@ -2171,19 +2171,19 @@ describe("Map Tag Tests", function () {
             let map1mathNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map1mathAnchors = map1mathNames.map((x) => cesc2("#" + x));
             let map2mathNames = stateVariables["/copymap2"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map2mathAnchors = map2mathNames.map((x) => cesc2("#" + x));
             let map3mathNames = stateVariables["/copymap3"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map3mathAnchors = map3mathNames.map((x) => cesc2("#" + x));
             let map4mathNames = stateVariables["/p4"].activeChildren
@@ -2252,7 +2252,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 0 again");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "0");
 
@@ -2290,7 +2290,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 2");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "2");
 
@@ -2299,19 +2299,19 @@ describe("Map Tag Tests", function () {
             let map1mathNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map1mathAnchors = map1mathNames.map((x) => cesc2("#" + x));
             let map2mathNames = stateVariables["/copymap2"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map2mathAnchors = map2mathNames.map((x) => cesc2("#" + x));
             let map3mathNames = stateVariables["/copymap3"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map3mathAnchors = map3mathNames.map((x) => cesc2("#" + x));
             let map4mathNames = stateVariables["/p4"].activeChildren
@@ -2428,11 +2428,11 @@ describe("Map Tag Tests", function () {
         cy.log("change limits");
         cy.get(cesc2("#/sequenceFrom") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceTo") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceTo2")).should("contain.text", "5");
 
@@ -2441,19 +2441,19 @@ describe("Map Tag Tests", function () {
             let map1mathNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map1mathAnchors = map1mathNames.map((x) => cesc2("#" + x));
             let map2mathNames = stateVariables["/copymap2"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map2mathAnchors = map2mathNames.map((x) => cesc2("#" + x));
             let map3mathNames = stateVariables["/copymap3"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map3mathAnchors = map3mathNames.map((x) => cesc2("#" + x));
             let map4mathNames = stateVariables["/p4"].activeChildren
@@ -2570,7 +2570,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 0 again");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "0");
 
@@ -2608,7 +2608,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 3");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "3");
 
@@ -2617,19 +2617,19 @@ describe("Map Tag Tests", function () {
             let map1mathNames = stateVariables["/_map1"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map1mathAnchors = map1mathNames.map((x) => cesc2("#" + x));
             let map2mathNames = stateVariables["/copymap2"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map2mathAnchors = map2mathNames.map((x) => cesc2("#" + x));
             let map3mathNames = stateVariables["/copymap3"].replacements.map(
                 (x) =>
                     stateVariables[x.componentName].replacements[0]
-                        .componentName
+                        .componentName,
             );
             let map3mathAnchors = map3mathNames.map((x) => cesc2("#" + x));
             let map4mathNames = stateVariables["/p4"].activeChildren
@@ -2822,7 +2822,7 @@ describe("Map Tag Tests", function () {
     <copy assignNames="c6" prop="coords" target="c/_point2" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2889,21 +2889,21 @@ describe("Map Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(6);
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).eq(xs1[ind]);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).eq(xs2[ind]);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).eq(xs2[ind]);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).eq(xs1[ind]);
             }
         });
@@ -2926,16 +2926,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -2958,16 +2958,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -2990,16 +2990,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -3022,16 +3022,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -3054,16 +3054,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -3086,16 +3086,16 @@ describe("Map Tag Tests", function () {
             for (let ind = 0; ind < 3; ind++) {
                 let namespace = ns[ind];
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[0],
                 ).closeTo(xs1[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point1`].stateValues.xs[1],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[0],
                 ).closeTo(xs2[ind], 1e-14);
                 expect(
-                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1]
+                    stateVariables[`/${namespace}/_point2`].stateValues.xs[1],
                 ).closeTo(xs1[ind], 1e-14);
             }
         });
@@ -3145,7 +3145,7 @@ describe("Map Tag Tests", function () {
     $sequenceTo.value{assignNames="sequenceTo2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3162,35 +3162,37 @@ describe("Map Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph2"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph3"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
-                stateVariables["/g4"].stateValues.graphicalDescendants.length
+                stateVariables["/g4"].stateValues.graphicalDescendants.length,
             ).eq(0);
         });
 
         cy.log("make sequence length 1");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}1{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "1");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coords1Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[0].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[0].componentName,
             );
             let coords2Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[1].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[1].componentName,
             );
 
             cy.get(cesc2("#/_p1"))
@@ -3214,19 +3216,19 @@ describe("Map Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_graph1"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(2);
                 expect(
                     stateVariables["/_graph2"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(2);
                 expect(
                     stateVariables["/_graph3"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(2);
                 expect(
                     stateVariables["/g4"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(2);
                 expect(stateVariables["/a/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3239,22 +3241,22 @@ describe("Map Tag Tests", function () {
                     -1,
                 ]);
                 expect(
-                    stateVariables["/copymap1/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -1, 1]);
                 expect(
-                    stateVariables["/copymap2/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 1, -1]);
                 expect(
-                    stateVariables["/copymap1b/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -1, 1]);
                 expect(
-                    stateVariables["/copymap2b/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 1, -1]);
                 expect(stateVariables["/g4/a/_point1"].stateValues.coords).eqls(
-                    ["vector", -1, 1]
+                    ["vector", -1, 1],
                 );
                 expect(stateVariables["/g4/q/_point1"].stateValues.coords).eqls(
-                    ["vector", 1, -1]
+                    ["vector", 1, -1],
                 );
             });
         });
@@ -3262,7 +3264,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 0 again");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "0");
 
@@ -3276,41 +3278,45 @@ describe("Map Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph2"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph3"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
-                stateVariables["/g4"].stateValues.graphicalDescendants.length
+                stateVariables["/g4"].stateValues.graphicalDescendants.length,
             ).eq(0);
         });
 
         cy.log("make sequence length 2");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}2{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "2");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coords1Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[0].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[0].componentName,
             );
             let coords2Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[1].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[1].componentName,
             );
             let coords3Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[2].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[2].componentName,
             );
             let coords4Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[3].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[3].componentName,
             );
 
             cy.get(cesc2("#/_p1"))
@@ -3350,19 +3356,19 @@ describe("Map Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_graph1"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/_graph2"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/_graph3"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/g4"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(stateVariables["/a/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3375,22 +3381,22 @@ describe("Map Tag Tests", function () {
                     -1,
                 ]);
                 expect(
-                    stateVariables["/copymap1/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -1, 1]);
                 expect(
-                    stateVariables["/copymap2/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 1, -1]);
                 expect(
-                    stateVariables["/copymap1b/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -1, 1]);
                 expect(
-                    stateVariables["/copymap2b/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 1, -1]);
                 expect(stateVariables["/g4/a/_point1"].stateValues.coords).eqls(
-                    ["vector", -1, 1]
+                    ["vector", -1, 1],
                 );
                 expect(stateVariables["/g4/q/_point1"].stateValues.coords).eqls(
-                    ["vector", 1, -1]
+                    ["vector", 1, -1],
                 );
                 expect(stateVariables["/b/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3403,22 +3409,22 @@ describe("Map Tag Tests", function () {
                     -2,
                 ]);
                 expect(
-                    stateVariables["/copymap1/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -2, 2]);
                 expect(
-                    stateVariables["/copymap2/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 2, -2]);
                 expect(
-                    stateVariables["/copymap1b/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -2, 2]);
                 expect(
-                    stateVariables["/copymap2b/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 2, -2]);
                 expect(stateVariables["/g4/b/_point1"].stateValues.coords).eqls(
-                    ["vector", -2, 2]
+                    ["vector", -2, 2],
                 );
                 expect(stateVariables["/g4/r/_point1"].stateValues.coords).eqls(
-                    ["vector", 2, -2]
+                    ["vector", 2, -2],
                 );
             });
         });
@@ -3426,27 +3432,31 @@ describe("Map Tag Tests", function () {
         cy.log("change limits");
         cy.get(cesc2("#/sequenceFrom") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceTo") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceTo2")).should("contain.text", "5");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coords1Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[0].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[0].componentName,
             );
             let coords2Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[1].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[1].componentName,
             );
             let coords3Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[2].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[2].componentName,
             );
             let coords4Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[3].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[3].componentName,
             );
 
             cy.get(cesc2("#/_p1"))
@@ -3486,19 +3496,19 @@ describe("Map Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_graph1"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/_graph2"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/_graph3"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(
                     stateVariables["/g4"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(4);
                 expect(stateVariables["/a/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3511,22 +3521,22 @@ describe("Map Tag Tests", function () {
                     -9,
                 ]);
                 expect(
-                    stateVariables["/copymap1/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -3, 9]);
                 expect(
-                    stateVariables["/copymap2/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 3, -9]);
                 expect(
-                    stateVariables["/copymap1b/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -3, 9]);
                 expect(
-                    stateVariables["/copymap2b/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 3, -9]);
                 expect(stateVariables["/g4/a/_point1"].stateValues.coords).eqls(
-                    ["vector", -3, 9]
+                    ["vector", -3, 9],
                 );
                 expect(stateVariables["/g4/q/_point1"].stateValues.coords).eqls(
-                    ["vector", 3, -9]
+                    ["vector", 3, -9],
                 );
                 expect(stateVariables["/b/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3539,22 +3549,22 @@ describe("Map Tag Tests", function () {
                     -15,
                 ]);
                 expect(
-                    stateVariables["/copymap1/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -5, 15]);
                 expect(
-                    stateVariables["/copymap2/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 5, -15]);
                 expect(
-                    stateVariables["/copymap1b/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -5, 15]);
                 expect(
-                    stateVariables["/copymap2b/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 5, -15]);
                 expect(stateVariables["/g4/b/_point1"].stateValues.coords).eqls(
-                    ["vector", -5, 15]
+                    ["vector", -5, 15],
                 );
                 expect(stateVariables["/g4/r/_point1"].stateValues.coords).eqls(
-                    ["vector", 5, -15]
+                    ["vector", 5, -15],
                 );
             });
         });
@@ -3562,7 +3572,7 @@ describe("Map Tag Tests", function () {
         cy.log("make sequence length 0 again");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}0{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "0");
 
@@ -3576,47 +3586,53 @@ describe("Map Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
                 stateVariables["/_graph1"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph2"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
                 stateVariables["/_graph3"].stateValues.graphicalDescendants
-                    .length
+                    .length,
             ).eq(0);
             expect(
-                stateVariables["/g4"].stateValues.graphicalDescendants.length
+                stateVariables["/g4"].stateValues.graphicalDescendants.length,
             ).eq(0);
         });
 
         cy.log("make sequence length 3");
         cy.get(cesc2("#/sequenceCount") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/sequenceCount2")).should("contain.text", "3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coords1Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[0].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[0].componentName,
             );
             let coords2Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[1].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[1].componentName,
             );
             let coords3Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[2].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[2].componentName,
             );
             let coords4Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[3].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[3].componentName,
             );
             let coords5Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[4].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[4].componentName,
             );
             let coords6Anchor = cesc2(
-                "#" + stateVariables["/_collect1"].replacements[5].componentName
+                "#" +
+                    stateVariables["/_collect1"].replacements[5].componentName,
             );
 
             cy.get(cesc2("#/_p1"))
@@ -3672,19 +3688,19 @@ describe("Map Tag Tests", function () {
                 let stateVariables = await win.returnAllStateVariables1();
                 expect(
                     stateVariables["/_graph1"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(6);
                 expect(
                     stateVariables["/_graph2"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(6);
                 expect(
                     stateVariables["/_graph3"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(6);
                 expect(
                     stateVariables["/g4"].stateValues.graphicalDescendants
-                        .length
+                        .length,
                 ).eq(6);
                 expect(stateVariables["/a/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3697,22 +3713,22 @@ describe("Map Tag Tests", function () {
                     -9,
                 ]);
                 expect(
-                    stateVariables["/copymap1/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -3, 9]);
                 expect(
-                    stateVariables["/copymap2/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 3, -9]);
                 expect(
-                    stateVariables["/copymap1b/a/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/a/_point1"].stateValues.coords,
                 ).eqls(["vector", -3, 9]);
                 expect(
-                    stateVariables["/copymap2b/q/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/q/_point1"].stateValues.coords,
                 ).eqls(["vector", 3, -9]);
                 expect(stateVariables["/g4/a/_point1"].stateValues.coords).eqls(
-                    ["vector", -3, 9]
+                    ["vector", -3, 9],
                 );
                 expect(stateVariables["/g4/q/_point1"].stateValues.coords).eqls(
-                    ["vector", 3, -9]
+                    ["vector", 3, -9],
                 );
                 expect(stateVariables["/b/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3725,22 +3741,22 @@ describe("Map Tag Tests", function () {
                     -12,
                 ]);
                 expect(
-                    stateVariables["/copymap1/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -4, 12]);
                 expect(
-                    stateVariables["/copymap2/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 4, -12]);
                 expect(
-                    stateVariables["/copymap1b/b/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/b/_point1"].stateValues.coords,
                 ).eqls(["vector", -4, 12]);
                 expect(
-                    stateVariables["/copymap2b/r/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/r/_point1"].stateValues.coords,
                 ).eqls(["vector", 4, -12]);
                 expect(stateVariables["/g4/b/_point1"].stateValues.coords).eqls(
-                    ["vector", -4, 12]
+                    ["vector", -4, 12],
                 );
                 expect(stateVariables["/g4/r/_point1"].stateValues.coords).eqls(
-                    ["vector", 4, -12]
+                    ["vector", 4, -12],
                 );
                 expect(stateVariables["/c/_point1"].stateValues.coords).eqls([
                     "vector",
@@ -3753,22 +3769,22 @@ describe("Map Tag Tests", function () {
                     -15,
                 ]);
                 expect(
-                    stateVariables["/copymap1/c/_point1"].stateValues.coords
+                    stateVariables["/copymap1/c/_point1"].stateValues.coords,
                 ).eqls(["vector", -5, 15]);
                 expect(
-                    stateVariables["/copymap2/s/_point1"].stateValues.coords
+                    stateVariables["/copymap2/s/_point1"].stateValues.coords,
                 ).eqls(["vector", 5, -15]);
                 expect(
-                    stateVariables["/copymap1b/c/_point1"].stateValues.coords
+                    stateVariables["/copymap1b/c/_point1"].stateValues.coords,
                 ).eqls(["vector", -5, 15]);
                 expect(
-                    stateVariables["/copymap2b/s/_point1"].stateValues.coords
+                    stateVariables["/copymap2b/s/_point1"].stateValues.coords,
                 ).eqls(["vector", 5, -15]);
                 expect(stateVariables["/g4/c/_point1"].stateValues.coords).eqls(
-                    ["vector", -5, 15]
+                    ["vector", -5, 15],
                 );
                 expect(stateVariables["/g4/s/_point1"].stateValues.coords).eqls(
-                    ["vector", 5, -15]
+                    ["vector", 5, -15],
                 );
             });
         });
@@ -3795,7 +3811,7 @@ describe("Map Tag Tests", function () {
     $step.value{assignNames="step2"}
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3826,14 +3842,14 @@ describe("Map Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_math1"].activeChildren[i]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["vector", j, ["apply", "sin", j]]);
             }
         });
 
         cy.get(cesc2("#/number") + " textarea").type(
             "{end}{backspace}{backspace}20{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/number2")).should("contain.text", "20");
 
@@ -3846,7 +3862,7 @@ describe("Map Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_math1"].activeChildren[i]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["vector", j, ["apply", "sin", j]]);
             }
         });
@@ -3855,7 +3871,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}0.5{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/step2")).should("contain.text", "0.5");
         cy.window().then(async (win) => {
@@ -3868,7 +3884,7 @@ describe("Map Tag Tests", function () {
                         stateVariables[
                             stateVariables["/_math1"].activeChildren[i]
                                 .componentName
-                        ].stateValues.value
+                        ].stateValues.value,
                     ).eqls(["vector", j, ["apply", "sin", j]]);
                 } else {
                     let val =
@@ -3885,7 +3901,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc2("#/number") + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/number2")).should("contain.text", "10");
         cy.window().then(async (win) => {
@@ -3898,7 +3914,7 @@ describe("Map Tag Tests", function () {
                         stateVariables[
                             stateVariables["/_math1"].activeChildren[i]
                                 .componentName
-                        ].stateValues.value
+                        ].stateValues.value,
                     ).eqls(["vector", j, ["apply", "sin", j]]);
                 } else {
                     let val =
@@ -3915,7 +3931,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc2("#/step") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/step2")).should("contain.text", "\uff3f");
         cy.window().then(async (win) => {
@@ -3925,7 +3941,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc2("#/number") + " textarea").type(
             "{end}{backspace}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/number2")).should("contain.text", "5");
         cy.window().then(async (win) => {
@@ -3946,7 +3962,7 @@ describe("Map Tag Tests", function () {
                     stateVariables[
                         stateVariables["/_math1"].activeChildren[i]
                             .componentName
-                    ].stateValues.value
+                    ].stateValues.value,
                 ).eqls(["vector", j, ["apply", "sin", j]]);
             }
         });
@@ -3994,7 +4010,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4025,7 +4041,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}2{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/number")).should("contain.text", "2");
 
@@ -4130,7 +4146,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/number")).should("contain.text", "1");
 
@@ -4197,7 +4213,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}3{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/number")).should("contain.text", "3");
 
@@ -4338,7 +4354,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}0{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/number")).should("contain.text", "0");
 
@@ -4367,7 +4383,7 @@ describe("Map Tag Tests", function () {
             "{end}{backspace}1{enter}",
             {
                 force: true,
-            }
+            },
         );
         cy.get(cesc2("#/number")).should("contain.text", "1");
 
@@ -4454,7 +4470,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4467,19 +4483,19 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc2("#/a/_mathinput1") + " textarea").type(
             "{end}{backspace}3{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/b/_mathinput1") + " textarea").type(
             "{end}{backspace}4{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/c/_mathinput1") + " textarea").type(
             "{end}{backspace}5{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/d/_mathinput1") + " textarea").type(
             "{end}{backspace}6{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/d/ind")).should("have.text", "6");
@@ -4507,19 +4523,19 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc2("#/a/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}7{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/b/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}8{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/c/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}9{enter}",
-            { force: true }
+            { force: true },
         );
         cy.get(cesc2("#/d/_mathinput1") + " textarea").type(
             "{ctrl+home}{shift+end}{backspace}10{enter}",
-            { force: true }
+            { force: true },
         );
 
         cy.get(cesc2("#/d/ind")).should("have.text", "10");
@@ -4561,7 +4577,7 @@ describe("Map Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4569,7 +4585,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "map 1: hi1, hi2, hi3, hi4 "
+            "map 1: hi1, hi2, hi3, hi4 ",
         );
         cy.get(cesc("#\\/m2")).should("have.text", "map 2: ");
 
@@ -4584,7 +4600,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "map 1: hi1, hi2, hi3, hi4, hi5, hi6 "
+            "map 1: hi1, hi2, hi3, hi4, hi5, hi6 ",
         );
         cy.get(cesc("#\\/m2")).should("have.text", "map 2: ");
 
@@ -4596,7 +4612,7 @@ describe("Map Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("have.text", "map 1: ");
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "map 2: hi1, hi2, hi3, hi4, hi5, hi6 "
+            "map 2: hi1, hi2, hi3, hi4, hi5, hi6 ",
         );
 
         cy.get(cesc("#\\/n1") + " textarea").type("{end}{backspace}8{enter}", {
@@ -4611,7 +4627,7 @@ describe("Map Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("have.text", "map 1: ");
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "map 2: hi1, hi2, hi3, hi4, hi5, hi6, hi7, hi8 "
+            "map 2: hi1, hi2, hi3, hi4, hi5, hi6, hi7, hi8 ",
         );
 
         cy.get(cesc("#\\/h1")).click();
@@ -4621,7 +4637,7 @@ describe("Map Tag Tests", function () {
 
         cy.get(cesc("#\\/m1")).should(
             "have.text",
-            "map 1: hi1, hi2, hi3, hi4, hi5, hi6, hi7, hi8 "
+            "map 1: hi1, hi2, hi3, hi4, hi5, hi6, hi7, hi8 ",
         );
         cy.get(cesc("#\\/m2")).should("have.text", "map 2: ");
 
@@ -4657,7 +4673,7 @@ describe("Map Tag Tests", function () {
         cy.get(cesc("#\\/m1")).should("have.text", "map 1: ");
         cy.get(cesc("#\\/m2")).should(
             "have.text",
-            "map 2: hi1, hi2, hi3, hi4 "
+            "map 2: hi1, hi2, hi3, hi4 ",
         );
     });
 
@@ -4709,7 +4725,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4719,128 +4735,128 @@ describe("Map Tag Tests", function () {
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pdefault2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pdefault4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pdefault5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/nocommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas3a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
         cy.get(cesc2("#/pnocommas6a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 4 9 16 25 36 49 64 81 100"
-                )
+                    "1 4 9 16 25 36 49 64 81 100",
+                ),
             );
 
         cy.get(cesc2("#/withcommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pwithcommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pwithcommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pwithcommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pwithcommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
         cy.get(cesc2("#/pwithcommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/, \s*/g, ", ").trim()).eq(
-                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100"
-                )
+                    "1, 4, 9, 16, 25, 36, 49, 64, 81, 100",
+                ),
             );
 
         cy.window().then(async (win) => {
@@ -4848,92 +4864,92 @@ describe("Map Tag Tests", function () {
             expect(
                 stateVariables["/pdefault"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pdefault2"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pdefault4"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pdefault5"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pnocommas"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas2"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas3"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas3a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas4"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas5"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas6"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pnocommas6a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 4 9 16 25 36 49 64 81 100");
             expect(
                 stateVariables["/pwithcommas"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pwithcommas2"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pwithcommas3"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pwithcommas4"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pwithcommas5"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
             expect(
                 stateVariables["/pwithcommas6"].stateValues.text
                     .replace(/, \s*/g, ", ")
-                    .trim()
+                    .trim(),
             ).eq("1, 4, 9, 16, 25, 36, 49, 64, 81, 100");
         });
     });
@@ -4989,7 +5005,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5001,128 +5017,128 @@ describe("Map Tag Tests", function () {
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pdefault2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pdefault4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pdefault5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/nocommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas3a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
         cy.get(cesc2("#/pnocommas6a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x"
-                )
+                    "1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x",
+                ),
             );
 
         cy.get(cesc2("#/withcommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pwithcommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pwithcommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pwithcommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pwithcommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
         cy.get(cesc2("#/pwithcommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x"
-                )
+                    "1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x",
+                ),
             );
 
         cy.window().then(async (win) => {
@@ -5130,92 +5146,92 @@ describe("Map Tag Tests", function () {
             expect(
                 stateVariables["/pdefault"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault2"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault4"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault5"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pnocommas"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas2"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas3"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas3a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas4"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas5"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas6"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas6a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pwithcommas"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas2"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas3"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas4"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas5"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas6"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
         });
     });
@@ -5271,7 +5287,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5292,128 +5308,128 @@ describe("Map Tag Tests", function () {
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pdefault2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pdefault4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pdefault5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/nocommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas3a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pnocommas6a"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+/g, " ").trim()).eq(
-                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx"
-                )
+                    "1 xxx 4 xxx 9 xxx 16 xxx 25 xxx 36 xxx 49 xxx 64 xxx 81 xxx 100 xxx",
+                ),
             );
 
         cy.get(cesc2("#/withcommas"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pwithcommas2"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pwithcommas3"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pwithcommas4"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pwithcommas5"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
         cy.get(cesc2("#/pwithcommas6"))
             .invoke("text")
             .then((text) =>
                 expect(text.replace(/\s+(?!,)/g, " ").trim()).eq(
-                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx"
-                )
+                    "1 xxx, 4 xxx, 9 xxx, 16 xxx, 25 xxx, 36 xxx, 49 xxx, 64 xxx, 81 xxx, 100 xxx",
+                ),
             );
 
         cy.window().then(async (win) => {
@@ -5421,92 +5437,92 @@ describe("Map Tag Tests", function () {
             expect(
                 stateVariables["/pdefault"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault2"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault4"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pdefault5"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pnocommas"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas2"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas3"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas3a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas4"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas5"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas6"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pnocommas6a"].stateValues.text
                     .replace(/\s+/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x 4 x 9 x 16 x 25 x 36 x 49 x 64 x 81 x 100 x");
             expect(
                 stateVariables["/pwithcommas"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas2"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas3"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas4"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas5"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
             expect(
                 stateVariables["/pwithcommas6"].stateValues.text
                     .replace(/\s+(?!,)/g, " ")
-                    .trim()
+                    .trim(),
             ).eq("1 x, 4 x, 9 x, 16 x, 25 x, 36 x, 49 x, 64 x, 81 x, 100 x");
         });
     });
@@ -5526,7 +5542,7 @@ describe("Map Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5560,7 +5576,7 @@ describe("Map Tag Tests", function () {
       </map></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5613,13 +5629,13 @@ describe("Map Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/p1"].stateValues.text).eq(
-                "( 1, 1 ), ( 2, 4 ), ( 3, 9 )"
+                "( 1, 1 ), ( 2, 4 ), ( 3, 9 )",
             );
             expect(stateVariables["/p2"].stateValues.text).eq(
-                "( 1, 1 ), ( 2, 4 ), ( 3, 9 )"
+                "( 1, 1 ), ( 2, 4 ), ( 3, 9 )",
             );
             expect(stateVariables["/p3"].stateValues.text).eq(
-                "y = 1, y = 2, y = 3"
+                "y = 1, y = 2, y = 3",
             );
             expect(stateVariables["/p4"].stateValues.text).eq("2, 4, 6");
         });
@@ -5641,7 +5657,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -5679,7 +5695,7 @@ describe("Map Tag Tests", function () {
     </map>
     `,
                 },
-                "*"
+                "*",
             );
         });
 

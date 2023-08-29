@@ -76,7 +76,7 @@ export default React.memo(function Polygon(props) {
             strokeColor: "none",
             highlightStrokeColor: "none",
             highlightFillColor: getComputedStyle(
-                document.documentElement
+                document.documentElement,
             ).getPropertyValue("--mainGray"),
             visible: !verticesFixed.current && !SVs.hidden,
             withLabel: false,
@@ -265,7 +265,7 @@ export default React.memo(function Polygon(props) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     polygonJXG.current.vertices[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current[j]]
+                        [...lastPositionsFromCore.current[j]],
                     );
                 }
             } else {
@@ -285,7 +285,7 @@ export default React.memo(function Polygon(props) {
                 });
                 polygonJXG.current.vertices[i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...lastPositionsFromCore.current[i]]
+                    [...lastPositionsFromCore.current[i]],
                 );
                 board.updateInfobox(polygonJXG.current.vertices[i]);
             }
@@ -443,7 +443,7 @@ export default React.memo(function Polygon(props) {
                     let newPoint = board.create(
                         "point",
                         [...SVs.numericalVertices[i]],
-                        jsxPointAttributes.current
+                        jsxPointAttributes.current,
                     );
                     polygonJXG.current.addPoints(newPoint);
                 }
@@ -461,7 +461,7 @@ export default React.memo(function Polygon(props) {
                     polygonJXG.current.vertices[i].off("keyfocusout");
                     polygonJXG.current.vertices[i].off("keydown");
                     polygonJXG.current.removePoints(
-                        polygonJXG.current.vertices[i]
+                        polygonJXG.current.vertices[i],
                     );
                 }
                 initializePoints(polygonJXG.current);
@@ -472,7 +472,7 @@ export default React.memo(function Polygon(props) {
             for (let i = 0; i < SVs.numVertices; i++) {
                 polygonJXG.current.vertices[i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...SVs.numericalVertices[i]]
+                    [...SVs.numericalVertices[i]],
                 );
                 polygonJXG.current.vertices[i].needsUpdate = true;
                 polygonJXG.current.vertices[i].update();

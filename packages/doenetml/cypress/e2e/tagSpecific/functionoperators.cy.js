@@ -52,7 +52,7 @@ describe("Function Operator Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -65,50 +65,50 @@ describe("Function Operator Tag Tests", function () {
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map1ReplacementAnchors = map1Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map2Replacements = stateVariables["/_map2"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map2ReplacementAnchors = map2Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map3Replacements = stateVariables["/_map3"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map3ReplacementAnchors = map3Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map4Replacements = stateVariables["/m4"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map4ReplacementAnchors = map4Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map5Replacements = stateVariables["/m5"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map5ReplacementAnchors = map5Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
 
             let clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -123,7 +123,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            indToVal(i).toString()
+                            indToVal(i).toString(),
                         );
                     });
 
@@ -133,7 +133,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clamp01(indToVal(i)).toString()
+                            clamp01(indToVal(i)).toString(),
                         );
                     });
 
@@ -143,7 +143,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clampn35(indToVal(i)).toString()
+                            clampn35(indToVal(i)).toString(),
                         );
                     });
 
@@ -153,7 +153,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clamp01(indToVal(i)).toString()
+                            clamp01(indToVal(i)).toString(),
                         );
                     });
 
@@ -163,7 +163,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clampn35(indToVal(i)).toString()
+                            clampn35(indToVal(i)).toString(),
                         );
                     });
             }
@@ -173,23 +173,23 @@ describe("Function Operator Tag Tests", function () {
                 for (let i = 1; i <= 21; i++) {
                     expect(
                         stateVariables[map1Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(indToVal(i), 1e-10);
                     expect(
                         stateVariables[map2Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clamp01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map3Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clampn35(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map4Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clamp01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map5Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clampn35(indToVal(i)), 1e-10);
                 }
             });
@@ -197,10 +197,10 @@ describe("Function Operator Tag Tests", function () {
             cy.log("check functions created from fDefinition");
             cy.window().then(async (win) => {
                 let f01 = createFunctionFromDefinition(
-                    stateVariables["/clamp01"].stateValues.fDefinitions[0]
+                    stateVariables["/clamp01"].stateValues.fDefinitions[0],
                 );
                 let fn35 = createFunctionFromDefinition(
-                    stateVariables["/clampn35"].stateValues.fDefinitions[0]
+                    stateVariables["/clampn35"].stateValues.fDefinitions[0],
                 );
 
                 for (let i = 1; i <= 21; i++) {
@@ -248,7 +248,7 @@ describe("Function Operator Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -261,50 +261,50 @@ describe("Function Operator Tag Tests", function () {
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map1ReplacementAnchors = map1Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map2Replacements = stateVariables["/_map2"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map2ReplacementAnchors = map2Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map3Replacements = stateVariables["/_map3"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map3ReplacementAnchors = map3Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map4Replacements = stateVariables["/m4"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map4ReplacementAnchors = map4Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map5Replacements = stateVariables["/m5"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map5ReplacementAnchors = map5Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
 
             let clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -319,7 +319,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            indToVal(i).toString()
+                            indToVal(i).toString(),
                         );
                     });
 
@@ -329,7 +329,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clamp01(indToVal(i)).toString()
+                            clamp01(indToVal(i)).toString(),
                         );
                     });
 
@@ -339,7 +339,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clampn35(indToVal(i)).toString()
+                            clampn35(indToVal(i)).toString(),
                         );
                     });
 
@@ -349,7 +349,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clamp01(indToVal(i)).toString()
+                            clamp01(indToVal(i)).toString(),
                         );
                     });
 
@@ -359,7 +359,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clampn35(indToVal(i)).toString()
+                            clampn35(indToVal(i)).toString(),
                         );
                     });
             }
@@ -369,23 +369,23 @@ describe("Function Operator Tag Tests", function () {
                 for (let i = 1; i <= 21; i++) {
                     expect(
                         stateVariables[map1Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(indToVal(i), 1e-10);
                     expect(
                         stateVariables[map2Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clamp01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map3Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clampn35(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map4Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clamp01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map5Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clampn35(indToVal(i)), 1e-10);
                 }
             });
@@ -393,10 +393,10 @@ describe("Function Operator Tag Tests", function () {
             cy.log("check functions created from fDefinition");
             cy.window().then(async (win) => {
                 let f01 = createFunctionFromDefinition(
-                    stateVariables["/clamp01"].stateValues.fDefinitions[0]
+                    stateVariables["/clamp01"].stateValues.fDefinitions[0],
                 );
                 let fn35 = createFunctionFromDefinition(
-                    stateVariables["/clampn35"].stateValues.fDefinitions[0]
+                    stateVariables["/clampn35"].stateValues.fDefinitions[0],
                 );
 
                 for (let i = 1; i <= 21; i++) {
@@ -438,7 +438,7 @@ describe("Function Operator Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -456,30 +456,30 @@ describe("Function Operator Tag Tests", function () {
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map1ReplacementAnchors = map1Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map2Replacements = stateVariables["/_map2"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map2ReplacementAnchors = map2Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map3Replacements = stateVariables["/_map3"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map3ReplacementAnchors = map3Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
 
             let clamp01 = (x) => Math.min(1, Math.max(0, x));
@@ -494,7 +494,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            indToVal(i).toString()
+                            indToVal(i).toString(),
                         );
                     });
 
@@ -504,7 +504,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clamp01(indToVal(i)).toString()
+                            clamp01(indToVal(i)).toString(),
                         );
                     });
 
@@ -514,7 +514,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            clampn35(indToVal(i)).toString()
+                            clampn35(indToVal(i)).toString(),
                         );
                     });
             }
@@ -524,15 +524,15 @@ describe("Function Operator Tag Tests", function () {
                 for (let i = 1; i <= 5; i++) {
                     expect(
                         stateVariables[map1Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(indToVal(i), 1e-10);
                     expect(
                         stateVariables[map2Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clamp01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map3Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(clampn35(indToVal(i)), 1e-10);
                 }
             });
@@ -540,10 +540,10 @@ describe("Function Operator Tag Tests", function () {
             cy.log("check functions created from fDefinition");
             cy.window().then(async (win) => {
                 let f01 = createFunctionFromDefinition(
-                    stateVariables["/clamp01"].stateValues.fDefinitions[0]
+                    stateVariables["/clamp01"].stateValues.fDefinitions[0],
                 );
                 let fn35 = createFunctionFromDefinition(
-                    stateVariables["/clampn35"].stateValues.fDefinitions[0]
+                    stateVariables["/clampn35"].stateValues.fDefinitions[0],
                 );
 
                 for (let i = 1; i <= 5; i++) {
@@ -593,7 +593,7 @@ describe("Function Operator Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -606,50 +606,50 @@ describe("Function Operator Tag Tests", function () {
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map1ReplacementAnchors = map1Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map2Replacements = stateVariables["/_map2"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map2ReplacementAnchors = map2Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map3Replacements = stateVariables["/_map3"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map3ReplacementAnchors = map3Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map4Replacements = stateVariables["/m4"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map4ReplacementAnchors = map4Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map5Replacements = stateVariables["/m5"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map5ReplacementAnchors = map5Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
 
             let wrap01 = (x) => me.math.round(me.math.mod(x, 1), 3);
@@ -665,7 +665,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            indToVal(i).toString()
+                            indToVal(i).toString(),
                         );
                     });
 
@@ -675,7 +675,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrap01(indToVal(i)).toString()
+                            wrap01(indToVal(i)).toString(),
                         );
                     });
 
@@ -685,7 +685,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrapn23(indToVal(i)).toString()
+                            wrapn23(indToVal(i)).toString(),
                         );
                     });
 
@@ -695,7 +695,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrap01(indToVal(i)).toString()
+                            wrap01(indToVal(i)).toString(),
                         );
                     });
 
@@ -705,7 +705,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrapn23(indToVal(i)).toString()
+                            wrapn23(indToVal(i)).toString(),
                         );
                     });
             }
@@ -715,23 +715,23 @@ describe("Function Operator Tag Tests", function () {
                 for (let i = 1; i <= 21; i++) {
                     expect(
                         stateVariables[map1Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(indToVal(i), 1e-10);
                     expect(
                         stateVariables[map2Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrap01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map3Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrapn23(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map4Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrap01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map5Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrapn23(indToVal(i)), 1e-10);
                 }
             });
@@ -739,10 +739,10 @@ describe("Function Operator Tag Tests", function () {
             cy.log("check functions created from fDefinition");
             cy.window().then(async (win) => {
                 let f01 = createFunctionFromDefinition(
-                    stateVariables["/wrap01"].stateValues.fDefinitions[0]
+                    stateVariables["/wrap01"].stateValues.fDefinitions[0],
                 );
                 let fn23 = createFunctionFromDefinition(
-                    stateVariables["/wrapn23"].stateValues.fDefinitions[0]
+                    stateVariables["/wrapn23"].stateValues.fDefinitions[0],
                 );
 
                 for (let i = 1; i <= 21; i++) {
@@ -792,7 +792,7 @@ describe("Function Operator Tag Tests", function () {
     </aslist></p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -805,50 +805,50 @@ describe("Function Operator Tag Tests", function () {
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map1ReplacementAnchors = map1Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map2Replacements = stateVariables["/_map2"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map2ReplacementAnchors = map2Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map3Replacements = stateVariables["/_map3"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map3ReplacementAnchors = map3Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map4Replacements = stateVariables["/m4"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map4ReplacementAnchors = map4Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
             let map5Replacements = stateVariables["/m5"].replacements.reduce(
                 (a, c) => [
                     ...a,
                     ...stateVariables[c.componentName].replacements,
                 ],
-                []
+                [],
             );
             let map5ReplacementAnchors = map5Replacements.map((x) =>
-                cesc2("#" + x.componentName)
+                cesc2("#" + x.componentName),
             );
 
             let wrap01 = (x) => me.math.round(me.math.mod(x, 1), 3);
@@ -864,7 +864,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            indToVal(i).toString()
+                            indToVal(i).toString(),
                         );
                     });
 
@@ -874,7 +874,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrap01(indToVal(i)).toString()
+                            wrap01(indToVal(i)).toString(),
                         );
                     });
 
@@ -884,7 +884,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrapn23(indToVal(i)).toString()
+                            wrapn23(indToVal(i)).toString(),
                         );
                     });
 
@@ -894,7 +894,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrap01(indToVal(i)).toString()
+                            wrap01(indToVal(i)).toString(),
                         );
                     });
 
@@ -904,7 +904,7 @@ describe("Function Operator Tag Tests", function () {
                     .invoke("text")
                     .then((text) => {
                         expect(text.trim().replace(/−/g, "-")).equal(
-                            wrapn23(indToVal(i)).toString()
+                            wrapn23(indToVal(i)).toString(),
                         );
                     });
             }
@@ -914,23 +914,23 @@ describe("Function Operator Tag Tests", function () {
                 for (let i = 1; i <= 21; i++) {
                     expect(
                         stateVariables[map1Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(indToVal(i), 1e-10);
                     expect(
                         stateVariables[map2Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrap01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map3Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrapn23(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map4Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrap01(indToVal(i)), 1e-10);
                     expect(
                         stateVariables[map5Replacements[i - 1].componentName]
-                            .stateValues.value
+                            .stateValues.value,
                     ).closeTo(wrapn23(indToVal(i)), 1e-10);
                 }
             });
@@ -938,10 +938,10 @@ describe("Function Operator Tag Tests", function () {
             cy.log("check functions created from fDefinition");
             cy.window().then(async (win) => {
                 let f01 = createFunctionFromDefinition(
-                    stateVariables["/wrap01"].stateValues.fDefinitions[0]
+                    stateVariables["/wrap01"].stateValues.fDefinitions[0],
                 );
                 let fn23 = createFunctionFromDefinition(
-                    stateVariables["/wrapn23"].stateValues.fDefinitions[0]
+                    stateVariables["/wrapn23"].stateValues.fDefinitions[0],
                 );
 
                 for (let i = 1; i <= 21; i++) {
@@ -993,7 +993,7 @@ describe("Function Operator Tag Tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1022,33 +1022,33 @@ describe("Function Operator Tag Tests", function () {
                 y2 = Math.cos(4);
 
             expect(
-                me.fromAst(stateVariables["/f"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/f"].stateValues.formula).toString(),
             ).eq("sin(x + 1)");
             expect(
-                me.fromAst(stateVariables["/g"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/g"].stateValues.formula).toString(),
             ).eq("cos(x + 1)");
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 x1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 y1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 x2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 y2,
-                1e-12
+                1e-12,
             );
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -1078,26 +1078,26 @@ describe("Function Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
-                me.fromAst(stateVariables["/f"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/f"].stateValues.formula).toString(),
             ).eq("sin(x + 1)");
             expect(
-                me.fromAst(stateVariables["/g"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/g"].stateValues.formula).toString(),
             ).eq("cos(x + 1)");
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 x1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 y1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 x2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 y2,
-                1e-12
+                1e-12,
             );
         });
 
@@ -1116,7 +1116,7 @@ describe("Function Operator Tag Tests", function () {
 
         cy.get(cesc2("#/_m5") + " .mjx-mrow").should(
             "contain.text",
-            "f(q)=2sin(e+πq)"
+            "f(q)=2sin(e+πq)",
         );
         cy.get(cesc2("#/_m5"))
             .find(".mjx-mrow")
@@ -1141,33 +1141,33 @@ describe("Function Operator Tag Tests", function () {
                 y2 = 2 * Math.PI * Math.cos(Math.PI * 5 + Math.E);
 
             expect(
-                me.fromAst(stateVariables["/f"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/f"].stateValues.formula).toString(),
             ).eq("2 sin(e + π q)");
             expect(
-                me.fromAst(stateVariables["/g"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/g"].stateValues.formula).toString(),
             ).eq("2 π cos(e + π q)");
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 x1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 y1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 x2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 y2,
-                1e-12
+                1e-12,
             );
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -1175,7 +1175,7 @@ describe("Function Operator Tag Tests", function () {
                 expect(f(x)).closeTo(2 * Math.sin(Math.PI * x + Math.E), 1e-10);
                 expect(g(x)).closeTo(
                     2 * Math.PI * Math.cos(Math.PI * x + Math.E),
-                    1e-10
+                    1e-10,
                 );
             }
         });
@@ -1200,26 +1200,26 @@ describe("Function Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             expect(
-                me.fromAst(stateVariables["/f"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/f"].stateValues.formula).toString(),
             ).eq("2 sin(e + π q)");
             expect(
-                me.fromAst(stateVariables["/g"].stateValues.formula).toString()
+                me.fromAst(stateVariables["/g"].stateValues.formula).toString(),
             ).eq("2 π cos(e + π q)");
             expect(stateVariables["/_point1"].stateValues.xs[0]).closeTo(
                 x1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point1"].stateValues.xs[1]).closeTo(
                 y1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[0]).closeTo(
                 x2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/_point2"].stateValues.xs[1]).closeTo(
                 y2,
-                1e-12
+                1e-12,
             );
         });
     });
@@ -1258,7 +1258,7 @@ describe("Function Operator Tag Tests", function () {
       <derivative variable="y" name="d14">$f4</derivative>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1269,144 +1269,144 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d1"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2b"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2c"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d3"].stateValues.formula)
-                    .equals(me.fromText("2x sin(z)"))
+                    .equals(me.fromText("2x sin(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4"].stateValues.formula)
-                    .equals(me.fromText("x^2cos(z)"))
+                    .equals(me.fromText("x^2cos(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4b"].stateValues.formula)
-                    .equals(me.fromText("x^2cos(z)"))
+                    .equals(me.fromText("x^2cos(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5"].stateValues.formula)
-                    .equals(me.fromText("cos(x)"))
+                    .equals(me.fromText("cos(x)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5b"].stateValues.formula)
-                    .equals(me.fromText("cos(x)"))
+                    .equals(me.fromText("cos(x)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6"].stateValues.formula)
-                    .equals(me.fromText("2e^(2y)"))
+                    .equals(me.fromText("2e^(2y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6b"].stateValues.formula)
-                    .equals(me.fromText("2e^(2y)"))
+                    .equals(me.fromText("2e^(2y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7"].stateValues.formula)
-                    .equals(me.fromText("yz"))
+                    .equals(me.fromText("yz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7b"].stateValues.formula)
-                    .equals(me.fromText("yz"))
+                    .equals(me.fromText("yz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8"].stateValues.formula)
-                    .equals(me.fromText("xy"))
+                    .equals(me.fromText("xy")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8b"].stateValues.formula)
-                    .equals(me.fromText("xy"))
+                    .equals(me.fromText("xy")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d9"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d10"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d11"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d12"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d13"].stateValues.formula)
-                    .equals(me.fromText("xz"))
+                    .equals(me.fromText("xz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d14"].stateValues.formula)
-                    .equals(me.fromText("xz"))
+                    .equals(me.fromText("xz")),
             ).eq(true);
 
             let d1 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[0]
+                stateVariables["/d1"].stateValues.fDefinitions[0],
             );
             let d2 = createFunctionFromDefinition(
-                stateVariables["/d2"].stateValues.fDefinitions[0]
+                stateVariables["/d2"].stateValues.fDefinitions[0],
             );
             let d2b = createFunctionFromDefinition(
-                stateVariables["/d2b"].stateValues.fDefinitions[0]
+                stateVariables["/d2b"].stateValues.fDefinitions[0],
             );
             let d2c = createFunctionFromDefinition(
-                stateVariables["/d2c"].stateValues.fDefinitions[0]
+                stateVariables["/d2c"].stateValues.fDefinitions[0],
             );
             let d5 = createFunctionFromDefinition(
-                stateVariables["/d5"].stateValues.fDefinitions[0]
+                stateVariables["/d5"].stateValues.fDefinitions[0],
             );
             let d5b = createFunctionFromDefinition(
-                stateVariables["/d5b"].stateValues.fDefinitions[0]
+                stateVariables["/d5b"].stateValues.fDefinitions[0],
             );
             let d6 = createFunctionFromDefinition(
-                stateVariables["/d6"].stateValues.fDefinitions[0]
+                stateVariables["/d6"].stateValues.fDefinitions[0],
             );
             let d6b = createFunctionFromDefinition(
-                stateVariables["/d6b"].stateValues.fDefinitions[0]
+                stateVariables["/d6b"].stateValues.fDefinitions[0],
             );
             let d9 = createFunctionFromDefinition(
-                stateVariables["/d9"].stateValues.fDefinitions[0]
+                stateVariables["/d9"].stateValues.fDefinitions[0],
             );
             let d10 = createFunctionFromDefinition(
-                stateVariables["/d10"].stateValues.fDefinitions[0]
+                stateVariables["/d10"].stateValues.fDefinitions[0],
             );
             let d11 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[0]
+                stateVariables["/d11"].stateValues.fDefinitions[0],
             );
             let d12 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[0]
+                stateVariables["/d12"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -1461,7 +1461,7 @@ describe("Function Operator Tag Tests", function () {
       <derivative variables="y" name="d14">$f4<label>d14</label></derivative>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1495,144 +1495,144 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d1"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2b"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2c"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d3"].stateValues.formula)
-                    .equals(me.fromText("2x sin(z)"))
+                    .equals(me.fromText("2x sin(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4"].stateValues.formula)
-                    .equals(me.fromText("x^2cos(z)"))
+                    .equals(me.fromText("x^2cos(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4b"].stateValues.formula)
-                    .equals(me.fromText("x^2cos(z)"))
+                    .equals(me.fromText("x^2cos(z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5"].stateValues.formula)
-                    .equals(me.fromText("cos(x)"))
+                    .equals(me.fromText("cos(x)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5b"].stateValues.formula)
-                    .equals(me.fromText("cos(x)"))
+                    .equals(me.fromText("cos(x)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6"].stateValues.formula)
-                    .equals(me.fromText("2e^(2y)"))
+                    .equals(me.fromText("2e^(2y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6b"].stateValues.formula)
-                    .equals(me.fromText("2e^(2y)"))
+                    .equals(me.fromText("2e^(2y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7"].stateValues.formula)
-                    .equals(me.fromText("yz"))
+                    .equals(me.fromText("yz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7b"].stateValues.formula)
-                    .equals(me.fromText("yz"))
+                    .equals(me.fromText("yz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8"].stateValues.formula)
-                    .equals(me.fromText("xy"))
+                    .equals(me.fromText("xy")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8b"].stateValues.formula)
-                    .equals(me.fromText("xy"))
+                    .equals(me.fromText("xy")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d9"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d10"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d11"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d12"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d13"].stateValues.formula)
-                    .equals(me.fromText("xz"))
+                    .equals(me.fromText("xz")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d14"].stateValues.formula)
-                    .equals(me.fromText("xz"))
+                    .equals(me.fromText("xz")),
             ).eq(true);
 
             let d1 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[0]
+                stateVariables["/d1"].stateValues.fDefinitions[0],
             );
             let d2 = createFunctionFromDefinition(
-                stateVariables["/d2"].stateValues.fDefinitions[0]
+                stateVariables["/d2"].stateValues.fDefinitions[0],
             );
             let d2b = createFunctionFromDefinition(
-                stateVariables["/d2b"].stateValues.fDefinitions[0]
+                stateVariables["/d2b"].stateValues.fDefinitions[0],
             );
             let d2c = createFunctionFromDefinition(
-                stateVariables["/d2c"].stateValues.fDefinitions[0]
+                stateVariables["/d2c"].stateValues.fDefinitions[0],
             );
             let d5 = createFunctionFromDefinition(
-                stateVariables["/d5"].stateValues.fDefinitions[0]
+                stateVariables["/d5"].stateValues.fDefinitions[0],
             );
             let d5b = createFunctionFromDefinition(
-                stateVariables["/d5b"].stateValues.fDefinitions[0]
+                stateVariables["/d5b"].stateValues.fDefinitions[0],
             );
             let d6 = createFunctionFromDefinition(
-                stateVariables["/d6"].stateValues.fDefinitions[0]
+                stateVariables["/d6"].stateValues.fDefinitions[0],
             );
             let d6b = createFunctionFromDefinition(
-                stateVariables["/d6b"].stateValues.fDefinitions[0]
+                stateVariables["/d6b"].stateValues.fDefinitions[0],
             );
             let d9 = createFunctionFromDefinition(
-                stateVariables["/d9"].stateValues.fDefinitions[0]
+                stateVariables["/d9"].stateValues.fDefinitions[0],
             );
             let d10 = createFunctionFromDefinition(
-                stateVariables["/d10"].stateValues.fDefinitions[0]
+                stateVariables["/d10"].stateValues.fDefinitions[0],
             );
             let d11 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[0]
+                stateVariables["/d11"].stateValues.fDefinitions[0],
             );
             let d12 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[0]
+                stateVariables["/d12"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 5; i++) {
@@ -1708,7 +1708,7 @@ describe("Function Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1720,7 +1720,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d11"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d11"].stateValues.variables).eqls([
                 "x",
@@ -1734,7 +1734,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d12"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d12"].stateValues.variables).eqls(["z"]);
             expect(stateVariables["/d12"].stateValues.derivVariables).eqls([
@@ -1744,7 +1744,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d13"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d13"].stateValues.variables).eqls([
                 "x",
@@ -1758,7 +1758,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d14"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d14"].stateValues.variables).eqls([
                 "x",
@@ -1772,7 +1772,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d15"].stateValues.formula)
-                    .equals(me.fromText("2 y cos(x+y^2)"))
+                    .equals(me.fromText("2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d15"].stateValues.variables).eqls([
                 "x",
@@ -1787,7 +1787,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d16"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d16"].stateValues.variables).eqls([
                 "x",
@@ -1803,7 +1803,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d17"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(stateVariables["/d17"].stateValues.variables).eqls([
                 "x",
@@ -1817,7 +1817,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d18"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d18"].stateValues.variables).eqls(["z"]);
             expect(stateVariables["/d18"].stateValues.derivVariables).eqls([
@@ -1829,7 +1829,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d21"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d21"].stateValues.variables).eqls([
                 "z",
@@ -1843,7 +1843,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d22"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d22"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d22"].stateValues.derivVariables).eqls([
@@ -1853,7 +1853,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d23"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d23"].stateValues.variables).eqls([
                 "z",
@@ -1867,7 +1867,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d24"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d24"].stateValues.variables).eqls([
                 "z",
@@ -1881,7 +1881,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d25"].stateValues.formula)
-                    .equals(me.fromText("2 y cos(x+y^2)"))
+                    .equals(me.fromText("2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d25"].stateValues.variables).eqls([
                 "z",
@@ -1896,7 +1896,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d26"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d26"].stateValues.variables).eqls([
                 "z",
@@ -1912,7 +1912,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d27"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(stateVariables["/d27"].stateValues.variables).eqls([
                 "z",
@@ -1926,7 +1926,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d28"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d28"].stateValues.variables).eqls(["z"]);
             expect(stateVariables["/d28"].stateValues.derivVariables).eqls([
@@ -1938,7 +1938,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d31"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d31"].stateValues.variables).eqls([
                 "x",
@@ -1951,7 +1951,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d32"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d32"].stateValues.variables).eqls(["z"]);
             expect(stateVariables["/d32"].stateValues.derivVariables).eqls([
@@ -1961,7 +1961,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d33"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d33"].stateValues.variables).eqls([
                 "x",
@@ -1974,7 +1974,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d34"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d34"].stateValues.variables).eqls([
                 "x",
@@ -1987,7 +1987,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d35"].stateValues.formula)
-                    .equals(me.fromText("2 y cos(x+y^2)"))
+                    .equals(me.fromText("2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d35"].stateValues.variables).eqls([
                 "x",
@@ -2001,7 +2001,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d36"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d36"].stateValues.variables).eqls([
                 "x",
@@ -2016,7 +2016,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d37"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(stateVariables["/d37"].stateValues.variables).eqls([
                 "x",
@@ -2029,7 +2029,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d38"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)z"))
+                    .equals(me.fromText("-2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d38"].stateValues.variables).eqls(["z"]);
             expect(stateVariables["/d38"].stateValues.derivVariables).eqls([
@@ -2041,7 +2041,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d41"].stateValues.formula)
-                    .equals(me.fromText("cos(x_1+x_2^2)x_3"))
+                    .equals(me.fromText("cos(x_1+x_2^2)x_3")),
             ).eq(true);
             expect(stateVariables["/d41"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2055,7 +2055,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d42"].stateValues.formula)
-                    .equals(me.fromText("-2 x_2 sin(x_1+x_2^2)"))
+                    .equals(me.fromText("-2 x_2 sin(x_1+x_2^2)")),
             ).eq(true);
             expect(stateVariables["/d42"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2071,7 +2071,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d43"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(stateVariables["/d43"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2085,7 +2085,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d44"].stateValues.formula)
-                    .equals(me.fromText("-2 x_2 sin(x_1+x_2^2)"))
+                    .equals(me.fromText("-2 x_2 sin(x_1+x_2^2)")),
             ).eq(true);
             expect(stateVariables["/d44"].stateValues.variables).eqls([
                 ["_", "x", 3],
@@ -2142,7 +2142,7 @@ describe("Function Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2154,7 +2154,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d1"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d1"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d1"].stateValues.derivVariables).eqls([
@@ -2164,7 +2164,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d2"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d2"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d2"].stateValues.derivVariables).eqls([
@@ -2174,7 +2174,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d3"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d3"].stateValues.variables).eqls([
                 "x",
@@ -2188,7 +2188,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d4"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d4"].stateValues.variables).eqls([
                 "z",
@@ -2202,7 +2202,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d5"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d5"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d5"].stateValues.derivVariables).eqls([
@@ -2212,7 +2212,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d5a"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d5a"].stateValues.variables).eqls([
                 "x",
@@ -2226,7 +2226,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d6"].stateValues.formula)
-                    .equals(me.fromText("-sin(x+y^2)z"))
+                    .equals(me.fromText("-sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d6"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d6"].stateValues.derivVariables).eqls([
@@ -2237,7 +2237,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d6a"].stateValues.formula)
-                    .equals(me.fromText("-sin(x+y^2)z"))
+                    .equals(me.fromText("-sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d6a"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d6a"].stateValues.derivVariables).eqls([
@@ -2247,7 +2247,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d6b"].stateValues.formula)
-                    .equals(me.fromText("-sin(x+y^2)z"))
+                    .equals(me.fromText("-sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d6b"].stateValues.variables).eqls([
                 "x",
@@ -2261,7 +2261,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d6c"].stateValues.formula)
-                    .equals(me.fromText("-sin(x+y^2)z"))
+                    .equals(me.fromText("-sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d6c"].stateValues.variables).eqls([
                 "x",
@@ -2275,7 +2275,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d6d"].stateValues.formula)
-                    .equals(me.fromText("-sin(x+y^2)z"))
+                    .equals(me.fromText("-sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d6d"].stateValues.variables).eqls([
                 "x",
@@ -2290,7 +2290,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d7"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)z"))
+                    .equals(me.fromText("-2 y sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d7"].stateValues.variables).eqls([
                 "x",
@@ -2304,7 +2304,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d7a"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)z"))
+                    .equals(me.fromText("-2 y sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d7a"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d7a"].stateValues.derivVariables).eqls([
@@ -2314,7 +2314,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d7b"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)z"))
+                    .equals(me.fromText("-2 y sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d7b"].stateValues.variables).eqls([
                 "x",
@@ -2328,7 +2328,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d7c"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)z"))
+                    .equals(me.fromText("-2 y sin(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d7c"].stateValues.variables).eqls([
                 "x",
@@ -2342,7 +2342,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d8"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)"))
+                    .equals(me.fromText("-2 y sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d8"].stateValues.variables).eqls([
                 "x",
@@ -2358,7 +2358,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d8a"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)"))
+                    .equals(me.fromText("-2 y sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d8a"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d8a"].stateValues.derivVariables).eqls([
@@ -2368,7 +2368,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d8b"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)"))
+                    .equals(me.fromText("-2 y sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d8b"].stateValues.variables).eqls([
                 "x",
@@ -2382,7 +2382,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d8c"].stateValues.formula)
-                    .equals(me.fromText("-2 y sin(x+y^2)"))
+                    .equals(me.fromText("-2 y sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d8c"].stateValues.variables).eqls([
                 "x",
@@ -2396,7 +2396,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d9"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)"))
+                    .equals(me.fromText("-2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d9"].stateValues.variables).eqls([
                 "x",
@@ -2413,7 +2413,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d9a"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)"))
+                    .equals(me.fromText("-2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d9a"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d9a"].stateValues.derivVariables).eqls([
@@ -2423,7 +2423,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d9b"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)"))
+                    .equals(me.fromText("-2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d9b"].stateValues.variables).eqls([
                 "x",
@@ -2437,7 +2437,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d9c"].stateValues.formula)
-                    .equals(me.fromText("-2 y cos(x+y^2)"))
+                    .equals(me.fromText("-2 y cos(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/d9c"].stateValues.variables).eqls([
                 "x",
@@ -2451,7 +2451,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d10"].stateValues.formula)
-                    .equals(me.fromText("0"))
+                    .equals(me.fromText("0")),
             ).eq(true);
             expect(stateVariables["/d10"].stateValues.variables).eqls(["q"]);
             expect(stateVariables["/d10"].stateValues.derivVariables).eqls([
@@ -2461,7 +2461,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d11"].stateValues.formula)
-                    .equals(me.fromText("2 y cos(x+y^2)z"))
+                    .equals(me.fromText("2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d11"].stateValues.variables).eqls([
                 "x",
@@ -2475,7 +2475,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d12"].stateValues.formula)
-                    .equals(me.fromText("2 y cos(x+y^2)z"))
+                    .equals(me.fromText("2 y cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/d12"].stateValues.variables).eqls([
                 "x",
@@ -2488,7 +2488,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d13"].stateValues.formula)
-                    .equals(me.fromText("cos(x_1+x_2^2)x_3"))
+                    .equals(me.fromText("cos(x_1+x_2^2)x_3")),
             ).eq(true);
             expect(stateVariables["/d13"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2502,7 +2502,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d14"].stateValues.formula)
-                    .equals(me.fromText("-sin(x_1+x_2^2)x_3"))
+                    .equals(me.fromText("-sin(x_1+x_2^2)x_3")),
             ).eq(true);
             expect(stateVariables["/d14"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2515,7 +2515,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d15"].stateValues.formula)
-                    .equals(me.fromText("-sin(x_1+x_2^2)x_3"))
+                    .equals(me.fromText("-sin(x_1+x_2^2)x_3")),
             ).eq(true);
             expect(stateVariables["/d15"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2550,7 +2550,7 @@ describe("Function Operator Tag Tests", function () {
 
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2562,7 +2562,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df1"].stateValues.formula)
-                    .equals(me.fromText("cos(x+y^2)z"))
+                    .equals(me.fromText("cos(x+y^2)z")),
             ).eq(true);
             expect(stateVariables["/df1"].stateValues.variables).eqls([
                 "x",
@@ -2576,7 +2576,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df2"].stateValues.formula)
-                    .equals(me.fromText("sin(x+y^2)"))
+                    .equals(me.fromText("sin(x+y^2)")),
             ).eq(true);
             expect(stateVariables["/df2"].stateValues.variables).eqls([
                 "z",
@@ -2590,7 +2590,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/dg1"].stateValues.formula)
-                    .equals(me.fromText("cos(x_1+x_2^2)x_3"))
+                    .equals(me.fromText("cos(x_1+x_2^2)x_3")),
             ).eq(true);
             expect(stateVariables["/dg1"].stateValues.variables).eqls([
                 ["_", "x", 1],
@@ -2604,7 +2604,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/dg2"].stateValues.formula)
-                    .equals(me.fromText("sin(x_1+x_2^2)"))
+                    .equals(me.fromText("sin(x_1+x_2^2)")),
             ).eq(true);
             expect(stateVariables["/dg2"].stateValues.variables).eqls([
                 ["_", "x", 3],
@@ -2673,7 +2673,7 @@ describe("Function Operator Tag Tests", function () {
       </map>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2685,7 +2685,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df1"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df1"].stateValues.variables).eqls([
                 "x",
@@ -2699,7 +2699,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df2"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df2"].stateValues.variables).eqls([
                 "z",
@@ -2713,14 +2713,14 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df2a"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df2a"].stateValues.variables).eqls(["x"]);
 
             expect(
                 me
                     .fromAst(stateVariables["/df3zy"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df3zy"].stateValues.variables).eqls([
                 "x",
@@ -2735,7 +2735,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df3y"].stateValues.formula)
-                    .equals(me.fromText("sin(x)z"))
+                    .equals(me.fromText("sin(x)z")),
             ).eq(true);
             expect(stateVariables["/df3y"].stateValues.variables).eqls([
                 "x",
@@ -2749,7 +2749,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df3zya"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df3zya"].stateValues.variables).eqls([
                 "x",
@@ -2763,7 +2763,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df4zy"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df4zy"].stateValues.variables).eqls([
                 "z",
@@ -2778,7 +2778,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df4z"].stateValues.formula)
-                    .equals(me.fromText("sin(x)y"))
+                    .equals(me.fromText("sin(x)y")),
             ).eq(true);
             expect(stateVariables["/df4z"].stateValues.variables).eqls([
                 "z",
@@ -2792,7 +2792,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df4yz"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df4yz"].stateValues.variables).eqls([
                 "z",
@@ -2806,14 +2806,14 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/df4zya"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df4zya"].stateValues.variables).eqls(["x"]);
 
             expect(
                 me
                     .fromAst(stateVariables["/df4yza"].stateValues.formula)
-                    .equals(me.fromText("sin(x)"))
+                    .equals(me.fromText("sin(x)")),
             ).eq(true);
             expect(stateVariables["/df4yza"].stateValues.variables).eqls(["x"]);
 
@@ -2849,27 +2849,27 @@ describe("Function Operator Tag Tests", function () {
             ]);
             expect(stateVariables["/t1/df1n"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t1/df2an"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t1/df3zyn"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t1/df3zyan"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t1/df4zyan"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t1/df4yzan"].stateValues.value).closeTo(
                 Math.sin(-2),
-                1e-10
+                1e-10,
             );
 
             expect(stateVariables["/t2/df1"].stateValues.value).eq(0);
@@ -2880,27 +2880,27 @@ describe("Function Operator Tag Tests", function () {
             expect(stateVariables["/t2/df4yza"].stateValues.value).eq(0);
             expect(stateVariables["/t2/df1n"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t2/df2an"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t2/df3zyn"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t2/df3zyan"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t2/df4zyan"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t2/df4yzan"].stateValues.value).closeTo(
                 0,
-                1e-10
+                1e-10,
             );
 
             expect(stateVariables["/t3/df1"].stateValues.value).eqls([
@@ -2935,46 +2935,46 @@ describe("Function Operator Tag Tests", function () {
             ]);
             expect(stateVariables["/t3/df1n"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t3/df2an"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t3/df3zyn"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t3/df3zyan"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t3/df4zyan"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
             expect(stateVariables["/t3/df4yzan"].stateValues.value).closeTo(
                 Math.sin(2),
-                1e-10
+                1e-10,
             );
 
             let df1 = createFunctionFromDefinition(
-                stateVariables["/df1"].stateValues.fDefinitions[0]
+                stateVariables["/df1"].stateValues.fDefinitions[0],
             );
             let df2a = createFunctionFromDefinition(
-                stateVariables["/df2a"].stateValues.fDefinitions[0]
+                stateVariables["/df2a"].stateValues.fDefinitions[0],
             );
             let df3zy = createFunctionFromDefinition(
-                stateVariables["/df3zy"].stateValues.fDefinitions[0]
+                stateVariables["/df3zy"].stateValues.fDefinitions[0],
             );
             let df3zya = createFunctionFromDefinition(
-                stateVariables["/df3zya"].stateValues.fDefinitions[0]
+                stateVariables["/df3zya"].stateValues.fDefinitions[0],
             );
             let df4zya = createFunctionFromDefinition(
-                stateVariables["/df4zya"].stateValues.fDefinitions[0]
+                stateVariables["/df4zya"].stateValues.fDefinitions[0],
             );
             let df4yza = createFunctionFromDefinition(
-                stateVariables["/df4yza"].stateValues.fDefinitions[0]
+                stateVariables["/df4yza"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -3002,7 +3002,7 @@ describe("Function Operator Tag Tests", function () {
       </graph>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3014,7 +3014,7 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d1"].stateValues.formula)
-                    .equals(me.fromText("2x"))
+                    .equals(me.fromText("2x")),
             ).eq(true);
             expect(stateVariables["/d1"].stateValues.variables).eqls(["x"]);
             expect(stateVariables["/d1"].stateValues.derivVariables).eqls([
@@ -3022,7 +3022,7 @@ describe("Function Operator Tag Tests", function () {
             ]);
 
             let d1 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[0]
+                stateVariables["/d1"].stateValues.fDefinitions[0],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -3066,7 +3066,7 @@ describe("Function Operator Tag Tests", function () {
       <derivative variable="y" name="d14">$f4</derivative>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3077,201 +3077,201 @@ describe("Function Operator Tag Tests", function () {
             expect(
                 me
                     .fromAst(stateVariables["/d1"].stateValues.formula)
-                    .equals(me.fromText("(2x,3x^2)"))
+                    .equals(me.fromText("(2x,3x^2)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2"].stateValues.formula)
-                    .equals(me.fromText("(2x,3x^2)"))
+                    .equals(me.fromText("(2x,3x^2)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2b"].stateValues.formula)
-                    .equals(me.fromText("(2x,3x^2)"))
+                    .equals(me.fromText("(2x,3x^2)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d2c"].stateValues.formula)
-                    .equals(me.fromText("(2x,3x^2)"))
+                    .equals(me.fromText("(2x,3x^2)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d3"].stateValues.formula)
-                    .equals(me.fromText("(2x sin(z), z^2 cos(x))"))
+                    .equals(me.fromText("(2x sin(z), z^2 cos(x))")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4"].stateValues.formula)
-                    .equals(me.fromText("(x^2cos(z), 2z sin(x))"))
+                    .equals(me.fromText("(x^2cos(z), 2z sin(x))")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d4b"].stateValues.formula)
-                    .equals(me.fromText("(x^2cos(z), 2z sin(x))"))
+                    .equals(me.fromText("(x^2cos(z), 2z sin(x))")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5"].stateValues.formula)
-                    .equals(me.fromText("(cos(x),-sin(x))"))
+                    .equals(me.fromText("(cos(x),-sin(x))")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d5b"].stateValues.formula)
-                    .equals(me.fromText("(cos(x), -sin(x))"))
+                    .equals(me.fromText("(cos(x), -sin(x))")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6"].stateValues.formula)
-                    .equals(me.fromText("(2e^(2y),1,1/y)"))
+                    .equals(me.fromText("(2e^(2y),1,1/y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d6b"].stateValues.formula)
-                    .equals(me.fromText("(2e^(2y),1,1/y)"))
+                    .equals(me.fromText("(2e^(2y),1,1/y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7"].stateValues.formula)
-                    .equals(me.fromText("(yz, y, z, 0)"))
+                    .equals(me.fromText("(yz, y, z, 0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d7b"].stateValues.formula)
-                    .equals(me.fromText("(yz, y, z, 0)"))
+                    .equals(me.fromText("(yz, y, z, 0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8"].stateValues.formula)
-                    .equals(me.fromText("(xy, 0, x, y)"))
+                    .equals(me.fromText("(xy, 0, x, y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d8b"].stateValues.formula)
-                    .equals(me.fromText("(xy, 0, x, y)"))
+                    .equals(me.fromText("(xy, 0, x, y)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d9"].stateValues.formula)
-                    .equals(me.fromText("(0,0)"))
+                    .equals(me.fromText("(0,0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d10"].stateValues.formula)
-                    .equals(me.fromText("(0,0,0)"))
+                    .equals(me.fromText("(0,0,0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d11"].stateValues.formula)
-                    .equals(me.fromText("(0,0,0,0)"))
+                    .equals(me.fromText("(0,0,0,0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d12"].stateValues.formula)
-                    .equals(me.fromText("(0,0,0,0)"))
+                    .equals(me.fromText("(0,0,0,0)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d13"].stateValues.formula)
-                    .equals(me.fromText("(xz,x,0,z)"))
+                    .equals(me.fromText("(xz,x,0,z)")),
             ).eq(true);
             expect(
                 me
                     .fromAst(stateVariables["/d14"].stateValues.formula)
-                    .equals(me.fromText("(xz,x,0,z)"))
+                    .equals(me.fromText("(xz,x,0,z)")),
             ).eq(true);
 
             let d1_1 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[0]
+                stateVariables["/d1"].stateValues.fDefinitions[0],
             );
             let d1_2 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[1]
+                stateVariables["/d1"].stateValues.fDefinitions[1],
             );
             let d2_1 = createFunctionFromDefinition(
-                stateVariables["/d2"].stateValues.fDefinitions[0]
+                stateVariables["/d2"].stateValues.fDefinitions[0],
             );
             let d2_2 = createFunctionFromDefinition(
-                stateVariables["/d2"].stateValues.fDefinitions[1]
+                stateVariables["/d2"].stateValues.fDefinitions[1],
             );
             let d2b_1 = createFunctionFromDefinition(
-                stateVariables["/d2b"].stateValues.fDefinitions[0]
+                stateVariables["/d2b"].stateValues.fDefinitions[0],
             );
             let d2b_2 = createFunctionFromDefinition(
-                stateVariables["/d2b"].stateValues.fDefinitions[1]
+                stateVariables["/d2b"].stateValues.fDefinitions[1],
             );
             let d2c_1 = createFunctionFromDefinition(
-                stateVariables["/d2c"].stateValues.fDefinitions[0]
+                stateVariables["/d2c"].stateValues.fDefinitions[0],
             );
             let d2c_2 = createFunctionFromDefinition(
-                stateVariables["/d2c"].stateValues.fDefinitions[1]
+                stateVariables["/d2c"].stateValues.fDefinitions[1],
             );
             let d5_1 = createFunctionFromDefinition(
-                stateVariables["/d5"].stateValues.fDefinitions[0]
+                stateVariables["/d5"].stateValues.fDefinitions[0],
             );
             let d5_2 = createFunctionFromDefinition(
-                stateVariables["/d5"].stateValues.fDefinitions[1]
+                stateVariables["/d5"].stateValues.fDefinitions[1],
             );
             let d5b_1 = createFunctionFromDefinition(
-                stateVariables["/d5b"].stateValues.fDefinitions[0]
+                stateVariables["/d5b"].stateValues.fDefinitions[0],
             );
             let d5b_2 = createFunctionFromDefinition(
-                stateVariables["/d5b"].stateValues.fDefinitions[1]
+                stateVariables["/d5b"].stateValues.fDefinitions[1],
             );
             let d6_1 = createFunctionFromDefinition(
-                stateVariables["/d6"].stateValues.fDefinitions[0]
+                stateVariables["/d6"].stateValues.fDefinitions[0],
             );
             let d6_2 = createFunctionFromDefinition(
-                stateVariables["/d6"].stateValues.fDefinitions[1]
+                stateVariables["/d6"].stateValues.fDefinitions[1],
             );
             let d6_3 = createFunctionFromDefinition(
-                stateVariables["/d6"].stateValues.fDefinitions[2]
+                stateVariables["/d6"].stateValues.fDefinitions[2],
             );
             let d6b_1 = createFunctionFromDefinition(
-                stateVariables["/d6b"].stateValues.fDefinitions[0]
+                stateVariables["/d6b"].stateValues.fDefinitions[0],
             );
             let d6b_2 = createFunctionFromDefinition(
-                stateVariables["/d6b"].stateValues.fDefinitions[1]
+                stateVariables["/d6b"].stateValues.fDefinitions[1],
             );
             let d6b_3 = createFunctionFromDefinition(
-                stateVariables["/d6b"].stateValues.fDefinitions[2]
+                stateVariables["/d6b"].stateValues.fDefinitions[2],
             );
             let d9_1 = createFunctionFromDefinition(
-                stateVariables["/d9"].stateValues.fDefinitions[0]
+                stateVariables["/d9"].stateValues.fDefinitions[0],
             );
             let d9_2 = createFunctionFromDefinition(
-                stateVariables["/d9"].stateValues.fDefinitions[1]
+                stateVariables["/d9"].stateValues.fDefinitions[1],
             );
             let d10_1 = createFunctionFromDefinition(
-                stateVariables["/d10"].stateValues.fDefinitions[0]
+                stateVariables["/d10"].stateValues.fDefinitions[0],
             );
             let d10_2 = createFunctionFromDefinition(
-                stateVariables["/d10"].stateValues.fDefinitions[1]
+                stateVariables["/d10"].stateValues.fDefinitions[1],
             );
             let d10_3 = createFunctionFromDefinition(
-                stateVariables["/d10"].stateValues.fDefinitions[2]
+                stateVariables["/d10"].stateValues.fDefinitions[2],
             );
             let d11_1 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[0]
+                stateVariables["/d11"].stateValues.fDefinitions[0],
             );
             let d11_2 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[1]
+                stateVariables["/d11"].stateValues.fDefinitions[1],
             );
             let d11_3 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[2]
+                stateVariables["/d11"].stateValues.fDefinitions[2],
             );
             let d11_4 = createFunctionFromDefinition(
-                stateVariables["/d11"].stateValues.fDefinitions[3]
+                stateVariables["/d11"].stateValues.fDefinitions[3],
             );
             let d12_1 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[0]
+                stateVariables["/d12"].stateValues.fDefinitions[0],
             );
             let d12_2 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[1]
+                stateVariables["/d12"].stateValues.fDefinitions[1],
             );
             let d12_3 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[2]
+                stateVariables["/d12"].stateValues.fDefinitions[2],
             );
             let d12_4 = createFunctionFromDefinition(
-                stateVariables["/d12"].stateValues.fDefinitions[3]
+                stateVariables["/d12"].stateValues.fDefinitions[3],
             );
 
             for (let i = 1; i <= 21; i++) {
@@ -3330,7 +3330,7 @@ describe("Function Operator Tag Tests", function () {
       Then <m>f'(x) = <derivative>$f</derivative></m>.</p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3370,7 +3370,7 @@ describe("Function Operator Tag Tests", function () {
       </graph>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3380,25 +3380,25 @@ describe("Function Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let f1 = createFunctionFromDefinition(
-                stateVariables["/_function1"].stateValues.fDefinitions[0]
+                stateVariables["/_function1"].stateValues.fDefinitions[0],
             );
             let d1 = createFunctionFromDefinition(
-                stateVariables["/_derivative1"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative1"].stateValues.fDefinitions[0],
             );
             let d2 = createFunctionFromDefinition(
-                stateVariables["/_derivative2"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative2"].stateValues.fDefinitions[0],
             );
             let d3 = createFunctionFromDefinition(
-                stateVariables["/_derivative3"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative3"].stateValues.fDefinitions[0],
             );
             let d4 = createFunctionFromDefinition(
-                stateVariables["/_derivative4"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative4"].stateValues.fDefinitions[0],
             );
             let d5 = createFunctionFromDefinition(
-                stateVariables["/_derivative5"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative5"].stateValues.fDefinitions[0],
             );
             let d6 = createFunctionFromDefinition(
-                stateVariables["/_derivative6"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative6"].stateValues.fDefinitions[0],
             );
 
             for (let x = -10; x <= 10; x += 0.5) {
@@ -3428,7 +3428,7 @@ describe("Function Operator Tag Tests", function () {
       </graph>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3440,19 +3440,19 @@ describe("Function Operator Tag Tests", function () {
             let dx = 0.0001;
 
             let f = createFunctionFromDefinition(
-                stateVariables["/_function1"].stateValues.fDefinitions[0]
+                stateVariables["/_function1"].stateValues.fDefinitions[0],
             );
             let d1 = createFunctionFromDefinition(
-                stateVariables["/_derivative1"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative1"].stateValues.fDefinitions[0],
             );
             let d2 = createFunctionFromDefinition(
-                stateVariables["/_derivative2"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative2"].stateValues.fDefinitions[0],
             );
             let d3 = createFunctionFromDefinition(
-                stateVariables["/_derivative3"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative3"].stateValues.fDefinitions[0],
             );
             let d4 = createFunctionFromDefinition(
-                stateVariables["/_derivative4"].stateValues.fDefinitions[0]
+                stateVariables["/_derivative4"].stateValues.fDefinitions[0],
             );
 
             // make sure we don't get within dx of a grid point
@@ -3512,7 +3512,7 @@ describe("Function Operator Tag Tests", function () {
       
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3524,58 +3524,58 @@ describe("Function Operator Tag Tests", function () {
             let dx = 0.0001;
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let df1 = createFunctionFromDefinition(
-                stateVariables["/df1"].stateValues.fDefinitions[0]
+                stateVariables["/df1"].stateValues.fDefinitions[0],
             );
             let df1b = createFunctionFromDefinition(
-                stateVariables["/df1b"].stateValues.fDefinitions[0]
+                stateVariables["/df1b"].stateValues.fDefinitions[0],
             );
             let df2 = createFunctionFromDefinition(
-                stateVariables["/df2"].stateValues.fDefinitions[0]
+                stateVariables["/df2"].stateValues.fDefinitions[0],
             );
             let df3 = createFunctionFromDefinition(
-                stateVariables["/df3"].stateValues.fDefinitions[0]
+                stateVariables["/df3"].stateValues.fDefinitions[0],
             );
             let df4 = createFunctionFromDefinition(
-                stateVariables["/df4"].stateValues.fDefinitions[0]
+                stateVariables["/df4"].stateValues.fDefinitions[0],
             );
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
             let dg1 = createFunctionFromDefinition(
-                stateVariables["/dg1"].stateValues.fDefinitions[0]
+                stateVariables["/dg1"].stateValues.fDefinitions[0],
             );
             let dg1b = createFunctionFromDefinition(
-                stateVariables["/dg1b"].stateValues.fDefinitions[0]
+                stateVariables["/dg1b"].stateValues.fDefinitions[0],
             );
             let dg2 = createFunctionFromDefinition(
-                stateVariables["/dg2"].stateValues.fDefinitions[0]
+                stateVariables["/dg2"].stateValues.fDefinitions[0],
             );
             let dg3 = createFunctionFromDefinition(
-                stateVariables["/dg3"].stateValues.fDefinitions[0]
+                stateVariables["/dg3"].stateValues.fDefinitions[0],
             );
             let dg4 = createFunctionFromDefinition(
-                stateVariables["/dg4"].stateValues.fDefinitions[0]
+                stateVariables["/dg4"].stateValues.fDefinitions[0],
             );
             let zero1 = createFunctionFromDefinition(
-                stateVariables["/zero1"].stateValues.fDefinitions[0]
+                stateVariables["/zero1"].stateValues.fDefinitions[0],
             );
             let zero2 = createFunctionFromDefinition(
-                stateVariables["/zero2"].stateValues.fDefinitions[0]
+                stateVariables["/zero2"].stateValues.fDefinitions[0],
             );
             let zero3 = createFunctionFromDefinition(
-                stateVariables["/zero3"].stateValues.fDefinitions[0]
+                stateVariables["/zero3"].stateValues.fDefinitions[0],
             );
             let zero4 = createFunctionFromDefinition(
-                stateVariables["/zero4"].stateValues.fDefinitions[0]
+                stateVariables["/zero4"].stateValues.fDefinitions[0],
             );
             let zero5 = createFunctionFromDefinition(
-                stateVariables["/zero5"].stateValues.fDefinitions[0]
+                stateVariables["/zero5"].stateValues.fDefinitions[0],
             );
             let zero6 = createFunctionFromDefinition(
-                stateVariables["/zero6"].stateValues.fDefinitions[0]
+                stateVariables["/zero6"].stateValues.fDefinitions[0],
             );
 
             // make sure we don't get within dx of a grid point
@@ -3717,7 +3717,7 @@ describe("Function Operator Tag Tests", function () {
       
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3729,103 +3729,103 @@ describe("Function Operator Tag Tests", function () {
             let dx = 0.0001;
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let df1 = createFunctionFromDefinition(
-                stateVariables["/df1"].stateValues.fDefinitions[0]
+                stateVariables["/df1"].stateValues.fDefinitions[0],
             );
             let df1b = createFunctionFromDefinition(
-                stateVariables["/df1b"].stateValues.fDefinitions[0]
+                stateVariables["/df1b"].stateValues.fDefinitions[0],
             );
             let df2 = createFunctionFromDefinition(
-                stateVariables["/df2"].stateValues.fDefinitions[0]
+                stateVariables["/df2"].stateValues.fDefinitions[0],
             );
             let df2b = createFunctionFromDefinition(
-                stateVariables["/df2b"].stateValues.fDefinitions[0]
+                stateVariables["/df2b"].stateValues.fDefinitions[0],
             );
             let df3 = createFunctionFromDefinition(
-                stateVariables["/df3"].stateValues.fDefinitions[0]
+                stateVariables["/df3"].stateValues.fDefinitions[0],
             );
             let df4 = createFunctionFromDefinition(
-                stateVariables["/df4"].stateValues.fDefinitions[0]
+                stateVariables["/df4"].stateValues.fDefinitions[0],
             );
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
             let dg1 = createFunctionFromDefinition(
-                stateVariables["/dg1"].stateValues.fDefinitions[0]
+                stateVariables["/dg1"].stateValues.fDefinitions[0],
             );
             let dg1b = createFunctionFromDefinition(
-                stateVariables["/dg1b"].stateValues.fDefinitions[0]
+                stateVariables["/dg1b"].stateValues.fDefinitions[0],
             );
             let dg2 = createFunctionFromDefinition(
-                stateVariables["/dg2"].stateValues.fDefinitions[0]
+                stateVariables["/dg2"].stateValues.fDefinitions[0],
             );
             let dg2b = createFunctionFromDefinition(
-                stateVariables["/dg2b"].stateValues.fDefinitions[0]
+                stateVariables["/dg2b"].stateValues.fDefinitions[0],
             );
             let dg3 = createFunctionFromDefinition(
-                stateVariables["/dg3"].stateValues.fDefinitions[0]
+                stateVariables["/dg3"].stateValues.fDefinitions[0],
             );
             let dg4 = createFunctionFromDefinition(
-                stateVariables["/dg4"].stateValues.fDefinitions[0]
+                stateVariables["/dg4"].stateValues.fDefinitions[0],
             );
             let h = createFunctionFromDefinition(
-                stateVariables["/h"].stateValues.fDefinitions[0]
+                stateVariables["/h"].stateValues.fDefinitions[0],
             );
             let dh1 = createFunctionFromDefinition(
-                stateVariables["/dh1"].stateValues.fDefinitions[0]
+                stateVariables["/dh1"].stateValues.fDefinitions[0],
             );
             let dh1b = createFunctionFromDefinition(
-                stateVariables["/dh1b"].stateValues.fDefinitions[0]
+                stateVariables["/dh1b"].stateValues.fDefinitions[0],
             );
             let dh2 = createFunctionFromDefinition(
-                stateVariables["/dh2"].stateValues.fDefinitions[0]
+                stateVariables["/dh2"].stateValues.fDefinitions[0],
             );
             let dh2b = createFunctionFromDefinition(
-                stateVariables["/dh2b"].stateValues.fDefinitions[0]
+                stateVariables["/dh2b"].stateValues.fDefinitions[0],
             );
             let dh3 = createFunctionFromDefinition(
-                stateVariables["/dh3"].stateValues.fDefinitions[0]
+                stateVariables["/dh3"].stateValues.fDefinitions[0],
             );
             let dh4 = createFunctionFromDefinition(
-                stateVariables["/dh4"].stateValues.fDefinitions[0]
+                stateVariables["/dh4"].stateValues.fDefinitions[0],
             );
             let zero1 = createFunctionFromDefinition(
-                stateVariables["/zero1"].stateValues.fDefinitions[0]
+                stateVariables["/zero1"].stateValues.fDefinitions[0],
             );
             let zero2 = createFunctionFromDefinition(
-                stateVariables["/zero2"].stateValues.fDefinitions[0]
+                stateVariables["/zero2"].stateValues.fDefinitions[0],
             );
             let zero3 = createFunctionFromDefinition(
-                stateVariables["/zero3"].stateValues.fDefinitions[0]
+                stateVariables["/zero3"].stateValues.fDefinitions[0],
             );
             let zero4 = createFunctionFromDefinition(
-                stateVariables["/zero4"].stateValues.fDefinitions[0]
+                stateVariables["/zero4"].stateValues.fDefinitions[0],
             );
             let zero5 = createFunctionFromDefinition(
-                stateVariables["/zero5"].stateValues.fDefinitions[0]
+                stateVariables["/zero5"].stateValues.fDefinitions[0],
             );
             let zero6 = createFunctionFromDefinition(
-                stateVariables["/zero6"].stateValues.fDefinitions[0]
+                stateVariables["/zero6"].stateValues.fDefinitions[0],
             );
             let zero7 = createFunctionFromDefinition(
-                stateVariables["/zero7"].stateValues.fDefinitions[0]
+                stateVariables["/zero7"].stateValues.fDefinitions[0],
             );
             let zero8 = createFunctionFromDefinition(
-                stateVariables["/zero8"].stateValues.fDefinitions[0]
+                stateVariables["/zero8"].stateValues.fDefinitions[0],
             );
             let zero9 = createFunctionFromDefinition(
-                stateVariables["/zero9"].stateValues.fDefinitions[0]
+                stateVariables["/zero9"].stateValues.fDefinitions[0],
             );
             let zero10 = createFunctionFromDefinition(
-                stateVariables["/zero10"].stateValues.fDefinitions[0]
+                stateVariables["/zero10"].stateValues.fDefinitions[0],
             );
             let zero11 = createFunctionFromDefinition(
-                stateVariables["/zero11"].stateValues.fDefinitions[0]
+                stateVariables["/zero11"].stateValues.fDefinitions[0],
             );
             let zero12 = createFunctionFromDefinition(
-                stateVariables["/zero12"].stateValues.fDefinitions[0]
+                stateVariables["/zero12"].stateValues.fDefinitions[0],
             );
 
             let i = 0;
@@ -4012,7 +4012,7 @@ describe("Function Operator Tag Tests", function () {
     
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4024,64 +4024,64 @@ describe("Function Operator Tag Tests", function () {
             let dx = 0.0001;
 
             let f = createFunctionFromDefinition(
-                stateVariables["/f"].stateValues.fDefinitions[0]
+                stateVariables["/f"].stateValues.fDefinitions[0],
             );
             let df1 = createFunctionFromDefinition(
-                stateVariables["/df1"].stateValues.fDefinitions[0]
+                stateVariables["/df1"].stateValues.fDefinitions[0],
             );
             let df1b = createFunctionFromDefinition(
-                stateVariables["/df1b"].stateValues.fDefinitions[0]
+                stateVariables["/df1b"].stateValues.fDefinitions[0],
             );
             let df2 = createFunctionFromDefinition(
-                stateVariables["/df2"].stateValues.fDefinitions[0]
+                stateVariables["/df2"].stateValues.fDefinitions[0],
             );
             let df2b = createFunctionFromDefinition(
-                stateVariables["/df2b"].stateValues.fDefinitions[0]
+                stateVariables["/df2b"].stateValues.fDefinitions[0],
             );
             let df3 = createFunctionFromDefinition(
-                stateVariables["/df3"].stateValues.fDefinitions[0]
+                stateVariables["/df3"].stateValues.fDefinitions[0],
             );
             let df4 = createFunctionFromDefinition(
-                stateVariables["/df4"].stateValues.fDefinitions[0]
+                stateVariables["/df4"].stateValues.fDefinitions[0],
             );
             let g = createFunctionFromDefinition(
-                stateVariables["/g"].stateValues.fDefinitions[0]
+                stateVariables["/g"].stateValues.fDefinitions[0],
             );
             let dg1 = createFunctionFromDefinition(
-                stateVariables["/dg1"].stateValues.fDefinitions[0]
+                stateVariables["/dg1"].stateValues.fDefinitions[0],
             );
             let dg1b = createFunctionFromDefinition(
-                stateVariables["/dg1b"].stateValues.fDefinitions[0]
+                stateVariables["/dg1b"].stateValues.fDefinitions[0],
             );
             let dg2 = createFunctionFromDefinition(
-                stateVariables["/dg2"].stateValues.fDefinitions[0]
+                stateVariables["/dg2"].stateValues.fDefinitions[0],
             );
             let dg2b = createFunctionFromDefinition(
-                stateVariables["/dg2b"].stateValues.fDefinitions[0]
+                stateVariables["/dg2b"].stateValues.fDefinitions[0],
             );
             let dg3 = createFunctionFromDefinition(
-                stateVariables["/dg3"].stateValues.fDefinitions[0]
+                stateVariables["/dg3"].stateValues.fDefinitions[0],
             );
             let dg4 = createFunctionFromDefinition(
-                stateVariables["/dg4"].stateValues.fDefinitions[0]
+                stateVariables["/dg4"].stateValues.fDefinitions[0],
             );
             let zero1 = createFunctionFromDefinition(
-                stateVariables["/zero1"].stateValues.fDefinitions[0]
+                stateVariables["/zero1"].stateValues.fDefinitions[0],
             );
             let zero2 = createFunctionFromDefinition(
-                stateVariables["/zero2"].stateValues.fDefinitions[0]
+                stateVariables["/zero2"].stateValues.fDefinitions[0],
             );
             let zero3 = createFunctionFromDefinition(
-                stateVariables["/zero3"].stateValues.fDefinitions[0]
+                stateVariables["/zero3"].stateValues.fDefinitions[0],
             );
             let zero4 = createFunctionFromDefinition(
-                stateVariables["/zero4"].stateValues.fDefinitions[0]
+                stateVariables["/zero4"].stateValues.fDefinitions[0],
             );
             let zero5 = createFunctionFromDefinition(
-                stateVariables["/zero5"].stateValues.fDefinitions[0]
+                stateVariables["/zero5"].stateValues.fDefinitions[0],
             );
             let zero6 = createFunctionFromDefinition(
-                stateVariables["/zero6"].stateValues.fDefinitions[0]
+                stateVariables["/zero6"].stateValues.fDefinitions[0],
             );
 
             // make sure we don't get within dx of a grid point
@@ -4192,7 +4192,7 @@ describe("Function Operator Tag Tests", function () {
     </p>
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4245,11 +4245,11 @@ describe("Function Operator Tag Tests", function () {
 
                 cy.get(cesc("#\\/nMinima")).should(
                     "have.text",
-                    nMinima.toString()
+                    nMinima.toString(),
                 );
                 cy.get(cesc("#\\/nMinima2")).should(
                     "have.text",
-                    nMinima.toString()
+                    nMinima.toString(),
                 );
                 cy.get(cesc("#\\/min1"))
                     .find(".mjx-mrow")
@@ -4259,8 +4259,8 @@ describe("Function Operator Tag Tests", function () {
                         expect(text.replace(/−/g, "-").trim()).equal(
                             `(${minima[0][0]},${me.math.round(
                                 minima[0][1],
-                                5
-                            )})`
+                                5,
+                            )})`,
                         );
                     });
                 cy.get(cesc("#\\/min12"))
@@ -4271,8 +4271,8 @@ describe("Function Operator Tag Tests", function () {
                         expect(text.replace(/−/g, "-").trim()).equal(
                             `(${minima[0][0]},${me.math.round(
                                 minima[0][1],
-                                5
-                            )})`
+                                5,
+                            )})`,
                         );
                     });
                 if (nMinima === 2) {
@@ -4284,8 +4284,8 @@ describe("Function Operator Tag Tests", function () {
                             expect(text.replace(/−/g, "-").trim()).equal(
                                 `(${minima[1][0]},${me.math.round(
                                     minima[1][1],
-                                    5
-                                )})`
+                                    5,
+                                )})`,
                             );
                         });
                     cy.get(cesc("#\\/min22"))
@@ -4296,8 +4296,8 @@ describe("Function Operator Tag Tests", function () {
                             expect(text.replace(/−/g, "-").trim()).equal(
                                 `(${minima[1][0]},${me.math.round(
                                     minima[1][1],
-                                    5
-                                )})`
+                                    5,
+                                )})`,
                             );
                         });
                 } else {
@@ -4306,11 +4306,11 @@ describe("Function Operator Tag Tests", function () {
                 }
                 cy.get(cesc("#\\/nMaxima")).should(
                     "have.text",
-                    nMaxima.toString()
+                    nMaxima.toString(),
                 );
                 cy.get(cesc("#\\/nMaxima2")).should(
                     "have.text",
-                    nMaxima.toString()
+                    nMaxima.toString(),
                 );
                 cy.get(cesc("#\\/max1"))
                     .find(".mjx-mrow")
@@ -4320,8 +4320,8 @@ describe("Function Operator Tag Tests", function () {
                         expect(text.replace(/−/g, "-").trim()).equal(
                             `(${maxima[0][0]},${me.math.round(
                                 maxima[0][1],
-                                5
-                            )})`
+                                5,
+                            )})`,
                         );
                     });
                 cy.get(cesc("#\\/max12"))
@@ -4332,8 +4332,8 @@ describe("Function Operator Tag Tests", function () {
                         expect(text.replace(/−/g, "-").trim()).equal(
                             `(${maxima[0][0]},${me.math.round(
                                 maxima[0][1],
-                                5
-                            )})`
+                                5,
+                            )})`,
                         );
                     });
                 if (nMaxima === 2) {
@@ -4345,8 +4345,8 @@ describe("Function Operator Tag Tests", function () {
                             expect(text.replace(/−/g, "-").trim()).equal(
                                 `(${maxima[1][0]},${me.math.round(
                                     maxima[1][1],
-                                    5
-                                )})`
+                                    5,
+                                )})`,
                             );
                         });
                     cy.get(cesc("#\\/max22"))
@@ -4357,8 +4357,8 @@ describe("Function Operator Tag Tests", function () {
                             expect(text.replace(/−/g, "-").trim()).equal(
                                 `(${maxima[1][0]},${me.math.round(
                                     maxima[1][1],
-                                    5
-                                )})`
+                                    5,
+                                )})`,
                             );
                         });
                 } else {
@@ -4381,7 +4381,7 @@ describe("Function Operator Tag Tests", function () {
                 c1 = 3;
                 cy.get(cesc2("#/c_1") + " textarea").type(
                     `{end}{backspace}{backspace}${c1}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_1a")).should("contain.text", nInDOM(c1));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4389,7 +4389,7 @@ describe("Function Operator Tag Tests", function () {
                 c2 = -5;
                 cy.get(cesc2("#/c_2") + " textarea").type(
                     `{end}{backspace}{backspace}${c2}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_2a")).should("contain.text", nInDOM(c2));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4397,7 +4397,7 @@ describe("Function Operator Tag Tests", function () {
                 c3 = 1;
                 cy.get(cesc2("#/c_3") + " textarea").type(
                     `{end}{backspace}{backspace}${c3}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_3a")).should("contain.text", nInDOM(c3));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4405,7 +4405,7 @@ describe("Function Operator Tag Tests", function () {
                 c4 = -6;
                 cy.get(cesc2("#/c_4") + " textarea").type(
                     `{end}{backspace}{backspace}${c4}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_4a")).should("contain.text", nInDOM(c4));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4413,7 +4413,7 @@ describe("Function Operator Tag Tests", function () {
                 c5 = 3;
                 cy.get(cesc2("#/c_5") + " textarea").type(
                     `{end}{backspace}{backspace}${c5}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_5a")).should("contain.text", nInDOM(c5));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4421,7 +4421,7 @@ describe("Function Operator Tag Tests", function () {
                 c6 = 2;
                 cy.get(cesc2("#/c_6") + " textarea").type(
                     `{end}{backspace}{backspace}${c6}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_6a")).should("contain.text", nInDOM(c6));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4429,7 +4429,7 @@ describe("Function Operator Tag Tests", function () {
                 v = "y";
                 cy.get(cesc2("#/x") + " textarea").type(
                     `{end}{backspace}{backspace}${v}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/xa")).should("contain.text", v);
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4439,7 +4439,7 @@ describe("Function Operator Tag Tests", function () {
                 c1 = 2;
                 cy.get(cesc2("#/c_1") + " textarea").type(
                     `{end}{backspace}{backspace}${c1}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_1a")).should("contain.text", nInDOM(c1));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4447,7 +4447,7 @@ describe("Function Operator Tag Tests", function () {
                 c2 = 4;
                 cy.get(cesc2("#/c_2") + " textarea").type(
                     `{end}{backspace}{backspace}${c2}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_2a")).should("contain.text", nInDOM(c2));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4455,7 +4455,7 @@ describe("Function Operator Tag Tests", function () {
                 c3 = -8;
                 cy.get(cesc2("#/c_3") + " textarea").type(
                     `{end}{backspace}{backspace}${c3}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_3a")).should("contain.text", nInDOM(c3));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4463,7 +4463,7 @@ describe("Function Operator Tag Tests", function () {
                 c4 = 9;
                 cy.get(cesc2("#/c_4") + " textarea").type(
                     `{end}{backspace}{backspace}${c4}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_4a")).should("contain.text", nInDOM(c4));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4471,7 +4471,7 @@ describe("Function Operator Tag Tests", function () {
                 c5 = -2;
                 cy.get(cesc2("#/c_5") + " textarea").type(
                     `{end}{backspace}{backspace}${c5}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_5a")).should("contain.text", nInDOM(c5));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4479,7 +4479,7 @@ describe("Function Operator Tag Tests", function () {
                 c6 = 6;
                 cy.get(cesc2("#/c_6") + " textarea").type(
                     `{end}{backspace}{backspace}${c6}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/c_6a")).should("contain.text", nInDOM(c6));
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4487,7 +4487,7 @@ describe("Function Operator Tag Tests", function () {
                 v = "q";
                 cy.get(cesc2("#/x") + " textarea").type(
                     `{end}{backspace}{backspace}${v}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
                 cy.get(cesc2("#/xa")).should("contain.text", v);
                 verifyExtrema(c1, c2, c3, c4, c5);
@@ -4523,7 +4523,7 @@ describe("Function Operator Tag Tests", function () {
   
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4539,7 +4539,7 @@ describe("Function Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let fp = createFunctionFromDefinition(
-                stateVariables["/fp"].stateValues.fDefinitions[0]
+                stateVariables["/fp"].stateValues.fDefinitions[0],
             );
 
             let max1x = (-5 - 3) / 2;
@@ -4549,7 +4549,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${max1x},${me.math.round(fp(max1x), 5)})`
+                        `(${max1x},${me.math.round(fp(max1x), 5)})`,
                     );
                 });
             cy.get(cesc("#\\/max12"))
@@ -4558,7 +4558,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${max1x},${me.math.round(fp(max1x), 5)})`
+                        `(${max1x},${me.math.round(fp(max1x), 5)})`,
                     );
                 });
 
@@ -4569,7 +4569,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${min1x},${me.math.round(fp(min1x), 5)})`
+                        `(${min1x},${me.math.round(fp(min1x), 5)})`,
                     );
                 });
             cy.get(cesc("#\\/min12"))
@@ -4578,7 +4578,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${min1x},${me.math.round(fp(min1x), 5)})`
+                        `(${min1x},${me.math.round(fp(min1x), 5)})`,
                     );
                 });
 
@@ -4589,7 +4589,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${max2x},${me.math.round(fp(max2x), 5)})`
+                        `(${max2x},${me.math.round(fp(max2x), 5)})`,
                     );
                 });
             cy.get(cesc("#\\/max22"))
@@ -4598,7 +4598,7 @@ describe("Function Operator Tag Tests", function () {
                 .invoke("text")
                 .then((text) => {
                     expect(text.replace(/−/g, "-").trim()).equal(
-                        `(${max2x},${me.math.round(fp(max2x), 5)})`
+                        `(${max2x},${me.math.round(fp(max2x), 5)})`,
                     );
                 });
         });
@@ -4616,7 +4616,7 @@ describe("Function Operator Tag Tests", function () {
       <p>$$d2(0)</p>
       `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4637,10 +4637,10 @@ describe("Function Operator Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
 
             let d1 = createFunctionFromDefinition(
-                stateVariables["/d1"].stateValues.fDefinitions[0]
+                stateVariables["/d1"].stateValues.fDefinitions[0],
             );
             let d2 = createFunctionFromDefinition(
-                stateVariables["/d2"].stateValues.fDefinitions[0]
+                stateVariables["/d2"].stateValues.fDefinitions[0],
             );
 
             expect(d1(0)).eqls(NaN);

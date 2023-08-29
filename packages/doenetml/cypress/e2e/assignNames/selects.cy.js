@@ -42,7 +42,7 @@ describe("selects assignName Tests", function () {
   </select>
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -84,7 +84,7 @@ describe("selects assignName Tests", function () {
                 } else if (index === 4) {
                     let letter = numberToLetters(
                         optionReplacement.stateValues.selectedIndices[0],
-                        true
+                        true,
                     );
                     cy.get(anchor).should("have.text", letter);
                 } else if (index === 5) {

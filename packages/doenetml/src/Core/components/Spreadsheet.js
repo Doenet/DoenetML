@@ -181,12 +181,12 @@ export default class Spreadsheet extends BlockComponent {
                 }
                 numRows = Math.max(
                     numRows,
-                    dependencyValues.cellNamesByRowCol.length
+                    dependencyValues.cellNamesByRowCol.length,
                 );
                 if (dependencyValues.dataFrameChild.length > 0) {
                     numRows = Math.max(
                         numRows,
-                        dependencyValues.dataFrameChild[0].stateValues.numRows
+                        dependencyValues.dataFrameChild[0].stateValues.numRows,
                     );
                 }
                 // numRows = Math.max(numRows, dependencyValues.rowChildren.length)
@@ -233,7 +233,7 @@ export default class Spreadsheet extends BlockComponent {
                     numColumns = Math.max(
                         numColumns,
                         dependencyValues.dataFrameChild[0].stateValues
-                            .numColumns
+                            .numColumns,
                     );
                 }
                 return { setValue: { numColumns } };
@@ -483,19 +483,19 @@ export default class Spreadsheet extends BlockComponent {
 
                     let row1 = Math.min(
                         Math.min(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let row2 = Math.min(
                         Math.max(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let col1 = Math.min(
                         Math.min(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
                     let col2 = Math.min(
                         Math.max(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
 
                     let arrayKeys = [];
@@ -894,19 +894,19 @@ export default class Spreadsheet extends BlockComponent {
 
                     let row1 = Math.min(
                         Math.min(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let row2 = Math.min(
                         Math.max(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let col1 = Math.min(
                         Math.min(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
                     let col2 = Math.min(
                         Math.max(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
 
                     let arrayKeys = [];
@@ -1015,7 +1015,7 @@ export default class Spreadsheet extends BlockComponent {
                     globalDependencyValues.cells,
                     {
                         licenseKey: "gpl-v3",
-                    }
+                    },
                 );
 
                 let allEvaluated = hf.getSheetValues(0);
@@ -1083,7 +1083,7 @@ export default class Spreadsheet extends BlockComponent {
             },
             returnEntryDimensions: (prefix) =>
                 ["pointsInRange", "pointsInRows", "pointsInColumns"].includes(
-                    prefix
+                    prefix,
                 )
                     ? 2
                     : 1,
@@ -1229,19 +1229,19 @@ export default class Spreadsheet extends BlockComponent {
 
                     let row1 = Math.min(
                         Math.min(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let row2 = Math.min(
                         Math.max(fromRow, toRow),
-                        arraySize[0] - 1
+                        arraySize[0] - 1,
                     );
                     let col1 = Math.min(
                         Math.min(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
                     let col2 = Math.min(
                         Math.max(fromCol, toCol),
-                        arraySize[1] - 1
+                        arraySize[1] - 1,
                     );
 
                     let arrayKeys = [];
@@ -1647,7 +1647,7 @@ function addCellToMapping({
         console.warn(
             `Cell is overwriting previous cell at rowNum=${
                 rowIndex + 1
-            }, colNum=${colIndex + 1}`
+            }, colNum=${colIndex + 1}`,
         );
         let previousComponentName = cellNamesByRowCol[rowIndex][colIndex];
         cellNameToRowCol[previousComponentName] = null;

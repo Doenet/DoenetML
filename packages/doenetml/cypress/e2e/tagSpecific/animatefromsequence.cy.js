@@ -23,7 +23,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -71,7 +71,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -84,7 +84,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue
+                lastValue,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -110,7 +110,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -152,7 +152,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).should("have.text", "10");
@@ -184,7 +184,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -214,7 +214,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                     (lastValue === "z" || lastValue === "w") &&
                     stateVariables["/x"].stateValues.animationOn === false
                 );
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).contains(/w|z/);
@@ -227,7 +227,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue === "z" ? 8 : 7
+                lastValue === "z" ? 8 : 7,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
             cy.get(cesc("#\\/a")).should("have.text", lastValue);
@@ -262,7 +262,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).contains(/q|n/);
@@ -274,7 +274,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue === "q" ? 5 : 4
+                lastValue === "q" ? 5 : 4,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -299,7 +299,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -337,7 +337,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).should("have.text", "e");
@@ -369,7 +369,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -398,7 +398,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                     (lastValue === -600 || lastValue === -500) &&
                     stateVariables["/x"].stateValues.animationOn === false
                 );
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).contains(/-600|-500/);
@@ -410,7 +410,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue === -600 ? 3 : 4
+                lastValue === -600 ? 3 : 4,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
             cy.get(cesc("#\\/a")).should("have.text", `${lastValue}`);
@@ -463,7 +463,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/a")).contains(/-100|100/);
@@ -475,7 +475,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue === -100 ? 5 : 6
+                lastValue === -100 ? 5 : 6,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -503,7 +503,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -518,7 +518,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(89.8, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 89.8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(1);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -535,7 +535,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                     Math.abs(lastValue - 89.8) < 1e-12 &&
                     stateVariables["/x"].stateValues.animationOn === false
                 );
-            })
+            }),
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "value: 89.8");
@@ -547,7 +547,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(89.8, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 89.8,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(889);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -569,7 +569,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "value: 90.1");
@@ -581,7 +581,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(90.1, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 90.1,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(892);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -598,7 +598,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.window().then(async (win) => {
@@ -607,7 +607,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(90.2, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 90.2,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(893);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -631,7 +631,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(33.4, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 33.4,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(893);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -650,7 +650,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.window().then(async (win) => {
@@ -659,7 +659,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(33.6, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 33.6,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(327);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -680,7 +680,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(64.5, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 64.5,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(327);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -699,7 +699,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "value: 64.7");
@@ -711,7 +711,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).closeTo(64.7, 1e-12);
             expect(stateVariables["/a2"].stateValues.value).closeTo(
                 64.7,
-                1e-12
+                1e-12,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(638);
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
@@ -738,7 +738,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -828,7 +828,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         cy.get(cesc("#\\/pa")).should("have.text", "value: 4.7");
@@ -862,7 +862,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -875,7 +875,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/anmode"].stateValues.value).eq("increase");
             expect(stateVariables["/an"].stateValues.animationMode).eq(
-                "increase"
+                "increase",
             );
         });
 
@@ -888,7 +888,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/anmode"].stateValues.value).eq("decrease");
             expect(stateVariables["/an"].stateValues.animationMode).eq(
-                "decrease"
+                "decrease",
             );
         });
 
@@ -901,7 +901,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                 {
                     doenetML,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -912,7 +912,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/anmode"];
-            })
+            }),
         );
 
         cy.get(cesc("#\\/cad")).should("have.text", "decrease");
@@ -922,7 +922,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             let stateVariables = await win.returnAllStateVariables1();
             expect(stateVariables["/anmode"].stateValues.value).eq("decrease");
             expect(stateVariables["/an"].stateValues.animationMode).eq(
-                "decrease"
+                "decrease",
             );
         });
     });
@@ -952,7 +952,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1002,7 +1002,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -1015,7 +1015,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue
+                lastValue,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1030,7 +1030,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                     return (
                         stateVariables["/x"].stateValues.animationOn === false
                     );
-                })
+                }),
             );
 
             cy.get(cesc("#\\/a")).should("have.text", `${lastValue}`);
@@ -1053,7 +1053,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 7 or 8
@@ -1066,7 +1066,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/a"].stateValues.value).eq(lastValue);
             expect(stateVariables["/a2"].stateValues.value).eq(lastValue);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue
+                lastValue,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1099,7 +1099,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1145,7 +1145,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1219,7 +1219,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -1233,7 +1233,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue1 === 2 || lastValue1 === 3).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
@@ -1241,12 +1241,12 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/n2"].stateValues.value).eq(2);
             expect(stateVariables["/n3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1258,13 +1258,13 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should("have.text", "2");
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, 2, 3`
+                `${lastValue1}, 2, 3`,
             );
         });
 
@@ -1300,7 +1300,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 9 or 0
@@ -1314,24 +1314,24 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 8 || lastValue2 === 9).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/n1"].stateValues.value).eq(lastValue1);
             expect(stateVariables["/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/n3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1343,16 +1343,16 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
         });
 
@@ -1389,7 +1389,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 7 or 8
@@ -1408,25 +1408,25 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 1 || lastValue2 === 2).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/n1"].stateValues.value).eq(lastValue1);
             expect(stateVariables["/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/n3"].stateValues.value).eq(lastValue3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1438,19 +1438,19 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", `${lastValue3}`);
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should(
                 "have.text",
-                `${lastValue3}`
+                `${lastValue3}`,
             );
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
         });
     });
@@ -1481,7 +1481,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1555,7 +1555,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -1569,7 +1569,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue1 === 2 || lastValue1 === 3).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
@@ -1577,12 +1577,12 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/n2"].stateValues.value).eq(2);
             expect(stateVariables["/n3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1594,13 +1594,13 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should("have.text", "2");
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, 2, 3`
+                `${lastValue1}, 2, 3`,
             );
         });
 
@@ -1636,7 +1636,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 9 or 0
@@ -1650,24 +1650,24 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 8 || lastValue2 === 9).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/n1"].stateValues.value).eq(lastValue1);
             expect(stateVariables["/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/n3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1679,16 +1679,16 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
         });
 
@@ -1725,7 +1725,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 7 or 8
@@ -1744,25 +1744,25 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 1 || lastValue2 === 2).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/n1"].stateValues.value).eq(lastValue1);
             expect(stateVariables["/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/n3"].stateValues.value).eq(lastValue3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1774,19 +1774,19 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/n3")).should("have.text", `${lastValue3}`);
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should(
                 "have.text",
-                `${lastValue3}`
+                `${lastValue3}`,
             );
             cy.get(cesc("#\\/plist")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
         });
     });
@@ -1815,7 +1815,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1871,7 +1871,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -1885,17 +1885,17 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue1 === 2 || lastValue1 === 3).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(2);
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1904,7 +1904,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should("have.text", "2");
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
@@ -1936,7 +1936,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 9 or 0
@@ -1950,21 +1950,21 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 8 || lastValue2 === 9).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -1973,11 +1973,11 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/_number3")).should("have.text", "3");
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should("have.text", "3");
         });
@@ -2009,7 +2009,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 7 or 8
@@ -2028,22 +2028,22 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(lastValue2 === 1 || lastValue2 === 2).be.true;
 
             expect(stateVariables["/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/c2/_number1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_number2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_number3"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2052,15 +2052,15 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.get(cesc("#\\/_number3")).should("have.text", `${lastValue3}`);
             cy.get(cesc("#\\/c2\\/_number1")).should(
                 "have.text",
-                `${lastValue1}`
+                `${lastValue1}`,
             );
             cy.get(cesc("#\\/c2\\/_number2")).should(
                 "have.text",
-                `${lastValue2}`
+                `${lastValue2}`,
             );
             cy.get(cesc("#\\/c2\\/_number3")).should(
                 "have.text",
-                `${lastValue3}`
+                `${lastValue3}`,
             );
         });
     });
@@ -2089,7 +2089,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2145,7 +2145,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 2 or 3
@@ -2162,12 +2162,12 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/_p1/n2"].stateValues.value).eq(2);
             expect(stateVariables["/_p2/n1"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_p1/n1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_p1/n2"].stateValues.value).eq(2);
             expect(stateVariables["/c2/_p2/n1"].stateValues.value).eq(3);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2201,7 +2201,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x2"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 9 or 0
@@ -2218,14 +2218,14 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/_p1/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/_p2/n1"].stateValues.value).eq(3);
             expect(stateVariables["/c2/_p1/n1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_p1/n2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_p2/n1"].stateValues.value).eq(3);
             expect(stateVariables["/x2"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x2"].stateValues.animationOn).eq(false);
 
@@ -2259,7 +2259,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         // should stop at 7 or 8
@@ -2276,16 +2276,16 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(stateVariables["/_p1/n2"].stateValues.value).eq(lastValue2);
             expect(stateVariables["/_p2/n1"].stateValues.value).eq(lastValue3);
             expect(stateVariables["/c2/_p1/n1"].stateValues.value).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/c2/_p1/n2"].stateValues.value).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/c2/_p2/n1"].stateValues.value).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2320,7 +2320,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2354,7 +2354,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue1;
@@ -2375,7 +2375,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2394,43 +2394,43 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
             });
 
@@ -2440,7 +2440,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue2;
@@ -2461,17 +2461,17 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
         });
 
@@ -2482,27 +2482,27 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
             });
 
@@ -2521,7 +2521,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue3;
@@ -2545,17 +2545,17 @@ describe("AnimateFromSequence Tag Tests", function () {
             ]);
 
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
         });
     });
@@ -2582,7 +2582,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2616,7 +2616,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue1;
@@ -2637,7 +2637,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2656,43 +2656,43 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
             });
 
@@ -2702,7 +2702,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue2;
@@ -2723,17 +2723,17 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
         });
 
@@ -2744,27 +2744,27 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
             });
 
@@ -2783,7 +2783,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue3;
@@ -2807,17 +2807,17 @@ describe("AnimateFromSequence Tag Tests", function () {
             ]);
 
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
         });
     });
@@ -2847,7 +2847,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2881,7 +2881,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue1;
@@ -2902,7 +2902,7 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue1
+                lastValue1,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
@@ -2921,43 +2921,43 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 3, 3`
+                    `${lastValue1}, 3, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 4, 3`
+                    `${lastValue1}, 4, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 5, 3`
+                    `${lastValue1}, 5, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 6, 3`
+                    `${lastValue1}, 6, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 7, 3`
+                    `${lastValue1}, 7, 3`,
                 );
             });
 
@@ -2967,7 +2967,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue2;
@@ -2988,17 +2988,17 @@ describe("AnimateFromSequence Tag Tests", function () {
                 3,
             ]);
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue2
+                lastValue2,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, 3`
+                `${lastValue1}, ${lastValue2}, 3`,
             );
         });
 
@@ -3009,27 +3009,27 @@ describe("AnimateFromSequence Tag Tests", function () {
             .then(() => {
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 9, 3`
+                    `${lastValue1}, 9, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 10, 3`
+                    `${lastValue1}, 10, 3`,
                 );
                 cy.get(cesc("#\\/p1")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
                 cy.get(cesc("#\\/p2")).should(
                     "have.text",
-                    `${lastValue1}, 1, 3`
+                    `${lastValue1}, 1, 3`,
                 );
             });
 
@@ -3048,7 +3048,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
                 return stateVariables["/x"].stateValues.animationOn === false;
-            })
+            }),
         );
 
         let lastValue3;
@@ -3072,17 +3072,17 @@ describe("AnimateFromSequence Tag Tests", function () {
             ]);
 
             expect(stateVariables["/x"].stateValues.selectedIndex).eq(
-                lastValue3
+                lastValue3,
             );
             expect(stateVariables["/x"].stateValues.animationOn).eq(false);
 
             cy.get(cesc("#\\/p1")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
             cy.get(cesc("#\\/p2")).should(
                 "have.text",
-                `${lastValue1}, ${lastValue2}, ${lastValue3}`
+                `${lastValue1}, ${lastValue2}, ${lastValue3}`,
             );
         });
     });
@@ -3101,7 +3101,7 @@ describe("AnimateFromSequence Tag Tests", function () {
   <booleaninput name="bi" /><boolean copySource="bi" name="b" />
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3117,7 +3117,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(errorWarnings.warnings.length).eq(3);
 
             expect(errorWarnings.warnings[0].message).contain(
-                'Invalid animation target: cannot find a state variable named "invalid" on a <number>'
+                'Invalid animation target: cannot find a state variable named "invalid" on a <number>',
             );
             expect(errorWarnings.warnings[0].level).eq(1);
             expect(errorWarnings.warnings[0].doenetMLrange.lineBegin).eq(5);
@@ -3126,7 +3126,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(errorWarnings.warnings[0].doenetMLrange.charEnd).eq(63);
 
             expect(errorWarnings.warnings[1].message).contain(
-                'Invalid animation target: cannot find a state variable named "value" on a <p>'
+                'Invalid animation target: cannot find a state variable named "value" on a <p>',
             );
             expect(errorWarnings.warnings[1].level).eq(1);
             expect(errorWarnings.warnings[1].doenetMLrange.lineBegin).eq(6);
@@ -3135,7 +3135,7 @@ describe("AnimateFromSequence Tag Tests", function () {
             expect(errorWarnings.warnings[1].doenetMLrange.charEnd).eq(55);
 
             expect(errorWarnings.warnings[2].message).contain(
-                "Invalid animation target: cannot find target"
+                "Invalid animation target: cannot find target",
             );
             expect(errorWarnings.warnings[2].level).eq(1);
             expect(errorWarnings.warnings[2].doenetMLrange.lineBegin).eq(7);
@@ -3162,7 +3162,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -3195,7 +3195,7 @@ describe("AnimateFromSequence Tag Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 

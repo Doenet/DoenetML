@@ -50,7 +50,7 @@ export class ClampFunction extends FunctionBaseOperator {
                         numericalFunctionOperator:
                             functionOperatorDefinitions.clampFunction(
                                 dependencyValues.lowerValue,
-                                dependencyValues.upperValue
+                                dependencyValues.upperValue,
                             ),
                         numericalFunctionOperatorArguments: [
                             dependencyValues.lowerValue,
@@ -74,8 +74,8 @@ export class ClampFunction extends FunctionBaseOperator {
                         symbolicFunctionOperator: (x) =>
                             me.fromAst(
                                 dependencyValues.numericalFunctionOperator(
-                                    x.evaluate_to_constant()
-                                )
+                                    x.evaluate_to_constant(),
+                                ),
                             ),
                     },
                 };
@@ -131,7 +131,7 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
                         numericalFunctionOperator:
                             functionOperatorDefinitions.wrapFunctionPeriodic(
                                 dependencyValues.lowerValue,
-                                dependencyValues.upperValue
+                                dependencyValues.upperValue,
                             ),
                         numericalFunctionOperatorArguments: [
                             dependencyValues.lowerValue,
@@ -155,8 +155,8 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
                         symbolicFunctionOperator: (x) =>
                             me.fromAst(
                                 dependencyValues.numericalFunctionOperator(
-                                    x.evaluate_to_constant()
-                                )
+                                    x.evaluate_to_constant(),
+                                ),
                             ),
                     },
                 };
@@ -278,7 +278,7 @@ export class Derivative extends FunctionBaseOperator {
                             numInputs: Math.max(
                                 1,
                                 dependencyValues.variablesAttr?.stateValues
-                                    .numComponents || 0
+                                    .numComponents || 0,
                             ),
                         },
                     };
@@ -294,8 +294,8 @@ export class Derivative extends FunctionBaseOperator {
                     let nUniqueDerivVariables = [
                         ...new Set(
                             dependencyValues.derivVariablesAttr.stateValues.variables.map(
-                                (x) => x.subscripts_to_strings().tree
-                            )
+                                (x) => x.subscripts_to_strings().tree,
+                            ),
                         ),
                     ].length;
 
@@ -406,7 +406,7 @@ export class Derivative extends FunctionBaseOperator {
                         setValue: {
                             variables: returnNVariables(
                                 arraySize[0],
-                                variablesSpecified
+                                variablesSpecified,
                             ),
                         },
                     };
@@ -452,7 +452,7 @@ export class Derivative extends FunctionBaseOperator {
                         setValue: {
                             variables: returnNVariables(
                                 arraySize[0],
-                                variablesSpecified
+                                variablesSpecified,
                             ),
                         },
                     };
@@ -463,7 +463,7 @@ export class Derivative extends FunctionBaseOperator {
                     return {
                         setValue: {
                             variables: Array(arraySize[0]).fill(
-                                globalDependencyValues.parentVariableForChild
+                                globalDependencyValues.parentVariableForChild,
                             ),
                         },
                     };
@@ -602,7 +602,7 @@ export class Derivative extends FunctionBaseOperator {
                                     for (let variable of dependencyValues.derivVariables) {
                                         valComp = valComp.derivative(
                                             variable.subscripts_to_strings()
-                                                .tree
+                                                .tree,
                                         );
                                     }
                                     derivComps.push(valComp.tree);
@@ -615,7 +615,7 @@ export class Derivative extends FunctionBaseOperator {
                             } else {
                                 for (let variable of dependencyValues.derivVariables) {
                                     value = value.derivative(
-                                        variable.subscripts_to_strings().tree
+                                        variable.subscripts_to_strings().tree,
                                     );
                                 }
                             }
@@ -656,18 +656,18 @@ export class Derivative extends FunctionBaseOperator {
 
                 let derivativeNumericalFunctionOperator =
                     dependencyValues.functionChild[0].stateValues.returnNumericalDerivatives(
-                        dependencyValues.derivVariables
+                        dependencyValues.derivVariables,
                     );
 
                 let augmentedReturnNumericalDerivatives = function (
-                    derivVariables
+                    derivVariables,
                 ) {
                     let allDerivVariables = [
                         ...dependencyValues.derivVariables,
                         ...derivVariables,
                     ];
                     return dependencyValues.functionChild[0].stateValues.returnNumericalDerivatives(
-                        allDerivVariables
+                        allDerivVariables,
                     );
                 };
 
@@ -751,8 +751,8 @@ export class Derivative extends FunctionBaseOperator {
                         symbolicFunctionOperator: (x) =>
                             me.fromAst(
                                 dependencyValues.numericalFunctionOperator(
-                                    x.evaluate_to_constant()
-                                )
+                                    x.evaluate_to_constant(),
+                                ),
                             ),
                     },
                 };

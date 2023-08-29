@@ -48,7 +48,7 @@ export class ComponentWithSelectableType extends BaseComponent {
             // remove blank string if componentType isn't text
             if (componentType !== "text") {
                 matchedChildren = matchedChildren.filter(
-                    (x) => typeof x !== "string" || x.trim() !== ""
+                    (x) => typeof x !== "string" || x.trim() !== "",
                 );
             }
 
@@ -105,7 +105,7 @@ export class ComponentWithSelectableType extends BaseComponent {
                     type = "number";
                 } else if (
                     !["number", "letters", "math", "text", "boolean"].includes(
-                        type
+                        type,
                     )
                 ) {
                     warnings.push({
@@ -229,7 +229,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                     type = "number";
                 } else if (
                     !["number", "letters", "math", "text", "boolean"].includes(
-                        type
+                        type,
                     )
                 ) {
                     warnings.push({
@@ -372,7 +372,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
                         }
                         values[arrayKey] = convertValueToType(
                             value,
-                            globalDependencyValues.type
+                            globalDependencyValues.type,
                         );
                     }
                 }
@@ -543,8 +543,8 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
                                 (x) =>
                                     convertValueToType(
                                         x,
-                                        globalDependencyValues.type
-                                    )
+                                        globalDependencyValues.type,
+                                    ),
                             );
                         }
                     }

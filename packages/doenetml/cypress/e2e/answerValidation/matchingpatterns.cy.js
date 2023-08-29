@@ -47,7 +47,7 @@ describe("matching patterns answer tests", function () {
 
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -214,18 +214,18 @@ describe("matching patterns answer tests", function () {
 
         cy.get(cesc("#\\/var2") + " .mjx-mrow").should(
             "contain.text",
-            "\uff3f"
+            "\uff3f",
         );
 
         for (let varName in desiredResults) {
             cy.log(`setting variable to ${varName}`);
             cy.get(cesc("#\\/var") + " textarea").type(
                 `{end}{backspace}${varName}{enter}`,
-                { force: true }
+                { force: true },
             );
             cy.get(cesc("#\\/var2") + " .mjx-mrow").should(
                 "contain.text",
-                varName
+                varName,
             );
 
             let resultsForVar = desiredResults[varName];
@@ -234,7 +234,7 @@ describe("matching patterns answer tests", function () {
 
                 cy.get(cesc("#\\/resp") + " textarea").type(
                     `{ctrl+home}{ctrl+shift+end}{backspace}${expr}{enter}`,
-                    { force: true }
+                    { force: true },
                 );
 
                 let res = resultsForVar[expr];
@@ -258,19 +258,19 @@ describe("matching patterns answer tests", function () {
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse1
+                                .submittedResponse1,
                         ).eqls(res.response[0]);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse2
+                                .submittedResponse2,
                         ).eqls(res.matches[0][0]);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse3
+                                .submittedResponse3,
                         ).eqls(res.matches[1][0]);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse4
+                                .submittedResponse4,
                         ).eqls(res.matches[2][0]);
                     });
                 } else {
@@ -279,32 +279,32 @@ describe("matching patterns answer tests", function () {
                         .eq(0)
                         .should("have.text", res.response[1]);
                     cy.get(cesc("#\\/p_quad") + " .mjx-mrow").should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.get(cesc("#\\/p_lin") + " .mjx-mrow").should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.get(cesc("#\\/p_const") + " .mjx-mrow").should(
-                        "not.exist"
+                        "not.exist",
                     );
                     cy.window().then(async (win) => {
                         let stateVariables =
                             await win.returnAllStateVariables1();
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse1
+                                .submittedResponse1,
                         ).eqls(res.response[0]);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse2
+                                .submittedResponse2,
                         ).eq(undefined);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse3
+                                .submittedResponse3,
                         ).eq(undefined);
                         expect(
                             stateVariables["/ans"].stateValues
-                                .submittedResponse4
+                                .submittedResponse4,
                         ).eq(undefined);
                     });
                 }

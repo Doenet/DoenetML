@@ -87,7 +87,7 @@ export default class RegularPolygon extends Polygon {
 
                 styleDescriptionWithNoun = styleDescriptionWithNoun.replaceAll(
                     "polygon",
-                    `${dependencyValues.numSides}-sided regular polygon`
+                    `${dependencyValues.numSides}-sided regular polygon`,
                 );
 
                 return { setValue: { styleDescriptionWithNoun } };
@@ -355,7 +355,7 @@ export default class RegularPolygon extends Polygon {
                             desiredValue: me.fromAst(
                                 desiredStateVariableValues.specifiedCenter[
                                     arrayKey
-                                ]
+                                ],
                             ),
                             variableIndex: 0,
                         });
@@ -843,7 +843,7 @@ export default class RegularPolygon extends Polygon {
                         circumradius = Math.sqrt(
                             dependencyValues.specifiedArea /
                                 ((numVertices / 2) *
-                                    Math.sin((2 * Math.PI) / numVertices))
+                                    Math.sin((2 * Math.PI) / numVertices)),
                         );
                     } else {
                         circumradius = dependencyValues.essentialCircumradius;
@@ -851,7 +851,7 @@ export default class RegularPolygon extends Polygon {
 
                     directionWithRadius =
                         dependencyValues.essentialDirection.map(
-                            (x) => x * circumradius
+                            (x) => x * circumradius,
                         );
                 } else if (dependencyValues.haveSpecifiedCenter) {
                     // base polygon on center and first vertex
@@ -860,7 +860,7 @@ export default class RegularPolygon extends Polygon {
 
                     let vertex =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant()
+                            (x) => x.evaluate_to_constant(),
                         );
 
                     directionWithRadius = [
@@ -891,7 +891,7 @@ export default class RegularPolygon extends Polygon {
                         circumradius = Math.sqrt(
                             dependencyValues.specifiedArea /
                                 ((numVertices / 2) *
-                                    Math.sin((2 * Math.PI) / numVertices))
+                                    Math.sin((2 * Math.PI) / numVertices)),
                         );
                     } else {
                         circumradius = dependencyValues.essentialCircumradius;
@@ -899,12 +899,12 @@ export default class RegularPolygon extends Polygon {
 
                     directionWithRadius =
                         dependencyValues.essentialDirection.map(
-                            (x) => x * circumradius
+                            (x) => x * circumradius,
                         );
 
                     let vertex =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant()
+                            (x) => x.evaluate_to_constant(),
                         );
 
                     center = [
@@ -917,11 +917,11 @@ export default class RegularPolygon extends Polygon {
 
                     let vertex1 =
                         dependencyValues.verticesAttr.stateValues.points[0].map(
-                            (x) => x.evaluate_to_constant()
+                            (x) => x.evaluate_to_constant(),
                         );
                     let vertex2 =
                         dependencyValues.verticesAttr.stateValues.points[1].map(
-                            (x) => x.evaluate_to_constant()
+                            (x) => x.evaluate_to_constant(),
                         );
 
                     let sideVector = [
@@ -933,7 +933,7 @@ export default class RegularPolygon extends Polygon {
                         (vertex1[1] + vertex2[1]) / 2,
                     ];
                     let sideLength = Math.sqrt(
-                        sideVector[0] ** 2 + sideVector[1] ** 2
+                        sideVector[0] ** 2 + sideVector[1] ** 2,
                     );
                     let inradius =
                         sideLength / (2 * Math.tan(Math.PI / numVertices));
@@ -974,7 +974,7 @@ export default class RegularPolygon extends Polygon {
                 }
                 if (!desiredCenter) {
                     desiredCenter = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant()
+                        x.evaluate_to_constant(),
                     );
                 }
 
@@ -986,10 +986,10 @@ export default class RegularPolygon extends Polygon {
                 }
                 if (!desiredDirectionWithRadius) {
                     let center = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant()
+                        x.evaluate_to_constant(),
                     );
                     let vertex1 = (await stateValues.vertices)[0].map((x) =>
-                        x.evaluate_to_constant()
+                        x.evaluate_to_constant(),
                     );
                     desiredDirectionWithRadius = [
                         vertex1[0] - center[0],
@@ -1018,10 +1018,10 @@ export default class RegularPolygon extends Polygon {
 
                     let desiredCircumradius = Math.sqrt(
                         desiredDirectionWithRadius[0] ** 2 +
-                            desiredDirectionWithRadius[1] ** 2
+                            desiredDirectionWithRadius[1] ** 2,
                     );
                     let desiredDirection = desiredDirectionWithRadius.map(
-                        (x) => x / desiredCircumradius
+                        (x) => x / desiredCircumradius,
                     );
 
                     if (dependencyValues.specifiedCircumradius !== null) {
@@ -1081,10 +1081,10 @@ export default class RegularPolygon extends Polygon {
 
                     let desiredVertices = {
                         "0,0": me.fromAst(
-                            desiredDirectionWithRadius[0] + desiredCenter[0]
+                            desiredDirectionWithRadius[0] + desiredCenter[0],
                         ),
                         "0,1": me.fromAst(
-                            desiredDirectionWithRadius[1] + desiredCenter[1]
+                            desiredDirectionWithRadius[1] + desiredCenter[1],
                         ),
                     };
 
@@ -1099,10 +1099,10 @@ export default class RegularPolygon extends Polygon {
 
                     let desiredCircumradius = Math.sqrt(
                         desiredDirectionWithRadius[0] ** 2 +
-                            desiredDirectionWithRadius[1] ** 2
+                            desiredDirectionWithRadius[1] ** 2,
                     );
                     let desiredDirection = desiredDirectionWithRadius.map(
-                        (x) => x / desiredCircumradius
+                        (x) => x / desiredCircumradius,
                     );
 
                     if (dependencyValues.specifiedCircumradius !== null) {
@@ -1155,10 +1155,10 @@ export default class RegularPolygon extends Polygon {
 
                     let desiredVertices = {
                         "0,0": me.fromAst(
-                            desiredDirectionWithRadius[0] + desiredCenter[0]
+                            desiredDirectionWithRadius[0] + desiredCenter[0],
                         ),
                         "0,1": me.fromAst(
-                            desiredDirectionWithRadius[1] + desiredCenter[1]
+                            desiredDirectionWithRadius[1] + desiredCenter[1],
                         ),
                     };
 
@@ -1185,16 +1185,16 @@ export default class RegularPolygon extends Polygon {
 
                     let desiredVertices = {
                         "0,0": me.fromAst(
-                            desiredDirectionWithRadius[0] + desiredCenter[0]
+                            desiredDirectionWithRadius[0] + desiredCenter[0],
                         ),
                         "0,1": me.fromAst(
-                            desiredDirectionWithRadius[1] + desiredCenter[1]
+                            desiredDirectionWithRadius[1] + desiredCenter[1],
                         ),
                         "1,0": me.fromAst(
-                            desiredDirectionWithRadius2[0] + desiredCenter[0]
+                            desiredDirectionWithRadius2[0] + desiredCenter[0],
                         ),
                         "1,1": me.fromAst(
-                            desiredDirectionWithRadius2[1] + desiredCenter[1]
+                            desiredDirectionWithRadius2[1] + desiredCenter[1],
                         ),
                     };
 
@@ -1287,7 +1287,7 @@ export default class RegularPolygon extends Polygon {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -1380,12 +1380,12 @@ export default class RegularPolygon extends Polygon {
                         vertices[`${vertexInd},0`] = me.fromAst(
                             center[0] +
                                 directionWithRadius[0] * c -
-                                directionWithRadius[1] * s
+                                directionWithRadius[1] * s,
                         );
                         vertices[`${vertexInd},1`] = me.fromAst(
                             center[1] +
                                 directionWithRadius[0] * s +
-                                directionWithRadius[1] * c
+                                directionWithRadius[1] * c,
                         );
                     }
                 }
@@ -1406,13 +1406,13 @@ export default class RegularPolygon extends Polygon {
                 }
                 Object.assign(
                     workspace.desiredVertices,
-                    desiredStateVariableValues.vertices
+                    desiredStateVariableValues.vertices,
                 );
 
                 let desiredKeys = Object.keys(workspace.desiredVertices);
                 let vertexInd1String = desiredKeys[0].split(",")[0];
                 let changingJustOneVertex = desiredKeys.every(
-                    (v) => v.split(",")[0] === vertexInd1String
+                    (v) => v.split(",")[0] === vertexInd1String,
                 );
 
                 let desiredCenter;
@@ -1421,7 +1421,7 @@ export default class RegularPolygon extends Polygon {
                     // if change one vertex, then make sure that center stays the same
 
                     desiredCenter = (await stateValues.center).map((x) =>
-                        x.evaluate_to_constant()
+                        x.evaluate_to_constant(),
                     );
                 } else {
                     // if change multiple vertices, then calculate center as average of all vertices
@@ -1432,7 +1432,7 @@ export default class RegularPolygon extends Polygon {
 
                     Object.assign(
                         workspace.allVertices,
-                        workspace.desiredVertices
+                        workspace.desiredVertices,
                     );
 
                     let center_x = 0,
@@ -1568,7 +1568,7 @@ export default class RegularPolygon extends Polygon {
                 return {
                     setValue: {
                         center: globalDependencyValues.centerComponents.map(
-                            (x) => me.fromAst(x)
+                            (x) => me.fromAst(x),
                         ),
                     },
                 };
@@ -1634,16 +1634,16 @@ export default class RegularPolygon extends Polygon {
             }),
             definition({ dependencyValues }) {
                 let center = dependencyValues.center.map((x) =>
-                    x.evaluate_to_constant()
+                    x.evaluate_to_constant(),
                 );
 
                 let vertex1 = dependencyValues.vertex1.map((x) =>
-                    x.evaluate_to_constant()
+                    x.evaluate_to_constant(),
                 );
 
                 let circumradius = Math.sqrt(
                     (vertex1[0] - center[0]) ** 2 +
-                        (vertex1[1] - center[1]) ** 2
+                        (vertex1[1] - center[1]) ** 2,
                 );
 
                 return { setValue: { circumradius } };
@@ -1653,11 +1653,11 @@ export default class RegularPolygon extends Polygon {
                 dependencyValues,
             }) {
                 let center = dependencyValues.center.map((x) =>
-                    x.evaluate_to_constant()
+                    x.evaluate_to_constant(),
                 );
 
                 let vertex1 = dependencyValues.vertex1.map((x) =>
-                    x.evaluate_to_constant()
+                    x.evaluate_to_constant(),
                 );
 
                 let directionWithRadius = [
@@ -1666,13 +1666,13 @@ export default class RegularPolygon extends Polygon {
                 ];
 
                 let previousRadius = Math.sqrt(
-                    directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2
+                    directionWithRadius[0] ** 2 + directionWithRadius[1] ** 2,
                 );
 
                 let desiredRadius = desiredStateVariableValues.circumradius;
 
                 let desiredDirectionWithRadius = directionWithRadius.map(
-                    (x) => (x / previousRadius) * desiredRadius
+                    (x) => (x / previousRadius) * desiredRadius,
                 );
 
                 let desiredVertex1 = [
@@ -1888,7 +1888,7 @@ export default class RegularPolygon extends Polygon {
                 let desiredCircumradius = Math.sqrt(
                     desiredArea /
                         ((numVertices / 2) *
-                            Math.sin((2 * Math.PI) / numVertices))
+                            Math.sin((2 * Math.PI) / numVertices)),
                 );
 
                 return {
@@ -2074,8 +2074,8 @@ export default class RegularPolygon extends Polygon {
 
                 let resultingCenter = await this.stateValues.centerComponents;
 
-                let resultingDirectionWithRadius = await this.stateValues
-                    .directionWithRadius;
+                let resultingDirectionWithRadius =
+                    await this.stateValues.directionWithRadius;
                 let resultingVertex1 = [
                     resultingCenter[0] + resultingDirectionWithRadius[0],
                     resultingCenter[1] + resultingDirectionWithRadius[1],
@@ -2084,10 +2084,10 @@ export default class RegularPolygon extends Polygon {
                 let tol = 1e-6;
 
                 let vertex1Changed = !vertex1.every(
-                    (v, i) => Math.abs(v - resultingVertex1[i]) < tol
+                    (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
                 );
                 let centerChanged = !center.every(
-                    (v, i) => Math.abs(v - resultingCenter[i]) < tol
+                    (v, i) => Math.abs(v - resultingCenter[i]) < tol,
                 );
 
                 if (centerChanged) {
@@ -2172,19 +2172,19 @@ export default class RegularPolygon extends Polygon {
 
             let resultingVertices = await this.stateValues.vertices;
             let resultingVertex1 = resultingVertices[0].map((x) =>
-                x.evaluate_to_constant()
+                x.evaluate_to_constant(),
             );
             let resultingVertex2 = resultingVertices[1].map((x) =>
-                x.evaluate_to_constant()
+                x.evaluate_to_constant(),
             );
 
             let tol = 1e-6;
 
             let vertex1Changed = !vertex1.every(
-                (v, i) => Math.abs(v - resultingVertex1[i]) < tol
+                (v, i) => Math.abs(v - resultingVertex1[i]) < tol,
             );
             let vertex2Changed = !vertex2.every(
-                (v, i) => Math.abs(v - resultingVertex2[i]) < tol
+                (v, i) => Math.abs(v - resultingVertex2[i]) < tol,
             );
 
             if (vertex1Changed) {

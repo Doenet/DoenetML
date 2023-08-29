@@ -78,7 +78,7 @@ export default class PointListComponent extends BaseComponent {
                         if (Number.isFinite(point.stateValues.numDimensions)) {
                             numDimensions = Math.max(
                                 numDimensions,
-                                point.stateValues.numDimensions
+                                point.stateValues.numDimensions,
                             );
                         }
                     }
@@ -140,7 +140,7 @@ export default class PointListComponent extends BaseComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];

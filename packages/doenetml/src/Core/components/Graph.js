@@ -239,7 +239,7 @@ export default class Graph extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.xlabel = {
@@ -442,7 +442,7 @@ export default class Graph extends BlockComponent {
 
                 let graphicalChildNames =
                     dependencyValues.graphicalOrGraphChildren.map(
-                        (x) => x.componentName
+                        (x) => x.componentName,
                     );
 
                 for (let [
@@ -1514,7 +1514,7 @@ export default class Graph extends BlockComponent {
                             // have a single non-string child.  See if it was adapted from number/math
                             let childInd =
                                 dependencyValues.gridAttrCompChildren.indexOf(
-                                    child
+                                    child,
                                 );
 
                             let num =
@@ -1544,7 +1544,7 @@ export default class Graph extends BlockComponent {
                             } else {
                                 let childInd =
                                     dependencyValues.gridAttrCompChildren.indexOf(
-                                        piece
+                                        piece,
                                     );
 
                                 let factor =
@@ -1665,8 +1665,8 @@ export default class Graph extends BlockComponent {
                         serializedComponents:
                             processResult.serializedComponents,
                         parentName: this.componentName,
-                        assignNamesOffset: await this.stateValues
-                            .numChildrenAdded,
+                        assignNamesOffset:
+                            await this.stateValues.numChildrenAdded,
                     },
                     {
                         updateType: "updateValue",
@@ -1692,7 +1692,7 @@ export default class Graph extends BlockComponent {
     }) {
         let numberToDelete = Math.min(
             number,
-            await this.stateValues.numChildrenAdded
+            await this.stateValues.numChildrenAdded,
         );
 
         if (numberToDelete > 0) {

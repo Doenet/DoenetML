@@ -108,7 +108,7 @@ export default function ActivityViewer(props) {
                     props.setIsInErrorState(true);
                 }
                 setErrMsg(
-                    "how to reset attempt number when not given updateAttemptNumber function?"
+                    "how to reset attempt number when not given updateAttemptNumber function?",
                 );
             }
         } else if (newCid !== cid) {
@@ -150,7 +150,7 @@ export default function ActivityViewer(props) {
                             activityDefinitionDoenetML.current =
                                 activityDefinitionFromProps;
                             let result = parseActivityDefinition(
-                                activityDefinitionFromProps
+                                activityDefinitionFromProps,
                             );
                             if (result.success) {
                                 setActivityDefinition(result.activityJSON);
@@ -166,10 +166,10 @@ export default function ActivityViewer(props) {
                                 props.setIsInErrorState(true);
                             }
                             setErrMsg(
-                                `activity definition did not match specified cid: ${cidFromProps}`
+                                `activity definition did not match specified cid: ${cidFromProps}`,
                             );
                         }
-                    }
+                    },
                 );
             } else {
                 // if have activityDefinition and no cid, then calculate cid
@@ -180,7 +180,7 @@ export default function ActivityViewer(props) {
                             activityDefinitionFromProps;
                         console.log(activityDefinitionFromProps);
                         let result = parseActivityDefinition(
-                            activityDefinitionFromProps
+                            activityDefinitionFromProps,
                         );
                         if (result.success) {
                             setActivityDefinition(result.activityJSON);
@@ -191,7 +191,7 @@ export default function ActivityViewer(props) {
                             }
                             setErrMsg(result.message);
                         }
-                    }
+                    },
                 );
             }
         } else {
@@ -203,7 +203,7 @@ export default function ActivityViewer(props) {
                     activityDefinitionDoenetML.current =
                         retrievedActivityDefinition;
                     let result = parseActivityDefinition(
-                        retrievedActivityDefinition
+                        retrievedActivityDefinition,
                     );
                     if (result.success) {
                         setActivityDefinition(result.activityJSON);
@@ -220,7 +220,7 @@ export default function ActivityViewer(props) {
                         props.setIsInErrorState(true);
                     }
                     setErrMsg(
-                        `activity definition not found for cid: ${cidFromProps}`
+                        `activity definition not found for cid: ${cidFromProps}`,
                     );
                 });
         }
@@ -237,7 +237,7 @@ export default function ActivityViewer(props) {
 
             try {
                 localInfo = await idb_get(
-                    `${props.doenetId}|${attemptNumber}|${cid}`
+                    `${props.doenetId}|${attemptNumber}|${cid}`,
                 );
             } catch (e) {
                 // ignore error
@@ -248,9 +248,8 @@ export default function ActivityViewer(props) {
                     // attempt to save local info to database,
                     // reseting data to that from database if it has changed since last save
 
-                    let result = await saveLoadedLocalStateToDatabase(
-                        localInfo
-                    );
+                    let result =
+                        await saveLoadedLocalStateToDatabase(localInfo);
 
                     if (result.changedOnDevice) {
                         if (Number(result.newAttemptNumber) !== attemptNumber) {
@@ -258,7 +257,7 @@ export default function ActivityViewer(props) {
                                 changedOnDevice: result.changedOnDevice,
                                 newCid: result.newCid,
                                 newAttemptNumber: Number(
-                                    result.newAttemptNumber
+                                    result.newAttemptNumber,
                                 ),
                             });
                             return;
@@ -295,7 +294,7 @@ export default function ActivityViewer(props) {
 
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
 
                 loadedState = true;
@@ -329,7 +328,7 @@ export default function ActivityViewer(props) {
                             props.setIsInErrorState(true);
                         }
                         setErrMsg(
-                            `Error loading activity state: ${resp.data.message}`
+                            `Error loading activity state: ${resp.data.message}`,
                         );
                         return;
                     } else {
@@ -367,7 +366,7 @@ export default function ActivityViewer(props) {
 
                 activityInfo.current = newActivityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
             } else {
                 // get initial state and info
@@ -383,7 +382,7 @@ export default function ActivityViewer(props) {
                         props.setIsInErrorState(true);
                     }
                     setErrMsg(
-                        `Error initializing activity state: ${results.message}`
+                        `Error initializing activity state: ${results.message}`,
                     );
                     return;
                 }
@@ -398,7 +397,7 @@ export default function ActivityViewer(props) {
 
                 activityInfo.current = results.activityInfo;
                 activityInfoString.current = JSON.stringify(
-                    activityInfo.current
+                    activityInfo.current,
                 );
             }
         }
@@ -408,7 +407,7 @@ export default function ActivityViewer(props) {
 
     async function saveLoadedLocalStateToDatabase(localInfo) {
         let serverSaveId = await idb_get(
-            `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`
+            `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`,
         );
 
         let activityStateToBeSavedToDatabase = {
@@ -428,11 +427,11 @@ export default function ActivityViewer(props) {
         try {
             console.log(
                 "first one saveActivityState activityStateToBeSavedToDatabase",
-                activityStateToBeSavedToDatabase
+                activityStateToBeSavedToDatabase,
             );
             resp = await axios.post(
                 "/api/saveActivityState.php",
-                activityStateToBeSavedToDatabase
+                activityStateToBeSavedToDatabase,
             );
         } catch (e) {
             // since this is initial load, don't show error message
@@ -450,7 +449,7 @@ export default function ActivityViewer(props) {
 
         idb_set(
             `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`,
-            data.saveId
+            data.saveId,
         );
 
         if (data.stateOverwritten) {
@@ -463,7 +462,7 @@ export default function ActivityViewer(props) {
 
             idb_set(
                 `${props.doenetId}|${data.attemptNumber}|${data.cid}`,
-                newLocalInfo
+                newLocalInfo,
             );
 
             return {
@@ -478,9 +477,8 @@ export default function ActivityViewer(props) {
     }
 
     async function calculateOrderAndVariants() {
-        let activityVariantResult = await determineNumberOfActivityVariants(
-            activityDefinition
-        );
+        let activityVariantResult =
+            await determineNumberOfActivityVariants(activityDefinition);
 
         let variantIndex =
             ((requestedVariantIndex - 1) %
@@ -531,7 +529,7 @@ export default function ActivityViewer(props) {
                     returnAllPossibleVariants({
                         cid: page.cid,
                         doenetML: page.doenetML,
-                    })
+                    }),
                 );
             }
 
@@ -559,7 +557,7 @@ export default function ActivityViewer(props) {
                 delete allPossibleVariants[ind];
             }
             let numberOfVariants = allPossibleVariants.filter(
-                (x) => x !== undefined
+                (x) => x !== undefined,
             ).length;
 
             allPossibleNonIgnoredPerPage.push(allPossibleVariants);
@@ -569,7 +567,7 @@ export default function ActivityViewer(props) {
 
         let numberOfPageVariantCombinations = numberOfVariantsPerPage.reduce(
             (a, c) => a * c,
-            1
+            1,
         );
 
         if (
@@ -585,7 +583,7 @@ export default function ActivityViewer(props) {
             })[pageVariantCombinationIndex - 1].map((x) => x + 1);
         } else {
             variantForEachPage = [...Array(nPages).keys()].map(
-                (i) => Math.floor(rng() * numberOfVariantsPerPage[i]) + 1
+                (i) => Math.floor(rng() * numberOfVariantsPerPage[i]) + 1,
             );
         }
 
@@ -723,15 +721,15 @@ export default function ActivityViewer(props) {
         try {
             console.log(
                 "activity state params",
-                activityStateToBeSavedToDatabase.current
+                activityStateToBeSavedToDatabase.current,
             );
             resp = await axios.post(
                 "/api/saveActivityState.php",
-                activityStateToBeSavedToDatabase.current
+                activityStateToBeSavedToDatabase.current,
             );
         } catch (e) {
             console.log(
-                `sending toast: Error synchronizing data.  Changes not saved to the server.`
+                `sending toast: Error synchronizing data.  Changes not saved to the server.`,
             );
             // toast("Error synchronizing data.  Changes not saved to the server.", toastType.ERROR)
             return;
@@ -741,7 +739,7 @@ export default function ActivityViewer(props) {
 
         if (resp.status === null) {
             console.log(
-                `sending toast: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`
+                `sending toast: Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?`,
             );
             // toast("Error synchronizing data.  Changes not saved to the server.  Are you connected to the internet?", toastType.ERROR)
             return;
@@ -760,7 +758,7 @@ export default function ActivityViewer(props) {
         if (props.flags.allowLocalState) {
             idb_set(
                 `${props.doenetId}|${attemptNumber}|${cid}|ServerSaveId`,
-                data.saveId
+                data.saveId,
             );
         }
 
@@ -776,7 +774,7 @@ export default function ActivityViewer(props) {
                             activityInfo: JSON.parse(data.activityInfo),
                             saveId: data.saveId,
                             variantIndex: data.variantIndex,
-                        }
+                        },
                     );
 
                     resetActivity({
@@ -1002,7 +1000,7 @@ export default function ActivityViewer(props) {
                 initializeUserAssignmentTables(results.newItemWeights);
                 props.generatedVariantCallback?.(
                     results.newVariantIndex,
-                    activityInfo.current.numberOfVariants
+                    activityInfo.current.numberOfVariants,
                 );
             }
         });
@@ -1050,7 +1048,7 @@ export default function ActivityViewer(props) {
                     saveStateCallback={receivedSaveFromPage}
                     updateDataOnContentChange={props.updateDataOnContentChange}
                 />
-            </div>
+            </div>,
         );
     }
 
@@ -1191,7 +1189,7 @@ function processSelectOrder(order, rng) {
     //https://stackoverflow.com/a/44081700
     let cumulativeWeights = selectWeights.reduce(
         (a, x, i) => [...a, x + (a[i - 1] || 0)],
-        []
+        [],
     );
     let indsRemaining = [...Array(cumulativeWeights.length).keys()];
 
@@ -1224,7 +1222,7 @@ function processSelectOrder(order, rng) {
             selectWeights = selectWeights.map((x) => x / totalWeight);
             cumulativeWeights = selectWeights.reduce(
                 (a, x, i) => [...a, x + (a[i - 1] || 0)],
-                []
+                [],
             );
         }
     }

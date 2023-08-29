@@ -233,7 +233,7 @@ export default class AttractToAngles extends ConstraintComponent {
             }
 
             let distanceToAngle = Math.abs(
-                ((angle - foundAngle + Math.PI) % (2 * Math.PI)) - Math.PI
+                ((angle - foundAngle + Math.PI) % (2 * Math.PI)) - Math.PI,
             );
 
             if (distanceToAngle < closestDistance) {
@@ -253,7 +253,7 @@ export default class AttractToAngles extends ConstraintComponent {
         let newX2 = offset[1] + mag * Math.sin(closestAngle);
 
         let distanceAsPoints = Math.sqrt(
-            Math.pow(newX1 - x1, 2) + Math.pow(newX2 - x2, 2)
+            Math.pow(newX1 - x1, 2) + Math.pow(newX2 - x2, 2),
         );
         if (distanceAsPoints >= this.state.threshold) {
             return {};

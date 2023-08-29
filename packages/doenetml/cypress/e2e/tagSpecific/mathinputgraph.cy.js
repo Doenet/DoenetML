@@ -24,7 +24,7 @@ describe("MathInput Graph Tests", function () {
     <copy prop="coords" target="_point1" name="coords" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -33,7 +33,7 @@ describe("MathInput Graph Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coordsAnchor = cesc2(
-                "#" + stateVariables["/coords"].replacements[0].componentName
+                "#" + stateVariables["/coords"].replacements[0].componentName,
             );
 
             cy.log("Test values displayed in browser");
@@ -59,7 +59,7 @@ describe("MathInput Graph Tests", function () {
                 "{end}{backspace}-3{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(coordsAnchor).should("contain.text", "(−3,2)");
 
@@ -78,13 +78,13 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/x"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-3);
                 expect(stateVariables["/y"].stateValues.value).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-3);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).is.eq(2);
             });
@@ -94,7 +94,7 @@ describe("MathInput Graph Tests", function () {
                 "{end}{backspace}-4{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(coordsAnchor).should("contain.text", "(−3,−4)");
 
@@ -113,22 +113,22 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/x"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/y"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-4);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-4);
             });
 
@@ -143,12 +143,12 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/x"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(5);
                 expect(
                     me
                         .fromAst(stateVariables["/y"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-6);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(5);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(-6);
@@ -183,7 +183,7 @@ describe("MathInput Graph Tests", function () {
     <copy prop="coords" target="_point1" name="coords" />
     `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -192,7 +192,7 @@ describe("MathInput Graph Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coordsAnchor = cesc2(
-                "#" + stateVariables["/coords"].replacements[0].componentName
+                "#" + stateVariables["/coords"].replacements[0].componentName,
             );
 
             cy.log("Test values displayed in browser");
@@ -218,7 +218,7 @@ describe("MathInput Graph Tests", function () {
                 "{end}{backspace}-1.2{enter}",
                 {
                     force: true,
-                }
+                },
             );
             cy.get(coordsAnchor).should("contain.text", "(1.44,2)");
 
@@ -237,13 +237,13 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/x"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-1.2);
                 expect(stateVariables["/y"].stateValues.value).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(1.44);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).is.eq(2);
             });
@@ -259,12 +259,12 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/x"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(-1.2);
                 expect(
                     me
                         .fromAst(stateVariables["/y"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).to.eq(6);
                 expect(stateVariables["/_point1"].stateValues.xs[0]).eq(1.44);
                 expect(stateVariables["/_point1"].stateValues.xs[1]).eq(6);
@@ -299,7 +299,7 @@ describe("MathInput Graph Tests", function () {
     </graph>
     <copy prop="coords" target="_point1" name="coords" />`,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -308,7 +308,7 @@ describe("MathInput Graph Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coordsAnchor = cesc2(
-                "#" + stateVariables["/coords"].replacements[0].componentName
+                "#" + stateVariables["/coords"].replacements[0].componentName,
             );
 
             cy.log("Test values displayed in browser");
@@ -326,29 +326,29 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-6);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-7);
             });
 
             cy.log("Enter -1.5 for a");
             cy.get(cesc("#\\/a") + " textarea").type(
                 "{end}{backspace}{backspace}-1.5{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(coordsAnchor).should("contain.text", "(−3,−7)");
 
@@ -367,22 +367,22 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-1.5);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-7);
             });
 
@@ -397,22 +397,22 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-1.5);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(6);
             });
 
@@ -445,7 +445,7 @@ describe("MathInput Graph Tests", function () {
     </graph>
     <copy prop="coords" target="_point1" name="coords" />`,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -454,7 +454,7 @@ describe("MathInput Graph Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let coordsAnchor = cesc2(
-                "#" + stateVariables["/coords"].replacements[0].componentName
+                "#" + stateVariables["/coords"].replacements[0].componentName,
             );
 
             cy.log("Test values displayed in browser");
@@ -472,29 +472,29 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-6);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-7);
             });
 
             cy.log("Enter -1.5 for a");
             cy.get(cesc("#\\/a") + " textarea").type(
                 "{end}{backspace}{backspace}-1.5{enter}",
-                { force: true }
+                { force: true },
             );
             cy.get(coordsAnchor).should("contain.text", "(−3,−7)");
 
@@ -513,22 +513,22 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-1.5);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-3);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(-7);
             });
 
@@ -543,22 +543,22 @@ describe("MathInput Graph Tests", function () {
                 expect(
                     me
                         .fromAst(stateVariables["/a"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2.5);
                 expect(
                     me
                         .fromAst(stateVariables["/b"].stateValues.value)
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(2);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[0])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(5);
                 expect(
                     me
                         .fromAst(stateVariables["/_point1"].stateValues.xs[1])
-                        .evaluate_to_constant()
+                        .evaluate_to_constant(),
                 ).is.eq(6);
             });
 

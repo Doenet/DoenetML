@@ -322,7 +322,7 @@ export default class Copy extends CompositeComponent {
                 return {
                     setValue: {
                         targetInactive: Boolean(
-                            dependencyValues.targetIsInactiveCompositeReplacement
+                            dependencyValues.targetIsInactiveCompositeReplacement,
                         ),
                     },
                 };
@@ -708,7 +708,7 @@ export default class Copy extends CompositeComponent {
 
                 if (!stateValues.propName && stateValues.propIndex !== null) {
                     throw Error(
-                        `You cannot specify a propIndex without specifying a prop.`
+                        `You cannot specify a propIndex without specifying a prop.`,
                     );
                 }
 
@@ -778,7 +778,7 @@ export default class Copy extends CompositeComponent {
                             let propName;
                             if (targetDep.stateValues) {
                                 propName = Object.keys(
-                                    targetDep.stateValues
+                                    targetDep.stateValues,
                                 )[0];
                             }
                             if (
@@ -826,7 +826,7 @@ export default class Copy extends CompositeComponent {
                         )
                     ) {
                         throw Error(
-                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`
+                            `Invalid componentType ${dependencyValues.typeAttr} of copy.`,
                         );
                     }
                     if (dependencyValues.numComponentsAttr !== null) {
@@ -837,7 +837,7 @@ export default class Copy extends CompositeComponent {
                     }
                 } else if (dependencyValues.numComponentsAttr !== null) {
                     throw Error(
-                        `You must specify createComponentOfType when specifying numComponents for a copy.`
+                        `You must specify createComponentOfType when specifying numComponents for a copy.`,
                     );
                 } else {
                     numComponentsSpecified = null;
@@ -875,8 +875,8 @@ export default class Copy extends CompositeComponent {
                                             inheritedComponentType:
                                                 x.componentType,
                                             baseComponentType: "module",
-                                        }
-                                    )
+                                        },
+                                    ),
                             ))
                     ) {
                         link = false;
@@ -1141,14 +1141,14 @@ export default class Copy extends CompositeComponent {
 
         let assignNames = await component.stateValues.effectiveAssignNames;
 
-        let serializedComponentsForCid = await component.stateValues
-            .serializedComponentsForCid;
+        let serializedComponentsForCid =
+            await component.stateValues.serializedComponentsForCid;
 
         if (serializedComponentsForCid) {
             let replacements = deepClone([serializedComponentsForCid[0]]);
 
             let additionalChildren = deepClone(
-                serializedComponentsForCid.slice(1)
+                serializedComponentsForCid.slice(1),
             );
 
             if (replacements[0].children) {
@@ -1202,7 +1202,7 @@ export default class Copy extends CompositeComponent {
                             ]);
                         } else if (attribute.childrenForComponent) {
                             serializeFunctions.setTNamesToAbsolute(
-                                attribute.childrenForComponent
+                                attribute.childrenForComponent,
                             );
                         }
                     }
@@ -1221,7 +1221,7 @@ export default class Copy extends CompositeComponent {
                         componentInfoObjects,
                         compositeAttributesObj,
                         compositeCreatesNewNamespace: newNamespace,
-                    }
+                    },
                 );
 
                 for (let attrName in attributesFromComposite) {
@@ -1232,14 +1232,14 @@ export default class Copy extends CompositeComponent {
                         ]);
                     } else if (attribute.childrenForComponent) {
                         serializeFunctions.setTNamesToAbsolute(
-                            attribute.childrenForComponent
+                            attribute.childrenForComponent,
                         );
                     }
                 }
 
                 Object.assign(
                     replacements[0].attributes,
-                    attributesFromComposite
+                    attributesFromComposite,
                 );
             }
 
@@ -1287,7 +1287,7 @@ export default class Copy extends CompositeComponent {
 
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
-                }
+                },
             );
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
@@ -1343,7 +1343,7 @@ export default class Copy extends CompositeComponent {
 
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
-                }
+                },
             );
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
@@ -1355,8 +1355,8 @@ export default class Copy extends CompositeComponent {
             };
         }
 
-        let replacementSourceIdentities = await component.stateValues
-            .replacementSourceIdentities;
+        let replacementSourceIdentities =
+            await component.stateValues.replacementSourceIdentities;
         if (
             !(await component.stateValues.targetComponent) ||
             !replacementSourceIdentities
@@ -1383,20 +1383,20 @@ export default class Copy extends CompositeComponent {
                         componentInfoObjects,
                         compositeAttributesObj,
                         compositeCreatesNewNamespace: newNamespace,
-                    }
+                    },
                 );
 
                 workspace.uniqueIdentifiersUsedBySource[0] = [];
                 let uniqueIdentifierBase = componentType + "|empty";
                 let uniqueIdentifier = getUniqueIdentifierFromBase(
                     uniqueIdentifierBase,
-                    workspace.uniqueIdentifiersUsedBySource[0]
+                    workspace.uniqueIdentifiersUsedBySource[0],
                 );
 
                 let children = deepClone(component.serializedChildren);
                 if (!componentClass.includeBlankStringChildren) {
                     children = children.filter(
-                        (x) => typeof x !== "string" || x.trim() !== ""
+                        (x) => typeof x !== "string" || x.trim() !== "",
                     );
                 }
 
@@ -1431,7 +1431,7 @@ export default class Copy extends CompositeComponent {
 
                 workspace.numReplacementsBySource.push(replacements.length);
                 workspace.numNonStringReplacementsBySource.push(
-                    replacements.filter((x) => typeof x !== "string").length
+                    replacements.filter((x) => typeof x !== "string").length,
                 );
             }
 
@@ -1445,7 +1445,7 @@ export default class Copy extends CompositeComponent {
                     compositeAttributesObj,
                     components,
                     publicCaseInsensitiveAliasSubstitutions,
-                }
+                },
             );
             errors.push(...verificationResult.errors);
             warnings.push(...verificationResult.warnings);
@@ -1470,12 +1470,12 @@ export default class Copy extends CompositeComponent {
 
         if (!resolveResult.success) {
             throw Error(
-                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`
+                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`,
             );
         }
 
-        let effectivePropNameBySource = await component.stateValues
-            .effectivePropNameBySource;
+        let effectivePropNameBySource =
+            await component.stateValues.effectivePropNameBySource;
         for (let ind in replacementSourceIdentities) {
             let thisPropName = effectivePropNameBySource[ind];
 
@@ -1490,7 +1490,7 @@ export default class Copy extends CompositeComponent {
 
                 if (!resolveResult.success) {
                     throw Error(
-                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`
+                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`,
                     );
                 }
             }
@@ -1525,7 +1525,7 @@ export default class Copy extends CompositeComponent {
                 for (let attrName in component.attributes) {
                     if (!component.attributes[attrName].component) {
                         attributesForExtraCopy[attrName] = JSON.parse(
-                            JSON.stringify(component.attributes[attrName])
+                            JSON.stringify(component.attributes[attrName]),
                         );
                     }
                 }
@@ -1583,13 +1583,13 @@ export default class Copy extends CompositeComponent {
             let numComponentsForSource;
 
             if (component.attributes.createComponentOfType?.primitive) {
-                let numComponentsTotal = await component.stateValues
-                    .numComponentsSpecified;
+                let numComponentsTotal =
+                    await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
 
                 // arbitrarily divide these components among the sources
                 numComponentsForSource = Math.floor(
-                    numComponentsTotal / numSources
+                    numComponentsTotal / numSources,
                 );
                 let nExtras = numComponentsTotal % numSources;
                 if (sourceNum < nExtras) {
@@ -1633,7 +1633,7 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
         workspace.sourceNames = replacementSourceIdentities.map(
-            (x) => x.componentName
+            (x) => x.componentName,
         );
 
         let verificationResult = await verifyReplacementsMatchSpecifiedType({
@@ -1780,8 +1780,8 @@ export default class Copy extends CompositeComponent {
         // if creating copy directly from the target component,
         // create a serialized copy of the entire component
 
-        let sourceAttributesToIgnore = await component.stateValues
-            .sourceAttributesToIgnore;
+        let sourceAttributesToIgnore =
+            await component.stateValues.sourceAttributesToIgnore;
 
         // a component that shadows a propVariable
         // (or shadows something that shadows a propVariable)
@@ -1950,7 +1950,7 @@ export default class Copy extends CompositeComponent {
 
         if (!componentClass.includeBlankStringChildren) {
             newChildren = newChildren.filter(
-                (x) => typeof x !== "string" || x.trim() !== ""
+                (x) => typeof x !== "string" || x.trim() !== "",
             );
         }
 
@@ -1965,12 +1965,12 @@ export default class Copy extends CompositeComponent {
             // from the autonumbering
             let componentCounts =
                 serializeFunctions.countRegularComponentTypesInNamespace(
-                    repl.children
+                    repl.children,
                 );
 
             serializeFunctions.renameAutonameBasedOnNewCounts(
                 newChildren,
-                componentCounts
+                componentCounts,
             );
         }
 
@@ -2042,8 +2042,8 @@ export default class Copy extends CompositeComponent {
 
         let assignNames = await component.stateValues.effectiveAssignNames;
 
-        let replacementSourceIdentities = await component.stateValues
-            .replacementSourceIdentities;
+        let replacementSourceIdentities =
+            await component.stateValues.replacementSourceIdentities;
         if (
             !(await component.stateValues.targetComponent) ||
             !replacementSourceIdentities
@@ -2152,12 +2152,12 @@ export default class Copy extends CompositeComponent {
 
         if (!resolveResult.success) {
             throw Error(
-                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`
+                `Couldn't resolve determineDependencies of replacementSources of ${component.componentName}`,
             );
         }
 
-        let effectivePropNameBySource = await component.stateValues
-            .effectivePropNameBySource;
+        let effectivePropNameBySource =
+            await component.stateValues.effectivePropNameBySource;
 
         for (let ind in replacementSourceIdentities) {
             let thisPropName = effectivePropNameBySource[ind];
@@ -2173,7 +2173,7 @@ export default class Copy extends CompositeComponent {
 
                 if (!resolveResult.success) {
                     throw Error(
-                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`
+                        `Couldn't resolve recalculateDownstreamComponents for target${ind} of replacementSources of ${component.componentName}`,
                     );
                 }
             }
@@ -2217,7 +2217,7 @@ export default class Copy extends CompositeComponent {
 
         let maxSourceLength = Math.max(
             replacementSourceIdentities.length,
-            workspace.numReplacementsBySource.length
+            workspace.numReplacementsBySource.length,
         );
 
         let recreateRemaining = false;
@@ -2226,13 +2226,13 @@ export default class Copy extends CompositeComponent {
             let numComponentsForSource;
 
             if (component.attributes.createComponentOfType?.primitive) {
-                let numComponentsTotal = await component.stateValues
-                    .numComponentsSpecified;
+                let numComponentsTotal =
+                    await component.stateValues.numComponentsSpecified;
                 let numSources = replacementSourceIdentities.length;
 
                 // arbitrarily divide these components among the sources
                 numComponentsForSource = Math.floor(
-                    numComponentsTotal / numSources
+                    numComponentsTotal / numSources,
                 );
                 let nExtras = numComponentsTotal % numSources;
                 if (sourceNum < nExtras) {
@@ -2273,7 +2273,7 @@ export default class Copy extends CompositeComponent {
                             .slice(sourceNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0)
+                                    (workspace.numReplacementsBySource[i] = 0),
                             );
                         workspace.numNonStringReplacementsBySource
                             .slice(sourceNum)
@@ -2281,7 +2281,7 @@ export default class Copy extends CompositeComponent {
                                 (v, i) =>
                                     (workspace.numNonStringReplacementsBySource[
                                         i
-                                    ] = 0)
+                                    ] = 0),
                             );
                     }
 
@@ -2392,7 +2392,7 @@ export default class Copy extends CompositeComponent {
                             .slice(sourceNum)
                             .forEach(
                                 (v, i) =>
-                                    (workspace.numReplacementsBySource[i] = 0)
+                                    (workspace.numReplacementsBySource[i] = 0),
                             );
                         workspace.numNonStringReplacementsBySource
                             .slice(sourceNum)
@@ -2400,7 +2400,7 @@ export default class Copy extends CompositeComponent {
                                 (v, i) =>
                                     (workspace.numNonStringReplacementsBySource[
                                         i
-                                    ] = 0)
+                                    ] = 0),
                             );
                     }
                 }
@@ -2485,13 +2485,13 @@ export default class Copy extends CompositeComponent {
                 workspace.numReplacementsBySource
                     .slice(sourceNum)
                     .forEach(
-                        (v, i) => (workspace.numReplacementsBySource[i] = 0)
+                        (v, i) => (workspace.numReplacementsBySource[i] = 0),
                     );
                 workspace.numNonStringReplacementsBySource
                     .slice(sourceNum)
                     .forEach(
                         (v, i) =>
-                            (workspace.numNonStringReplacementsBySource[i] = 0)
+                            (workspace.numNonStringReplacementsBySource[i] = 0),
                     );
             } else {
                 let nonStringInd = 0;
@@ -2508,7 +2508,7 @@ export default class Copy extends CompositeComponent {
                             ].some(
                                 (v, i) =>
                                     v !==
-                                    propVariablesCopiedByReplacement[ind][i]
+                                    propVariablesCopiedByReplacement[ind][i],
                             )
                         ) {
                             onlyDifferenceIsType = false;
@@ -2526,8 +2526,8 @@ export default class Copy extends CompositeComponent {
                     }
 
                     if (ind == 0 && foundDifference && onlyDifferenceIsType) {
-                        let requiredLength = await component.stateValues
-                            .numComponentsSpecified;
+                        let requiredLength =
+                            await component.stateValues.numComponentsSpecified;
 
                         let wrapExistingReplacements =
                             requiredLength === 1 &&
@@ -2562,7 +2562,7 @@ export default class Copy extends CompositeComponent {
             }
 
             let nNewNonStrings = newSerializedReplacements.filter(
-                (x) => typeof x !== "string"
+                (x) => typeof x !== "string",
             ).length;
 
             numReplacementsSoFar += nNewReplacements;
@@ -2581,7 +2581,7 @@ export default class Copy extends CompositeComponent {
         workspace.numNonStringReplacementsBySource =
             numNonStringReplacementsBySource;
         workspace.sourceNames = replacementSourceIdentities.map(
-            (x) => x.componentName
+            (x) => x.componentName,
         );
         workspace.propVariablesCopiedBySource = propVariablesCopiedBySource;
 
@@ -2667,7 +2667,7 @@ export default class Copy extends CompositeComponent {
             return {
                 numReplacements: newSerializedChildren.length,
                 numNonStringReplacements: newSerializedChildren.filter(
-                    (x) => typeof x !== "string"
+                    (x) => typeof x !== "string",
                 ).length,
                 propVariablesCopiedByReplacement,
                 replacementInstruction,
@@ -2749,7 +2749,7 @@ export async function replacementFromProp({
             arraySize = await stateVarObj.arraySize;
             unflattenedArrayKeys = stateVarObj.getAllArrayKeys(
                 arraySize,
-                false
+                false,
             );
         } else {
             arrayStateVarObj = target.state[stateVarObj.arrayStateVariable];
@@ -2809,7 +2809,7 @@ export async function replacementFromProp({
                     stateVarObj.numDimensions - numWrappingComponents - 1;
                 numReplacementsForSource = flattenLevels(
                     unflattenedArrayKeys,
-                    nLevelsToFlatten
+                    nLevelsToFlatten,
                 ).length;
             }
         }
@@ -2891,7 +2891,7 @@ export async function replacementFromProp({
                         propVariable;
                     let uniqueIdentifier = getUniqueIdentifierFromBase(
                         uniqueIdentifierBase,
-                        uniqueIdentifiersUsed
+                        uniqueIdentifiersUsed,
                     );
 
                     let attributesFromComposite =
@@ -3006,7 +3006,7 @@ export async function replacementFromProp({
 
                         Object.assign(
                             attributesForReplacement,
-                            attributesFromComposite
+                            attributesFromComposite,
                         );
 
                         serializedReplacements.push({
@@ -3098,8 +3098,8 @@ export async function replacementFromProp({
                                             primitive: JSON.parse(
                                                 JSON.stringify(
                                                     target.attributes[attrName]
-                                                        .primitive
-                                                )
+                                                        .primitive,
+                                                ),
                                             ),
                                         };
                                     }
@@ -3108,13 +3108,13 @@ export async function replacementFromProp({
 
                             Object.assign(
                                 attributesForReplacement,
-                                attributesFromComponent
+                                attributesFromComponent,
                             );
                         }
 
                         Object.assign(
                             attributesForReplacement,
-                            attributesFromComposite
+                            attributesFromComposite,
                         );
 
                         let primaryEssentialStateVariable = "value";
@@ -3157,7 +3157,7 @@ export async function replacementFromProp({
                     let uniqueIdentifierBase = createComponentOfType + "|empty";
                     let uniqueIdentifier = getUniqueIdentifierFromBase(
                         uniqueIdentifierBase,
-                        uniqueIdentifiersUsed
+                        uniqueIdentifiersUsed,
                     );
 
                     serializedReplacements.push({
@@ -3172,7 +3172,7 @@ export async function replacementFromProp({
             let createReplacementPiece = async function (
                 subArrayKeys,
                 numDimensionsLeft,
-                init = false
+                init = false,
             ) {
                 let pieces = [];
                 let propVariablesCopiedByPiece = [];
@@ -3183,11 +3183,11 @@ export async function replacementFromProp({
                         // recurse down to previous dimension
                         let result = await createReplacementPiece(
                             subSubArrayKeys,
-                            numDimensionsLeft - 1
+                            numDimensionsLeft - 1,
                         );
                         pieces.push(...result.pieces);
                         propVariablesCopiedByPiece.push(
-                            ...result.propVariablesCopiedByPiece
+                            ...result.propVariablesCopiedByPiece,
                         );
                     }
                 } else {
@@ -3203,7 +3203,7 @@ export async function replacementFromProp({
                             propVariable;
                         let uniqueIdentifier = getUniqueIdentifierFromBase(
                             uniqueIdentifierBase,
-                            uniqueIdentifiersUsed
+                            uniqueIdentifiersUsed,
                         );
 
                         let createComponentOfType =
@@ -3242,7 +3242,7 @@ export async function replacementFromProp({
                                     if (sObj.isArray) {
                                         stateVariableToShadow =
                                             sObj.arrayVarNameFromArrayKey(
-                                                arrayKey
+                                                arrayKey,
                                             );
                                     }
 
@@ -3424,8 +3424,8 @@ export async function replacementFromProp({
                                                         JSON.stringify(
                                                             target.attributes[
                                                                 attrName
-                                                            ].primitive
-                                                        )
+                                                            ].primitive,
+                                                        ),
                                                     ),
                                                 };
                                         }
@@ -3434,7 +3434,7 @@ export async function replacementFromProp({
 
                                 Object.assign(
                                     attributesForReplacement,
-                                    attributesFromComponent
+                                    attributesFromComponent,
                                 );
                             }
 
@@ -3478,7 +3478,7 @@ export async function replacementFromProp({
                         }
 
                         propVariablesCopiedByPiece.push(
-                            propVariablesCopiedForThisPiece
+                            propVariablesCopiedForThisPiece,
                         );
                     }
                 }
@@ -3494,7 +3494,7 @@ export async function replacementFromProp({
                         let uniqueIdentifierBase = wrapCT + "|wrapper";
                         let uniqueIdentifier = getUniqueIdentifierFromBase(
                             uniqueIdentifierBase,
-                            uniqueIdentifiersUsed
+                            uniqueIdentifiersUsed,
                         );
 
                         let children = [];
@@ -3523,7 +3523,7 @@ export async function replacementFromProp({
                             if (wrapCs[ind].doenetAttributes) {
                                 pieces[0].doenetAttributes = Object.assign(
                                     {},
-                                    wrapCs[ind].doenetAttributes
+                                    wrapCs[ind].doenetAttributes,
                                 );
                             }
                             if (wrapCs[ind].isAttribute) {
@@ -3649,7 +3649,7 @@ export async function replacementFromProp({
 
                                     Object.assign(
                                         attributesForReplacement,
-                                        additionalAttributes
+                                        additionalAttributes,
                                     );
                                 }
                             }
@@ -3663,7 +3663,7 @@ export async function replacementFromProp({
             let result = await createReplacementPiece(
                 unflattenedArrayKeys,
                 stateVarObj.numDimensions,
-                true
+                true,
             );
 
             let newReplacements = result.pieces;
@@ -3688,7 +3688,7 @@ export async function replacementFromProp({
                         componentInfoObjects,
                         compositeAttributesObj,
                         compositeCreatesNewNamespace: newNamespace,
-                    }
+                    },
                 );
 
                 Object.assign(replacement.attributes, attributesFromComposite);
@@ -3734,7 +3734,7 @@ export async function replacementFromProp({
                             createComponentOfType = wrapCs[0].componentType;
                             wrapDoenetAttributes = Object.assign(
                                 {},
-                                wrapCs[0].doenetAttributes
+                                wrapCs[0].doenetAttributes,
                             );
                         } else {
                             createComponentOfType = wrapCs[0];
@@ -3749,7 +3749,7 @@ export async function replacementFromProp({
                                 createComponentOfType =
                                     createComponentOfType[
                                         arrayStateVarObj.keyToIndex(
-                                            arrayKeys[ind]
+                                            arrayKeys[ind],
                                         )
                                     ];
                             } else {
@@ -3764,7 +3764,7 @@ export async function replacementFromProp({
                     let uniqueIdentifierBase = createComponentOfType + "|empty";
                     let uniqueIdentifier = getUniqueIdentifierFromBase(
                         uniqueIdentifierBase,
-                        uniqueIdentifiersUsed
+                        uniqueIdentifiersUsed,
                     );
 
                     let newReplacement = {
@@ -3778,7 +3778,7 @@ export async function replacementFromProp({
                 }
             } else if (newReplacements > numReplacementsForSource) {
                 throw Error(
-                    `Something went wrong when creating replacements for ${component.componentName} as we ended up with too many replacements`
+                    `Something went wrong when creating replacements for ${component.componentName} as we ended up with too many replacements`,
                 );
             }
         }
@@ -3810,7 +3810,7 @@ export async function replacementFromProp({
         let uniqueIdentifierBase = target.componentName + "|shadow|" + varName;
         let uniqueIdentifier = getUniqueIdentifierFromBase(
             uniqueIdentifierBase,
-            uniqueIdentifiersUsed
+            uniqueIdentifiersUsed,
         );
 
         if (
@@ -3876,7 +3876,7 @@ export async function replacementFromProp({
 
                 Object.assign(
                     attributesForReplacement,
-                    attributesFromComposite
+                    attributesFromComposite,
                 );
 
                 serializedReplacements.push({
@@ -3924,8 +3924,8 @@ export async function replacementFromProp({
                                         .addAttributeComponentsShadowingStateVariables[
                                         attrName
                                     ].stateVariableToShadow;
-                                let attributeValue = await target.state[vName]
-                                    .value;
+                                let attributeValue =
+                                    await target.state[vName].value;
                                 if (!target.state[vName].usedDefault) {
                                     additionalAttributes[attrName] =
                                         attributeValue;
@@ -3963,8 +3963,8 @@ export async function replacementFromProp({
                                     primitive: JSON.parse(
                                         JSON.stringify(
                                             target.attributes[attrName]
-                                                .primitive
-                                        )
+                                                .primitive,
+                                        ),
                                     ),
                                 };
                             }
@@ -3973,13 +3973,13 @@ export async function replacementFromProp({
 
                     Object.assign(
                         attributesForReplacement,
-                        attributesFromComponent
+                        attributesFromComponent,
                     );
                 }
 
                 Object.assign(
                     attributesForReplacement,
-                    attributesFromComposite
+                    attributesFromComposite,
                 );
 
                 let primaryEssentialStateVariable = "value";

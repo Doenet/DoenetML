@@ -27,7 +27,6 @@ import { useRef } from "react";
 import { FaKeyboard } from "react-icons/fa";
 import { CloseIcon } from "@chakra-ui/icons";
 
-
 /**
  * Virtual keyboard without Recoil integration. You must handle its state and pass in the callbacks yourself.
  */

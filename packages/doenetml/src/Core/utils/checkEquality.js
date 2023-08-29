@@ -205,10 +205,10 @@ export default function checkEquality({
 
                 if (caseInsensitiveMatch) {
                     expr_a = me.fromAst(
-                        setStringsInTreeToLowerCase(expr_a.tree)
+                        setStringsInTreeToLowerCase(expr_a.tree),
                     );
                     expr_b = me.fromAst(
-                        setStringsInTreeToLowerCase(expr_b.tree)
+                        setStringsInTreeToLowerCase(expr_b.tree),
                     );
                 }
 
@@ -501,7 +501,7 @@ export default function checkEquality({
                 // if v doesn't match any previous elements, add to array
                 if (
                     !distinctElements.some(
-                        (x) => check_equality(x, v).fraction_equal === 1
+                        (x) => check_equality(x, v).fraction_equal === 1,
                     )
                 ) {
                     distinctElements.push(v);
@@ -517,7 +517,7 @@ export default function checkEquality({
                     // if v doesn't match any previous elements, add to array
                     if (
                         !distinctElements.some(
-                            (x) => check_equality(x, v).fraction_equal === 1
+                            (x) => check_equality(x, v).fraction_equal === 1,
                         )
                     ) {
                         distinctElements.push(v);
@@ -535,7 +535,7 @@ export default function checkEquality({
                 // if v doesn't match any previous elements, add to array
                 if (
                     !distinctElements.some(
-                        (x) => check_equality(x, v).fraction_equal === 1
+                        (x) => check_equality(x, v).fraction_equal === 1,
                     )
                 ) {
                     distinctElements.push(v);
@@ -598,7 +598,7 @@ export default function checkEquality({
                 if (
                     typeof object2 === "string" &&
                     object1.every(
-                        (x) => typeof x === "string" && !x.includes(",")
+                        (x) => typeof x === "string" && !x.includes(","),
                     )
                 ) {
                     object2 = object2.split(",").map((x) => x.trim());
@@ -710,7 +710,7 @@ export default function checkEquality({
                 C[i + 1][j + 1] = Math.max(
                     C[i][j] + sub_results.fraction_equal,
                     C[i + 1][j],
-                    C[i][j + 1]
+                    C[i][j + 1],
                 );
             }
         }

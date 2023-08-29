@@ -198,7 +198,7 @@ export default class Curve extends GraphicalComponent {
                     group: "bezierControls",
                     componentTypes: ["bezierControls"],
                 },
-            ]
+            ],
         );
 
         return childGroups;
@@ -211,7 +211,7 @@ export default class Curve extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions()
+            returnRoundingStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -508,7 +508,7 @@ export default class Curve extends GraphicalComponent {
                         } else {
                             parMax = Math.min(
                                 parMax,
-                                graphMax + 0.1 * (graphMax - graphMin)
+                                graphMax + 0.1 * (graphMax - graphMin),
                             );
                         }
                     }
@@ -620,7 +620,7 @@ export default class Curve extends GraphicalComponent {
                         } else {
                             parMin = Math.max(
                                 parMin,
-                                graphMin + 0.1 * (graphMin - graphMax)
+                                graphMin + 0.1 * (graphMin - graphMax),
                             );
                         }
                     }
@@ -780,7 +780,7 @@ export default class Curve extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -952,7 +952,7 @@ export default class Curve extends GraphicalComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let pt = dependencyValuesByKey[arrayKey].throughPoint.map(
-                        (x) => x.evaluate_to_constant()
+                        (x) => x.evaluate_to_constant(),
                     );
                     if (!pt.every((x) => Number.isFinite(x))) {
                         pt = Array(pt.length).fill(NaN);
@@ -1315,7 +1315,7 @@ export default class Curve extends GraphicalComponent {
                     if (indices.every((x, i) => x < arraySize[i])) {
                         return Array.from(
                             Array(arraySize[2]),
-                            (_, i) => String(indices) + "," + i
+                            (_, i) => String(indices) + "," + i,
                         );
                     } else {
                         return [];
@@ -1518,7 +1518,7 @@ export default class Curve extends GraphicalComponent {
                             } else {
                                 // arrayKey corresponds to second vector
                                 newControlValues[arrayKeyDim] = me.fromAst(
-                                    -coordsNumeric[dim].tree
+                                    -coordsNumeric[dim].tree,
                                 );
                                 newControlValues[flippedArrayKeyDim] =
                                     coordsNumeric[dim];
@@ -1795,7 +1795,7 @@ export default class Curve extends GraphicalComponent {
                     if (indices.every((x, i) => x < arraySize[i])) {
                         return Array.from(
                             Array(arraySize[2]),
-                            (_, i) => String(indices) + "," + i
+                            (_, i) => String(indices) + "," + i,
                         );
                     } else {
                         return [];
@@ -1901,7 +1901,7 @@ export default class Curve extends GraphicalComponent {
                                     arrayKey
                                 ].throughPointX.evaluate_to_constant();
                             newControlValues[arrayKey] = me.fromAst(
-                                pointX + vectorX.tree
+                                pointX + vectorX.tree,
                             );
                         } else {
                             newControlValues[arrayKey] = null;
@@ -2006,7 +2006,7 @@ export default class Curve extends GraphicalComponent {
 
                 for (let arrayKey of arrayKeys) {
                     let pt = dependencyValuesByKey[arrayKey].controlPoint.map(
-                        (x) => x.tree
+                        (x) => x.tree,
                     );
                     numericalControlPoints[arrayKey] = pt;
                 }
@@ -2073,8 +2073,8 @@ export default class Curve extends GraphicalComponent {
                                 p1[dim],
                                 p2[dim],
                                 3 * cv1[dim],
-                                -3 * cv2[dim]
-                            )
+                                -3 * cv2[dim],
+                            ),
                         );
                     }
 
@@ -2202,7 +2202,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minScale = Math.min(
                             scaleSpeedToReachXEdge,
-                            scaleSpeedToReachYEdge
+                            scaleSpeedToReachYEdge,
                         );
 
                         if (minScale > 1) {
@@ -2270,7 +2270,7 @@ export default class Curve extends GraphicalComponent {
                             // if alpha > 0, solve for y = yscale
                             // else if alpha < 0 solve for y = -yscale
                             let sr = Math.sqrt(
-                                beta * beta + 4 * Math.abs(alpha) * yscale
+                                beta * beta + 4 * Math.abs(alpha) * yscale,
                             );
                             minSpeedToReachYEdge =
                                 (Math.abs(beta) + sr) / (2 * Math.abs(alpha));
@@ -2278,7 +2278,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minSpeed = Math.min(
                             minSpeedToReachXEdge,
-                            minSpeedToReachYEdge
+                            minSpeedToReachYEdge,
                         );
 
                         if (minSpeed > Math.abs(xpEffective)) {
@@ -2343,7 +2343,7 @@ export default class Curve extends GraphicalComponent {
                             // if alpha > 0, solve for x = xscale
                             // else if alpha < 0 solve for x = -xscale
                             let sr = Math.sqrt(
-                                beta * beta + 4 * Math.abs(alpha) * xscale
+                                beta * beta + 4 * Math.abs(alpha) * xscale,
                             );
                             minSpeedToReachXEdge =
                                 (Math.abs(beta) + sr) / (2 * Math.abs(alpha));
@@ -2351,7 +2351,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minSpeed = Math.min(
                             minSpeedToReachXEdge,
-                            minSpeedToReachYEdge
+                            minSpeedToReachYEdge,
                         );
 
                         if (minSpeed > Math.abs(ypEffective)) {
@@ -2496,7 +2496,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minScale = Math.min(
                             scaleSpeedToReachXEdge,
-                            scaleSpeedToReachYEdge
+                            scaleSpeedToReachYEdge,
                         );
 
                         if (minScale > 1) {
@@ -2564,7 +2564,7 @@ export default class Curve extends GraphicalComponent {
                             // if alpha > 0, solve for y = yscale
                             // else if alpha < 0 solve for y = -yscale
                             let sr = Math.sqrt(
-                                beta * beta + 4 * Math.abs(alpha) * yscale
+                                beta * beta + 4 * Math.abs(alpha) * yscale,
                             );
                             minSpeedToReachYEdge =
                                 (Math.abs(beta) + sr) / (2 * Math.abs(alpha));
@@ -2572,7 +2572,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minSpeed = Math.min(
                             minSpeedToReachXEdge,
-                            minSpeedToReachYEdge
+                            minSpeedToReachYEdge,
                         );
 
                         if (minSpeed > Math.abs(xpEffective)) {
@@ -2637,7 +2637,7 @@ export default class Curve extends GraphicalComponent {
                             // if alpha > 0, solve for x = xscale
                             // else if alpha < 0 solve for x = -xscale
                             let sr = Math.sqrt(
-                                beta * beta + 4 * Math.abs(alpha) * xscale
+                                beta * beta + 4 * Math.abs(alpha) * xscale,
                             );
                             minSpeedToReachXEdge =
                                 (Math.abs(beta) + sr) / (2 * Math.abs(alpha));
@@ -2645,7 +2645,7 @@ export default class Curve extends GraphicalComponent {
 
                         let minSpeed = Math.min(
                             minSpeedToReachXEdge,
-                            minSpeedToReachYEdge
+                            minSpeedToReachYEdge,
                         );
 
                         if (minSpeed > Math.abs(ypEffective)) {
@@ -2718,7 +2718,7 @@ export default class Curve extends GraphicalComponent {
                         Math.max(
                             1,
                             dependencyValues.functionChildren.length,
-                            dependencyValues.fromVectorValuedFunctionOfDim
+                            dependencyValues.fromVectorValuedFunctionOfDim,
                         ),
                     ];
                 }
@@ -3110,7 +3110,7 @@ export default class Curve extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -3369,7 +3369,7 @@ export default class Curve extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -3629,7 +3629,7 @@ export default class Curve extends GraphicalComponent {
                         // array of "pointInd,i", where i=0, ..., arraySize[1]-1
                         return Array.from(
                             Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i
+                            (_, i) => pointInd + "," + i,
                         );
                     } else {
                         return [];
@@ -3796,7 +3796,7 @@ export default class Curve extends GraphicalComponent {
                     });
                 } else if (
                     ["parameterization", "bezier"].includes(
-                        dependencyValues.curveType
+                        dependencyValues.curveType,
                     )
                 ) {
                     nearestPointFunction = getNearestPointParametrizedCurve({

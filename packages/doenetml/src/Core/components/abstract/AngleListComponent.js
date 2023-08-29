@@ -90,7 +90,7 @@ export default class AngleListComponent extends BaseComponent {
                 this.childLogic.returnMatches("AtLeastZeroAngles");
             this.state.numAngles = AtLeastZeroAngles.length;
             this.state.angles = AtLeastZeroAngles.map(
-                (i) => this.activeChildren[i]
+                (i) => this.activeChildren[i],
             );
         }
     }

@@ -117,7 +117,7 @@ export default React.memo(function orbitalDiagramInput(props) {
                 setSelectedBox={setSelectedBox}
                 deselect={deselect}
                 name={name}
-            />
+            />,
         );
     }
 
@@ -280,7 +280,7 @@ const OrbitalRow = React.memo(function OrbitalRow({
                 isSelected={isSelected}
                 setSelectedBox={setSelectedBox}
                 name={name}
-            />
+            />,
         );
     }
 

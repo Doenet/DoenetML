@@ -65,7 +65,7 @@ export default class MatchesPattern extends BooleanComponent {
                 (matchedChildren.length === 1 &&
                     componentInfoObjects.componentIsSpecifiedType(
                         matchedChildren[0],
-                        "math"
+                        "math",
                     ))
             ) {
                 return { success: false };
@@ -148,7 +148,7 @@ export default class MatchesPattern extends BooleanComponent {
                 }
 
                 let pattern = replacePatternVariables(
-                    dependencyValues.patternAttr.stateValues.value.tree
+                    dependencyValues.patternAttr.stateValues.value.tree,
                 );
 
                 return {
@@ -232,16 +232,16 @@ export default class MatchesPattern extends BooleanComponent {
                     let isNumeric = (m) =>
                         !Number.isNaN(me.fromAst(m).evaluate_to_constant());
                     dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isNumeric)
+                        (v) => (variables[v] = isNumeric),
                     );
                 } else if (dependencyValues.requireVariableMatches) {
                     let isString = (m) => typeof m === "string";
                     dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isString)
+                        (v) => (variables[v] = isString),
                     );
                 } else {
                     dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = true)
+                        (v) => (variables[v] = true),
                     );
                 }
 
@@ -257,7 +257,7 @@ export default class MatchesPattern extends BooleanComponent {
 
                 let matchResult = mathValue.match(
                     dependencyValues.pattern,
-                    params
+                    params,
                 );
 
                 let value = false,
@@ -272,15 +272,15 @@ export default class MatchesPattern extends BooleanComponent {
                                     m
                                         .variables()
                                         .some((v) =>
-                                            em.equalsViaSyntax(me.fromAst(v))
-                                        )
-                                )
+                                            em.equalsViaSyntax(me.fromAst(v)),
+                                        ),
+                                ),
                             )
                     ) {
                         value = true;
                         allPatternMatches =
                             dependencyValues.patternVariables.map((v) =>
-                                me.fromAst(matchResult[v])
+                                me.fromAst(matchResult[v]),
                             );
                     }
                 }

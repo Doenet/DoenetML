@@ -52,7 +52,7 @@ export class ComponentSize extends InlineComponent {
 
                         let childrenForNumber = matchedChildren.slice(
                             0,
-                            matchedChildren.length - 1
+                            matchedChildren.length - 1,
                         );
                         if (rest.length > 0) {
                             childrenForNumber.push(rest);

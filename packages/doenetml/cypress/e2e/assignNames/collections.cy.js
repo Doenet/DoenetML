@@ -59,7 +59,7 @@ describe("Collection assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -1083,7 +1083,7 @@ describe("Collection assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -2150,7 +2150,7 @@ describe("Collection assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4119,7 +4119,7 @@ describe("Collection assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -4219,15 +4219,15 @@ describe("Collection assignName Tests", function () {
         cy.window().then(() => {
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                "(2,1)"
+                "(2,1)",
             );
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                "(−2,−1)"
+                "(−2,−1)",
             );
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                "(−3,−2)"
+                "(−3,−2)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -4585,7 +4585,7 @@ describe("Collection assignName Tests", function () {
 
             cy.get(cesc("#\\/p3") + " .mjx-mrow").should(
                 "contain.text",
-                "(5,6)"
+                "(5,6)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -4934,7 +4934,7 @@ describe("Collection assignName Tests", function () {
         cy.window().then(() => {
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                "(5,6)"
+                "(5,6)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -5463,7 +5463,7 @@ describe("Collection assignName Tests", function () {
 
             cy.get(cesc("#\\/q6") + " .mjx-mrow").should(
                 "contain.text",
-                "(−6,−4)"
+                "(−6,−4)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -5968,7 +5968,7 @@ describe("Collection assignName Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                "(−3,−7)"
+                "(−3,−7)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -6416,7 +6416,7 @@ describe("Collection assignName Tests", function () {
 
             cy.get(cesc("#\\/p4") + " .mjx-mrow").should(
                 "contain.text",
-                "(1,−8)"
+                "(1,−8)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -6849,7 +6849,7 @@ describe("Collection assignName Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/p2") + " .mjx-mrow").should(
                 "contain.text",
-                "(−2,−8)"
+                "(−2,−8)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -7939,7 +7939,7 @@ describe("Collection assignName Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                "(−8,2)"
+                "(−8,2)",
             );
 
             cy.get(cesc("#\\/p1"))
@@ -8285,7 +8285,7 @@ describe("Collection assignName Tests", function () {
         cy.window().then(async (win) => {
             cy.get(cesc("#\\/p1") + " .mjx-mrow").should(
                 "contain.text",
-                "(−4,6)"
+                "(−4,6)",
             );
             cy.get(cesc("#\\/p1"))
                 .find(".mjx-mrow")
@@ -8893,7 +8893,7 @@ describe("Collection assignName Tests", function () {
 
   `,
                 },
-                "*"
+                "*",
             );
         });
 
@@ -8921,13 +8921,13 @@ describe("Collection assignName Tests", function () {
                 let pointa = points1[ind];
                 if (pointa) {
                     cy.get(
-                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("contain.text", pointToString(pointa));
                     cy.get(
-                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("not.contain.text", pointToString(pointa) + ",");
                     cy.get(
-                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pa${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("not.contain.text", "," + pointToString(pointa));
                     cy.get(cesc(`#\\/pa${ind + 1}\\/_point1`))
                         .find(".mjx-mrow")
@@ -8938,20 +8938,20 @@ describe("Collection assignName Tests", function () {
                         });
                 } else {
                     cy.get(cesc(`#\\/pa${ind + 1}\\/_point1`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                 }
 
                 let pointb = points2[ind];
                 if (pointb) {
                     cy.get(
-                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("contain.text", pointToString(pointb));
                     cy.get(
-                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("not.contain.text", pointToString(pointb) + ",");
                     cy.get(
-                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`
+                        cesc(`#\\/pb${ind + 1}\\/_point1`) + ` .mjx-mrow`,
                     ).should("not.contain.text", "," + pointToString(pointb));
                     cy.get(cesc(`#\\/pb${ind + 1}\\/_point1`))
                         .find(".mjx-mrow")
@@ -8962,7 +8962,7 @@ describe("Collection assignName Tests", function () {
                         });
                 } else {
                     cy.get(cesc(`#\\/pb${ind + 1}\\/_point1`)).should(
-                        "not.exist"
+                        "not.exist",
                     );
                 }
             }

@@ -63,7 +63,7 @@ export default React.memo(function Figure(props) {
                 let applet = new window.GGBApplet(parameters, true);
                 applet.setHTML5Codebase(
                     "/media/geogebra/HTML5/5.0/web/",
-                    "true"
+                    "true",
                 );
                 applet.inject("container_" + cName, "preferhtml5");
             });

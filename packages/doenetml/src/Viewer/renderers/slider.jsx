@@ -97,13 +97,16 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
         let dInd = Math.floor(SVs.numItems / numToTest);
         for (let i = 1; i < numToTest; i++) {
             pointsToTest.push(
-                round_to_decimals(SVs.from + SVs.step * i * dInd, roundDecimals)
+                round_to_decimals(
+                    SVs.from + SVs.step * i * dInd,
+                    roundDecimals,
+                ),
             );
         }
         maxValueWidth = findMaxValueWidth(pointsToTest);
     } else {
         let pointsToTest = points.map((x) =>
-            round_to_decimals(x, roundDecimals)
+            round_to_decimals(x, roundDecimals),
         );
         maxValueWidth = findMaxValueWidth(pointsToTest);
     }
@@ -114,7 +117,7 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
             let labels = [];
             let maxAbs = Math.max(
                 Math.abs(SVs.firstItem),
-                Math.abs(SVs.lastItem)
+                Math.abs(SVs.lastItem),
             );
             let magnitudeOfMaxAbs = Math.round(Math.log(maxAbs) / Math.log(10));
             if (maxAbs === 0) {
@@ -124,13 +127,13 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
             for (let index = 0; index < SVs.numItems; index++) {
                 let point = round_to_decimals(
                     SVs.from + SVs.step * index,
-                    roundDecimals
+                    roundDecimals,
                 );
                 ticks.push(<Tick key={point} x={`${index * div_width}px`} />);
                 labels.push(
                     <Label key={point} x={`${index * div_width - 3}px`}>
                         {point}
-                    </Label>
+                    </Label>,
                 );
             }
             return [ticks, labels];
@@ -181,57 +184,57 @@ function generateNumericLabels(points, div_width, point_start_val, SVs) {
         let tickIndices, tickValues;
         if (points.length === 0) {
             let desiredNumberOfTicks = Math.floor(
-                SVs.width.size / maxValueWidth
+                SVs.width.size / maxValueWidth,
             );
             let tickSpan = SVs.lastItem - SVs.firstItem;
             let desiredDTick = tickSpan / (desiredNumberOfTicks + 1);
             let maxAbs = Math.max(
                 Math.abs(SVs.firstItem),
-                Math.abs(SVs.lastItem)
+                Math.abs(SVs.lastItem),
             );
             let magnitudeOfMaxAbs = Math.round(Math.log(maxAbs) / Math.log(10));
             let roundDecimalsForTickSpacing = 1 - magnitudeOfMaxAbs;
             let dTick = Math.max(
                 round_to_decimals(desiredDTick, roundDecimalsForTickSpacing),
-                10 ** -roundDecimalsForTickSpacing
+                10 ** -roundDecimalsForTickSpacing,
             );
             let numberOfTicks = Math.floor(tickSpan / dTick) + 1;
 
             let roundDecimals = 5 - magnitudeOfMaxAbs;
 
             tickValues = [...Array(numberOfTicks).keys()].map(
-                (i) => SVs.from + dTick * i
+                (i) => SVs.from + dTick * i,
             );
 
             tickIndices = tickValues.map((x) =>
-                Math.round((x - SVs.from) / SVs.step)
+                Math.round((x - SVs.from) / SVs.step),
             );
             tickValues = tickValues.map((x) =>
-                round_to_decimals(x, roundDecimals)
+                round_to_decimals(x, roundDecimals),
             );
         } else {
             let desiredNumberOfTicks = Math.max(
                 2,
-                Math.floor(SVs.width.size / maxValueWidth)
+                Math.floor(SVs.width.size / maxValueWidth),
             );
             let dIndex = Math.ceil(
-                (SVs.numItems - 1) / (desiredNumberOfTicks - 1) - 1e-10
+                (SVs.numItems - 1) / (desiredNumberOfTicks - 1) - 1e-10,
             );
             let numberOfTicks =
                 Math.floor((SVs.numItems - 1) / dIndex + 1e-10) + 1;
 
             tickIndices = [...Array(numberOfTicks).keys()].map((i) =>
-                Math.round(dIndex * i)
+                Math.round(dIndex * i),
             );
 
             let maxAbs = Math.max(
                 Math.abs(SVs.firstItem),
-                Math.abs(SVs.lastItem)
+                Math.abs(SVs.lastItem),
             );
             let magnitudeOfMaxAbs = Math.round(Math.log(maxAbs) / Math.log(10));
             let roundDecimals = 2 - magnitudeOfMaxAbs;
             tickValues = tickIndices.map((x) =>
-                round_to_decimals(points[x], roundDecimals)
+                round_to_decimals(points[x], roundDecimals),
             );
         }
 
@@ -351,7 +354,7 @@ function xPositionToValue(ref, div_width, start_val) {
 function nearestValue(refval, points, SVs) {
     let index = Math.max(
         0,
-        Math.min(SVs.numItems - 1, Math.round(refval - SVs.firstItem))
+        Math.min(SVs.numItems - 1, Math.round(refval - SVs.firstItem)),
     );
 
     let val;
@@ -444,7 +447,7 @@ export default React.memo(function Slider(props) {
                 SVs.items,
                 divisionWidth,
                 startValue,
-                SVs
+                SVs,
             );
         }
         let ticksAndLabels = "";
@@ -526,7 +529,7 @@ export default React.memo(function Slider(props) {
             let refval = xPositionToValue(
                 e.nativeEvent.clientX - offsetLeft,
                 divisionWidth,
-                startValue
+                startValue,
             );
 
             let valindexpair = nearestValue(refval, SVs.items, SVs);
@@ -546,7 +549,7 @@ export default React.memo(function Slider(props) {
             });
         } else {
             let i = Math.round(
-                (e.nativeEvent.clientX - offsetLeft) / divisionWidth
+                (e.nativeEvent.clientX - offsetLeft) / divisionWidth,
             );
             setIndex(i);
             // setThumbValue(SVs.items[i]);
@@ -582,7 +585,7 @@ export default React.memo(function Slider(props) {
             let refval = xPositionToValue(
                 e.clientX - offsetLeft,
                 divisionWidth,
-                startValue
+                startValue,
             );
 
             function xPositionToValue(ref, div_width, start_val) {
@@ -631,13 +634,13 @@ export default React.memo(function Slider(props) {
     function handleDragThrough(e) {
         if (isMouseDown.current) {
             setThumbXPos(
-                Math.max(0, Math.min(SVs.width.size, e.clientX - offsetLeft))
+                Math.max(0, Math.min(SVs.width.size, e.clientX - offsetLeft)),
             );
             if (!(SVs.type === "text")) {
                 let refval = xPositionToValue(
                     e.clientX - offsetLeft,
                     divisionWidth,
-                    startValue
+                    startValue,
                 );
 
                 let valindexpair = nearestValue(refval, SVs.items, SVs);
@@ -753,7 +756,7 @@ export default React.memo(function Slider(props) {
             SVs.items,
             divisionWidth,
             startValue,
-            SVs
+            SVs,
         );
     }
     let ticksAndLabels = "";

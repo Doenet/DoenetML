@@ -238,7 +238,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         let replacements = [];
 
         for (let value of (await component.stateValues.sampledValues).slice(
-            startNum
+            startNum,
         )) {
             replacements.push({
                 componentType: "integer",
@@ -324,7 +324,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         // update values of the remainder of the replacements
         let numUpdate = Math.min(
             component.replacements.length,
-            sampledValues.length
+            sampledValues.length,
         );
 
         for (let ind = 0; ind < numUpdate; ind++) {
@@ -354,7 +354,7 @@ export default class SamplePrimeNumbers extends CompositeComponent {
         let seedForRandomNumbers =
             sharedParameters.variantRng().toString().slice(2, 8) + +new Date();
         sharedParameters.rngWithDateSeed = new sharedParameters.rngClass(
-            seedForRandomNumbers
+            seedForRandomNumbers,
         );
     }
 
