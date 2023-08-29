@@ -24,6 +24,8 @@ exports[`Xml files parse correctly > xml-10.doenet parses correctly 1`] = `"Docu
 
 exports[`Xml files parse correctly > xml-12.doenet parses correctly 1`] = `"Document(Element(OpenTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),EndTag),Text,CloseTag(StartCloseTag,TagName,EndTag)))"`;
 
+exports[`Xml files parse correctly > xml-doenet-ampersand-1.doenet parses correctly 1`] = `"Document(EntityReference,Text,EntityReference,Text,EntityReference,Text)"`;
+
 exports[`Xml files parse correctly > xml-doenet-attributes-1.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName),Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue),SelfCloseEndTag)))"`;
 
 exports[`Xml files parse correctly > xml-doenet-attributes-2.doenet parses correctly 1`] = `"Document(Element(SelfClosingTag(StartTag,TagName,Attribute(AttributeName,Is,AttributeValue),Attribute(AttributeName,Is,AttributeValue(InvalidEntity)),SelfCloseEndTag)))"`;

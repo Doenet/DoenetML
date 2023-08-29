@@ -100,7 +100,6 @@ describe("Lezer Parsing Tests", () => {
         ];
         for (const { inStr, outStr } of inputOutput) {
             const parsed = parseAndCompile(inStr);
-            console.log(inStr, parsed)
             expect(parsed).toEqual(outStr);
         }
     });
