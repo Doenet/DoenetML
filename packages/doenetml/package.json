@@ -37,7 +37,6 @@
     "dependencies": {
         "@chakra-ui/icons": "^2.0.19",
         "@chakra-ui/react": "^2.7.0",
-        "@doenet/virtual-keyboard": "file:virtual-keyboard",
         "@fortawesome/fontawesome-svg-core": "^6.1.2",
         "@fortawesome/free-regular-svg-icons": "^6.1.2",
         "@fortawesome/free-solid-svg-icons": "^6.1.2",
