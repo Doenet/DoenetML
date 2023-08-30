@@ -1,4 +1,4 @@
-import { Position } from "../types";
+import { LezerSyntaxNodeName, Position } from "../types";
 import { SyntaxNode } from "@lezer/common";
 import { entityStringToRawString } from "./entity-to-string";
 import { Root } from "xast";
@@ -13,14 +13,14 @@ export type OffsetToPositionMap = {
  */
 export function entityToString(node: SyntaxNode, source: string): string {
     switch (node.name) {
-        case "CharacterReference": 
+        case "CharacterReference":
         case "EntityReference": {
             const entity = extractContent(node, source);
             return entityStringToRawString(entity);
         }
     }
     throw new Error(
-        `Cannot use entityToString to convert a node of type ${node.name}`
+        `Cannot use entityToString to convert a node of type ${node.name}`,
     );
 }
 
@@ -64,7 +64,7 @@ function unescapeEntities(node: SyntaxNode, source: string): string {
 export function textNodeToText(node: SyntaxNode, source: string): string {
     if (node.name !== "Text") {
         throw new Error(
-            `Can only get the text of an "AttributeValue" type node, not "${node.name}"`
+            `Can only get the text of an "AttributeValue" type node, not "${node.name}"`,
         );
     }
     return unescapeEntities(node, source);
@@ -76,7 +76,7 @@ export function textNodeToText(node: SyntaxNode, source: string): string {
 export function attributeValueText(node: SyntaxNode, source: string): string {
     if (node.name !== "AttributeValue") {
         throw new Error(
-            `Can only get the text of an "AttributeValue" type node, not "${node.name}"`
+            `Can only get the text of an "AttributeValue" type node, not "${node.name}"`,
         );
     }
     return removeQuotes(unescapeEntities(node, source));
@@ -88,11 +88,13 @@ export function attributeValueText(node: SyntaxNode, source: string): string {
  */
 export function lezerNodeToPosition(
     node: SyntaxNode,
-    offsetToPositionMap: OffsetToPositionMap
+    offsetToPositionMap: OffsetToPositionMap,
 ): Position & {
     start: { offset: number };
     end: { offset: number };
 } {
+    // XXX This is only temporary to clean up debug output
+    return undefined as any;
     const { rowMap, columnMap } = offsetToPositionMap;
     const { from, to } = node;
     return {
@@ -199,11 +201,11 @@ export function extractDoctypeInfo(rawDoctype: string): {
 }
 
 export function mergeAdjacentTextNodes(
-    nodes: Root["children"]
+    nodes: Root["children"],
 ): Root["children"] {
     const ret: Root["children"] = [];
 
-    let lastNode: typeof nodes[number] | null = null;
+    let lastNode: (typeof nodes)[number] | null = null;
     for (const node of nodes) {
         if (!lastNode) {
             lastNode = node;
@@ -219,6 +221,62 @@ export function mergeAdjacentTextNodes(
         } else {
             ret.push(node);
         }
+    }
+    return ret;
+}
+
+/**
+ * Finds the first error node (type === "⚠") in the subtree rooted at `node`.
+ */
+export function findFirstErrorInChild(node: SyntaxNode): SyntaxNode | null {
+    if (node.type.name === "⚠") {
+        return node;
+    }
+    let child = node.firstChild;
+    while (child) {
+        const error = findFirstErrorInChild(child);
+        if (error) {
+            return error;
+        }
+        child = child.nextSibling;
+    }
+    return null;
+}
+
+/**
+ * Finds the first child of `node` that matches `type`. This will also match the node
+ * itself.
+ */
+export function findFirstOfType(
+    node: SyntaxNode,
+    type: LezerSyntaxNodeName | number,
+): SyntaxNode | null {
+    if (
+        (typeof type === "string" && node.type.name === type) ||
+        node.type.id === type
+    ) {
+        return node;
+    }
+    let child = node.firstChild;
+    while (child) {
+        const error = findFirstErrorInChild(child);
+        if (error) {
+            return error;
+        }
+        child = child.nextSibling;
+    }
+    return null;
+}
+
+/**
+ * Returns all the children of `node`.
+ */
+export function getLezerChildren(node: SyntaxNode) {
+    const ret: SyntaxNode[] = [];
+    let child = node.firstChild;
+    while (child) {
+        ret.push(child);
+        child = child.nextSibling;
     }
     return ret;
 }

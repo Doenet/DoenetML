@@ -1,7 +1,7 @@
 // Code modified from xast-util-to-xml MIT License https://github.com/syntax-tree/xast-util-to-xml
 import { stringifyEntitiesLight } from "stringify-entities";
 import { ccount } from "ccount";
-import { DastNodes } from "../types";
+import { DastElement, DastNodes } from "../types";
 
 export type Options = {
     /**
@@ -9,6 +9,10 @@ export type Options = {
      * That means `<` and `&` characters are allowed unescaped in the output.
      */
     doenetSyntax?: boolean;
+    /**
+     * Whether to output XML error nodes when there are processing errors.
+     */
+    inlineErrors?: boolean;
 };
 
 /**
@@ -78,15 +82,17 @@ export function nodesToXml(
             const content = nodesToXml(node.children, options);
             const attributes = node.attributes || {};
 
-            const attrs = Object.entries(attributes).flatMap(([key, value]) => {
-                if (value != null) {
+            const attrs = attributes.flatMap((attr) => {
+                if (attr.children.length === 0) {
                     // Doenet syntax allows JSX style attributes without values assigned to them
-                    if (options.doenetSyntax && value === "true") {
-                        return name(key);
+                    if (options.doenetSyntax) {
+                        return name(attr.name);
                     }
-                    return `${name(key)}=${quote(value)}`;
+                    return `${name(attr.name)}="true"}`;
                 }
-                return [];
+                return `${name(attr.name)}=${quote(
+                    nodesToXml(attr.children, options),
+                )}`;
             });
             const printedAttrs =
                 (attrs.length > 0 ? " " : "") + attrs.join(" ");
@@ -114,6 +120,22 @@ export function nodesToXml(
                 escapedText = escapedText.replace(/&amp;(?!\S*;)/g, "&");
             }
             return escapedText;
+        }
+        case "error": {
+            if (options.inlineErrors) {
+                const errorElement: DastElement = {
+                    type: "element",
+                    name: "_error",
+                    attributes: [],
+                    children: [{ type: "text", value: node.message }],
+                };
+                return nodesToXml(errorElement, options);
+            }
+            return "";
+        }
+        default: {
+            // Typescript exhaustiveness check
+            const unusedType: void = node;
         }
     }
 

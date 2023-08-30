@@ -1,178 +1,280 @@
-import { SyntaxNode } from "@lezer/common";
-import { Doctype, Element, Root } from "xast";
-import { LezerSyntaxNodeName, DastAbstractNode, DastNodes } from "../types";
+import { SyntaxNode, TreeBuffer } from "@lezer/common";
 import {
+    CloseTag,
+    OpenTag,
+    TagName,
+} from "../generated-assets/lezer-doenet.terms";
+import { parser } from "../generated-assets/lezer-doenet";
+import {
+    DastAttribute,
+    DastDoctype,
+    DastElementContent,
+    DastRoot,
+    DastRootContent,
+    LezerSyntaxNodeName,
+} from "../types";
+import { createErrorNode } from "./create-error-node";
+import {
+    attributeValueText,
     createOffsetToPositionMap,
     entityToString,
     extractContent,
+    extractDoctypeInfo,
+    findFirstErrorInChild,
+    getLezerChildren,
     lezerNodeToPosition,
-    mergeAdjacentTextNodes,
-    OffsetToPositionMap,
     textNodeToText,
 } from "./lezer-to-dast-utils";
-import { lezerNodeToDastNodeWithoutChildren } from "./lezer-to-dast-without-children";
 
-export function lezerNodeChildrenToDastNode(
-    node: SyntaxNode,
-    source: string,
-    offsetToPositionMap?: OffsetToPositionMap,
-): Root["children"] {
-    const ret: Root["children"] = [];
-    let child = node.firstChild;
-    let needsMerge = false;
-    let lastNodeType: string = "";
-    while (child) {
-        const xastNode = lezerNodeToDastNode(
-            child,
-            source,
-            offsetToPositionMap,
+/**
+ * Convert a lezer `SyntaxNode` into a DAST tree.
+ */
+export function lezerToDast(
+    node: SyntaxNode | string,
+    source?: string,
+): DastRoot {
+    if (typeof node === "string") {
+        const tree = parser.parse(node);
+        source = node;
+        return _lezerToDast(tree.topNode, source);
+    }
+    if (source == null) {
+        throw new Error(
+            `If you provide a SyntaxNode, you must also provide the source string`,
         );
-        if (xastNode) {
-            ret.push(xastNode as Element);
-            if (lastNodeType === "text" && xastNode.type === "text") {
-                needsMerge = true;
-            }
-            lastNodeType = xastNode.type || "";
-        }
-        child = child.nextSibling;
     }
-
-    if (needsMerge) {
-        return mergeAdjacentTextNodes(ret);
-    }
-    return ret;
+    return _lezerToDast(node, source);
 }
 
-export function lezerNodeToDastNode(
-    node: SyntaxNode,
-    source: string,
-    offsetToPositionMap?: OffsetToPositionMap,
-): DastNodes | null {
-    if (!offsetToPositionMap) {
-        offsetToPositionMap = createOffsetToPositionMap(source);
+export function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
+    if (typeof node === "string") {
+        const tree = parser.parse(node);
+        source = node;
+        node = tree.topNode;
     }
-    const name = node.type.name as LezerSyntaxNodeName;
-    switch (name) {
-        case "Document": {
-            const root = lezerNodeToDastNodeWithoutChildren(
-                node,
-                source,
-                offsetToPositionMap,
-            ) as Root;
-            root.children.push(
-                ...lezerNodeChildrenToDastNode(
-                    node,
-                    source,
-                    offsetToPositionMap,
-                ),
-            );
-            return root;
+    const offsetMap = createOffsetToPositionMap(source);
+    return {
+        type: "root",
+        children: lezerNodeToDastNode(node),
+        position: lezerNodeToPosition(node, offsetMap),
+    };
+
+    function lezerNodeToDastNode(node: SyntaxNode): DastRootContent[] {
+        if (!node) {
+            throw new Error(`Expecting node but got ${JSON.stringify(node)}`);
         }
-        case "Element": {
-            const element = lezerNodeToDastNodeWithoutChildren(
-                node,
-                source,
-                offsetToPositionMap,
-            ) as Element;
-            if (!element) {
-                throw new Error(
-                    `Could not convert node "${node}" with contents "${extractContent(
+        const name = node.type.name as LezerSyntaxNodeName;
+        switch (name) {
+            case "Document":
+                return getLezerChildren(node).flatMap(lezerNodeToDastNode);
+            case "Element": {
+                const openTag =
+                    node.getChild("OpenTag") || node.getChild("SelfClosingTag");
+                if (!openTag) {
+                    console.warn(
+                        `Could not find open tag for element ${extractContent(
+                            node,
+                            source,
+                        )}`,
+                    );
+                    return [];
+                }
+                const tag = openTag.getChild("TagName");
+                const name = tag ? extractContent(tag, source) : "";
+                const children: DastElementContent[] = [];
+                const attributes: DastAttribute[] = [];
+                for (const attrTag of openTag.getChildren("Attribute")) {
+                    const error = findFirstErrorInChild(attrTag);
+                    if (error) {
+                        const errorNode = createErrorNode(
+                            error,
+                            source,
+                            offsetMap,
+                        );
+                        children.push(errorNode);
+                    }
+                    const attrName = attrTag.getChild("AttributeName");
+                    const attrValue = attrTag.getChild("AttributeValue");
+                    if (!attrName) {
+                        continue;
+                    }
+                    const attrChildren: DastAttribute["children"] = attrValue
+                        ? [
+                              {
+                                  type: "text",
+                                  value: attributeValueText(attrValue, source),
+                              },
+                          ]
+                        : [];
+                    // Attributes with no specified value are assigned the value "true".
+                    // E.g. `<foo bar />` is the same as `<foo bar="true" />`
+                    attributes.push({
+                        type: "attribute",
+                        name: extractContent(attrName, source),
+                        children: attrChildren,
+                        position: lezerNodeToPosition(attrTag, offsetMap),
+                    });
+                }
+                // Children get pushed after attributes so that any attribute errors will
+                // appear first.
+                children.push(
+                    ...getLezerChildren(node).flatMap(
+                        (n) => lezerNodeToDastNode(n) as DastElementContent[],
+                    ),
+                );
+
+                return [
+                    {
+                        type: "element",
+                        name,
+                        attributes,
+                        children,
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            }
+            case "Text":
+                return [
+                    {
+                        type: "text",
+                        value: textNodeToText(node, source),
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            case "CharacterReference":
+            case "EntityReference":
+                return [
+                    {
+                        type: "text",
+                        value: entityToString(node, source),
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            case "ProcessingInst": {
+                const fullContent = extractContent(node, source);
+                let value = fullContent.slice(2, fullContent.length - 2);
+                const match = value.match(/^[\w-]*/);
+                const name = match?.[0] || "";
+                if (name) {
+                    value = value.slice(name.length).trim();
+                }
+                return [
+                    {
+                        type: "instruction",
+                        name,
+                        value,
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            }
+            case "Comment": {
+                const fullContent = extractContent(node, source);
+                return [
+                    {
+                        type: "comment",
+                        value: fullContent.slice(4, fullContent.length - 3),
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            }
+            case "Cdata": {
+                const fullContent = extractContent(node, source);
+                return [
+                    {
+                        type: "cdata",
+                        value: fullContent.slice(9, fullContent.length - 3),
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
+            }
+            case "DoctypeDecl": {
+                // DocTypes look like <!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.0 Transitional//EN' 'http://www.w3.org/TR/REC-html40/loose.dtd'>
+                const fullContent = extractContent(node, source);
+                let value = fullContent.slice(10, fullContent.length - 1);
+                const doctypeInfo = extractDoctypeInfo(value);
+                return [
+                    {
+                        type: "doctype",
+                        ...doctypeInfo,
+                        position: lezerNodeToPosition(node, offsetMap),
+                    } as DastDoctype,
+                ];
+            }
+            case "Attribute":
+            case "AttributeName":
+            case "AttributeValue":
+            case "CloseTag":
+            case "EndTag":
+            case "Is":
+            case "OpenTag":
+            case "SelfCloseEndTag":
+            case "SelfClosingTag":
+            case "TagName":
+            case "StartTag":
+            case "StartCloseTag":
+            case "InvalidEntity":
+                return [];
+            case "MismatchedCloseTag": {
+                const parent = node.parent;
+                const openTag = parent?.getChild(OpenTag);
+                const closeTag = parent?.getChild(CloseTag);
+                if (!parent || !openTag) {
+                    const message = `Invalid DoenetML: Found closing tag ${extractContent(
                         node,
                         source,
-                    )}" to element node.`,
-                );
-            }
-            element.children.push(
-                ...(lezerNodeChildrenToDastNode(
+                    )}, but no corresponding opening tag`;
+                    return [
+                        {
+                            type: "error",
+                            message,
+                            position: lezerNodeToPosition(node, offsetMap),
+                        },
+                    ];
+                }
+                // If we have a parent, check to see if we also have a close tag.
+                // This could arise in code like `<foo></bar></foo>`
+                if (closeTag) {
+                    const message = `Invalid DoenetML: Found closing tag ${extractContent(
+                        node,
+                        source,
+                    )}, but no corresponding opening tag`;
+
+                    return [
+                        {
+                            type: "error",
+                            message,
+                            position: lezerNodeToPosition(node, offsetMap),
+                        },
+                    ];
+                }
+                // In this case, there was an open tag, a mismatched close tag, but no actual close tag.
+                // E.g. `<foo>bar</baz>`
+                const tagNameTag = openTag.getChild(TagName);
+                const openTagName = tagNameTag
+                    ? extractContent(tagNameTag, source)
+                    : "";
+                const message = `Invalid DoenetML: Mismatched closing tag. Expected </${openTagName}>. Found ${extractContent(
                     node,
                     source,
-                    offsetToPositionMap,
-                ) as Element["children"]),
-            );
+                )}`;
 
-            return element;
-        }
-        case "Text":
-            return {
-                type: "text",
-                value: textNodeToText(node, source),
-                position: lezerNodeToPosition(node, offsetToPositionMap),
-            };
-        case "CharacterReference":
-        case "EntityReference":
-            return {
-                type: "text",
-                value: entityToString(node, source),
-                position: lezerNodeToPosition(node, offsetToPositionMap),
-            };
-        case "ProcessingInst": {
-            const fullContent = extractContent(node, source);
-            let value = fullContent.slice(2, fullContent.length - 2);
-            const match = value.match(/^[\w-]*/);
-            const name = match?.[0] || "";
-            if (name) {
-                value = value.slice(name.length).trim();
+                return [
+                    {
+                        type: "error",
+                        message,
+                        position: lezerNodeToPosition(node, offsetMap),
+                    },
+                ];
             }
-            return {
-                type: "instruction",
-                name,
-                value,
-                position: lezerNodeToPosition(node, offsetToPositionMap),
-            };
+            case "MissingCloseTag":
+            case "⚠":
+                return [];
+            default:
+                const unhandledName: never = name;
+                console.log(
+                    `Encountered Lezer node of unknown type ${unhandledName}`,
+                );
         }
-        case "Comment": {
-            const fullContent = extractContent(node, source);
-            return {
-                type: "comment",
-                value: fullContent.slice(4, fullContent.length - 3),
-                position: lezerNodeToPosition(node, offsetToPositionMap),
-            };
-        }
-        case "Cdata": {
-            const ret = lezerNodeToDastNodeWithoutChildren(
-                node,
-                source,
-                offsetToPositionMap,
-            );
-            if (!ret) {
-                throw new Error(`Could not convert node ${node} to Dast node.`);
-            }
-            return ret;
-        }
-        case "DoctypeDecl": {
-            const ret = lezerNodeToDastNodeWithoutChildren(
-                node,
-                source,
-                offsetToPositionMap,
-            );
-            if (!ret) {
-                throw new Error(`Could not convert node ${node} to Dast node.`);
-            }
-            return ret;
-        }
-
-        case "Attribute":
-        case "AttributeName":
-        case "AttributeValue":
-        case "CloseTag":
-        case "EndTag":
-        case "Is":
-        case "MismatchedCloseTag":
-        case "MissingCloseTag":
-        case "OpenTag":
-        case "SelfCloseEndTag":
-        case "SelfClosingTag":
-        case "TagName":
-        case "StartTag":
-        case "StartCloseTag":
-        case "InvalidEntity":
-        case "⚠":
-            return lezerNodeToDastNodeWithoutChildren(node, source, offsetToPositionMap);
-        default:
-            const unhandledName: never = name;
-            console.log(
-                `Encountered Lezer node of unknown type ${unhandledName}`,
-            );
+        return [];
     }
-    return null;
 }

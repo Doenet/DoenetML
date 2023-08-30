@@ -30,8 +30,10 @@ export type Position = UnistLiteral["position"] & {};
 /**
  * Info associated with an element.
  */
-export interface DastAttribute {
-    [name: string]: string | null | undefined;
+export interface DastAttribute extends DastAbstractNode {
+    type: "attribute";
+    name: string;
+    children: DastText[];
 }
 
 /**
@@ -75,6 +77,7 @@ export interface ElementContentMap {
     element: DastElement;
     instruction: DastInstruction;
     text: DastText;
+    error: DastError;
 }
 
 /**
@@ -100,6 +103,7 @@ export interface RootContentMap {
     element: DastElement;
     instruction: DastInstruction;
     text: DastText;
+    error: DastError;
 }
 
 // ### Special content types
@@ -294,7 +298,7 @@ export interface DastElement extends DastParent {
     /**
      * Info associated with the element.
      */
-    attributes: DastAttribute;
+    attributes: DastAttribute[];
     /**
      * Children of element.
      */
@@ -353,3 +357,11 @@ export interface DastText extends DastLiteral {
  * Info associated with xast texts by the ecosystem.
  */
 export interface TextData extends Data {}
+
+export interface DastError extends DastAbstractNode {
+    type: "error";
+    message: string;
+    data?: ErrorData;
+}
+
+export interface ErrorData extends Data {}
