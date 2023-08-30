@@ -13335,15 +13335,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -13584,15 +13584,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -13934,15 +13934,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -14183,15 +14183,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -14533,15 +14533,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -14782,15 +14782,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");
@@ -15132,15 +15132,15 @@ describe("Copy Tag Tests", function () {
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             let c2p =
-                stateVariables["/_document1"].activeChildren[7].componentName;
+                stateVariables["/_document1"].activeChildren[6].componentName;
             let c4p =
-                stateVariables["/_document1"].activeChildren[11].componentName;
+                stateVariables["/_document1"].activeChildren[10].componentName;
             let c6p =
-                stateVariables["/_document1"].activeChildren[15].componentName;
+                stateVariables["/_document1"].activeChildren[14].componentName;
             let c7s =
-                stateVariables["/_document1"].activeChildren[17].componentName;
+                stateVariables["/_document1"].activeChildren[16].componentName;
             let c9s =
-                stateVariables["/_document1"].activeChildren[21].componentName;
+                stateVariables["/_document1"].activeChildren[20].componentName;
 
             cy.get(cesc2("#" + c2p)).should("have.text", "values: 1 2 3");
             cy.get(cesc2("#" + c4p)).should("have.text", "values: 1 2 3");

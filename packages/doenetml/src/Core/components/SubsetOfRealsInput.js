@@ -81,6 +81,8 @@ export default class SubsetOfRealsInput extends BlockComponent {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
+            toLowerCase: true,
+            validValues: ["text", "latex"],
         };
         attributes.prefill = {
             createComponentOfType: "text",

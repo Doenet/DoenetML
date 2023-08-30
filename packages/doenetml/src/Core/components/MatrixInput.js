@@ -102,6 +102,8 @@ export class MatrixInput extends Input {
             createStateVariable: "format",
             defaultValue: "text",
             public: true,
+            toLowerCase: true,
+            validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
             createComponentOfType: "textList",

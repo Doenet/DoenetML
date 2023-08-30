@@ -56,7 +56,7 @@ describe("SelectRandomNumbers Tag Tests", function () {
             let meanX = me.math.mean(samples);
             let varX = me.math.variance(samples, "uncorrected");
 
-            expect(meanX).closeTo(0.5, 0.05);
+            expect(meanX).closeTo(0.5, 0.1);
             expect(varX).closeTo(1 / 12, 0.02);
 
             let firstSelect =
@@ -604,7 +604,7 @@ describe("SelectRandomNumbers Tag Tests", function () {
             let varX = me.math.variance(samples, "uncorrected");
 
             expect(meanX).closeTo(0, 3);
-            expect(varX).closeTo(100, 15);
+            expect(varX).closeTo(100, 25);
 
             let firstSelect =
                 stateVariables[

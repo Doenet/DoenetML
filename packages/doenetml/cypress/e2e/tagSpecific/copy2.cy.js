@@ -4444,7 +4444,7 @@ describe("Copy Tag Tests", function () {
             expect(stateVariables["/_copy1"]).eq(undefined);
 
             let secondTextComponentName =
-                stateVariables["/_document1"].activeChildren[3].componentName;
+                stateVariables["/_document1"].activeChildren[2].componentName;
             expect(
                 stateVariables[secondTextComponentName].stateValues.value,
             ).eq("hi");
